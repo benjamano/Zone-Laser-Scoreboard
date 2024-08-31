@@ -8,10 +8,18 @@ try:
     
     #from waitress import serve
     
-    from scapy.all import get_if_list
-    
-    print(get_if_list())
-    
+    from scapy.all import get_if_list, get_if_addr, get_if_hwaddr
+
+    interfaces = get_if_list()
+
+    for iface in interfaces:
+            try:
+                ip = get_if_addr(iface)
+                mac = get_if_hwaddr(iface)
+                print(f"Interface: {iface} | IP Address: {ip} | MAC Address: {mac}")
+            except Exception as e:
+                print(f"Could not retrieve information for interface {iface}: {e}")
+                
     import webApp as webApp
     import eventlet
     

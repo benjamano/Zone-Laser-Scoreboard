@@ -16,7 +16,7 @@ socketio.init_app(app)
 IP1 = "127.0.0.1"
 IP2 = "192.168.1.20"
 
-
+ETHERNET_INTERFACE = "Ethernet"
 
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
 
@@ -42,7 +42,7 @@ def packet_callback(packet):
             socketio.emit('packet_data', {'data': packet_info})
 
 def start_sniffing():
-    sniff(filter="ip", prn=packet_callback, store=0)
+    sniff(filter="ip", prn=packet_callback, store=0, iface=ETHERNET_INTERFACE)
 
 
 
