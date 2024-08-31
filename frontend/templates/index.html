@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Real-Time Packet Sniffer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+    <h1>Real-Time Packet Sniffer</h1>
+    <div id="messages"></div>
+
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            socket.emit('client_event', {data: 'Client connected!'});
+        });
+
+        socket.on('packet_data', function(msg) {
+            var messageDiv = document.getElementById('messages');
+            messageDiv.innerHTML += '<p>' + msg.data + '</p>';
+        });
+    </script>
+</body>
+</html>
