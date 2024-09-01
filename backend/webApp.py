@@ -66,12 +66,14 @@ def callback():
 
     token_info = token_response.json()
     session['access_token'] = token_info['access_token']
+    
+    print(token_info)
 
     return 'Access token retrieved! You can now control playback.'
 
 @app.route('/pause')
 def pause_playback():
-    access_token = session.get('access_token')
+    access_token = session['access_token']
     if not access_token:
         return jsonify({'error': 'No access token available.'}), 400
     
@@ -87,7 +89,7 @@ def pause_playback():
 
 @app.route('/play')
 def resume_playback():
-    access_token = session.get('access_token')
+    access_token = session['access_token']
     if not access_token:
         return jsonify({'error': 'No access token available.'}), 400
     
