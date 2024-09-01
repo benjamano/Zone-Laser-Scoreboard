@@ -10,7 +10,7 @@ class start:
         self.install(["flask_socketio"])
         self.install(["threading"])
         self.install(["eventlet"])
-        self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf","pystray","requests"]) 
+        self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf","pystray","requests","ctypes","win32api","win32con"]) 
         
     def install(self, LibaryNames):
         for LibaryName in LibaryNames:

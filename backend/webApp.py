@@ -5,6 +5,10 @@ from scapy.all import sniff, conf, IP
 import threading
 import sys
 import requests
+import ctypes
+from ctypes import wintypes
+import win32api
+import win32con
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -19,6 +23,11 @@ socketio.init_app(app)
 AUTH_URL = 'https://accounts.spotify.com/authorize'
 TOKEN_URL = 'https://accounts.spotify.com/api/token'
 SCOPE = 'user-modify-playback-state'
+
+WM_APPCOMMAND = 0x0319
+APPCOMMAND_PLAY_PAUSE = 0x0000
+APPCOMMAND_NEXT = 0x000B
+APPCOMMAND_PREV = 0x000C
 
 try:
     with open("data/keys.txt", "r") as f:
@@ -72,39 +81,9 @@ def index():
 
 #     return 'Access token retrieved! You can now control playback.'
 
-@app.route('/pause')
-def pause_playback():
-    access_token = ACCESS_TOKEN
-    if not access_token:
-        return jsonify({'error': 'No access token available.'}), 400
-    
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
-    response = requests.post('https://api.spotify.com/v1/me/player/pause', headers=headers)
-    
-    if response.status_code == 204:
-        return jsonify({'message': 'Playback paused'})
-    else:
-        return jsonify({'error': f'Failed to pause playback: {response.status_code} - {response.text}'}), response.status_code
-
 @app.route('/play')
 def resume_playback():
-    access_token = ACCESS_TOKEN
-    if not access_token:
-        return jsonify({'error': 'No access token available.'}), 400
-    
-    headers = {
-        'Authorization': f'Bearer {access_token}'
-    }
-    response = requests.post('https://api.spotify.com/v1/me/player/play', headers=headers)
-    
-    if response.status_code == 204:
-        return jsonify({'message': 'Playback resumed'})
-    else:
-        return jsonify({'error': f'Failed to resume playback: {response.status_code} - {response.text}'}), response.status_code
-
-
+    play_pause()
 
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
@@ -160,6 +139,23 @@ def handle_client_event(json):
     
     
 # ----------------------------------------------------------------------------------------------------------- #
+
+def send_media_key(app_command):
+    ctypes.windll.user32.SendMessageW(
+        win32api.GetForegroundWindow(),
+        WM_APPCOMMAND,
+        0,
+        app_command << 16
+    )
+
+def play_pause():
+    send_media_key(APPCOMMAND_PLAY_PAUSE)
+
+def next_track():
+    send_media_key(APPCOMMAND_NEXT)
+
+def previous_track():
+    send_media_key(APPCOMMAND_PREV)
 
 sniffing_thread = threading.Thread(target=start_sniffing)
 sniffing_thread.daemon = True 
