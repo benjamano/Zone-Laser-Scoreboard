@@ -28,6 +28,7 @@ try:
         IP1 = str(f.readline().strip())
         IP2 = str(f.readline().strip())
         ETHERNET_INTERFACE = str(f.readline().strip())        
+        ACCESS_TOKEN = str(f.readline().strip())
         
 except Exception as e:
     print(f"An error occured while reading the file: {e}")
@@ -41,39 +42,39 @@ except Exception as e:
 def index():
     return render_template('index.html')
 
-@app.route('/login')
-def login():
-    auth_url = f"{AUTH_URL}?response_type=code&client_id={ClientId}&scope={SCOPE}&redirect_uri={REDIRECT_URI}"
-    return redirect(auth_url)
+# @app.route('/login')
+# def login():
+#     auth_url = f"{AUTH_URL}?response_type=code&client_id={ClientId}&scope={SCOPE}&redirect_uri={REDIRECT_URI}"
+#     return redirect(auth_url)
 
-@app.route('/callback')
-def callback():
-    code = request.args.get('code')
-    if not code:
-        return 'Authorization failed', 400
+# @app.route('/callback')
+# def callback():
+#     code = request.args.get('code')
+#     if not code:
+#         return 'Authorization failed', 400
 
-    token_data = {
-        'grant_type': 'authorization_code',
-        'code': code,
-        'redirect_uri': REDIRECT_URI,
-        'client_id': ClientId,
-        'client_secret': ClientSecret
-    }
+#     token_data = {
+#         'grant_type': 'authorization_code',
+#         'code': code,
+#         'redirect_uri': REDIRECT_URI,
+#         'client_id': ClientId,
+#         'client_secret': ClientSecret
+#     }
     
-    token_response = requests.post(TOKEN_URL, data=token_data)
-    if token_response.status_code != 200:
-        return 'Failed to retrieve access token', 400
+#     token_response = requests.post(TOKEN_URL, data=token_data)
+#     if token_response.status_code != 200:
+#         return 'Failed to retrieve access token', 400
 
-    token_info = token_response.json()
-    session['access_token'] = token_info['access_token']
+#     token_info = token_response.json()
+#     session['access_token'] = token_info['access_token']
     
-    print(token_info)
+#     print(token_info)
 
-    return 'Access token retrieved! You can now control playback.'
+#     return 'Access token retrieved! You can now control playback.'
 
 @app.route('/pause')
 def pause_playback():
-    access_token = session['access_token']
+    access_token = ACCESS_TOKEN
     if not access_token:
         return jsonify({'error': 'No access token available.'}), 400
     
@@ -89,7 +90,7 @@ def pause_playback():
 
 @app.route('/play')
 def resume_playback():
-    access_token = session['access_token']
+    access_token = ACCESS_TOKEN
     if not access_token:
         return jsonify({'error': 'No access token available.'}), 400
     
