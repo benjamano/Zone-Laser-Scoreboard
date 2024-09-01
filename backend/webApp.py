@@ -7,8 +7,8 @@ import sys
 import requests
 import ctypes
 from ctypes import wintypes
-import win32api
-import win32con
+import pywin32
+import pypiwin32
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -142,7 +142,7 @@ def handle_client_event(json):
 
 def send_media_key(app_command):
     ctypes.windll.user32.SendMessageW(
-        win32api.GetForegroundWindow(),
+        pywin32.GetForegroundWindow(),
         WM_APPCOMMAND,
         0,
         app_command << 16
