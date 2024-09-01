@@ -82,7 +82,7 @@ def pause_playback():
     if response.status_code == 204:
         return jsonify({'message': 'Playback paused'})
     else:
-        return jsonify({'error': f'Failed to pause playback: {response.json()}'})
+        return jsonify({'error': f'Failed to pause playback: {response}'})
 
 @app.route('/play')
 def resume_playback():
@@ -97,7 +97,7 @@ def resume_playback():
     if response.status_code == 204:
         return jsonify({'message': 'Playback resumed'})
     else:
-        return jsonify({'error': f'Failed to resume playback: {response.json()}'})
+        return jsonify({'error': f'Failed to resume playback: {response}'})
 
 
 
