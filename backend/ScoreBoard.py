@@ -1,5 +1,9 @@
-import __init__ as init
 import sys
+
+try:
+    import __init__ as init
+except Exception as e:
+    sys.exit(f"An error occured: {e}")    
 
 try:
     init.start()
