@@ -20,7 +20,7 @@ TOKEN_URL = 'https://accounts.spotify.com/api/token'
 SCOPE = 'user-modify-playback-state'
 
 try:
-    with open("/data/keys.txt", "r") as f:
+    with open("data/keys.txt", "r") as f:
         ClientId = f.readline().strip()
         ClientSecret = f.readline().strip()
         REDIRECT_URI = str(f.readline().strip())
