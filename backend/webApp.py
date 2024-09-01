@@ -79,10 +79,11 @@ def pause_playback():
         'Authorization': f'Bearer {access_token}'
     }
     response = requests.post('https://api.spotify.com/v1/me/player/pause', headers=headers)
+    
     if response.status_code == 204:
         return jsonify({'message': 'Playback paused'})
     else:
-        return jsonify({'error': f'Failed to pause playback: {response}'})
+        return jsonify({'error': f'Failed to pause playback: {response.status_code} - {response.text}'}), response.status_code
 
 @app.route('/play')
 def resume_playback():
@@ -94,10 +95,11 @@ def resume_playback():
         'Authorization': f'Bearer {access_token}'
     }
     response = requests.post('https://api.spotify.com/v1/me/player/play', headers=headers)
+    
     if response.status_code == 204:
         return jsonify({'message': 'Playback resumed'})
     else:
-        return jsonify({'error': f'Failed to resume playback: {response}'})
+        return jsonify({'error': f'Failed to resume playback: {response.status_code} - {response.text}'}), response.status_code
 
 
 
