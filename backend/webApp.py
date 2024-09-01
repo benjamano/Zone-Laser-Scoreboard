@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
-from scapy.all import sniff, IP
+from scapy.all import sniff, conf, IP
 import threading
 
 db = SQLAlchemy()
@@ -13,8 +13,8 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
 db.init_app(app)
 socketio.init_app(app)
 
-IP1 = "127.0.0.1"
-IP2 = "192.168.1.20"
+IP1 = "192.168.2.60"
+IP2 = "192.168.2.42"
 
 ETHERNET_INTERFACE = r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}"
 
@@ -24,25 +24,24 @@ ETHERNET_INTERFACE = r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}"
 
 @app.route('/')
 def index():
+    threading.Thread(target=start_sniffing).start()
     return render_template('index.html')
 
 
 
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
-
-
 def packet_callback(packet):
     if packet.haslayer(IP):
-        src_ip = packet[IP].src
-        dst_ip = packet[IP].dst
-        
-        if (src_ip == IP1 and dst_ip == IP2) or (src_ip == IP2 and dst_ip == IP1):
-            packet_info = f"{src_ip} -> {dst_ip}: {packet.summary()}"
-            socketio.emit('packet_data', {'data': packet_info})
+        if packet[IP].src == IP1 or packet[IP].src == IP2:
+            print(packet.show())
+            print(bytes(packet))
 
 def start_sniffing():
-    sniff(filter="ip", prn=packet_callback, store=0, iface=ETHERNET_INTERFACE)
+    conf.L3socket = conf.L3socket
+    
+    print("Starting packet sniffer...")
+    sniff(prn=packet_callback, store=False)
 
 
 
@@ -64,10 +63,3 @@ def handle_client_event(json):
     
     
 # ----------------------------------------------------------------------------------------------------------- #
-    
-    
-    
-if __name__ == '__main__':
-    sniffing_thread = threading.Thread(target=start_sniffing)
-    sniffing_thread.daemon = True
-    sniffing_thread.start()

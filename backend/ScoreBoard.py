@@ -11,14 +11,6 @@ try:
     print("\n|----------------------------------------------------------------------------------------------------|\n")
     
     #from waitress import serve
-    
-    import pyshark
-
-    interfaces = pyshark.tshark.tshark.get_tshark_interfaces()
-
-    for interface in interfaces:
-        print(interface)
-
         
     import webApp as webApp
     import eventlet
