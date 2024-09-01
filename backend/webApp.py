@@ -5,6 +5,7 @@ from scapy.all import sniff, conf, IP
 import threading
 import sys
 import requests
+import jsonify
 
 db = SQLAlchemy()
 socketio = SocketIO()
