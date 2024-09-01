@@ -8,7 +8,6 @@ import requests
 import ctypes
 from ctypes import wintypes
 import pywin32
-import pypiwin32
 
 db = SQLAlchemy()
 socketio = SocketIO()
