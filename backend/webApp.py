@@ -4,10 +4,8 @@ from flask_socketio import SocketIO, emit
 from scapy.all import sniff, conf, IP
 import threading
 import sys
-import requests
 import ctypes
-from ctypes import wintypes
-import pywin32
+import pyautogui
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -29,7 +27,7 @@ APPCOMMAND_NEXT = 0x000B
 APPCOMMAND_PREV = 0x000C
 
 try:
-    with open("data/keys.txt", "r") as f:
+    with open(r"data/keys.txt", "r") as f:
         ClientId = f.readline().strip()
         ClientSecret = f.readline().strip()
         REDIRECT_URI = str(f.readline().strip())
@@ -40,7 +38,25 @@ try:
         
 except Exception as e:
     print(f"An error occured while reading the file: {e}")
-    sys.exit()
+    print(f"Falling back to dev location")
+    
+    try:
+        with open(r"backend\data\keys.txt", "r") as f:
+            ClientId = f.readline().strip()
+            ClientSecret = f.readline().strip()
+            REDIRECT_URI = str(f.readline().strip())
+            IP1 = str(f.readline().strip())
+            IP2 = str(f.readline().strip())
+            ETHERNET_INTERFACE = str(f.readline().strip())        
+            ACCESS_TOKEN = str(f.readline().strip())
+            
+        print("Dev location found")
+            
+    except Exception as e:
+        print(f"An error occured while reading the file: {e}")
+        sys.exit("An error occured while reading the file.")
+    
+    
     
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
 
@@ -50,39 +66,12 @@ except Exception as e:
 def index():
     return render_template('index.html')
 
-# @app.route('/login')
-# def login():
-#     auth_url = f"{AUTH_URL}?response_type=code&client_id={ClientId}&scope={SCOPE}&redirect_uri={REDIRECT_URI}"
-#     return redirect(auth_url)
 
-# @app.route('/callback')
-# def callback():
-#     code = request.args.get('code')
-#     if not code:
-#         return 'Authorization failed', 400
-
-#     token_data = {
-#         'grant_type': 'authorization_code',
-#         'code': code,
-#         'redirect_uri': REDIRECT_URI,
-#         'client_id': ClientId,
-#         'client_secret': ClientSecret
-#     }
-    
-#     token_response = requests.post(TOKEN_URL, data=token_data)
-#     if token_response.status_code != 200:
-#         return 'Failed to retrieve access token', 400
-
-#     token_info = token_response.json()
-#     session['access_token'] = token_info['access_token']
-    
-#     print(token_info)
-
-#     return 'Access token retrieved! You can now control playback.'
-
-@app.route('/play')
+@app.route('/toggle')
 def resume_playback():
-    play_pause()
+    pyautogui.press('playpause')
+    
+    return jsonify({'message': 'Playback toggled'})
 
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
@@ -100,27 +89,19 @@ def packet_callback(packet):
         
         
         socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
-    
-    
-    # if packet.haslayer(IP) and (packet[IP].dst == "192.168.1.126"):
-    #     packet_info = packet.show(dump=True)
-    #     packet_bytes = bytes(packet).hex()
-    #     socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
-        
-    
-    #packet_info = packet.show(dump=True)
-    #packet_bytes = bytes(packet).hex()
-    
-    #print(packet)
-    #socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
         
 
 def start_sniffing():
     conf.L3socket = conf.L3socket
     print("Starting packet sniffer...")
-    sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
-    #sniff(prn=packet_callback, store=False)
-
+    try:
+        sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
+    except:
+        try:
+            sniff(prn=packet_callback, store=False)
+        except Exception as e:
+            print(f"An error occured while sniffing: {e}")
+            sys.exit("An error occured while sniffing.")
 
 # ---------------------------------------------| SOCKET HANDLING |------------------------------------------- #
 
@@ -141,7 +122,7 @@ def handle_client_event(json):
 
 def send_media_key(app_command):
     ctypes.windll.user32.SendMessageW(
-        pywin32.GetForegroundWindow(),
+        win32api.GetForegroundWindow(),
         WM_APPCOMMAND,
         0,
         app_command << 16
