@@ -1,11 +1,10 @@
-from flask import Flask, render_template, redirect, request, session
+from flask import Flask, render_template, redirect, request, session, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 from scapy.all import sniff, conf, IP
 import threading
 import sys
 import requests
-import jsonify
 
 db = SQLAlchemy()
 socketio = SocketIO()
