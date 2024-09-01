@@ -6,6 +6,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
 </head>
 <body>
+    <h1>Spotify Playback Control</h1>
+    <button onclick="controlPlayback('pause')">Pause Playback</button>
+    <button onclick="controlPlayback('play')">Resume Playback</button>
     <h1>Real-Time Packet Sniffer</h1>
     <div id="messages"></div>
 
@@ -20,6 +23,12 @@
             var messageDiv = document.getElementById('messages');
             messageDiv.innerHTML += '<p>' + msg.data + '</p>';
         });
+
+        async function controlPlayback(action) {
+            const response = await fetch(`/${action}`);
+            const result = await response.json();
+            alert(result.message || result.error);
+        }
     </script>
 </body>
 </html>

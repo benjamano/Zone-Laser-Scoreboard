@@ -1,8 +1,10 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, redirect, request, session
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 from scapy.all import sniff, conf, IP
 import threading
+import sys
+import requests
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -13,10 +15,23 @@ app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
 db.init_app(app)
 socketio.init_app(app)
 
-IP1 = "192.168.2.60"
-IP2 = "192.168.2.42"
+AUTH_URL = 'https://accounts.spotify.com/authorize'
+TOKEN_URL = 'https://accounts.spotify.com/api/token'
+SCOPE = 'user-modify-playback-state'
 
-ETHERNET_INTERFACE = r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}"
+try:
+    with open("/data/keys.txt", "r") as f:
+        ClientId = f.readline().strip()
+        ClientSecret = f.readline().strip()
+        REDIRECT_URI = str(f.readline().strip())
+        IP1 = str(f.readline().strip())
+        IP2 = str(f.readline().strip())
+        ETHERNET_INTERFACE = str(f.readline().strip())        
+        
+except Exception as e:
+    print(f"An error occured while reading the file: {e}")
+    sys.exit()
+    
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
 
 
@@ -24,6 +39,64 @@ ETHERNET_INTERFACE = r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}"
 @app.route('/')
 def index():
     return render_template('index.html')
+
+@app.route('/login')
+def login():
+    auth_url = f"{AUTH_URL}?response_type=code&client_id={ClientId}&scope={SCOPE}&redirect_uri={REDIRECT_URI}"
+    return redirect(auth_url)
+
+@app.route('/callback')
+def callback():
+    code = request.args.get('code')
+    if not code:
+        return 'Authorization failed', 400
+
+    token_data = {
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': REDIRECT_URI,
+        'client_id': ClientId,
+        'client_secret': ClientSecret
+    }
+    
+    token_response = requests.post(TOKEN_URL, data=token_data)
+    if token_response.status_code != 200:
+        return 'Failed to retrieve access token', 400
+
+    token_info = token_response.json()
+    session['access_token'] = token_info['access_token']
+
+    return 'Access token retrieved! You can now control playback.'
+
+@app.route('/pause')
+def pause_playback():
+    access_token = session.get('access_token')
+    if not access_token:
+        return jsonify({'error': 'No access token available.'}), 400
+    
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+    response = requests.post('https://api.spotify.com/v1/me/player/pause', headers=headers)
+    if response.status_code == 204:
+        return jsonify({'message': 'Playback paused'})
+    else:
+        return jsonify({'error': f'Failed to pause playback: {response.json()}'})
+
+@app.route('/play')
+def resume_playback():
+    access_token = session.get('access_token')
+    if not access_token:
+        return jsonify({'error': 'No access token available.'}), 400
+    
+    headers = {
+        'Authorization': f'Bearer {access_token}'
+    }
+    response = requests.post('https://api.spotify.com/v1/me/player/play', headers=headers)
+    if response.status_code == 204:
+        return jsonify({'message': 'Playback resumed'})
+    else:
+        return jsonify({'error': f'Failed to resume playback: {response.json()}'})
 
 
 
