@@ -16,7 +16,7 @@ socketio.init_app(app)
 IP1 = "127.0.0.1"
 IP2 = "192.168.1.20"
 
-ETHERNET_INTERFACE = "Ethernet"
+ETHERNET_INTERFACE = r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}"
 
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
 

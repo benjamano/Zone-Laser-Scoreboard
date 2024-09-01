@@ -12,18 +12,14 @@ try:
     
     #from waitress import serve
     
-    from scapy.all import get_if_list, get_if_addr, get_if_hwaddr
+    import pyshark
 
-    interfaces = get_if_list()
+    interfaces = pyshark.tshark.tshark.get_tshark_interfaces()
 
-    for iface in interfaces:
-            try:
-                ip = get_if_addr(iface)
-                mac = get_if_hwaddr(iface)
-                print(f"Interface: {iface} | IP Address: {ip} | MAC Address: {mac}")
-            except Exception as e:
-                print(f"Could not retrieve information for interface {iface}: {e}")
-                
+    for interface in interfaces:
+        print(interface)
+
+        
     import webApp as webApp
     import eventlet
     
