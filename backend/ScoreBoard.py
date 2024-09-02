@@ -2,6 +2,7 @@ import sys
 
 try:
     import __init__ as init
+    import func.format as format
 except Exception as e:
     sys.exit(f"An error occured: {e}")    
 

@@ -7,6 +7,11 @@ import sys
 import ctypes
 import pyautogui
 
+try:
+    from func import format
+except:
+    sys.exit("Failed to import format tools")
+
 db = SQLAlchemy()
 socketio = SocketIO()
 
@@ -17,43 +22,45 @@ app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
 db.init_app(app)
 socketio.init_app(app)
 
-AUTH_URL = 'https://accounts.spotify.com/authorize'
-TOKEN_URL = 'https://accounts.spotify.com/api/token'
-SCOPE = 'user-modify-playback-state'
-
 WM_APPCOMMAND = 0x0319
 APPCOMMAND_PLAY_PAUSE = 0x0000
 APPCOMMAND_NEXT = 0x000B
 APPCOMMAND_PREV = 0x000C
 
 try:
+    with open(r"data/dev.txt") as f:
+        devMode = str(f.readline().strip())
+except:
+    try:
+        with open(r"backend\data\dev.txt") as f:
+            devMode = str(f.readline().strip())
+        
+        format.message(f"Developer mode is {devMode}")
+    except:
+        devMode = False
+        pass
+
+try:
     with open(r"data/keys.txt", "r") as f:
-        ClientId = f.readline().strip()
-        ClientSecret = f.readline().strip()
-        REDIRECT_URI = str(f.readline().strip())
         IP1 = str(f.readline().strip())
         IP2 = str(f.readline().strip())
         ETHERNET_INTERFACE = str(f.readline().strip())        
-        ACCESS_TOKEN = str(f.readline().strip())
-        
+
 except Exception as e:
-    print(f"An error occured while reading the file: {e}")
-    print(f"Falling back to dev location")
-    
+    format.message(f"An error occured while reading the file: {e}", type="error")
+    format.message("Falling back to dev location", type="info")
+
     try:
         with open(r"backend\data\keys.txt", "r") as f:
-            ClientId = f.readline().strip()
-            ClientSecret = f.readline().strip()
-            REDIRECT_URI = str(f.readline().strip())
             IP1 = str(f.readline().strip())
             IP2 = str(f.readline().strip())
-            ETHERNET_INTERFACE = str(f.readline().strip())        
-            ACCESS_TOKEN = str(f.readline().strip())
+            ETHERNET_INTERFACE = str(f.readline().strip())   
             
-        print("Dev location found")
+        format.message("Dev location found", type="success")
+        
             
     except Exception as e:
-        print(f"An error occured while reading the file: {e}")
+        format.message(f"An error occured while reading the file: {e}", type="error")
         sys.exit("An error occured while reading the file.")
     
     
