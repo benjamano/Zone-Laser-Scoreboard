@@ -6,10 +6,12 @@ import threading
 import sys
 import ctypes
 import pyautogui
-import win32api
-import win32con
-import win32gui
-import win32process
+import psutil
+
+try:
+    from func import format
+except:
+    sys.exit("Failed to import format tools")
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -21,43 +23,46 @@ app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
 db.init_app(app)
 socketio.init_app(app)
 
-AUTH_URL = 'https://accounts.spotify.com/authorize'
-TOKEN_URL = 'https://accounts.spotify.com/api/token'
-SCOPE = 'user-modify-playback-state'
-
+mediaPlayers = ['spotify', 'vlc', 'itunes', 'wmplayer', 'chrome']
 WM_APPCOMMAND = 0x0319
 APPCOMMAND_PLAY_PAUSE = 0x0000
 APPCOMMAND_NEXT = 0x000B
 APPCOMMAND_PREV = 0x000C
 
 try:
+    with open(r"data/dev.txt") as f:
+        devMode = str(f.readline().strip())
+except:
+    try:
+        with open(r"backend\data\dev.txt") as f:
+            devMode = str(f.readline().strip())
+        
+        format.message(f"Developer mode is {devMode}")
+    except:
+        devMode = False
+        pass
+
+try:
     with open(r"data/keys.txt", "r") as f:
-        ClientId = f.readline().strip()
-        ClientSecret = f.readline().strip()
-        REDIRECT_URI = str(f.readline().strip())
         IP1 = str(f.readline().strip())
         IP2 = str(f.readline().strip())
         ETHERNET_INTERFACE = str(f.readline().strip())        
-        ACCESS_TOKEN = str(f.readline().strip())
-        
+
 except Exception as e:
-    print(f"An error occured while reading the file: {e}")
-    print(f"Falling back to dev location")
-    
+    format.message(f"An error occured while reading the file: {e}", type="error")
+    format.message("Falling back to dev location", type="info")
+
     try:
         with open(r"backend\data\keys.txt", "r") as f:
-            ClientId = f.readline().strip()
-            ClientSecret = f.readline().strip()
-            REDIRECT_URI = str(f.readline().strip())
             IP1 = str(f.readline().strip())
             IP2 = str(f.readline().strip())
-            ETHERNET_INTERFACE = str(f.readline().strip())        
-            ACCESS_TOKEN = str(f.readline().strip())
+            ETHERNET_INTERFACE = str(f.readline().strip())   
             
-        print("Dev location found")
+        format.message("Dev location found", type="success")
+        
             
     except Exception as e:
-        print(f"An error occured while reading the file: {e}")
+        format.message(f"An error occured while reading the file: {e}", type="error")
         sys.exit("An error occured while reading the file.")
     
     
@@ -73,7 +78,16 @@ def index():
 
 @app.route('/toggle')
 def resume_playback():
+    
     pyautogui.press('playpause')
+    
+    try:
+        isPlaying = any(proc.name().lower() in mediaPlayers for proc in psutil.process_iter())
+                      
+        format.message(f"Playing / Pausing\nSpotify is currently playing: {isPlaying}")
+        
+    except Exception as e:
+        format.message(f"Failed to check if music is playing: {e}", type="error")
     
     return jsonify({'message': 'Playback toggled'})
 
@@ -85,37 +99,40 @@ def packet_callback(packet):
         # Use packet.show() directly instead of packet.original.show()
         packet_info = packet.show(dump=True)
         packet_bytes = bytes(packet).hex()
-
-        with open("packet.txt", "a") as f:
+        
+        with open("packet.txt", "w") as f:
             f.write(str(packet_info))
             f.write("\n")
             f.write(str(packet_bytes))
             f.write("\n")
-
+            
+        format.message(f"Packet Data: {packet_info}\n\nPacket Bytes: {packet_bytes}")
+        
         socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
 
 def start_sniffing():
     print("Starting packet sniffer...")
     try:
         sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
-    except Exception as e:
-        print(f"An error occurred while sniffing: {e}")
-        sys.exit("An error occurred while sniffing.")
-        
-        
-        
+    except:
+        try:
+            sniff(prn=packet_callback, store=False)
+        except Exception as e:
+            format.message(f"An error occured while sniffing: {e}", type="error")
+            sys.exit("An error occured while sniffing.")
+
 # ---------------------------------------------| SOCKET HANDLING |------------------------------------------- #
 
 
 
 @socketio.on('connect')
 def handle_connect():
-    print("Client connected")
+    format.message("Sniffer Client connected", type="success")
     emit('server_response', {'message': 'Connected to the server!'})
 
 @socketio.on('client_event')
 def handle_client_event(json):
-    print(f"Received event: {json}")
+    format.message(f"Received event: {json}")
     emit('server_response', {'message': 'Received your event!'})
     
     
