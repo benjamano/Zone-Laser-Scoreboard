@@ -88,7 +88,7 @@ def packet_callback(packet):
         packet_info = packet.original.show(dump=True)
         packet_bytes = bytes(packet).hex()
         
-        with open("packet.txt", "a") as f:
+        with open("packet.txt", "w") as f:
             f.write(str(packet_info))
             f.write("\n")
             f.write(str(packet_bytes))
