@@ -6,6 +6,10 @@ import threading
 import sys
 import ctypes
 import pyautogui
+import win32api
+import win32con
+import win32gui
+import win32process
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -75,34 +79,31 @@ def resume_playback():
 
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
+
 def packet_callback(packet):
     if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2):
-        
-        packet_info = packet.original.show(dump=True)
+        # Use packet.show() directly instead of packet.original.show()
+        packet_info = packet.show(dump=True)
         packet_bytes = bytes(packet).hex()
-        
+
         with open("packet.txt", "a") as f:
             f.write(str(packet_info))
             f.write("\n")
             f.write(str(packet_bytes))
             f.write("\n")
-        
-        
+
         socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
-        
 
 def start_sniffing():
-    conf.L3socket = conf.L3socket
     print("Starting packet sniffer...")
     try:
         sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
-    except:
-        try:
-            sniff(prn=packet_callback, store=False)
-        except Exception as e:
-            print(f"An error occured while sniffing: {e}")
-            sys.exit("An error occured while sniffing.")
-
+    except Exception as e:
+        print(f"An error occurred while sniffing: {e}")
+        sys.exit("An error occurred while sniffing.")
+        
+        
+        
 # ---------------------------------------------| SOCKET HANDLING |------------------------------------------- #
 
 
