@@ -99,27 +99,23 @@ def packet_callback(packet):
         # Use packet.show() directly instead of packet.original.show()
         packet_info = packet.show(dump=True)
         packet_bytes = bytes(packet).hex()
-        
-        with open("packet.txt", "w") as f:
+
+        with open("packet.txt", "a") as f:
             f.write(str(packet_info))
             f.write("\n")
             f.write(str(packet_bytes))
             f.write("\n")
-            
-        format.message(f"Packet Data: {packet_info}\n\nPacket Bytes: {packet_bytes}")
-        
+
         socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
 
 def start_sniffing():
     print("Starting packet sniffer...")
     try:
         sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
-    except:
-        try:
-            sniff(prn=packet_callback, store=False)
-        except Exception as e:
-            format.message(f"An error occured while sniffing: {e}", type="error")
-            sys.exit("An error occured while sniffing.")
+    except Exception as e:
+        print(f"An error occurred while sniffing: {e}")
+        sys.exit("An error occurred while sniffing.")
+        
 
 # ---------------------------------------------| SOCKET HANDLING |------------------------------------------- #
 
