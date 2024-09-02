@@ -93,6 +93,8 @@ def packet_callback(packet):
             f.write("\n")
             f.write(str(packet_bytes))
             f.write("\n")
+            
+        format.message(f"Packet Data: {packet_info}\n\nPacket Bytes: {packet_bytes}")
         
         
         socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
