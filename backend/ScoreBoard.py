@@ -4,19 +4,15 @@ try:
     import __init__ as init
     import func.format as format
 except Exception as e:
-    sys.exit(f"An error occured: {e}")    
+    sys.exit(f"An error occurred: {e}")
 
-try:
-    init.start()
-    
-    print("\n|----------------------------------------------------------------------------------------------------|\n")
-    
-    #from waitress import serve
+
+def mainProgram():
+    try:
+        init.start()
+        print("\n|----------------------------------------------------------------------------------------------------|\n")
         
-    import webApp as webApp
-    import eventlet
-    
-    print("""
+        print("""
 ██╗░░░░░░█████╗░░██████╗███████╗██████╗░░░░░░░████████╗░█████╗░░██████╗░
 ██║░░░░░██╔══██╗██╔════╝██╔════╝██╔══██╗░░░░░░╚══██╔══╝██╔══██╗██╔════╝░
 ██║░░░░░███████║╚█████╗░█████╗░░██████╔╝█████╗░░░██║░░░███████║██║░░██╗░
@@ -37,15 +33,14 @@ try:
 ██╔══██╗░░╚██╔╝░░  ██╔══██╗██╔══╝░░██║╚████║  ██║╚██╔╝██║██╔══╝░░██╔══██╗██║░░██╗██╔══╝░░██╔══██╗
 ██████╦╝░░░██║░░░  ██████╦╝███████╗██║░╚███║  ██║░╚═╝░██║███████╗██║░░██║╚█████╔╝███████╗██║░░██║
 ╚═════╝░░░░╚═╝░░░  ╚═════╝░╚══════╝╚═╝░░╚══╝  ╚═╝░░░░░╚═╝╚══════╝╚═╝░░╚═╝░╚════╝░╚══════╝╚═╝░░╚═╝""")
-    
-    print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
-    
-    eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8080)), webApp.app)
-    
-    #webApp.socketio.run(webApp.app, host="0.0.0.0", port=8080)
-    #serve(webApp.app, host="0.0.0.0", port=8080)
-    #webApp.app.run(debug=False)
-    
-    
-except Exception as e:
-    sys.exit(f"An error occured: {e}")
+        
+        import webApp as webApp
+        import eventlet
+
+        print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
+        eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8080)), webApp.app)
+        
+    except Exception as e:
+        sys.exit(f"An error occurred: {e}")
+
+import userInterf as ui
