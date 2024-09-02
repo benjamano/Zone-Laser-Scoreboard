@@ -6,6 +6,7 @@ import threading
 import sys
 import ctypes
 import pyautogui
+import psutil
 
 try:
     from func import format
@@ -22,6 +23,7 @@ app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
 db.init_app(app)
 socketio.init_app(app)
 
+mediaPlayers = ['spotify', 'vlc', 'itunes', 'wmplayer', 'chrome']
 WM_APPCOMMAND = 0x0319
 APPCOMMAND_PLAY_PAUSE = 0x0000
 APPCOMMAND_NEXT = 0x000B
@@ -76,7 +78,16 @@ def index():
 
 @app.route('/toggle')
 def resume_playback():
+    
     pyautogui.press('playpause')
+    
+    try:
+        isPlaying = any(proc.name().lower() in mediaPlayers for proc in psutil.process_iter())
+                      
+        format.message(f"Playing / Pausing\nSpotify is currently playing: {isPlaying}")
+        
+    except Exception as e:
+        format.message(f"Failed to check if music is playing: {e}", type="error")
     
     return jsonify({'message': 'Playback toggled'})
 
@@ -96,7 +107,6 @@ def packet_callback(packet):
             
         format.message(f"Packet Data: {packet_info}\n\nPacket Bytes: {packet_bytes}")
         
-        
         socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
         
 
@@ -109,7 +119,7 @@ def start_sniffing():
         try:
             sniff(prn=packet_callback, store=False)
         except Exception as e:
-            print(f"An error occured while sniffing: {e}")
+            format.message(f"An error occured while sniffing: {e}", type="error")
             sys.exit("An error occured while sniffing.")
 
 # ---------------------------------------------| SOCKET HANDLING |------------------------------------------- #
@@ -118,12 +128,12 @@ def start_sniffing():
 
 @socketio.on('connect')
 def handle_connect():
-    print("Client connected")
+    format.message("Sniffer Client connected", type="success")
     emit('server_response', {'message': 'Connected to the server!'})
 
 @socketio.on('client_event')
 def handle_client_event(json):
-    print(f"Received event: {json}")
+    format.message(f"Received event: {json}")
     emit('server_response', {'message': 'Received your event!'})
     
     
