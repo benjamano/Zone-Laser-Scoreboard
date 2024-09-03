@@ -34,8 +34,11 @@ try:
     
     import webApp as webApp
     import eventlet
+    import subprocess
+    import waitress
 
     print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
+    #subprocess.Popen([sys.executable, "-m", "flask", "webApp:app", "--port=8080"])
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8080)), webApp.app)
     
 except Exception as e:

@@ -5,6 +5,7 @@ from scapy.all import sniff, conf, IP
 import threading
 import sys
 import pyautogui
+import logging
 
 try:
     from func import format
@@ -17,6 +18,14 @@ socketio = SocketIO()
 app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
 app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
+
+app.logger.disabled = True
+log = logging.getLogger('werkzeug')
+log.disabled = True
+
+logging.getLogger('werkzeug').disabled = True
+
+
 
 db.init_app(app)
 socketio.init_app(app)
@@ -105,19 +114,19 @@ def packet_callback(packet):
             packet_info = packet.show(dump=True)
             packet_bytes = bytes(packet).hex()
 
-            with open(r"packet.txt", "a") as f:
-                try:
-                    f.write(str(packet_info))
-                except:
-                    f.write("Failed to write packet info")
-                f.write("\n")
-                try:
-                    f.write(str(packet_bytes))
-                except:
-                    f.write("Failed to write packet bytes")
-                f.write("\n")
+            # with open(r"packet.txt", "a") as f:
+            #     try:
+            #         f.write(str(packet_info))
+            #     except:
+            #         f.write("Failed to write packet info")
+            #     f.write("\n")
+            #     try:
+            #         f.write(str(packet_bytes))
+            #     except:
+            #         f.write("Failed to write packet bytes")
+            #     f.write("\n")
                 
-            format.message(f"Packet info: {packet_info}")
+            # format.message(f"Packet info: {packet_info}")
 
             socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
         
