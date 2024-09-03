@@ -1,28 +1,33 @@
 import time
 import threading
 import tkinter as tk
+import ScoreBoard as webApp
+   
 
-def startWebApp():
-    import ScoreBoard as main
-    main.mainProgram()
 
-def countdown_and_start():
-    for i in range(30, 0, -1):
-        countdown_label.config(text=f"Starting in {i} seconds...")
-        root.update()
-        time.sleep(1)
-    startWebApp()
+def StartUI():
+    root = tk.Tk()
+    root.title("Arena Scoreboard")
 
-def startButtonClick():
-    threading.Thread(target=countdown_and_start).start()
+    start_button = tk.Button(root, text="Start Web App", command=startButtonClick)
+    start_button.pack(pady=20)
 
-root = tk.Tk()
-root.title("Arena Scoreboard")
+    countdown_label = tk.Label(root, text="")
+    countdown_label.pack(pady=20)
 
-start_button = tk.Button(root, text="Start Web App", command=startButtonClick)
-start_button.pack(pady=20)
+    root.mainloop()
 
-countdown_label = tk.Label(root, text="")
-countdown_label.pack(pady=20)
+    def countdown_and_start():
+        for i in range(10, 0, -1):
+            countdown_label.config(text=f"Starting in {i} seconds...")
+            root.update()
+            time.sleep(1)
+        
+        webApp.StartWebApp()
+    
 
-root.mainloop()
+
+    def startButtonClick():
+        threading.Thread(target=countdown_and_start).start()
+    
+
