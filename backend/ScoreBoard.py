@@ -9,7 +9,7 @@ except Exception as e:
 try:
     init.start()
     print("\n|----------------------------------------------------------------------------------------------------|\n")
-    
+        
     print("""
 ██╗░░░░░░█████╗░░██████╗███████╗██████╗░░░░░░░████████╗░█████╗░░██████╗░
 ██║░░░░░██╔══██╗██╔════╝██╔════╝██╔══██╗░░░░░░╚══██╔══╝██╔══██╗██╔════╝░
@@ -32,6 +32,7 @@ try:
 ██████╦╝░░░██║░░░  ██████╦╝███████╗██║░╚███║  ██║░╚═╝░██║███████╗██║░░██║╚█████╔╝███████╗██║░░██║
 ╚═════╝░░░░╚═╝░░░  ╚═════╝░╚══════╝╚═╝░░╚══╝  ╚═╝░░░░░╚═╝╚══════╝╚═╝░░╚═╝░╚════╝░╚══════╝╚═╝░░╚═╝""")
     
+<<<<<<< HEAD
     import webApp as webApp
     import eventlet
     import subprocess
@@ -40,6 +41,24 @@ try:
     print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
     #subprocess.Popen([sys.executable, "-m", "flask", "webApp:app", "--port=8080"])
     eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8080)), webApp.app)
+=======
+
+    import userInterf as ui
+>>>>>>> origin/main
     
+    ui.StartUI()
+
+        
 except Exception as e:
     sys.exit(f"An error occurred: {e}")
+    
+def StartWebApp():
+    try:
+        import webApp as webApp
+        import eventlet
+
+        print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
+        eventlet.wsgi.server(eventlet.listen(('0.0.0.0', 8080)), webApp.app)
+    except Exception as e:
+        print(f"An error occured: {e}")
+        close = str(input("..."))
