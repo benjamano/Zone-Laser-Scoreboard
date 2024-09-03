@@ -4,9 +4,7 @@ from flask_socketio import SocketIO, emit
 from scapy.all import sniff, conf, IP
 import threading
 import sys
-import ctypes
 import pyautogui
-import psutil
 
 try:
     from func import format
@@ -23,7 +21,6 @@ app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
 db.init_app(app)
 socketio.init_app(app)
 
-mediaPlayers = ['spotify', 'vlc', 'itunes', 'wmplayer', 'chrome']
 WM_APPCOMMAND = 0x0319
 APPCOMMAND_PLAY_PAUSE = 0x0000
 APPCOMMAND_NEXT = 0x000B
@@ -39,7 +36,7 @@ except:
         
         format.message(f"Developer mode is {devMode}")
     except:
-        devMode = False
+        devMode = "False"
         pass
 
 try:
@@ -77,50 +74,77 @@ def index():
 
 
 @app.route('/toggle')
-def resume_playback():
+def togglePlaybackRoute():
     
-    pyautogui.press('playpause')
+    togglePlayback()
     
-    try:
-        isPlaying = any(proc.name().lower() in mediaPlayers for proc in psutil.process_iter())
-                      
-        format.message(f"Playing / Pausing\nSpotify is currently playing: {isPlaying}")
-        
-    except Exception as e:
-        format.message(f"Failed to check if music is playing: {e}", type="error")
-    
-    return jsonify({'message': 'Playback toggled'})
+    return "Playback toggled"
 
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
+
 def packet_callback(packet):
-    if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2):
+    try:
         
-        packet_info = packet.original.show(dump=True)
-        packet_bytes = bytes(packet).hex()
-        
-        with open("packet.txt", "w") as f:
-            f.write(str(packet_info))
-            f.write("\n")
-            f.write(str(packet_bytes))
-            f.write("\n")
+        if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2):
+            # Use packet.show() directly instead of packet.original.show()
+            packet_info = packet.show(dump=True)
+            packet_bytes = bytes(packet).hex()
+
+            with open(r"packet.txt", "a") as f:
+                f.write(str(packet_info))
+                f.write("\n")
+                f.write(str(packet_bytes))
+                f.write("\n")
+                
+            format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
+
+            socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
             
-        format.message(f"Packet Data: {packet_info}\n\nPacket Bytes: {packet_bytes}")
+        elif devMode == "true":
+            packet_info = packet.show(dump=True)
+            packet_bytes = bytes(packet).hex()
+
+            with open(r"packet.txt", "a") as f:
+                try:
+                    f.write(str(packet_info))
+                except:
+                    f.write("Failed to write packet info")
+                f.write("\n")
+                try:
+                    f.write(str(packet_bytes))
+                except:
+                    f.write("Failed to write packet bytes")
+                f.write("\n")
+                
+            format.message(f"Packet info: {packet_info}")
+
+            socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
         
-        socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
-        
+    except Exception as e:
+        format.message(f"An error occurred while handling the packet: {e}", type="error")
+        sys.exit("An error occurred while handling the packet.")
 
 def start_sniffing():
-    conf.L3socket = conf.L3socket
     print("Starting packet sniffer...")
-    try:
-        sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
-    except:
+    
+    if devMode == "true":
         try:
             sniff(prn=packet_callback, store=False)
+        
         except Exception as e:
-            format.message(f"An error occured while sniffing: {e}", type="error")
-            sys.exit("An error occured while sniffing.")
+            format.message(f"An error occurred while sniffing: {e}", type="error")
+            sys.exit("An error occurred while sniffing.")
+    
+    else:
+        try:
+            sniff(prn=packet_callback, store=False, iface=ETHERNET_INTERFACE)
+        except Exception as e:
+            format.message(f"An error occurred while sniffing: {e}", type="error")
+            format.message(f"Starting without Ethernet", type="info")
+        
+        
+        
 
 # ---------------------------------------------| SOCKET HANDLING |------------------------------------------- #
 
@@ -139,22 +163,11 @@ def handle_client_event(json):
     
 # ----------------------------------------------------------------------------------------------------------- #
 
-def send_media_key(app_command):
-    ctypes.windll.user32.SendMessageW(
-        win32api.GetForegroundWindow(),
-        WM_APPCOMMAND,
-        0,
-        app_command << 16
-    )
 
-def play_pause():
-    send_media_key(APPCOMMAND_PLAY_PAUSE)
+def togglePlayback():
+    #Assuming spotify is always paused when first run
+    pyautogui.press('playpause')
 
-def next_track():
-    send_media_key(APPCOMMAND_NEXT)
-
-def previous_track():
-    send_media_key(APPCOMMAND_PREV)
 
 sniffing_thread = threading.Thread(target=start_sniffing)
 sniffing_thread.daemon = True 
