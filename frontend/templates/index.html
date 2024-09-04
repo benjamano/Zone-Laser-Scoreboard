@@ -8,10 +8,18 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
 </head>
 <body>
-    <div class="card">
-        <div class="card-header">Spotify Playback Control</div>
-        <div class="card-body">
-            <button onclick="controlPlayback('toggle')">Play</button>
+    <div class="row justify-content-around m-4">
+        <div class="card col-5 p-0">
+            <div class="card-header bg-success-subtle">Spotify Playback Control</div>
+            <div class="card-body">
+                <button onclick="controlPlayback('toggle')">Play</button>
+            </div>
+        </div>
+        <div class="card col-5 p-0">
+            <div class="card-header bg-dark-subtle">Server Control</div>
+            <div class="card-body">
+                <button onclick="controlPlayback('end')">Terminate</button>
+            </div>
         </div>
     </div>
     <div class="container-fluid">
@@ -32,6 +40,14 @@
         });
 
         async function controlPlayback(action) {
+            if (action == "end"){
+                if (window.confirm("Are you sure you want to terminate the server?")) {
+                    const response = await fetch(`/${action}`);
+                    const result = await response.json();
+                    alert(result.message || result.error);
+                }
+            }
+
             const response = await fetch(`/${action}`);
             const result = await response.json();
             alert(result.message || result.error);

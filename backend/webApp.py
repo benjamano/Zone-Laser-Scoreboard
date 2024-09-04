@@ -1,16 +1,32 @@
-from flask import Flask, render_template, redirect, request, session, jsonify
-from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, emit
-from scapy.all import sniff, conf, IP
-import threading
-import sys
-import pyautogui
-import logging
+try:
+
+    from flask import Flask, render_template, redirect, request, session, jsonify
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_socketio import SocketIO, emit
+    from scapy.all import sniff, conf, IP
+    import threading
+    import sys
+    import pyautogui
+    import logging
+    import ctypes as ctypes
+    from ctypes import *
+    import datetime
+    import os
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    input("Press any key to exit...")
 
 try:
-    from func import format
-except:
-    sys.exit("Failed to import format tools")
+    from func.format import format
+except Exception as e:
+    
+    try:
+        from func import format
+    except Exception as e:
+    
+        print(f"An error occurred: {e}")
+        input("Press any key to exit...")
 
 db = SQLAlchemy()
 socketio = SocketIO()
@@ -24,8 +40,6 @@ log = logging.getLogger('werkzeug')
 log.disabled = True
 
 logging.getLogger('werkzeug').disabled = True
-
-
 
 db.init_app(app)
 socketio.init_app(app)
@@ -101,6 +115,13 @@ def togglePlaybackRoute():
     
     return "Playback toggled"
 
+@app.route('/end')
+def terminateServer():
+
+    logging.shutdown()
+    
+    sys.exit("Server terminated")
+
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
 
@@ -108,7 +129,6 @@ def packet_callback(packet):
     try:
         
         if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2):
-            # Use packet.show() directly instead of packet.original.show()
             packet_info = packet.show(dump=True)
             packet_bytes = bytes(packet).hex()
 
@@ -120,7 +140,7 @@ def packet_callback(packet):
                 
             format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
 
-            socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
+            socketio.emit('packet_data', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
             
         elif devMode == "true":
             packet_info = packet.show(dump=True)
@@ -140,11 +160,10 @@ def packet_callback(packet):
                 
             # format.message(f"Packet info: {packet_info}")
 
-            socketio.emit('packet_data', {'data': packet_info + '\n' + packet_bytes})
+            socketio.emit('packet_data', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
         
     except Exception as e:
         format.message(f"An error occurred while handling the packet: {e}", type="error")
-        sys.exit("An error occurred while handling the packet.")
 
 def start_sniffing():
     print("Starting packet sniffer...")
@@ -188,9 +207,9 @@ def handle_client_event(json):
 def togglePlayback():
     #Assuming spotify is always paused when first run
     pyautogui.press('playpause')
+    
+ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
-if __name__ == '__main__':
-    app.run()
-    sniffing_thread = threading.Thread(target=start_sniffing)
-    sniffing_thread.daemon = True 
-    sniffing_thread.start()
+sniffing_thread = threading.Thread(target=start_sniffing)
+sniffing_thread.daemon = True 
+sniffing_thread.start()

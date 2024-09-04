@@ -1,10 +1,8 @@
-import sys
-
 try:
     import __init__ as init
-    import func.format as format
 except Exception as e:
-    sys.exit(f"An error occurred: {e}")
+    print(f"An error occurred: {e}")
+    input("Press any key to exit...")
 
 try:
     init.start()
@@ -39,4 +37,6 @@ try:
 
         
 except Exception as e:
-    sys.exit(f"An error occurred: {e}")
+    print(f"An error occurred: {e}")
+    input("Press any key to exit...")
+    #sys.exit(f"An error occurred: {e}")
