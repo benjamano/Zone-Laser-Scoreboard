@@ -68,8 +68,20 @@ except Exception as e:
         
             
     except Exception as e:
-        format.message(f"An error occured while reading the file: {e}", type="error")
-        sys.exit("An error occured while reading the file.")
+        
+        try:
+            
+            with open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r") as f:
+                IP1 = str(f.readline().strip())
+                IP2 = str(f.readline().strip())
+                ETHERNET_INTERFACE = str(f.readline().strip())   
+            
+            format.message("Dev location found", type="success")
+        
+        except Exception as e:
+        
+            format.message(f"An error occured while reading the file: {e}", type="error")
+            sys.exit("An error occured while reading the file.")
     
     
     
@@ -177,7 +189,8 @@ def togglePlayback():
     #Assuming spotify is always paused when first run
     pyautogui.press('playpause')
 
-
-sniffing_thread = threading.Thread(target=start_sniffing)
-sniffing_thread.daemon = True 
-sniffing_thread.start()
+if __name__ == '__main__':
+    app.run()
+    sniffing_thread = threading.Thread(target=start_sniffing)
+    sniffing_thread.daemon = True 
+    sniffing_thread.start()
