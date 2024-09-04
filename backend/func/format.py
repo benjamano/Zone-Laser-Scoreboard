@@ -25,7 +25,7 @@ try:
     else:
         logFilePath = os.path.join(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
 
-    logging.basicConfig(filename=r'backend\app.log', level=logging.DEBUG)
+    logging.basicConfig(filename=r'\app.log', level=logging.DEBUG)
 
 except Exception as e:
     print(f"An error occured: {e}")
