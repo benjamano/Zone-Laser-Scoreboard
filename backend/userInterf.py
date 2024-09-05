@@ -1,11 +1,12 @@
 import time
 import threading
 import tkinter as tk
-
+from tkinter import ttk
+import __init__ as init
 
 def StartUI():
     
-    global root
+    global root, progress, StartApp
     
     def StartApp():
         for i in range(5, 0, -1):
@@ -25,12 +26,16 @@ Programmed by Ben Mercer""")
     countdownlbl = tk.Label(root, text="")
     countdownlbl.pack(pady=5)
     
-    root.geometry("300x100")
+    progress = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate", maximum=6)
+    progress.pack(pady=20)
+    progress.start()
     
+    root.geometry("300x200")
+
     StartApp()
 
     root.mainloop()
-        
+    
 
 def StartWebApp():
     try:
@@ -46,4 +51,5 @@ def StartWebApp():
     except Exception as e:
         print(f"An error occured: {e}")
         close = str(input("..."))
-    
+
+StartUI()

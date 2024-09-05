@@ -122,7 +122,7 @@ def startWebApp():
         sniffing_thread.daemon = True 
         sniffing_thread.start()
     
-     except Exception as e:
+    except Exception as e:
         format.message(f"Failed to start threading: {e}", type="error")
         
     try:
