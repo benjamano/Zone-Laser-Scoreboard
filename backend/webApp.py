@@ -1,104 +1,137 @@
-try:
+def importLibraries():
 
-    from flask import Flask, render_template, redirect, request, session, jsonify
-    from flask_sqlalchemy import SQLAlchemy
-    from flask_socketio import SocketIO, emit
-    from scapy.all import sniff, conf, IP
-    import threading
-    import sys
-    import pyautogui
-    import logging
-    import ctypes as ctypes
-    from ctypes import *
-    import datetime
-    import os
-
-except Exception as e:
-    print(f"An error occurred: {e}")
-    input("Press any key to exit...")
-
-try:
-    from func.format import format
-except Exception as e:
-    
     try:
-        from func import format
+
+        from flask import Flask, render_template, redirect, request, session, jsonify
+        from flask_sqlalchemy import SQLAlchemy
+        from flask_socketio import SocketIO, emit
+        from scapy.all import sniff, conf, IP
+        import threading
+        import sys
+        import pyautogui
+        import logging
+        import ctypes as ctypes
+        import datetime
+        import os
+
     except Exception as e:
-    
         print(f"An error occurred: {e}")
         input("Press any key to exit...")
 
-db = SQLAlchemy()
-socketio = SocketIO()
-
-app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
-app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
-
-app.logger.disabled = True
-log = logging.getLogger('werkzeug')
-log.disabled = True
-
-logging.getLogger('werkzeug').disabled = True
-
-db.init_app(app)
-socketio.init_app(app)
-
-WM_APPCOMMAND = 0x0319
-APPCOMMAND_PLAY_PAUSE = 0x0000
-APPCOMMAND_NEXT = 0x000B
-APPCOMMAND_PREV = 0x000C
-
-try:
-    with open(r"data/dev.txt") as f:
-        devMode = str(f.readline().strip())
-except:
     try:
-        with open(r"backend\data\dev.txt") as f:
-            devMode = str(f.readline().strip())
+        from func.format import format
+    except Exception as e:
+    
+        try:
+            from func import format
+        except Exception as e:
+    
+            print(f"An error occurred: {e}")
+            input("Press any key to exit...")
+
+def initVariables():
+    try:
+        db = SQLAlchemy()
+        socketio = SocketIO()
+
+        app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
+        app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
+        app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
+
+        app.logger.disabled = True
+        log = logging.getLogger('werkzeug')
+        log.disabled = True
+
+        logging.getLogger('werkzeug').disabled = True
+
+        db.init_app(app)
+        socketio.init_app(app)
+
+        WM_APPCOMMAND = 0x0319
+        APPCOMMAND_PLAY_PAUSE = 0x0000
+        APPCOMMAND_NEXT = 0x000B
+        APPCOMMAND_PREV = 0x000C
         
-        format.message(f"Developer mode is {devMode}")
+    except Exception as e:
+        format.message(f"Failed to init variables: {e}", type="error")
+
+def openFiles():
+    try:
+        with open(r"data/dev.txt") as f:
+            devMode = str(f.readline().strip())
     except:
-        devMode = "False"
-        pass
-
-try:
-    with open(r"data/keys.txt", "r") as f:
-        IP1 = str(f.readline().strip())
-        IP2 = str(f.readline().strip())
-        ETHERNET_INTERFACE = str(f.readline().strip())        
-
-except Exception as e:
-    format.message(f"An error occured while reading the file: {e}", type="error")
-    format.message("Falling back to dev location", type="info")
+        try:
+            with open(r"backend\data\dev.txt") as f:
+                devMode = str(f.readline().strip())
+        
+            format.message(f"Developer mode is {devMode}")
+        except:
+            devMode = "False"
+            pass
 
     try:
-        with open(r"backend\data\keys.txt", "r") as f:
+        with open(r"data/keys.txt", "r") as f:
             IP1 = str(f.readline().strip())
             IP2 = str(f.readline().strip())
-            ETHERNET_INTERFACE = str(f.readline().strip())   
-            
-        format.message("Dev location found", type="success")
-        
-            
+            ETHERNET_INTERFACE = str(f.readline().strip())        
+
     except Exception as e:
-        
+        format.message(f"An error occured while reading the file: {e}", type="error")
+        format.message("Falling back to dev location", type="info")
+
         try:
-            
-            with open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r") as f:
+            with open(r"backend\data\keys.txt", "r") as f:
                 IP1 = str(f.readline().strip())
                 IP2 = str(f.readline().strip())
                 ETHERNET_INTERFACE = str(f.readline().strip())   
             
             format.message("Dev location found", type="success")
         
+            
         except Exception as e:
         
-            format.message(f"An error occured while reading the file: {e}", type="error")
-            sys.exit("An error occured while reading the file.")
+            try:
+            
+                with open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r") as f:
+                    IP1 = str(f.readline().strip())
+                    IP2 = str(f.readline().strip())
+                    ETHERNET_INTERFACE = str(f.readline().strip())   
+            
+                format.message("Dev location found", type="success")
+        
+            except Exception as e:
+        
+                format.message(f"An error occured while reading the file: {e}", type="error")
+                sys.exit("An error occured while reading the file.")
     
+   
+
+def startWebApp():
     
+    importLibraries()
     
+    initVariables()
+    
+    openFiles()
+
+    try:
+
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+
+        sniffing_thread = threading.Thread(target=start_sniffing)
+        sniffing_thread.daemon = True 
+        sniffing_thread.start()
+    
+     except Exception as e:
+        format.message(f"Failed to start threading: {e}", type="error")
+        
+    try:
+        
+        app.run(host="0.0.0.0", port=8080)
+    
+    except Exception as e:
+        format.message(f"Failed to start web server: {e}", type="error")
+
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
 
 
@@ -208,8 +241,3 @@ def togglePlayback():
     #Assuming spotify is always paused when first run
     pyautogui.press('playpause')
     
-ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-
-sniffing_thread = threading.Thread(target=start_sniffing)
-sniffing_thread.daemon = True 
-sniffing_thread.start()
