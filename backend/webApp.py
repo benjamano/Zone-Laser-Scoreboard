@@ -1,36 +1,39 @@
-def importLibraries():
+try:
+
+    from flask import Flask, render_template, redirect, request, session, jsonify
+    from flask_sqlalchemy import SQLAlchemy
+    from flask_socketio import SocketIO, emit
+    from scapy.all import sniff, conf, IP
+    import threading
+    import sys
+    import pyautogui
+    import logging
+    import ctypes as ctypes
+    import datetime
+    import os
+
+except Exception as e:
+    print(f"An error occurred: {e}")
+    input("Press any key to exit...")
+
+try:
+    from func.format import format
+except Exception as e:
 
     try:
-
-        from flask import Flask, render_template, redirect, request, session, jsonify
-        from flask_sqlalchemy import SQLAlchemy
-        from flask_socketio import SocketIO, emit
-        from scapy.all import sniff, conf, IP
-        import threading
-        import sys
-        import pyautogui
-        import logging
-        import ctypes as ctypes
-        import datetime
-        import os
-
+        from func import format
     except Exception as e:
+
         print(f"An error occurred: {e}")
         input("Press any key to exit...")
-
-    try:
-        from func.format import format
-    except Exception as e:
-    
-        try:
-            from func import format
-        except Exception as e:
-    
-            print(f"An error occurred: {e}")
-            input("Press any key to exit...")
+        
 
 def initVariables():
+    
     try:
+        
+        global db, socketio, app, WM_APPCOMMAND, APPCOMMAND_PLAY_PAUSE, APPCOMMAND_NEXT, APPCOMMAND_PREV
+        
         db = SQLAlchemy()
         socketio = SocketIO()
 
@@ -57,6 +60,8 @@ def initVariables():
 
 def openFiles():
     try:
+        global IP1, IP2, ETHERNET_INTERFACE, devMode, ENDGAMEBYTES, STARTGAMEBYTES
+        
         with open(r"data/dev.txt") as f:
             devMode = str(f.readline().strip())
     except:
@@ -73,7 +78,10 @@ def openFiles():
         with open(r"data/keys.txt", "r") as f:
             IP1 = str(f.readline().strip())
             IP2 = str(f.readline().strip())
-            ETHERNET_INTERFACE = str(f.readline().strip())        
+            ETHERNET_INTERFACE = str(f.readline().strip())      
+            STARTGAMEBYTES = str(f.readline().strip())     
+            ENDGAMEBYTES = str(f.readline().strip())
+            
 
     except Exception as e:
         format.message(f"An error occured while reading the file: {e}", type="error")
@@ -83,7 +91,10 @@ def openFiles():
             with open(r"backend\data\keys.txt", "r") as f:
                 IP1 = str(f.readline().strip())
                 IP2 = str(f.readline().strip())
-                ETHERNET_INTERFACE = str(f.readline().strip())   
+                ETHERNET_INTERFACE = str(f.readline().strip())
+                STARTGAMEBYTES = str(f.readline().strip())   
+                ENDGAMEBYTES = str(f.readline().strip())
+                
             
             format.message("Dev location found", type="success")
         
@@ -107,8 +118,6 @@ def openFiles():
    
 
 def startWebApp():
-    
-    importLibraries()
     
     initVariables()
     
@@ -172,6 +181,12 @@ def packet_callback(packet):
                 f.write("\n")
                 
             format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
+            
+            if packet_bytes == STARTGAMEBYTES:
+                format.message(f"Game started at {datetime.datetime.now()}", type="success")
+                
+            elif packet_bytes == ENDGAMEBYTES:
+                format.message(f"Game ended at {datetime.datetime.now()}", type="success")
 
             socketio.emit('packet_data', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
             
