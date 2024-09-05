@@ -26,7 +26,7 @@ Programmed by Ben Mercer""")
     countdownlbl = tk.Label(root, text="")
     countdownlbl.pack(pady=5)
     
-    progress = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate", maximum=6)
+    progress = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate", maximum=6, value=0)
     progress.pack(pady=20)
     progress.start()
     
@@ -46,7 +46,7 @@ def StartWebApp():
         
         import webApp as webApp
         
-        webApp.startWebApp()
+        webApp.app.run(host="0.0.0.0", port=8080)
         
     except Exception as e:
         print(f"An error occured: {e}")

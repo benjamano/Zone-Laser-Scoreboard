@@ -34,9 +34,14 @@
             socket.emit('client_event', {data: 'Client connected!'});
         });
 
-        socket.on('packet_data', function(msg) {
+        socket.on('game_start', function(msg) {
             var messageDiv = document.getElementById('messages');
-            messageDiv.innerHTML += '<p>' + msg.data + '</p>';
+            messageDiv.innerHTML += '<p class="text-success">' + msg.data + '</p>';
+        });
+
+        socket.on('game_end', function(msg) {
+            var messageDiv = document.getElementById('messages');
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.data + '</p>';
         });
 
         async function controlPlayback(action) {

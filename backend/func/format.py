@@ -4,7 +4,7 @@ import ctypes
 import os
 
 try:
-    with open(r"data/dev.txt") as f:
+    with open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\dev.txt") as f:
         devMode = str(f.readline().strip())
 except:
     try:
@@ -21,7 +21,10 @@ try:
     logger = logging.getLogger("webAppLogger")
 
     if devMode == "true":
-        logFilePath = os.path.join(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
+        try:
+            logFilePath = os.path.join(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
+        except:
+            logFilePath = os.path.join(r"backend\app.log")
     else:
         logFilePath = os.path.join(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
 
