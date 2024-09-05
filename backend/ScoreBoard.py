@@ -31,6 +31,8 @@ try:
 ╚═════╝░░░░╚═╝░░░  ╚═════╝░╚══════╝╚═╝░░╚══╝  ╚═╝░░░░░╚═╝╚══════╝╚═╝░░╚═╝░╚════╝░╚══════╝╚═╝░░╚═╝""")
     
 
+    print("User Interface starting")
+
     import userInterf as ui
     
     ui.StartUI()
