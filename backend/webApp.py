@@ -234,24 +234,26 @@ def togglePlayback():
     #Assuming spotify is always paused when first run
     pyautogui.press('playpause')
     
-if __name__ == "__main__":
     
-    openFiles()
-
-    try:
-
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-
-        sniffing_thread = threading.Thread(target=start_sniffing)
-        sniffing_thread.daemon = True 
-        sniffing_thread.start()
+# ----------------------------------------------------------------------------------------------------------- #
     
-    except Exception as e:
-        format.message(f"Failed to start threading: {e}", type="error")
-        
-    try:
-        
-        app.run(host="0.0.0.0", port=8080)
+
+openFiles()
+
+try:
+
+    ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+
+    sniffing_thread = threading.Thread(target=start_sniffing)
+    sniffing_thread.daemon = True 
+    sniffing_thread.start()
+
+except Exception as e:
+    format.message(f"Failed to start threading: {e}", type="error")
     
-    except Exception as e:
-        format.message(f"Failed to start web server: {e}", type="error")
+try:
+    
+    app.run(host="0.0.0.0", port=8080)
+
+except Exception as e:
+    format.message(f"Failed to start web server: {e}", type="error")
