@@ -9,17 +9,23 @@ def StartUI():
     
     def StartApp():
         for i in range(5, 0, -1):
-            countdown_label.config(text=f"Starting in {i} seconds...")
+            countdownlbl.config(text=f"Web App Starting in {i} seconds...")
             root.update()
             time.sleep(1)
         
         StartWebApp()
     
     root = tk.Tk()
-    root.title("Arena Scoreboard")
+    root.title("Arena Scoreboard Starting...")
+    
+    creditslbl = tk.Label(root, text="""Laser Tag Arena Scoreboard
+Programmed by Ben Mercer""")
+    creditslbl.pack(pady=10)
 
-    countdown_label = tk.Label(root, text="")
-    countdown_label.pack(pady=20)
+    countdownlbl = tk.Label(root, text="")
+    countdownlbl.pack(pady=5)
+    
+    root.geometry("300x100")
     
     StartApp()
 
@@ -41,4 +47,3 @@ def StartWebApp():
         print(f"An error occured: {e}")
         close = str(input("..."))
     
-
