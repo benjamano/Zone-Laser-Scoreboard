@@ -154,13 +154,14 @@ def packet_callback(packet):
                 f.write(str(packet_bytes))
                 f.write("\n")
                 
-            format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
+            #format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
+            format.message(f"Packet bytes: {packet_bytes}")
             
-            if packet_bytes == STARTGAMEBYTES:
+            if str(packet_bytes) == STARTGAMEBYTES:
                 format.message(f"Game started at {datetime.datetime.now()}", type="success")
                 socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
                                 
-            elif packet_bytes == ENDGAMEBYTES:
+            elif str(packet_bytes) == ENDGAMEBYTES:
                 format.message(f"Game ended at {datetime.datetime.now()}", type="success")
                 socketio.emit('game_end', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
                 
