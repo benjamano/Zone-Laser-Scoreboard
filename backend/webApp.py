@@ -12,6 +12,7 @@ try:
     import datetime
     import os
     import signal
+    import time
 
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -253,6 +254,10 @@ def togglePlayback():
 openFiles()
 
 try:
+    
+    print("Web App Started, hiding console")
+    
+    time.sleep(2)
 
     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
