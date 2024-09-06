@@ -25,8 +25,13 @@ except Exception as e:
         from func import format
     except Exception as e:
 
-        print(f"An error occurred: {e}")
-        input("Press any key to exit...")
+        try:
+            import func
+            
+        except:
+
+            print(f"An error occurred: {e}")
+            input("Press any key to exit...")
     
 try:
     
@@ -57,6 +62,8 @@ except Exception as e:
     format.message(f"Failed to init variables: {e}", type="error")
 
 def openFiles():
+    format.message("Opening Files")
+    
     try:
         global IP1, IP2, ETHERNET_INTERFACE, devMode, ENDGAMEBYTES, STARTGAMEBYTES
         
@@ -73,7 +80,7 @@ def openFiles():
             pass
 
     try:
-        with open(r"data/keys.txt", "r") as f:
+        with open(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r") as f:
             IP1 = str(f.readline().strip())
             IP2 = str(f.readline().strip())
             ETHERNET_INTERFACE = str(f.readline().strip())      
@@ -111,7 +118,7 @@ def openFiles():
             except Exception as e:
         
                 format.message(f"An error occured while reading the file: {e}", type="error")
-                sys.exit("An error occured while reading the file.")
+                input("...")
     
 
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
@@ -148,16 +155,19 @@ def packet_callback(packet):
             packet_info = packet.show(dump=True)
             packet_bytes = bytes(packet).hex()
 
-            with open(r"packet.txt", "a") as f:
-                f.write(str(packet_info))
-                f.write("\n")
-                f.write(str(packet_bytes))
-                f.write("\n")
+            try:
+                with open(r"packet.txt", "a") as f:
+                    f.write(str(packet_info))
+                    f.write("\n")
+                    f.write(str(packet_bytes))
+                    f.write("\n")
+            except:
+                pass
                 
             #format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
             format.message(f"Packet bytes: {packet_bytes}")
             
-            if str(packet_bytes) == STARTGAMEBYTES:
+            if str(packet_bytes) == r"ffffffffffff0004a345e02a0800450000242fe400006411a06bc0a8022ac0a802ff8de88de800100000342c403031352c3000000000000000000000":
                 format.message(f"Game started at {datetime.datetime.now()}", type="success")
                 socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
                                 
@@ -201,7 +211,7 @@ def start_sniffing():
         
         except Exception as e:
             format.message(f"An error occurred while sniffing: {e}", type="error")
-            sys.exit("An error occurred while sniffing.")
+            input("...")
     
     else:
         try:

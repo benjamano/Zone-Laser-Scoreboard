@@ -51,5 +51,3 @@ def StartWebApp():
     except Exception as e:
         print(f"An error occured: {e}")
         close = str(input("..."))
-
-StartUI()
