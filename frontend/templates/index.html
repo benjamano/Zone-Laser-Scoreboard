@@ -21,7 +21,27 @@
                 <button onclick="controlPlayback('end')">Terminate</button>
             </div>
         </div>
+
+        <div class="card">
+
+            <div class="card-header bg-primary text-white">Game Details</div>
+
+            <p>Real-time updates will appear here.</p>
+
+            <h5>Current game status: <span id="gameStatus" class="text-warning">Waiting for game to start...</span></h5>
+
+            <div id="messages"></div>
+
+        </div>
     </div>
+
+    <script>
+
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        socket.on('connect', function() {
+            socket.emit('client_event', {data: 'Client connected!'});
+        });
 
         async function controlPlayback(action) {
             if (action == "end"){
@@ -36,6 +56,26 @@
             const result = await response.json();
             alert(result.message || result.error);
         }
+
+        socket.on('game_start', function(msg) {
+            var messageDiv = document.getElementById('messages');
+
+            var gameStatus = document.getElementById('gameStatus');
+
+            gameStatus.innerHTML = 'Game in progress...';
+
+            messageDiv.innerHTML += '<p class="text-success">' + msg.data + '</p>';
+        });
+
+        socket.on('game_end', function(msg) {
+            var messageDiv = document.getElementById('messages');
+
+            var gameStatus = document.getElementById('gameStatus');
+            
+            gameStatus.innerHTML = 'Game ended at ' + new Date().toLocaleTimeString();
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.data + '</p>';
+        });
     </script>
 </body>
 </html>
