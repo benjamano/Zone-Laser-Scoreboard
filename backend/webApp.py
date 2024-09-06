@@ -13,7 +13,7 @@ try:
     import os
     import signal
     import time
-
+    
 except Exception as e:
     print(f"An error occurred: {e}")
     input("Press any key to exit...")
@@ -21,13 +21,16 @@ except Exception as e:
 try:
     from func.format import format
 except Exception as e:
-
+    print(f"An error occurred attempting to import format tools: {e}")
     try:
         from func import format
+        
+        print("Imported functions")
+        
     except Exception as e:
 
         try:
-            import func
+            import func.format as format
             
         except:
 
