@@ -161,3 +161,4 @@ cython_debug/
 /.vs
 /backend/data/dev.txt
 packet.txt
+*.lnk
