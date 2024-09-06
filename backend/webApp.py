@@ -134,7 +134,7 @@ def index():
     return render_template('index.html')
 
 @app.route('/scoreboard')
-def index():
+def scoreboard():
     return render_template('scoreboard.html')
 
 
