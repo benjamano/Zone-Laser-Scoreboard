@@ -19,10 +19,11 @@ def startIcon():
         stop()
 
     menu = pystray.Menu(pystray.MenuItem("Stop Server", onQuit))
+    try:
+        icon_image = load_custom_image("backend/images/SmallLogo.png")
+    except:
+        icon_image = load_custom_image("C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\images\SmallLogo.png")
     
-    icon_image = load_custom_image("backend/images/SmallLogo.png")
-    
-    icon_image = load_custom_image("backend/images/SmallLogo.png")
     icon = pystray.Icon('Laser Tag Scoreboard', icon=icon_image, menu=menu)
     icon.run()
 
