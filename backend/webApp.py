@@ -234,7 +234,7 @@ def start_sniffing():
 
 @socketio.on('connect')
 def handle_connect():
-    format.message("Sniffer Client connected", type="success")
+    format.message("Sniffer Client connected")
     emit('server_response', {'message': 'Connected to the server!'})
 
 @socketio.on('client_event')

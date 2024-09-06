@@ -71,8 +71,7 @@ def message(message, type="Info", date=True, newline=False):
             logger.warning(f"{logtime} | {message}")
         elif type == "Success":
             logger.info(f"{logtime} | {message}")
-        else:
-            logger.info(f"{logtime} | {message}")
+        
         print(messagetosend)
         
     except Exception as e:
