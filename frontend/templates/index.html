@@ -22,27 +22,6 @@
             </div>
         </div>
     </div>
-    <div class="container-fluid">
-        <h1>Real-Time Packet Sniffer</h1>
-        <div id="messages"></div>
-    </div>
-
-    <script type="text/javascript">
-        var socket = io.connect('http://' + document.domain + ':' + location.port);
-
-        socket.on('connect', function() {
-            socket.emit('client_event', {data: 'Client connected!'});
-        });
-
-        socket.on('game_start', function(msg) {
-            var messageDiv = document.getElementById('messages');
-            messageDiv.innerHTML += '<p class="text-success">' + msg.data + '</p>';
-        });
-
-        socket.on('game_end', function(msg) {
-            var messageDiv = document.getElementById('messages');
-            messageDiv.innerHTML += '<p class="text-danger">' + msg.data + '</p>';
-        });
 
         async function controlPlayback(action) {
             if (action == "end"){

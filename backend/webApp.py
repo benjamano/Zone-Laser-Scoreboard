@@ -133,6 +133,10 @@ def openFiles():
 def index():
     return render_template('index.html')
 
+@app.route('/scoreboard')
+def index():
+    return render_template('scoreboard.html')
+
 
 @app.route('/toggle')
 def togglePlaybackRoute():
