@@ -154,6 +154,7 @@ def packet_callback(packet):
         if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2):
             packet_info = packet.show(dump=True)
             packet_bytes = bytes(packet).hex()
+            
 
             try:
                 with open(r"packet.txt", "a") as f:
@@ -165,13 +166,13 @@ def packet_callback(packet):
                 pass
                 
             #format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
-            format.message(f"Packet bytes: {packet_bytes}")
+            #format.message(f"Packet bytes: {packet_bytes}")
             
-            if str(packet_bytes) == r"ffffffffffff0004a345e02a0800450000242fe400006411a06bc0a8022ac0a802ff8de88de800100000342c403031352c3000000000000000000000":
+            if "342c403031352c30" in str(packet_bytes):
                 format.message(f"Game started at {datetime.datetime.now()}", type="success")
                 socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
                                 
-            elif str(packet_bytes) == ENDGAMEBYTES:
+            elif "342c202c30" in str(packet_bytes):
                 format.message(f"Game ended at {datetime.datetime.now()}", type="success")
                 socketio.emit('game_end', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
                 
@@ -179,9 +180,9 @@ def packet_callback(packet):
 
             # socketio.emit('packet_data', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
             
-        elif devMode == "true":
-            packet_info = packet.show(dump=True)
-            packet_bytes = bytes(packet).hex()
+        # elif devMode == "true":
+        #     packet_info = packet.show(dump=True)
+        #     packet_bytes = bytes(packet).hex()
 
             # with open(r"packet.txt", "a") as f:
             #     try:
