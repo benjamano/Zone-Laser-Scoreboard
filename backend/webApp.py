@@ -15,6 +15,7 @@ try:
     import time
     import obswebsocket
     from obswebsocket import obsws, requests
+    import eventlet
     
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -114,6 +115,13 @@ def openFiles():
         
         f.close()
     
+    
+# try:
+    
+#     app.run(host="0.0.0.0", port=8080, debug=True)
+
+# except Exception as e:
+#     format.message(f"Failed to start web server: {e}", type="error")
 
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
 
@@ -121,7 +129,7 @@ def openFiles():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('index.html', OBSConnected=OBSConnected)
 
 @app.route('/scoreboard')
 def scoreboard():
@@ -249,6 +257,8 @@ def obsConnect():
     
     try:
         
+        global OBSConnected
+        
         format.message("Connecting to OBS")
         
         ws = obsws(OBSSERVERIP, OBSSERVERPORT, NOTNEEDED_OBSSERVERPASSWORD)
@@ -257,22 +267,32 @@ def obsConnect():
         
         format.message("Connected to OBS", type="success")
         
+        OBSConnected = True
+        
         #ws.call(requests.SetCurrentProgramScene(scene_name))
         
     except Exception as e:
+        
         format.message(f"Failed to connect to OBS: {e}", type="error")
-        return
     
 
 openFiles()
 
-obsConnect()
-
 try:
     
-    print("Web App Started, hiding console")
-    
     time.sleep(2)
+    
+    OBSConnected = False
+    
+    #obsConnect()
+    
+    #socketio.run(app)
+    
+    #app.run(host="0.0.0.0", port=8080, debug=True)
+    
+    eventlet.wsgi.server(eventlet.listen(('', 8080)), app)
+    
+    print("Web App Started, hiding console")
 
     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
@@ -282,10 +302,3 @@ try:
 
 except Exception as e:
     format.message(f"Failed to start threading: {e}", type="error")
-    
-try:
-    
-    app.run(host="0.0.0.0", port=8080)
-
-except Exception as e:
-    format.message(f"Failed to start web server: {e}", type="error")

@@ -46,7 +46,7 @@ def StartWebApp():
         
         import webApp as webApp
         
-        webApp.app.run(host="0.0.0.0", port=8080)
+        #webApp.app.run(host="0.0.0.0", port=8080, debug=True) **NOT NEEDED AS IT ALREADY STARTS WHEN IMPORTED**
         
     except Exception as e:
         print(f"An error occured: {e}")
