@@ -166,8 +166,6 @@ def packet_callback(packet):
 
             try:
                 with open(r"packet.txt", "a") as f:
-                    f.write(str(packet_info))
-                    f.write("\n")
                     f.write(str(packet_bytes))
                     f.write("\n")
             except:
@@ -176,7 +174,7 @@ def packet_callback(packet):
             #format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
             #format.message(f"Packet bytes: {packet_bytes}")
             
-            if "342c403031352c30" in str(packet_bytes):
+            if "342c403031352c30" in str(packet_bytes) or "342c403031342c30" in str(packet_bytes) or "342c403031352c30" in str(packet_bytes):
                 format.message(f"Game started at {datetime.datetime.now()}", type="success")
                 socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
                                 
