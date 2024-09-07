@@ -159,7 +159,7 @@ def terminateServer():
 def packet_callback(packet):
     try:
         
-        if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2):
+        if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2) and packet[IP].dst == "192.168.0.255":
             packet_info = packet.show(dump=True)
             packet_bytes = bytes(packet).hex()
             
