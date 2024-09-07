@@ -54,7 +54,7 @@ def message(message, type="Info", date=True, newline=False):
         
         reset = "\033[0m"
 
-        color = colors.get(type, "\033[94m")
+        color = colors.get((type.title()), "\033[94m")
         
         if newline:
             messagetosend += "\n"

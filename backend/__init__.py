@@ -10,7 +10,7 @@ class start:
         self.install(["flask_socketio"])
         self.install(["threading"])
         self.install(["eventlet"])
-        self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray"]) 
+        self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "obs-websocket-py"]) 
         
     def install(self, LibaryNames):
         for LibaryName in LibaryNames:
@@ -25,6 +25,10 @@ class start:
                 subprocess.check_call([sys.executable, "-m", "pip", "install", LibaryName])
                             
             finally:
-                globals()[LibaryName] = __import__(LibaryName)
+                try:
+                    globals()[LibaryName] = __import__(LibaryName)
+                except ImportError:
+                    print(f"Package '{LibaryName}' could not be imported.")
+                    pass
                 print(f"Package '{LibaryName}' is now installed and imported.")
             

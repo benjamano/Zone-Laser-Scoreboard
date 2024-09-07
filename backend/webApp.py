@@ -13,6 +13,8 @@ try:
     import os
     import signal
     import time
+    import obswebsocket
+    from obswebsocket import obsws, requests
     
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -69,7 +71,7 @@ def openFiles():
     format.message("Opening Files")
     
     try:
-        global IP1, IP2, ETHERNET_INTERFACE, devMode, ENDGAMEBYTES, STARTGAMEBYTES
+        global IP1, IP2, ETHERNET_INTERFACE, devMode, ENDGAMEBYTES, STARTGAMEBYTES, OBSSERVERIP, OBSSERVERPORT, NOTNEEDED_OBSSERVERPASSWORD
         
         with open(r"data/dev.txt") as f:
             devMode = str(f.readline().strip())
@@ -84,45 +86,33 @@ def openFiles():
             pass
 
     try:
-        with open(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r") as f:
-            IP1 = str(f.readline().strip())
-            IP2 = str(f.readline().strip())
-            ETHERNET_INTERFACE = str(f.readline().strip())      
-            STARTGAMEBYTES = str(f.readline().strip())     
-            ENDGAMEBYTES = str(f.readline().strip())
-            
-
+        f = open(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r")
     except Exception as e:
-        format.message(f"An error occured while reading the file: {e}", type="error")
-        format.message("Falling back to dev location", type="info")
-
         try:
-            with open(r"backend\data\keys.txt", "r") as f:
-                IP1 = str(f.readline().strip())
-                IP2 = str(f.readline().strip())
-                ETHERNET_INTERFACE = str(f.readline().strip())
-                STARTGAMEBYTES = str(f.readline().strip())   
-                ENDGAMEBYTES = str(f.readline().strip())
-                
-            
-            format.message("Dev location found", type="success")
+            format.message(f"An error occured while reading the file: {e}", type="error")
+            format.message("Falling back to dev location", type="info")
         
-            
+            f = open(r"backend\data\keys.txt", "r")
+        
         except Exception as e:
-        
-            try:
+            format.message(f"An error occured while reading the file: {e}", type="error")#
+            format.message("Falling back to other location", type="info")
             
-                with open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r") as f:
-                    IP1 = str(f.readline().strip())
-                    IP2 = str(f.readline().strip())
-                    ETHERNET_INTERFACE = str(f.readline().strip())   
-            
-                format.message("Dev location found", type="success")
+            f = open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r")
         
-            except Exception as e:
+        format.message("Dev location found", type="success")
         
-                format.message(f"An error occured while reading the file: {e}", type="error")
-                input("...")
+    finally:
+        IP1 = str(f.readline().strip())
+        IP2 = str(f.readline().strip())
+        ETHERNET_INTERFACE = str(f.readline().strip())      
+        OBSSERVERIP = str(f.readline().strip())
+        OBSSERVERPORT = int(f.readline().strip())
+        NOTNEEDED_OBSSERVERPASSWORD = str(f.readline().strip())
+        
+        format.message("Files opened", type="success")
+        
+        f.close()
     
 
 # -------------------------------------------------| ROUTES |------------------------------------------------- #
@@ -245,7 +235,7 @@ def handle_client_event(json):
     emit('server_response', {'message': 'Received your event!'})
     
     
-# ----------------------------------------------------------------------------------------------------------- #
+# ----------------------------------------------- | PLAYBACK |------------------------------------------------------------ #
 
 
 def togglePlayback():
@@ -253,10 +243,30 @@ def togglePlayback():
     pyautogui.press('playpause')
     
     
-# ----------------------------------------------------------------------------------------------------------- #
+# ---------------------------------------------- | OBS CONTROL |----------------------------------------------------------- #
+
+def obsConnect():
+    
+    try:
+        
+        format.message("Connecting to OBS")
+        
+        ws = obsws(OBSSERVERIP, OBSSERVERPORT, NOTNEEDED_OBSSERVERPASSWORD)
+        
+        ws.connect()
+        
+        format.message("Connected to OBS", type="success")
+        
+        #ws.call(requests.SetCurrentProgramScene(scene_name))
+        
+    except Exception as e:
+        format.message(f"Failed to connect to OBS: {e}", type="error")
+        return
     
 
 openFiles()
+
+obsConnect()
 
 try:
     
