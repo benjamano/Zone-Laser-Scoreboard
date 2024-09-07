@@ -278,19 +278,21 @@ def obsConnect():
 
 openFiles()
 
+def startServer():
+    
+    eventlet.wsgi.server(eventlet.listen(('', 8080)), app)
+
 try:
     
     time.sleep(2)
     
     OBSConnected = False
     
-    #obsConnect()
-    
     #socketio.run(app)
     
     #app.run(host="0.0.0.0", port=8080, debug=True)
     
-    eventlet.wsgi.server(eventlet.listen(('', 8080)), app)
+    obsConnect()
     
     print("Web App Started, hiding console")
 
@@ -299,6 +301,8 @@ try:
     sniffing_thread = threading.Thread(target=start_sniffing)
     sniffing_thread.daemon = True 
     sniffing_thread.start()
+    
+    threading.Thread(target=startServer).start()
 
 except Exception as e:
     format.message(f"Failed to start threading: {e}", type="error")
