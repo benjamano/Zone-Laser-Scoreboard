@@ -154,13 +154,15 @@ def terminateServer():
 # -------------------------------------------------| SNIFFER |------------------------------------------------ #
 
 
+prepareForStartPacket = False
+
 def packet_callback(packet):
+    global prepareForStartPacket
+
     try:
-        
         if packet.haslayer(IP) and (packet[IP].src == IP1 or packet[IP].src == IP2) and packet[IP].dst == "192.168.0.255":
             packet_info = packet.show(dump=True)
             packet_bytes = bytes(packet).hex()
-            
 
             try:
                 with open(r"packet.txt", "a") as f:
@@ -168,17 +170,24 @@ def packet_callback(packet):
                     f.write("\n")
             except:
                 pass
-                
-            #format.message(f"Packet info: {packet_info}\nPacket bytes: {packet_bytes}")
-            #format.message(f"Packet bytes: {packet_bytes}")
-            
-            if "342c403031352c30" in str(packet_bytes) or "342c403031342c30" in str(packet_bytes) or "342c403031352c30" in str(packet_bytes):
-                format.message(f"Game started at {datetime.datetime.now()}", type="success")
-                socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
-                                
+
+
+            if "342c403031352c30" in str(packet_bytes):
+                format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
+                prepareForStartPacket = True  
+
             elif "342c202c30" in str(packet_bytes):
-                format.message(f"Game ended at {datetime.datetime.now()}", type="success")
-                socketio.emit('game_end', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
+                if prepareForStartPacket:
+                    format.message(f"Prepare for timing packet detected after game start at {datetime.datetime.now()}", type="success")
+                    socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
+                    prepareForStartPacket = False  
+
+            # Reset the flag if other packets come through
+            else:
+                prepareForStartPacket = False
+
+    except Exception as e:
+        format.message(f"An error occurred while handling the packet: {e}", type="error")
                 
             
 
@@ -203,9 +212,7 @@ def packet_callback(packet):
             # format.message(f"Packet info: {packet_info}")
 
             # socketio.emit('packet_data', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
-        
-    except Exception as e:
-        format.message(f"An error occurred while handling the packet: {e}", type="error")
+
 
 def start_sniffing():
     print("Starting packet sniffer...")
