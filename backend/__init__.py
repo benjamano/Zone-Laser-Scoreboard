@@ -12,23 +12,19 @@ class start:
         self.install(["eventlet"])
         self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "obs-websocket-py"]) 
         
-    def install(self, LibaryNames):
-        for LibaryName in LibaryNames:
+    def install(self, libraryNames):
+        for libraryName in libraryNames:
             try:
                 print("|----------------------------------------------------------------------------------------------|")
-                
-                print(f"Trying to import '{LibaryName}'")
-                __import__(LibaryName)
+                print(f"Trying to import '{libraryName}'")
+                __import__(libraryName)
             except ImportError:
-                            
-                print(f"Package '{LibaryName}' not found. Installing...")
-                subprocess.check_call([sys.executable, "-m", "pip", "install", LibaryName])
-                            
+                print(f"Package '{libraryName}' not found. Installing...")
+                subprocess.check_call([sys.executable, "-m", "pip", "install", libraryName])
             finally:
                 try:
-                    globals()[LibaryName] = __import__(LibaryName)
+                    globals()[libraryName] = __import__(libraryName)
                 except ImportError:
-                    print(f"Package '{LibaryName}' could not be imported.")
+                    print(f"Package '{libraryName}' could not be imported.")
                     pass
-                print(f"Package '{LibaryName}' is now installed and imported.")
-            
+                print(f"Package '{libraryName}' is now installed and imported.")

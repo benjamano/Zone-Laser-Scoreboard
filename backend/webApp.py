@@ -129,6 +129,7 @@ def openFiles():
 
 @app.route('/')
 def index():
+    
     return render_template('index.html', OBSConnected=OBSConnected)
 
 @app.route('/scoreboard')
@@ -157,6 +158,7 @@ def terminateServer():
 prepareForStartPacket = False
 
 def packet_callback(packet):
+    
     global prepareForStartPacket
 
     try:
@@ -174,17 +176,17 @@ def packet_callback(packet):
 
             if "342c403031352c30" in packet_bytes.lower():
                 format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-                socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
+                #socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
+                socketio.emit('game_start', {'data': "Game Started @ " + str(datetime.datetime.now())})
 
             elif "342c403031342c30" in packet_bytes.lower():
                 format.message(f"Game Ended at {datetime.datetime.now()}", type="success")
-                socketio.emit('game_end', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
+                #socketio.emit('game_end', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
+                socketio.emit('game_end', {'data': "Game Ended @ " + str(datetime.datetime.now())})
 
 
     except Exception as e:
         format.message(f"An error occurred while handling the packet: {e}", type="error")
-                
-            
 
             # socketio.emit('packet_data', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
             
@@ -226,6 +228,7 @@ def start_sniffing():
         except Exception as e:
             format.message(f"An error occurred while sniffing: {e}", type="error")
             format.message(f"Starting without Ethernet", type="info")
+            
         
         
         
@@ -294,7 +297,7 @@ try:
     
     #app.run(host="0.0.0.0", port=8080, debug=True)
     
-    obsConnect()
+    threading.Thread(target=obsConnect).start()
     
     print("Web App Started, hiding console")
 
@@ -304,7 +307,9 @@ try:
     sniffing_thread.daemon = True 
     sniffing_thread.start()
     
-    threading.Thread(target=startServer).start()
+    #threading.Thread(target=startServer).start()
+    
+    eventlet.wsgi.server(eventlet.listen(('', 8080)), app)
 
 except Exception as e:
     format.message(f"Failed to start threading: {e}", type="error")

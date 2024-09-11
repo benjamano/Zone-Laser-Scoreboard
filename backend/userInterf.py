@@ -4,50 +4,58 @@ import tkinter as tk
 from tkinter import ttk
 import __init__ as init
 
-def StartUI():
-    
-    global root, progress, StartApp
-    
-    def StartApp():
+def startUI():
+    global root, progress, startApp, revealUI
+
+    def startApp():
+        progress.start()
+        progress["value"] = 0
         for i in range(5, 0, -1):
-            countdownlbl.config(text=f"Web App Starting in {i} seconds...")
+            countdownLbl.config(text=f"Web App Starting in {i} seconds...")
             root.update()
             time.sleep(1)
-        
-        StartWebApp()
-    
+        startWebApp()
+
+    def revealUI():
+        root.deiconify()
+
     root = tk.Tk()
     root.title("Arena Scoreboard Starting...")
-    
-    creditslbl = tk.Label(root, text="""Laser Tag Arena Scoreboard
-Programmed by Ben Mercer""")
-    creditslbl.pack(pady=10)
 
-    countdownlbl = tk.Label(root, text="")
-    countdownlbl.pack(pady=5)
-    
+    creditsLbl = tk.Label(root, text="Laser Tag Arena Scoreboard\nProgrammed by Ben Mercer")
+    creditsLbl.pack(pady=10)
+
+    countdownLbl = tk.Label(root, text="")
+    countdownLbl.pack(pady=5)
+
     progress = ttk.Progressbar(root, orient="horizontal", length=300, mode="determinate", maximum=6, value=0)
     progress.pack(pady=20)
-    progress.start()
-    
+
     root.geometry("300x200")
-
-    StartApp()
-
+    
+    startApp()
+    
     root.mainloop()
     
 
-def StartWebApp():
-    try:
+def showInterface():
+    interfaceWindow = tk.Tk()
+    interfaceWindow.title("Control Panel")
+    
+    def sendTestMessage():
+        print("Test message sent")
 
+    testButton = tk.Button(interfaceWindow, text="Send Test Message", command=sendTestMessage)
+    testButton.pack(pady=10)
+
+    interfaceWindow.geometry("300x200")
+    interfaceWindow.mainloop()
+
+def startWebApp():
+    try:
         print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
-        
         root.destroy()
-        
         import webApp as webApp
-        
-        #webApp.app.run(host="0.0.0.0", port=8080, debug=True) **NOT NEEDED AS IT ALREADY STARTS WHEN IMPORTED**
-        
     except Exception as e:
-        print(f"An error occured: {e}")
-        close = str(input("..."))
+        print(f"An error occurred: {e}")
+        input("...")
