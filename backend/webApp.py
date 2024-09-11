@@ -172,19 +172,14 @@ def packet_callback(packet):
                 pass
 
 
-            if "342c403031352c30" in str(packet_bytes):
+            if "342c403031352c30" in packet_bytes.lower():
                 format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-                prepareForStartPacket = True  
+                socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
 
-            elif "342c202c30" in str(packet_bytes):
-                if prepareForStartPacket:
-                    format.message(f"Prepare for timing packet detected after game start at {datetime.datetime.now()}", type="success")
-                    socketio.emit('game_start', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
-                    prepareForStartPacket = False  
+            elif "342c403031342c30" in packet_bytes.lower():
+                format.message(f"Game Ended at {datetime.datetime.now()}", type="success")
+                socketio.emit('game_end', {'data': str(datetime.date.today()) + '---->  ' + packet_info + '\n >>>>  ' + packet_bytes})
 
-            # Reset the flag if other packets come through
-            else:
-                prepareForStartPacket = False
 
     except Exception as e:
         format.message(f"An error occurred while handling the packet: {e}", type="error")
