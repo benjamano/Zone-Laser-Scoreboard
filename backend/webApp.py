@@ -246,6 +246,9 @@ def handle_connect():
 def handle_client_event(json):
     format.message(f"Received event: {json}")
     emit('server_response', {'message': 'Received your event!'})
+ 
+def sendTestPacket():
+    socketio.emit('game_end', {'data': "Test packet sent @ " + str(datetime.date.today())})
     
     
 # ----------------------------------------------- | PLAYBACK |------------------------------------------------------------ #

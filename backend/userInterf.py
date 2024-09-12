@@ -3,6 +3,7 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 import __init__ as init
+import ctypes
 
 def startUI():
     global root, progress, startApp, revealUI
@@ -43,10 +44,28 @@ def showInterface():
     interfaceWindow.title("Control Panel")
     
     def sendTestMessage():
-        print("Test message sent")
+        try:
+            from webApp import sendTestPacket
+        
+            sendTestPacket()
+        except Exception as e:
+            format.message(f"Error sending test packet: {e}", type="error")
+            
+    def showOutputWindow():
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
+       
+    def hideOutputWindow():
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
     testButton = tk.Button(interfaceWindow, text="Send Test Message", command=sendTestMessage)
     testButton.pack(pady=10)
+
+    showWindowButton = tk.Button(interfaceWindow, text="Show Python Output", command=showOutputWindow)
+    showWindowButton.pack(pady=10)
+    
+    hideWindowButton = tk.Button(interfaceWindow, text="Hide Python Output", command=hideOutputWindow)
+    hideWindowButton.pack(pady=10)
+
 
     interfaceWindow.geometry("300x200")
     interfaceWindow.mainloop()
@@ -59,3 +78,5 @@ def startWebApp():
     except Exception as e:
         print(f"An error occurred: {e}")
         input("...")
+
+showInterface()
