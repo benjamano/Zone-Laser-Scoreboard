@@ -42,6 +42,8 @@ def startUI():
 def showInterface():
     interfaceWindow = tk.Tk()
     interfaceWindow.title("Control Panel")
+
+    from webApp import OBSConnected, functionsImported, filesOpened
     
     def sendTestMessage():
         try:
@@ -56,6 +58,9 @@ def showInterface():
        
     def hideOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        
+    creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
+    creditsLbl.pack(pady=10)
 
     testButton = tk.Button(interfaceWindow, text="Send Test Message", command=sendTestMessage)
     testButton.pack(pady=10)
@@ -65,7 +70,15 @@ def showInterface():
     
     hideWindowButton = tk.Button(interfaceWindow, text="Hide Python Output", command=hideOutputWindow)
     hideWindowButton.pack(pady=10)
-
+    
+    OBSConnectedlbl = tk.Label(interfaceWindow, text=f"OBS Connected: {OBSConnected}")
+    OBSConnectedlbl.pack(pady=10)
+    
+    functionsImportedlbl = tk.Label(interfaceWindow, text=f"Functions imported: {functionsImported}")
+    functionsImportedlbl.pack(pady=10)
+    
+    filesOpenedlbl = tk.Label(interfaceWindow, text=f"Files opened: {filesOpened}")
+    filesOpenedlbl.pack(pady=10)
 
     interfaceWindow.geometry("300x200")
     interfaceWindow.mainloop()

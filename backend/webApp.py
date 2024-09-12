@@ -35,6 +35,10 @@ except Exception as e:
         try:
             import func.format as format
             
+            global functionsImported
+
+            functionsImported = True
+            
         except:
 
             print(f"An error occurred: {e}")
@@ -112,6 +116,10 @@ def openFiles():
         NOTNEEDED_OBSSERVERPASSWORD = str(f.readline().strip())
         
         format.message("Files opened", type="success")
+        
+        global filesOpened
+        
+        filesOpened = True
         
         f.close()
     
