@@ -121,7 +121,7 @@ class WebApp:
             sniff(prn=self.packet_callback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
             try:
-                sniff(prn=self.packet_callback, store=False, iface="\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
+                sniff(prn=self.packet_callback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
                 format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
             except Exception as e:
                 format.message(f"Error while sniffing: {e}", type="error")
