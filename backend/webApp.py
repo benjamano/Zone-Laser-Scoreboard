@@ -60,7 +60,7 @@ class WebApp:
 
     def open_files(self):
         try:
-            with open(r"backend\data\keys.txt", "r") as f:
+            with open(r"\backend\data\keys.txt", "r") as f:
                 self.IP1 = str(f.readline().strip())
                 self.IP2 = str(f.readline().strip())
                 self.ETHERNET_INTERFACE = str(f.readline().strip())
@@ -120,7 +120,11 @@ class WebApp:
         try:
             sniff(prn=self.packet_callback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
-            format.message(f"Error while sniffing: {e}", type="error")
+            try:
+                sniff(prn=self.packet_callback, store=False, iface="\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
+                format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
+            except Exception as e:
+                format.message(f"Error while sniffing: {e}", type="error")
 
     def packet_callback(self, packet):
         try:
