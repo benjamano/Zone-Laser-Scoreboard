@@ -2,8 +2,11 @@ import time
 import threading
 import tkinter as tk
 from tkinter import ttk
-import __init__ as init
 import ctypes
+from webApp import WebApp  # Import the WebApp class
+
+# Initialize WebApp
+web_app = WebApp()
 
 def startUI():
     global root, progress, startApp, revealUI
@@ -15,6 +18,7 @@ def startUI():
             countdownLbl.config(text=f"Web App Starting in {i} seconds...")
             root.update()
             time.sleep(1)
+        root.destroy()
         startWebApp()
 
     def revealUI():
@@ -37,28 +41,20 @@ def startUI():
     startApp()
     
     root.mainloop()
-    
 
 def showInterface():
     interfaceWindow = tk.Tk()
     interfaceWindow.title("Control Panel")
 
-    from webApp import OBSConnected, functionsImported, filesOpened
-    
     def sendTestMessage():
-        try:
-            from webApp import sendTestPacket
-        
-            sendTestPacket()
-        except Exception as e:
-            format.message(f"Error sending test packet: {e}", type="error")
-            
+        threading.Thread(target=web_app.send_test_packet()).start()
+
     def showOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
-       
+
     def hideOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        
+
     creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
     creditsLbl.pack(pady=10)
 
@@ -70,26 +66,9 @@ def showInterface():
     
     hideWindowButton = tk.Button(interfaceWindow, text="Hide Python Output", command=hideOutputWindow)
     hideWindowButton.pack(pady=10)
-    
-    OBSConnectedlbl = tk.Label(interfaceWindow, text=f"OBS Connected: {OBSConnected}")
-    OBSConnectedlbl.pack(pady=10)
-    
-    functionsImportedlbl = tk.Label(interfaceWindow, text=f"Functions imported: {functionsImported}")
-    functionsImportedlbl.pack(pady=10)
-    
-    filesOpenedlbl = tk.Label(interfaceWindow, text=f"Files opened: {filesOpened}")
-    filesOpenedlbl.pack(pady=10)
 
     interfaceWindow.geometry("300x200")
     interfaceWindow.mainloop()
 
 def startWebApp():
-    try:
-        print("\n|----------------------------------| STARTING WEB APP |----------------------------------------|\n")
-        root.destroy()
-        import webApp as webApp
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        input("...")
-
-showInterface()
+    web_app.start()

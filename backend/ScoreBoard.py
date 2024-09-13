@@ -35,11 +35,16 @@ def startIcon():
     try:
         iconImage = loadCustomImage("backend/images/SmallLogo.png")
     except:
-        iconImage = loadCustomImage(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\images\SmallLogo.png")
-    
+        try:
+            iconImage = loadCustomImage(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\images\SmallLogo.png")
+        except:
+            try:
+                iconImage = loadCustomImage(r"\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\images\SmallLogo.png")
+            except:
+                print("Failed to load custom image for icon. Using default.")
+                iconImage = pystray.Icon.DEFAULT_IMAGE6
     icon = pystray.Icon('Laser Tag Scoreboard', icon=iconImage, menu=menu)
-    icon.run()
-
+    threading.Thread(target=icon.run).start()
 try:
     init.start()
     print("\n|----------------------------------------------------------------------------------------------------|\n")
@@ -47,16 +52,11 @@ try:
     global ui
     import userInterf as ui
     
- 
-    threading.Thread(target=startIcon, daemon=True).start()
-        
+    startIcon()
     print("User Interface starting")
     
-    UI = threading.Thread(target=ui.startUI, daemon=True)
-    UI.start()
+    threading.Thread(target=ui.startUI).run()
 
-    UI.join()
-    
 except Exception as e:
     print(f"An error occurred: {e}")
     input("Press any key to exit...")
