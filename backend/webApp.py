@@ -60,7 +60,7 @@ class WebApp:
 
     def open_files(self):
         try:
-            with open(r"\backend\data\keys.txt", "r") as f:
+            with open(r"data\keys.txt", "r") as f:
                 self.IP1 = str(f.readline().strip())
                 self.IP2 = str(f.readline().strip())
                 self.ETHERNET_INTERFACE = str(f.readline().strip())
