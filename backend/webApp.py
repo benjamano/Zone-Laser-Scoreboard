@@ -101,17 +101,17 @@ class WebApp:
             format.message(f"Received event: {json}")
             
         @self.app.route('/send_message', methods=['POST'])
-        def send_message():
-            message = request.form.get('response')
+        async def send_message():
+            message = request.form.get('message')
             type = request.form.get('type')
             if message:
                 match type:
                     case "start":
-                        self.socketio.emit('start', {'server': message})
+                        await self.socketio.emit('start', {'server': message})
                     case "end":
-                        self.socketio.emit('end', {'server': message})
+                        await self.socketio.emit('end', {'server': message})
                     case _:
-                        self.socketio.emit('server', {'message': message})
+                        await self.socketio.emit('server', {'message': message})
                         
             return 'Message sent!'
             
@@ -133,10 +133,11 @@ class WebApp:
 
                 if "342c403031352c30" in packet_bytes.lower():
                     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-                    self.socketio.emit('game_start', {'message': "Game Started @ " + str(datetime.datetime.now())})
+                    response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
                 elif "342c403031342c30" in packet_bytes.lower():
                     format.message(f"Game Ended at {datetime.datetime.now()}", type="success")
-                    self.socketio.emit('game_end', {'message': "Game Ended @ " + str(datetime.datetime.now())})
+                    response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+                    
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
 
@@ -169,6 +170,6 @@ class WebApp:
     
     def send_test_packet(self):
         format.message("Sending test packet")
-        response = requests.post('http://localhost:8080/send_message', data={'response': "Test Packet", 'type': "server"})
+        response = requests.post('http://localhost:8080/send_message', data={'message': "Test Packet", 'type': "server"})
         format.message(f"Response: {response.text}")
 
