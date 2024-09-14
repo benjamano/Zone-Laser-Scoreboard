@@ -101,18 +101,21 @@ class WebApp:
             format.message(f"Received event: {json}")
             
         @self.app.route('/send_message', methods=['POST'])
-        async def send_message():
+        def send_message():
             message = request.form.get('message')
             type = request.form.get('type')
             format.message(f"Sending message: {message} with type: {type}")
             if message:
-                match type:
+                match type.lower():
                     case "start":
-                        await self.socketio.emit('start', {'server': message})
+                        format.message("Sending start message")
+                        self.socketio.emit('start', {'message': message})
                     case "end":
-                        await self.socketio.emit('end', {'server': message})
-                    case _:
-                        await self.socketio.emit('server', {'message': message})
+                        format.message("Sending end message")
+                        self.socketio.emit('end', {'message': message})
+                    case "server":
+                        format.message("Sending server message")
+                        self.socketio.emit('server', {'message': message})
                         
             return 'Message sent!'
             
