@@ -104,6 +104,7 @@ class WebApp:
         async def send_message():
             message = request.form.get('message')
             type = request.form.get('type')
+            format.message(f"Sending message: {message} with type: {type}")
             if message:
                 match type:
                     case "start":
@@ -135,7 +136,7 @@ class WebApp:
                     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
                 elif "342c403031342c30" in packet_bytes.lower():
-                    format.message(f"Game Ended at {datetime.datetime.now()}", type="success")
+                    format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
                     
         except Exception as e:
