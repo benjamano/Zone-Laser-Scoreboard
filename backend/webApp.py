@@ -135,9 +135,11 @@ class WebApp:
                 if "342c403031352c30" in packet_bytes.lower():
                     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+                    format.message(f"Response: {response.text}")
                 elif "342c403031342c30" in packet_bytes.lower():
                     format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+                    format.message(f"Response: {response.text}")
                     
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
