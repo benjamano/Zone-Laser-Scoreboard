@@ -15,7 +15,14 @@
             <div class="card-header bg-success-subtle">Spotify Playback Control</div>
             <div class="card-body">
                 <button onclick="controlPlayback('toggle')">Play</button>
+                <div class="form-group">
+
+                    <label for="ControlSpotify">Control Spotify</label>
+                    <input type="checkbox" id="ControlSpotify" name="ControlSpotify" value="true" onchange="toggleSpotifyControl()">
+
+                </div>
             </div>
+
         </div>
         <div class="card col-5 p-0">
             <div class="card-header bg-dark-subtle">Server Control</div>
@@ -45,13 +52,15 @@
 
     <script>
 
-        window.onload = function() {
+        var controlSpotify = false;
 
-        
-            var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
+        var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
+
+        window.onload = function() {
 
             socket.on('connect', function() {
                 socket.emit('client_event', {data: 'Client connected!'});
+                console.log("SpotifyControl: " + controlSpotify);
                 console.log("Client connected!");
 
                 var messageDiv = document.getElementById('messages');
@@ -100,7 +109,22 @@
 
                 messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
             });
+
+            socket.on('timeleft', function(msg) {
+                var messageDiv = document.getElementById('messages');
+
+                messageDiv.innerHTML += '<p class="text-danger">'+ msg.message +'</p>';
+            });
+            
         };
+
+        async function toggleSpotifyControl(){
+            controlSpotify = !controlSpotify;
+
+            socket.emit('SpotifyControl', {data: controlSpotify});
+
+            console.log("SpotifyControl: " + controlSpotify);
+        }
 
         async function controlPlayback(action) {
             if (action == "end"){

@@ -46,6 +46,7 @@ class WebApp:
         self.OBSConnected = False
         self.devMode = "False"
         self.filesOpened = False
+        self.spotifyControl = False
 
         self.init_logging()
         self.db.init_app(self.app)
@@ -99,6 +100,13 @@ class WebApp:
         @self.socketio.on('client_event')
         def handle_client_event(json):
             format.message(f"Received event: {json}")
+        
+        @self.socketio.on('SpotifyControl')
+        def handle_spotify_control(json):
+            format.message(f"Spotify control = {json["data"]}")
+            
+            self.spotifyControl = json["data"]
+            
             
         @self.app.route('/send_message', methods=['POST'])
         def send_message():
@@ -116,6 +124,9 @@ class WebApp:
                     case "server":
                         format.message("Sending server message")
                         self.socketio.emit('server', {'message': message})
+                    case "timeleft":
+                        format.message(f"Sending timeleft message, {message} seconds left")
+                        self.socketio.emit('timeleft', {'message': f"{message} seconds remaining"})
                         
             return 'Message sent!'
             
@@ -137,18 +148,28 @@ class WebApp:
 
                 if "342c403031352c30" in packet_bytes.lower():
                     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
+                    self.handleMusic()
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
                     format.message(f"Response: {response.text}")
                 elif "342c403031342c30" in packet_bytes.lower():
                     format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+                    self.handleMusic()
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
                     format.message(f"Response: {response.text}")
+                elif "312c373634312c2240303034222c33302c31" in packet_bytes.lower():
+                    format.message(f"30 seconds remain!", type="success") 
+                    response = requests.post('http://localhost:8080/send_message', data={'message': f"30", 'type': "timeleft"})
                     
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
-
-    def toggle_playback(self):
-        pyautogui.press('playpause')
+    
+    def handleMusic(self):
+        if self.spotifyControl:
+            format.message("Toggling playback")
+            pyautogui.press('playpause')
+        else:
+            format.message("Spotify control is disabled")
+            pass
 
     def obs_connect(self):
         try:
