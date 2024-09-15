@@ -3,9 +3,10 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 import ctypes
-from webApp import WebApp  # Import the WebApp class
+from webApp import WebApp
+import subprocess
+import os
 
-# Initialize WebApp
 web_app = WebApp()
 
 def startUI():
@@ -45,6 +46,7 @@ def startUI():
 def showInterface():
     interfaceWindow = tk.Tk()
     interfaceWindow.title("Control Panel")
+    
 
     def sendTestMessage():
         threading.Thread(target=web_app.send_test_packet()).start()
@@ -54,12 +56,21 @@ def showInterface():
 
     def hideOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        
+    def openFileDir():
+        filedir = os.path.dirname(os.path.realpath(__file__))
+        print(f"Opening file directory: {filedir}")
+        subprocess.Popen(rf'explorer /select, "{filedir}"')
+        
 
     creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
     creditsLbl.pack(pady=10)
 
     testButton = tk.Button(interfaceWindow, text="Send Test Message", command=sendTestMessage)
     testButton.pack(pady=10)
+    
+    fileDirButton = tk.Button(interfaceWindow, text="Open file directory", command=openFileDir)
+    fileDirButton.pack(pady=10)
 
     showWindowButton = tk.Button(interfaceWindow, text="Show Python Output", command=showOutputWindow)
     showWindowButton.pack(pady=10)
@@ -67,7 +78,7 @@ def showInterface():
     hideWindowButton = tk.Button(interfaceWindow, text="Hide Python Output", command=hideOutputWindow)
     hideWindowButton.pack(pady=10)
 
-    interfaceWindow.geometry("300x200")
+    interfaceWindow.geometry("400x300")
     interfaceWindow.mainloop()
 
 def startWebApp():

@@ -22,21 +22,24 @@ except Exception as e:
         from func import format
         print("Imported functions") 
     except Exception as e:
-        try:
-            import func.format as format      
-        except:
-            print(f"An error occurred: {e}")
-            input("Press any key to exit...")
+        print(f"An error occurred: {e}")
+        input("Press any key to exit...")
+        
 import logging
+
+db = SQLAlchemy()
 
 class WebApp:
     def __init__(self):
-        self.db = SQLAlchemy()
-        self.socketio = SocketIO()
-
         self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
+            
+        db.init_app(self.app)
+        
+        self.socketio = SocketIO(self.app, cors_allowed_origins="*")
+        
+        self._dir = os.path.dirname(os.path.realpath(__file__))
 
         self.WM_APPCOMMAND = 0x0319
         self.APPCOMMAND_PLAY_PAUSE = 0x0000
@@ -49,11 +52,13 @@ class WebApp:
         self.spotifyControl = False
 
         self.init_logging()
-        self.db.init_app(self.app)
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
         self.open_files()
-
+        
         self.setup_routes()
+        
+        with self.app.app_context():
+            db.create_all()
 
     def init_logging(self):
         self.app.logger.disabled = True
@@ -61,17 +66,23 @@ class WebApp:
 
     def open_files(self):
         try:
-            with open(r"data\keys.txt", "r") as f:
-                self.IP1 = str(f.readline().strip())
-                self.IP2 = str(f.readline().strip())
-                self.ETHERNET_INTERFACE = str(f.readline().strip())
-                self.OBSSERVERIP = str(f.readline().strip())
-                self.OBSSERVERPORT = int(f.readline().strip())
-                self.OBSSERVERPASSWORD = str(f.readline().strip())
+            f = open(r"data\keys.txt", "r")
+        except:
+            try:
+                f = open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r")
+            except Exception as e:
+                format.message(f"Failed to open files: {e}", type="error")
+        finally:
+            self.IP1 = str(f.readline().strip())
+            self.IP2 = str(f.readline().strip())
+            self.ETHERNET_INTERFACE = str(f.readline().strip())
+            self.OBSSERVERIP = str(f.readline().strip())
+            self.OBSSERVERPORT = int(f.readline().strip())
+            self.OBSSERVERPASSWORD = str(f.readline().strip())
+            
             format.message("Files opened successfully", type="success")
+            
             self.filesOpened = True
-        except Exception as e:
-            format.message(f"Failed to open files: {e}", type="error")
 
     def setup_routes(self):
         @self.app.route('/')
@@ -149,6 +160,7 @@ class WebApp:
                 if "342c403031352c30" in packet_bytes.lower():
                     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
                     self.handleMusic()
+                    self.gameStarted()
                     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
                     format.message(f"Response: {response.text}")
                 elif "342c403031342c30" in packet_bytes.lower():
@@ -164,7 +176,7 @@ class WebApp:
             format.message(f"Error handling packet: {e}", type="error")
     
     def handleMusic(self):
-        if self.spotifyControl:
+        if self.spotifyControl == True:
             format.message("Toggling playback")
             pyautogui.press('playpause')
         else:
@@ -200,3 +212,44 @@ class WebApp:
         response = requests.post('http://localhost:8080/send_message', data={'message': "Test Packet", 'type': "server"})
         format.message(f"Response: {response.text}")
 
+    def gameStarted(self):
+        format.message("Game started")
+        
+        
+        
+class Gun(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(60), unique=True, nullable=False)
+    defaultColor = db.Column(db.String(60), unique=False, nullable=False)
+    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
+    
+class Player(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(60), unique=True, nullable=False)
+    kills = db.Column(db.Integer, nullable=False)
+    deaths = db.Column(db.Integer, nullable=False)
+    gamesWon = db.Column(db.Integer, nullable=False)
+    gamesLost = db.Column(db.Integer, nullable=False)
+    
+class GamePlayers(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
+    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"),  nullable=False)
+    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=False)
+    playerWon = db.Column(db.Boolean, nullable=False)
+    team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
+    
+class Game(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(60), unique=True, nullable=False)
+    startTime = db.Column(db.DateTime, nullable=False)
+    endTime = db.Column(db.DateTime, nullable=False)
+    winningPlayer = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
+    winningTeam = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
+    loser = db.Column(db.String(60), nullable=True)
+    
+class Team(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(60), unique=True, nullable=False)
+    teamColour = db.Column(db.String(10), nullable=False)
+    gamePlayers = db.relationship("gameplayers", backref="team", lazy=True)
