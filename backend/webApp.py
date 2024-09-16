@@ -41,11 +41,6 @@ class WebApp:
         
         self._dir = os.path.dirname(os.path.realpath(__file__))
 
-        self.WM_APPCOMMAND = 0x0319
-        self.APPCOMMAND_PLAY_PAUSE = 0x0000
-        self.APPCOMMAND_NEXT = 0x000B
-        self.APPCOMMAND_PREV = 0x000C
-
         self.OBSConnected = False
         self.devMode = "False"
         self.filesOpened = False
@@ -66,7 +61,7 @@ class WebApp:
 
     def open_files(self):
         try:
-            f = open(r"data\keys.txt", "r")
+            f = open(fr"{self._dir}\data\keys.txt", "r")
         except:
             try:
                 f = open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r")
