@@ -9,6 +9,8 @@ I also want Player data to be deleted after 2 yeas of inactivity, to save on sto
 
 ## Packets decoded so far:
 
+Values are seperated by commas by the control box.
+
 | Packet Name       | Hex Bytes       | ASCII Conversion | Details     |
 | :---------------- | :------:        | :------          |:------      |
 | Game Start        |  342c403031352c30    | 4,@015,0      | coming soon |
