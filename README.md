@@ -10,8 +10,9 @@ I also want Player data to be deleted after 2 yeas of inactivity, to save on sto
 ## Packets I have decoded so far:
 
 | Packet Name       | Hex Bytes | ASCII Conversion | Details |
-| :---------------- | :------:  | ----:      |----:      |
-| coming soon        |   coming soon    | coming soon | coming soon |
-| coming soon           |   coming soon    | coming soon | coming soon |
-| coming soon    |  coming soon    | coming soon | coming soon |
-| coming soon |  coming soone    | coming soon | coming soon |
+| :---------------- | :------:        | :------     |:------      |
+| Game Start        |  coming soon    | coming soon | coming soon |
+| Game End          |  coming soon    | coming soon | coming soon |
+| Timing            |  coming soon    | coming soon | coming soon |
+| Shot Made         |  coming soon    | coming soon | coming soon |
+| Shot Confirmed    |  coming soon    | coming soon | coming soon |
