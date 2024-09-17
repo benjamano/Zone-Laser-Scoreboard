@@ -1,5 +1,7 @@
 # Zone Laser Tag Scoreboard / Packet Sniffer
 
+**CURRENTLY THIS ONLY WORKS WITH THE BEGEARA 2 SYSTEM**
+
 This system uses python to sniff the network for packets that are coming from or going to the Zone Laser control box.
 
 So far, it can only detect the start and the end of games. I'm currently working on the detection of hits / scores.
