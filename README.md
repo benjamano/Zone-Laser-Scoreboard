@@ -14,7 +14,7 @@ Values are seperated by commas by the control box.
 | Packet Name       | Hex Bytes       | ASCII Conversion | Details     |
 | :---------------- | :------:        | :------          |:------      |
 | Game Start        |  342c403031352c30    | 4,@015,0      | "4" - Game Mode, "@015" - Game Status, "0" - Unknown  |
-| Game End          |  342c403031342c30    | 4,@014,0      | "4" - Game Mode, "@015" - Game Status, "0" - Unknown |
+| Game End          |  342c403031342c30    | 4,@014,0      | "4" - Game Mode, "@014" - Game Status, "0" - Unknown |
 | Timing            |  coming soon    | coming soon      | coming soon |
 | Shot Made         |  coming soon    | coming soon      | coming soon |
 | Shot Confirmed    |  coming soon    | coming soon      | coming soon |
