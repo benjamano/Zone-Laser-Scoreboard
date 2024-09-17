@@ -21,7 +21,7 @@ Values are seperated by commas by the control box.
 | Shot Made         |  coming soon    | coming soon      | coming soon |
 | Shot Confirmed    |  coming soon    | coming soon      | coming soon |
 
-# Setup Zone Packet Sniffing
+## Setup Zone Packet Sniffing
 
 This is an annoying process.
 You must be able to connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
