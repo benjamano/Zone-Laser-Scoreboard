@@ -21,6 +21,10 @@ Values are seperated by commas by the control box.
 | Shot Made         |  coming soon    | coming soon      | coming soon |
 | Shot Confirmed    |  coming soon    | coming soon      | coming soon |
 
+# Scoreboard Set Up
+
+# Extra Details
+
 ## Setup Zone Packet Sniffing
 
 This is an annoying process.
