@@ -20,6 +20,7 @@ Values are seperated by commas by the control box.
 | Timing            |  coming soon    | coming soon      | coming soon |
 | Shot Made         |  coming soon    | coming soon      | coming soon |
 | Shot Confirmed    |  coming soon    | coming soon      | coming soon |
+| End of Game Scores|  coming soon    | coming soon      | coming soon |
 
 # Scoreboard Set Up
 
