@@ -3,6 +3,10 @@
 **CURRENTLY THIS ONLY WORKS WITH THE BEGEARA 2 SYSTEM**
 
 This system uses python to sniff the network for packets that are coming from or going to the Zone Laser control box.
+It runs a simple Web App, run by Flask.
+The app is designed for use inside of a Laser-Tag arena, allowing it to control the media on the computer it is running on.
+It also attempts to setup a connection to the OBS Websocket extension, but the connection isn't used as of yet.
+If the system cannot connect to OBS, it will still run.
 
 So far, it can only detect the start and the end of games. I'm currently working on the detection of hits / scores.
 
