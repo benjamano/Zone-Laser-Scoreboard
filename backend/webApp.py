@@ -54,10 +54,64 @@ class WebApp:
         
         with self.app.app_context():
             db.create_all()
+            self.seedDBData() 
 
     def init_logging(self):
         self.app.logger.disabled = True
         logging.getLogger('werkzeug').disabled = True
+        
+    def seedDBData(self):
+        if not Gun.query.first() and not Player.query.first():
+            format.message("Empty DB Found! Seeding Data....", type="error")
+ 
+            gunAlpha = Gun(name="Alpha", defaultColor="Red")
+            gunApollo = Gun(name="Apollo", defaultColor="Red")
+            gunChaos = Gun(name="Chaos", defaultColor="Red")
+            gunCipher = Gun(name="Cipher", defaultColor="Red")
+            gunCobra = Gun(name="Cobra", defaultColor="Red")
+            gunComet = Gun(name="Comet", defaultColor="Red")
+            gunCommander = Gun(name="Commander", defaultColor="Red")
+            gunCyborg = Gun(name="Cyborg", defaultColor="Red")
+            gunCyclone = Gun(name="Cyclone", defaultColor="Red")
+            gunDelta = Gun(name="Delta", defaultColor="Red")
+            gunDodger = Gun(name="Dodger", defaultColor="Green")
+            gunDragon = Gun(name="Dragon", defaultColor="Green")
+            gunEagle = Gun(name="Eagle", defaultColor="Green")
+            gunEliminator = Gun(name="Eliminator", defaultColor="Green")
+            gunElite = Gun(name="Elite", defaultColor="Green")
+            gunFalcon = Gun(name="Falcon", defaultColor="Green")
+            gunGhost = Gun(name="Ghost", defaultColor="Green")
+            gunGladiator = Gun(name="Gladiator", defaultColor="Green")
+            gunHawk = Gun(name="Hawk", defaultColor="Green")
+            gunHyper = Gun(name="Hyper", defaultColor="Green")
+            gunInferno = Gun(name="Inferno", defaultColor="Green")
+            
+            db.session.add(gunAlpha)
+            db.session.add(gunApollo)
+            db.session.add(gunChaos)
+            db.session.add(gunCipher)
+            db.session.add(gunCobra)
+            db.session.add(gunComet)
+            db.session.add(gunCommander)
+            db.session.add(gunCyborg)
+            db.session.add(gunCyclone)
+            db.session.add(gunDelta)
+            db.session.add(gunDodger)
+            db.session.add(gunDragon)
+            db.session.add(gunEagle)
+            db.session.add(gunEliminator)
+            db.session.add(gunElite)
+            db.session.add(gunFalcon)
+            db.session.add(gunGhost)
+            db.session.add(gunGladiator)
+            db.session.add(gunHawk)
+            db.session.add(gunHyper)
+            db.session.add(gunInferno)
+            
+            db.session.commit()
+            format.message("Data seeded successfully", type="success")
+        else:
+            format.message("Data already exists, skipping seeding.", type="info")
 
     def open_files(self):
         try:
@@ -89,33 +143,37 @@ class WebApp:
             return render_template('scoreboard.html')
 
         @self.app.route('/toggle')
-        def toggle_playback_route():
+        def togglePlayback():
             self.toggle_playback()
             return jsonify({"message": "Playback toggled"})
 
         @self.app.route('/end')
-        def terminate_server():
+        def terminateServer():
             logging.shutdown()
             os.kill(os.getpid(), signal.SIGTERM)
             
         @self.socketio.on('connect')
-        def handle_connect():
+        def handleConnect():
             format.message("Sniffer Client connected")
             emit('response', {'message': 'Connected to the server!'})
 
         @self.socketio.on('client_event')
-        def handle_client_event(json):
+        def handleClientEvent(json):
             format.message(f"Received event: {json}")
         
         @self.socketio.on('SpotifyControl')
-        def handle_spotify_control(json):
+        def handleSpotifyControl(json):
             format.message(f"Spotify control = {json["data"]}")
             
             self.spotifyControl = json["data"]
             
+        @self.socketio.on('spotifyControlStatus')
+        def handleSpotifyControlVariable(json):
+            self.spotifyControl = json["data"]
+            format.message(f"Spotify control = {self.spotifyControl}")
             
-        @self.app.route('/send_message', methods=['POST'])
-        def send_message():
+        @self.app.route('/sendMessage', methods=['POST'])
+        def sendMessage():
             message = request.form.get('message')
             type = request.form.get('type')
             format.message(f"Sending message: {message} with type: {type}")
@@ -170,16 +228,16 @@ class WebApp:
                 #     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
                 #     self.handleMusic()
                 #     self.gameStarted()
-                #     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+                #     response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
                 #     format.message(f"Response: {response.text}")
                 # elif "342c403031342c30" in packet_bytes.lower():
                 #     format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
                 #     self.handleMusic()
-                #     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+                #     response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
                 #     format.message(f"Response: {response.text}")
                 # elif "312c373634312c2240303034222c33302c31" in packet_bytes.lower():
                 #     format.message(f"30 seconds remain!", type="success") 
-                #     response = requests.post('http://localhost:8080/send_message', data={'message': f"30", 'type': "timeleft"})
+                #     response = requests.post('http://localhost:8080/sendMessage', data={'message': f"30", 'type': "timeleft"})
                 
                 
         except Exception as e:
@@ -217,10 +275,18 @@ class WebApp:
         eventlet.wsgi.server(eventlet.listen(('', 8080)), self.app)
 
     
-    def send_test_packet(self):
-        format.message("Sending test packet")
-        response = requests.post('http://localhost:8080/send_message', data={'message': "Test Packet", 'type': "server"})
-        format.message(f"Response: {response.text}")
+    def sendTestPacket(self, type="server"):
+        format.message(f"Sending {type} packet")
+        match type.lower():
+            case "server":
+                response = requests.post('http://localhost:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
+                format.message(f"Response: {response.text}")
+            case "start":
+                response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
+                format.message(f"Response: {response.text}")
+            case "end":
+                response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
+                format.message(f"Response: {response.text}")
 
     def gameStarted(self):
         format.message("Game started")
@@ -233,20 +299,20 @@ class WebApp:
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.handleMusic()
             self.gameStarted()
-            response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             format.message(f"Response: {response.text}")
         
         elif packetData[2] == "@014":
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.handleMusic()
-            response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
     
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
         if int(timeLeft) % 30 == 0:
             format.message(f"{timeLeft} seconds remain!", type="success") 
-            response = requests.post('http://localhost:8080/send_message', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
+            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
     
     def finalScorePacket(self, packetData):
         gunId = packetData[2]
@@ -262,7 +328,7 @@ class WebApp:
         if gunName == None:
             gunName = gunId
         
-        response = requests.post('http://localhost:8080/send_message', data={'message': f"Gun Name {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun Name {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
         
     def shotConfirmedPacket(self, packetData):
         pass
@@ -271,7 +337,6 @@ class Gun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
     defaultColor = db.Column(db.String(60), unique=False, nullable=False)
-    team_id = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
     
 class Player(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -280,14 +345,6 @@ class Player(db.Model):
     deaths = db.Column(db.Integer, nullable=False)
     gamesWon = db.Column(db.Integer, nullable=False)
     gamesLost = db.Column(db.Integer, nullable=False)
-    
-class GamePlayers(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
-    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"),  nullable=False)
-    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=False)
-    playerWon = db.Column(db.Boolean, nullable=False)
-    team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
     
 class Game(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -302,4 +359,13 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
     teamColour = db.Column(db.String(10), nullable=False)
-    gamePlayers = db.relationship("gameplayers", backref="team", lazy=True)
+    gamePlayers = db.relationship("GamePlayers", backref="team_ref", lazy=True)
+
+
+class GamePlayers(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
+    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
+    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=False)
+    playerWon = db.Column(db.Boolean, nullable=False)
+    team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)

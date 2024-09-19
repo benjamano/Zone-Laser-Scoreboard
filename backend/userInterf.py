@@ -49,7 +49,13 @@ def showInterface():
     
 
     def sendTestMessage():
-        threading.Thread(target=web_app.send_test_packet()).start()
+        threading.Thread(target=web_app.sendTestPacket()).start()
+        
+    def sendGameStartMessage():
+        threading.Thread(target=web_app.sendTestPacket(type="start")).start()
+    
+    def sendGameEndMessage():
+        threading.Thread(target=web_app.sendTestPacket(type="end")).start()
 
     def showOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
@@ -69,6 +75,12 @@ def showInterface():
     testButton = tk.Button(interfaceWindow, text="Send Test Message", command=sendTestMessage)
     testButton.pack(pady=10)
     
+    startTestButton = tk.Button(interfaceWindow, text="Send Game Start Test Message", command=sendGameStartMessage)
+    startTestButton.pack(pady=10)
+    
+    EndTestButton = tk.Button(interfaceWindow, text="Send Game End Test Message", command=sendGameEndMessage)
+    EndTestButton.pack(pady=10)
+    
     fileDirButton = tk.Button(interfaceWindow, text="Open file directory", command=openFileDir)
     fileDirButton.pack(pady=10)
 
@@ -78,7 +90,7 @@ def showInterface():
     hideWindowButton = tk.Button(interfaceWindow, text="Hide Python Output", command=hideOutputWindow)
     hideWindowButton.pack(pady=10)
 
-    interfaceWindow.geometry("400x300")
+    interfaceWindow.geometry("500x400")
     interfaceWindow.mainloop()
 
 def startWebApp():
