@@ -19,12 +19,11 @@ Values are seperated by commas by the control box.
 
 | Packet Name       | Hex Bytes       | ASCII Conversion | Details     |
 | :---------------- | :------        | :------          |:------      |
-| Game Start        |  342c403031352c30    | 4,@015,0      | Game Mode, Game Status, Unknown  |
-| Game End          |  342c403031342c30    | 4,@014,0      | Game Mode, Game Status, Unknown |
+| Game Start        |  342c403031352c30    | 4,@015,0      | EventType, Game Status, ?  |
+| Game End          |  342c403031342c30    | 4,@014,0      | EventType, Game Status, ? |
 | Timing            |  coming soon    | coming soon      | coming soon |
-| Shot Made         |  coming soon    | coming soon      | coming soon |
-| Shot Confirmed    |  coming soon    | coming soon      | coming soon |
-| End of Game Scores|  332c312c302c33302c312c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0      | EventType, GunID, Unknown, Score, Team 1?, Score, Unknown, Accuracy, Unknown |
+| Shot Confirmed    |  352c31312c312c322c302c302c302c30    | 5,11,1,2,0,0,0,0      | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ? |
+| End of Game Scores|  332c312c302c33302c312c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0      | EventType, GunID, ?, Score, Team 1?, Score, ?, Accuracy, ? |
 
 # Scoreboard Set Up
 
