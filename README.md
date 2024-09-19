@@ -22,8 +22,8 @@ Values are seperated by commas by the control box.
 | Game Start        |  342c403031352c30                            | 4,@015,0                   | EventType, Game Status, ?                                  | The Game Started                                                      | 
 | Game End          |  342c403031342c30                            | 4,@014,0                   | EventType, Game Status, ?                                  | The Game Ended                                                        |
 | Timing            |  coming soon                                 | coming soon                | coming soon                                                |                                                                       |
-| Shot Confirmed    |  352c31312c312c322c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?          | Gun Id 11 was shot by Gun Id 1                                        |
-| End of Game Scores|  332c312c302c33302c312c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0       | EventType, GunID, ?, Score, Team 1?, Score, ?, Accuracy, ? | Gun Id 1, Team 1, has a final score of 30 and a final acurracy of 30% |
+| Shot Confirmed    |  352c31312c312c32<br />2c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?          | Gun Id 11 was shot by Gun Id 1                                        |
+| End of Game Scores|  332c312c302c33302c31<br />2c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0       | EventType, GunID, ?, Score, Team 1?, Score, ?, Accuracy, ? | Gun Id 1, Team 1, has a final score of 30 and a final acurracy of 30% |
 
 # Scoreboard Set Up
 
