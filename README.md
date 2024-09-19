@@ -14,7 +14,7 @@ I also want Player data to be deleted after 2 yeas of inactivity, to save on sto
 Values are seperated by commas by the control box.
 
 | Packet Name       | Hex Bytes       | ASCII Conversion | Details     |
-| :---------------- | :------:        | :------          |:------      |
+| :---------------- | :------        | :------          |:------      |
 | Game Start        |  342c403031352c30    | 4,@015,0      | Game Mode, Game Status, Unknown  |
 | Game End          |  342c403031342c30    | 4,@014,0      | Game Mode, Game Status, Unknown |
 | Timing            |  coming soon    | coming soon      | coming soon |
