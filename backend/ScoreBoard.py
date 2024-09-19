@@ -45,6 +45,7 @@ def startIcon():
                 iconImage = pystray.Icon.DEFAULT_IMAGE6
     icon = pystray.Icon('Laser Tag Scoreboard', icon=iconImage, menu=menu)
     threading.Thread(target=icon.run).start()
+    
 try:
     init.start()
     print("\n|----------------------------------------------------------------------------------------------------|\n")

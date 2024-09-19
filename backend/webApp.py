@@ -151,22 +151,37 @@ class WebApp:
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 packet_bytes = bytes(packet).hex()
-
-                if "342c403031352c30" in packet_bytes.lower():
-                    format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-                    self.handleMusic()
-                    self.gameStarted()
-                    response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
-                    format.message(f"Response: {response.text}")
-                elif "342c403031342c30" in packet_bytes.lower():
-                    format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-                    self.handleMusic()
-                    response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-                    format.message(f"Response: {response.text}")
-                elif "312c373634312c2240303034222c33302c31" in packet_bytes.lower():
-                    format.message(f"30 seconds remain!", type="success") 
-                    response = requests.post('http://localhost:8080/send_message', data={'message': f"30", 'type': "timeleft"})
+                decodedData = (packet_bytes.lower()).decode("hex")
+                decodedData = decodedData.split(',')
+                
+                if "34" in packet_bytes.lower():
+                    self.gameStatusPacket(decodedData)
                     
+                elif "332" in packet_bytes.lower():
+                    self.finalScorePacket(decodedData)
+                
+                elif "312" in packet_bytes.lower():
+                    self.timingPacket(decodedData)    
+                
+                elif "352" in packet_bytes.lower():
+                    self.shotConfirmedPacket(decodedData)
+                    
+                # elif "342c403031352c30" in packet_bytes.lower():
+                #     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
+                #     self.handleMusic()
+                #     self.gameStarted()
+                #     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+                #     format.message(f"Response: {response.text}")
+                # elif "342c403031342c30" in packet_bytes.lower():
+                #     format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+                #     self.handleMusic()
+                #     response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+                #     format.message(f"Response: {response.text}")
+                # elif "312c373634312c2240303034222c33302c31" in packet_bytes.lower():
+                #     format.message(f"30 seconds remain!", type="success") 
+                #     response = requests.post('http://localhost:8080/send_message', data={'message': f"30", 'type': "timeleft"})
+                
+                
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
     
@@ -210,8 +225,48 @@ class WebApp:
     def gameStarted(self):
         format.message("Game started")
         
+    def gameStatusPacket(self, packetData):
+        # 4,@015,0 = start
+        # 4,@014,0 = end
         
+        if packetData[2] == "@015":
+            format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
+            self.handleMusic()
+            self.gameStarted()
+            response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+            format.message(f"Response: {response.text}")
         
+        elif packetData[2] == "@014":
+            format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+            self.handleMusic()
+            response = requests.post('http://localhost:8080/send_message', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            format.message(f"Response: {response.text}")
+    
+    def timingPacket(self, packetData):
+        timeLeft = packetData[3]
+        if int(timeLeft) % 30 == 0:
+            format.message(f"{timeLeft} seconds remain!", type="success") 
+            response = requests.post('http://localhost:8080/send_message', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
+    
+    def finalScorePacket(self, packetData):
+        gunId = packetData[2]
+        finalScore = packetData[4]
+        accuracy = packetData[7]
+        
+        try:
+            gunName = Gun.query.filter_by(id=gunId).first().name
+        
+        except Exception as e:
+            format.message(f"Error getting gun name: {e}", type="error")
+        
+        if gunName == None:
+            gunName = gunId
+        
+        response = requests.post('http://localhost:8080/send_message', data={'message': f"Gun Name {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
+        
+    def shotConfirmedPacket(self, packetData):
+        pass
+            
 class Gun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
