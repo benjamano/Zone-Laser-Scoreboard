@@ -32,10 +32,10 @@ This is an annoying process.
 You must be able to connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
 
 After you've done that, I'd reccomend opening up "WireShark" a tool used for sniffing packets travelling along a network.
-If you don't know the IP of either the Android or control box, I'd reccomend seting the filter to look for the domain of "Begeara.com", and restart the Zone system. 
+If you don't know the IP of either the Android or control box, I'd recommend setting the filter to look for the domain of "Begeara.com", and restart the Zone system. 
 
 The Zone system will call the "Begeara.com" URL everytime it starts to verify it's authenticity and license. 
-When this packet shows, note down the "src" IP address. (This is the control box's IP)
+When this packet shows, note down the Source IP address. (This is the control box's IP)
 
 Set a filter on wireshark to find packets coming from that IP, and you should be able to see the box communicating over the network!
 
