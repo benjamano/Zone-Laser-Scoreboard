@@ -17,13 +17,13 @@ I also want Player data to be deleted after 2 yeas of inactivity, to save on sto
 
 Values are seperated by commas by the control box.
 
-| Packet Name       | Hex Bytes       | ASCII Conversion | Details     |
-| :---------------- | :------        | :------          |:------      |
-| Game Start        |  342c403031352c30    | 4,@015,0      | EventType, Game Status, ?  |
-| Game End          |  342c403031342c30    | 4,@014,0      | EventType, Game Status, ? |
-| Timing            |  coming soon    | coming soon      | coming soon |
-| Shot Confirmed    |  352c31312c312c322c302c302c302c30    | 5,11,1,2,0,0,0,0      | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ? |
-| End of Game Scores|  332c312c302c33302c312c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0      | EventType, GunID, ?, Score, Team 1?, Score, ?, Accuracy, ? |
+| Packet Name       | Hex Bytes                                    | ASCII Conversion           | Details                                                    | English Translation                                                   |
+| :---------------- | :------                                      | :------                    |:------                                                     |:------                                                                |        
+| Game Start        |  342c403031352c30                            | 4,@015,0                   | EventType, Game Status, ?                                  | The Game Started                                                      | 
+| Game End          |  342c403031342c30                            | 4,@014,0                   | EventType, Game Status, ?                                  | The Game Ended                                                        |
+| Timing            |  coming soon                                 | coming soon                | coming soon                                                |                                                                       |
+| Shot Confirmed    |  352c31312c312c322c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?          | Gun Id 11 was shot by Gun Id 1                                        |
+| End of Game Scores|  332c312c302c33302c312c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0       | EventType, GunID, ?, Score, Team 1?, Score, ?, Accuracy, ? | Gun Id 1, Team 1, has a final score of 30 and a final acurracy of 30% |
 
 # Scoreboard Set Up
 
