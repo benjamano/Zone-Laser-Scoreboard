@@ -59,6 +59,7 @@ class WebApp:
     def init_logging(self):
         self.app.logger.disabled = True
         logging.getLogger('werkzeug').disabled = True
+        return
         
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
@@ -209,7 +210,7 @@ class WebApp:
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 packet_bytes = bytes(packet).hex()
-                decodedData = (packet_bytes.lower()).decode("hex")
+                decodedData = ((packet_bytes.lower())).decode("hex")
                 decodedData = decodedData.split(',')
                 
                 if "34" in packet_bytes.lower():
@@ -272,7 +273,7 @@ class WebApp:
         self.sniffing_thread.daemon = True
         self.sniffing_thread.start()
 
-        eventlet.wsgi.server(eventlet.listen(('', 8080)), self.app)
+        self.socketio.run(self.app, host='0.0.0.0', port=8080)
 
     
     def sendTestPacket(self, type="server"):
