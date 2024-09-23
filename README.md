@@ -14,6 +14,10 @@ I want this system to be able to store historical records of games, allowing for
 I also want Player data to be deleted after 2 years of inactivity, to save on storage & GDPR regulations.
 
 ## Packets decoded so far:
+This table includes all the packets that I have currently decoded, I couldn't work out what some values are used for, thus the "?".
+These should work exactly the same across all Begeara 2 Zone Laser systems.
+
+Please view my webApp.py file to view the functions that I used to decode and process the data inside these packets.
 
 Values are seperated by commas by the control box.
 
