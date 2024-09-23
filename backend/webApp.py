@@ -214,18 +214,18 @@ class WebApp:
                         
             return 'Message sent!'
             
-    def start_sniffing(self):
+    def startSniffing(self):
         print("Starting packet sniffer...")
         try:
-            sniff(prn=self.packet_callback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
+            sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
             try:
-                sniff(prn=self.packet_callback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
+                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
                 format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
             except Exception as e:
                 format.message(f"Error while sniffing: {e}", type="error")
 
-    def packet_callback(self, packet):
+    def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 packet_bytes = bytes(packet).hex()
@@ -233,15 +233,19 @@ class WebApp:
                 decodedData = decodedData.split(',')
                 
                 if "34" in packet_bytes.lower():
+                    # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
                     self.gameStatusPacket(decodedData)
                     
-                elif "332" in packet_bytes.lower():
+                elif "33" in packet_bytes.lower():
+                    # The game has ended and the final scores packets are arriving, becuase 33 (Hex) = 3 (Denary)
                     self.finalScorePacket(decodedData)
                 
-                elif "312" in packet_bytes.lower():
+                elif "31" in packet_bytes.lower():
+                    # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
                     self.timingPacket(decodedData)    
                 
-                elif "352" in packet_bytes.lower():
+                elif "35" in packet_bytes.lower():
+                    # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
                     self.shotConfirmedPacket(decodedData)
                     
                 # elif "342c403031352c30" in packet_bytes.lower():
@@ -288,7 +292,7 @@ class WebApp:
         print("Web App Started, hiding console")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
-        self.sniffing_thread = threading.Thread(target=self.start_sniffing)
+        self.sniffing_thread = threading.Thread(target=self.startSniffing)
         self.sniffing_thread.daemon = True
         self.sniffing_thread.start()
 
