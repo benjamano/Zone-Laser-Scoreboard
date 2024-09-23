@@ -134,6 +134,25 @@ class WebApp:
             
             self.filesOpened = True
 
+    def hexToASCII(hexString):
+ 
+        # initialize the ASCII code string as empty.
+        ascii = ""
+     
+        for i in range(0, len(hexString), 2):
+     
+            # extract two characters from hex string
+            part = hexString[i : i + 2]
+     
+            # change it into base 16 and
+            # typecast as the character 
+            ch = chr(int(part, 16))
+     
+            # add this char to final ASCII string
+            ascii += ch
+         
+        return ascii
+
     def setup_routes(self):
         @self.app.route('/')
         def index():
@@ -210,7 +229,7 @@ class WebApp:
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 packet_bytes = bytes(packet).hex()
-                decodedData = ((packet_bytes.lower())).decode("hex")
+                decodedData =  self.hexToASCII(packet_bytes.lower())
                 decodedData = decodedData.split(',')
                 
                 if "34" in packet_bytes.lower():
