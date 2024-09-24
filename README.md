@@ -8,7 +8,7 @@ The app is designed for use inside of a Laser-Tag arena, allowing it to control 
 It also attempts to setup a connection to the OBS Websocket extension, but the connection isn't used as of yet.
 If the system cannot connect to OBS, it will still run.
 
-So far, it can only detect the start and the end of games. I'm currently working on the detection of hits / scores.
+So far, it can only detect the start and the end of games. I'm currently working on the detection of hits / score logging.
 
 I want this system to be able to store historical records of games, allowing for player's real names to be inserted.
 I also want Player data to be deleted after 2 years of inactivity, to save on storage & GDPR regulations.
