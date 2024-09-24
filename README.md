@@ -21,13 +21,16 @@ Please view my webApp.py file to view the functions that I used to decode and pr
 
 Values are seperated by commas by the control box.
 
-| Packet Name       | Hex Bytes                                          | ASCII Conversion           | Details                                                          | English Translation                                                      |
-| :---------------- | :------                                            | :------                    |:------                                                           |:------                                                                   |        
-| Game Start        |  342c403031352c30                                  | 4,@015,0                   | EventType, Game Status, ?                                        | The Game Started                                                         | 
-| Game End          |  342c403031342c30                                  | 4,@014,0                   | EventType, Game Status, ?                                        | The Game Ended                                                           |
-| Timing            |  312c373537332c22403<br />03034222c3630302c31      | 1,7573,"@004",600,1        | EventType, Game Number/Id?, Game Mode?, Seconds Remaining, ?     | Game number 7573 (Game Mode Id 4) has 10 Minutes (600 Seconds) remaining |
-| Shot Confirmed    |  352c31312c312c32<br />2c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?                | Gun Id 11 was shot by Gun Id 1                                           |
-| End of Game Scores|  332c312c302c33302c31<br />2c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0       | EventType, GunID, ?, Score, Team 1?, Score, ?, Accuracy, ?       | Gun Id 1, Team 1, has a final score of 30 and a final acurracy of 30%    |
+| Packet Name             | Hex Bytes                                          | ASCII Conversion           | Details                                                          | English Translation                                                      |
+| :----------------       | :------                                            | :------                    |:------                                                           |:------                                                                   |        
+| Timing                  |  312c373537332c22403<br />03034222c3630302c31      | 1,7573,"@004",600,1        | EventType, Game Number/Id?, Game Mode?, Seconds Remaining, ?     | Game number 7573 (Game Mode Id 4) has 10 Minutes (600 Seconds) remaining |
+| Team Scores *           |  coming soon                                       | coming soon                | EventType, coming soon                                           | coming soon                                                              |
+| End of Game Scores *    |  332c312c302c33302c31<br />2c33302c332c31302c30    | 3,1,0,30,1,30,3,10,0       | EventType, GunID, Team, Score, Rank, ?, Shots Fired, Accuracy, ? | Gun Id 1, Team 1, has a final score of 30 and a final acurracy of 30%    |
+| Game Start              |  342c403031352c30                                  | 4,@015,0                   | EventType, Game Status, ?                                        | The Game Started                                                         | 
+| Game End                |  342c403031342c30                                  | 4,@014,0                   | EventType, Game Status, ?                                        | The Game Ended                                                           |
+| Shot Confirmed          |  352c31312c312c32<br />2c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?                | Gun Id 11 was shot by Gun Id 1                                           |
+
+#### * Special Thanks to iR377 on Reddit, who helped me with identifying a few of the packets in the table above.
 
 # Scoreboard Set Up
 
