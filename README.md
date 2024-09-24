@@ -30,6 +30,8 @@ Values are seperated by commas by the control box.
 | Game End                |  342c403031342c30                                  | 4,@014,0                   | EventType, Game Status, ?                                        | The Game Ended                                                           |
 | Shot Confirmed          |  352c31312c312c32<br />2c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?                | Gun Id 11 was shot by Gun Id 1                                           |
 
+* Packets represent teams using a Team Id. Red Team is Id 0 and Green is Id 2 for some reason.
+
 #### * Special Thanks to iR377 on Reddit, who helped me with identifying a few of the packets in the table above.
 
 # Scoreboard Set Up
