@@ -43,7 +43,7 @@ Values are seperated by commas by the control box.
 This is an annoying process.
 For this to work, you must connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
 
-After you've done that, I'd reccomend opening up "WireShark" a tool used for sniffing packets travelling along a network.
+After you've done that, I'd recommend opening up "WireShark" a tool used for sniffing packets travelling along a network.
 If you don't know the IP of either the Android or control box, I'd recommend setting the filter to look for the domain of "Begeara.com", and restart the Zone system. 
 
 The Zone system will call the "Begeara.com" URL everytime it starts to verify it's authenticity and license. 
