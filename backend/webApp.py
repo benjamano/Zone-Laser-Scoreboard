@@ -229,7 +229,9 @@ class WebApp:
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 packet_bytes = bytes(packet).hex()
-                decodedData =  self.hexToASCII(packet_bytes.lower())
+                format.message(packet_bytes.lower())
+                format.message(type(packet_bytes))
+                decodedData =  self.hexToASCII(hexString=packet_bytes[0])
                 decodedData = decodedData.split(',')
                 
                 if "34" in packet_bytes.lower():
