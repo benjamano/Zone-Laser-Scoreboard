@@ -229,10 +229,14 @@ class WebApp:
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 packet_bytes = bytes(packet).hex()
-                format.message(packet_bytes.lower())
-                format.message(type(packet_bytes))
-                decodedData =  self.hexToASCII(hexString=packet_bytes[0])
+                packetData = packet.hex()
+                
+                format.message(f"Packet: {packetData},  {packet_bytes}, {packet}")
+                
+                decodedData =  self.hexToASCII(hexString=packetData)
                 decodedData = decodedData.split(',')
+                
+                format.message(f"Decoded Data: {decodedData}")
                 
                 if "34" in packet_bytes.lower():
                     # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
