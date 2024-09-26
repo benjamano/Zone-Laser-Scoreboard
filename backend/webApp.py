@@ -45,6 +45,7 @@ class WebApp:
         self.devMode = "False"
         self.filesOpened = False
         self.spotifyControl = False
+        self.DMXConnected = False
 
         self.init_logging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -64,22 +65,37 @@ class WebApp:
         return
     
     def setUpDMX(self):
-        format.message("Setting up DMX Connection")
+        try:
+            format.message("Setting up DMX Connection")
         
-        from PyDMXControl.controllers import OpenDMXController as Controller
+            from PyDMXControl.controllers import OpenDMXController as Controller
+            from PyDMXControl.profiles.Generic import Dimmer
 
-        # This holds all the fixture information and outputs it.
-        # This will start outputting data immediately.
-        self._dmx = Controller(dynamic_frame=True, suppress_ticker_behind_warnings=True)
+            # This holds all the fixture information and outputs it.
+            # This will start outputting data immediately.
+            self._dmx = Controller(dynamic_frame=True, suppress_ticker_behind_warnings=True)
 
-        # Add a new Dimmer fixture to our controller
+            # Add a new Dimmer fixture to our controller
         
-        #fixture = dmx.add_fixture(Dimmer, name="My_First_Dimmer")
+            self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
+            format.message("Registering Red Bulk-Head Lights", type="info")
 
-        # This is done over 5000 milliseconds, or 5 seconds.
-        #fixture.dim(255, 5000)
+            # This is done over 5000 milliseconds, or 5 seconds.
+            self._RedBulkHeadLights.dim(255, 5000)
         
-        format.message("DMX Connection set up successfully", type="success")
+            self._RedBulkHeadLights.dim(0, 5000)
+        
+            self.DMXConnected = True
+            
+            format.message("DMX Connection set up successfully", type="success")
+        except Exception as e:
+            format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
+            
+    def setBulkheadsTo50Brightness(self):
+        self._RedBulkHeadLights.dim((255/2), 5000)
+        
+    def turnBulkHeadLightsOff(self):
+        self._RedBulkHeadLights.dim(0, 5000)
         
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
