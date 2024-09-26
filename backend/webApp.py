@@ -77,13 +77,16 @@ class WebApp:
 
             # Add a new Dimmer fixture to our controller
         
-            self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
-            format.message("Registering Red Bulk-Head Lights", type="info")
+            try:
+                format.message("Registering Red Bulk-Head Lights", type="info")
+                self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
 
-            # This is done over 5000 milliseconds, or 5 seconds.
-            self._RedBulkHeadLights.dim(255, 5000)
-        
-            self._RedBulkHeadLights.dim(0, 5000)
+                # This is done over 5000 milliseconds, or 5 seconds.
+                self._RedBulkHeadLights.dim(255, 5000)
+            
+                self._RedBulkHeadLights.dim(0, 5000)
+            except Exception as e:
+                format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
         
             self.DMXConnected = True
             
