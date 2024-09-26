@@ -127,13 +127,13 @@
 					<div class="top-display-left">
 						<nav id="primary-nav">
 							<a href="https://www.thelcars.com">TheLCARS.com</a>
-							<a href="">SPOTIFY CONTROL IS <span id="spotifyPlaybackStatus">OFF</span></a>
-							<a href="">TERMINATE SERVER</a>
+							<a onclick="toggleSpotifyControl()">SPOTIFY CONTROL IS <span id="spotifyPlaybackStatus">OFF</span></a>
+							<a onclick="controlPlayback('end')">TERMINATE SERVER</a>
 						</nav>
 						<div class="chunk"> </div>
 						<div class="panel-wrapper">
 							<div class="panel-1"><div class="lcars-access">
-                                Web App <span class="blink medium-dark-blue">Online</span>
+                                Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span>
                             </div></div>
 						</div>
 					</div>
@@ -182,7 +182,7 @@
 					<div>
 						<div class="panel-3">03<span class="hop">-111968</span></div>
 						<nav id="secondary-nav">
-							<a href="">BUTTON-04</a>
+							<a href="">BULKHEAD LIGHTS STATUS: <span id="bulkheadLightStatus">OFF</span></a>
 							<a href="">BUTTON-05</a>
 							<a href="">BUTTON-06</a>
 						</nav>
@@ -236,8 +236,12 @@
             console.log("SpotifyControl: " + controlSpotify);
             console.log("Client connected!");
 
+			$("#spotifyPlaybackStatus").text(controlSpotify)
+
             $("#gameStatus").removeClass("go-red").addClass("go-blue");
             $("#gameStatus").text("Waiting");
+
+			$("#webAppOnlineStatus").text("ONLINE");
 
             var messageDiv = document.getElementById('messages');
 
@@ -281,6 +285,8 @@
         socket.on('disconnect', function() {
             var messageDiv = document.getElementById('messages');
 
+			$("#webAppOnlineStatus").text("UNKNOWN");
+
             messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
         });
 
@@ -294,6 +300,8 @@
 
     async function toggleSpotifyControl(){
         controlSpotify = !controlSpotify;
+
+		$("#spotifyPlaybackStatus").text(controlSpotify)
 
         socket.emit('SpotifyControl', {data: controlSpotify});
 
