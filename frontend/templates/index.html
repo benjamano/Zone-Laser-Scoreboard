@@ -127,17 +127,22 @@
 					<div class="top-display-left">
 						<nav id="primary-nav">
 							<a href="https://www.thelcars.com">TheLCARS.com</a>
-							<a onclick="toggleSpotifyControl()">SPOTIFY CONTROL IS <span id="spotifyPlaybackStatus">OFF</span></a>
-							<a>OBS IS <span id="OBSConnectionStatus">{{OBSConnected}}</span></a>
-							<a onclick="restartDMXConnection()">DMX NETWORK IS <span id="OBSConnectionStatus">{{DMXConnected}}</span></a>
-							<a onclick="controlPlayback('end')">TERMINATE SERVER</a>
+							<a role="button" onclick="toggleSpotifyControl()">SPOTIFY CONTROL: <span id="spotifyPlaybackStatus">OFF</span></a>
+							<a role="button" onclick="controlPlayback('end')">TERMINATE SERVER</a>
 						</nav>
 						<div class="chunk"> </div>
 						<div class="panel-wrapper">
 							<div class="panel-1"><div class="lcars-access">
-                                Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span>
+                                <a>Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span></a>
+                            </div></div>
+							<div class="panel-1"><div class="lcars-access">
+								<a>DMX NETWORK: <span class="blink medium-dark-blue" id="DMXConnectionStatus">{{DMXConnected}}</span></a>
+                            </div></div>
+							<div class="panel-1"><div class="lcars-access">
+								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
                             </div></div>
 						</div>
+						
 					</div>
 					<div class="top-display-right">
 						<div class="top-display-content">
@@ -238,7 +243,11 @@
             console.log("SpotifyControl: " + controlSpotify);
             console.log("Client connected!");
 
-			$("#spotifyPlaybackStatus").text(controlSpotify)
+			if (controlSpotify == true){
+				$("#spotifyPlaybackStatus").text("ON")
+			} else {
+				$("#spotifyPlaybackStatus").text("OFF")
+			}
 
             $("#gameStatus").removeClass("go-red").addClass("go-blue");
             $("#gameStatus").text("Waiting");
@@ -303,7 +312,11 @@
     async function toggleSpotifyControl(){
         controlSpotify = !controlSpotify;
 
-		$("#spotifyPlaybackStatus").text(controlSpotify)
+		if (controlSpotify == true){
+			$("#spotifyPlaybackStatus").text("ON")
+		} else {
+			$("#spotifyPlaybackStatus").text("OFF")
+		}
 
         socket.emit('SpotifyControl', {data: controlSpotify});
 
@@ -316,12 +329,14 @@
                 const response = await fetch(`/${action}`);
                 const result = await response.json();
                 alert(result.message || result.error);
-            }
+				return;
+			}
         }
-
-        const response = await fetch(`/${action}`);
-        const result = await response.json();
-        alert(result.message || result.error);
+		else{
+			const response = await fetch(`/${action}`);
+			const result = await response.json();
+			alert(result.message || result.error);
+		}
     }
 </script>
 </html>
