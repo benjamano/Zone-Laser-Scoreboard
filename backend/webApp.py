@@ -271,7 +271,7 @@ class WebApp:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 format.message(f"Packet 1: {packet}")
                 packet_bytes = bytes(packet).hex()
-                packetData = str(packet).hex()
+                packetData = packet_bytes.hex()
                 
                 format.message(f"Packet 2: {packetData},  {packet_bytes}, {packet}")
                 
