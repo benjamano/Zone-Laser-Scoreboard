@@ -363,7 +363,7 @@ class WebApp:
                         if processName.lower() == "spotify":
                             os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                         elif processName.lower() == "obs64":
-                            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", 'minimized')
+                            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
                         else:
                             format.message(f"Process {processName} not recognized for auto-start", type="error")
                     except Exception as e:
