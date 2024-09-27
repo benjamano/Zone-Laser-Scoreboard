@@ -269,36 +269,28 @@ class WebApp:
     def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
-                format.message(f"Packet 1: {packet}")
-                packet_bytes = bytes(packet).hex()
-                format.message(f"Packet 2: {packet_bytes}")
+                packet_data = bytes(packet['Raw']).hex()
+                format.message(f"Packet Data (hex): {packet_data}")
                 
-                i=0
+                # Optionally convert hex to ASCII or other formats
+                decoded_data = self.hexToASCII(hexString=packet_data).split(',')
+                format.message(f"Decoded Data: {decoded_data}")
                 
-                for bit in packet:
-                    format.message(f"{i} Bit: {bit}")
-                    i+=1
-                
-                decodedData =  self.hexToASCII(hexString=(packet))
-                decodedData = decodedData.split(',')
-                
-                format.message(f"Decoded Data: {decodedData}")
-                
-                if "34" in packet_bytes.lower():
+                if "34" in packet_data.lower():
                     # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
-                    self.gameStatusPacket(decodedData)
+                    self.gameStatusPacket(decoded_data)
                     
-                elif "33" in packet_bytes.lower():
+                elif "33" in packet_data.lower():
                     # The game has ended and the final scores packets are arriving, becuase 33 (Hex) = 3 (Denary)
-                    self.finalScorePacket(decodedData)
+                    self.finalScorePacket(decoded_data)
                 
-                elif "31" in packet_bytes.lower():
+                elif "31" in packet_data.lower():
                     # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
-                    self.timingPacket(decodedData)    
+                    self.timingPacket(decoded_data)    
                 
-                elif "35" in packet_bytes.lower():
+                elif "35" in packet_data.lower():
                     # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
-                    self.shotConfirmedPacket(decodedData)
+                    self.shotConfirmedPacket(decoded_data)
                     
                 # elif "342c403031352c30" in packet_bytes.lower():
                 #     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
