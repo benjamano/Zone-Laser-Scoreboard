@@ -273,6 +273,12 @@ class WebApp:
                 packet_bytes = bytes(packet).hex()
                 format.message(f"Packet 2: {packet_bytes}")
                 
+                i=0
+                
+                for bit in packet:
+                    format.message(f"{i} Bit: {bit}")
+                    i+=1
+                
                 decodedData =  self.hexToASCII(hexString=(packet))
                 decodedData = decodedData.split(',')
                 
