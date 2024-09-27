@@ -13,6 +13,7 @@ from obswebsocket import obsws, requests
 from scapy.all import sniff, conf, IP
 from flask_cors import CORS
 import requests
+import psutil
 
 try:
     from func.format import format
@@ -34,6 +35,8 @@ class WebApp:
         self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
+        
+        self.expecteProcesses = ["Spotify", "obs64"]
             
         db.init_app(self.app)
         
@@ -338,6 +341,35 @@ class WebApp:
             format.message("Connected to OBS", type="success")
         except Exception as e:
             format.message(f"Failed to connect to OBS: {e}", type="error")
+    
+    def checkIfProcessRunning(self, processName):
+        for proc in psutil.process_iter():
+            try:
+                if processName.lower() in proc.name().lower():
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return False
+    
+    def runProcessChecker(self):
+        while True:
+            for processName in self.expecteProcesses:
+                processFound = self.checkIfProcessRunning(processName)
+                format.message(f"Process {processName} running: {processFound}")
+                
+                if not processFound:
+                    try:
+                        format.message(f"Process {processName} not found, starting it..")
+                        if processName.lower() == "spotify":
+                            os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
+                        elif processName.lower() == "obs64":
+                            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                        else:
+                            format.message(f"Process {processName} not recognized for auto-start", type="error")
+                    except Exception as e:
+                        format.message(f"Error starting process {processName}: {e}", type="error")
+                
+            time.sleep(300)
 
     def start(self):
         self.obs_thread = threading.Thread(target=self.obs_connect)
@@ -349,6 +381,10 @@ class WebApp:
         self.sniffing_thread = threading.Thread(target=self.startSniffing)
         self.sniffing_thread.daemon = True
         self.sniffing_thread.start()
+        
+        self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
+        self.process_checker_thread.daemon = True
+        self.process_checker_thread.start()
 
         self.socketio.run(self.app, host='0.0.0.0', port=8080)
 
