@@ -275,7 +275,7 @@ class WebApp:
                 format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
                 
                 # Corrected call to hexToASCII with the right argument
-                decodedData = (self.hexToASCII(hexString=packet_data[0])).split(',')
+                decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
                 format.message(f"Decoded Data: {decodedData}")
                 
                 if "34" in packet_data.lower():
