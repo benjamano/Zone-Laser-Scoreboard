@@ -53,6 +53,8 @@ class WebApp:
         
         self.setup_routes()
         
+        self.setUpDMX()
+        
         with self.app.app_context():
             db.create_all()
             self.seedDBData() 
@@ -61,6 +63,47 @@ class WebApp:
         self.app.logger.disabled = True
         logging.getLogger('werkzeug').disabled = True
         return
+    
+    def setUpDMX(self):
+        try:
+            format.message("Setting up DMX Connection")
+        
+            from PyDMXControl.controllers import OpenDMXController
+            # from PyDMXControl.controllers import uDMXController
+
+            # Import the fixture profile we will use,
+            #  the simple Dimmer in this example.
+            from PyDMXControl.profiles.Generic import Dimmer
+
+            # Create an instance of the uDMX controller, 
+            #  this holds all the fixture information and outputs it.
+            # This will start outputting data immediately.
+            self._dmx = OpenDMXController()
+
+            # Add a new Dimmer fixture to our controller
+        
+            try:
+                format.message("Registering Red Bulk-Head Lights", type="info")
+                self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
+
+                # This is done over 5000 milliseconds, or 5 seconds.
+                self._RedBulkHeadLights.dim(255, 5000)
+            
+                self._RedBulkHeadLights.dim(0, 5000)
+            except Exception as e:
+                format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
+        
+            self.DMXConnected = True
+            
+            format.message("DMX Connection set up successfully", type="success")
+        except Exception as e:
+            format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
+            
+    def setBulkheadsTo50Brightness(self):
+        self._RedBulkHeadLights.dim((255/2), 5000)
+        
+    def turnBulkHeadLightsOff(self):
+        self._RedBulkHeadLights.dim(0, 5000)
         
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
@@ -130,10 +173,31 @@ class WebApp:
             self.OBSSERVERIP = str(f.readline().strip())
             self.OBSSERVERPORT = int(f.readline().strip())
             self.OBSSERVERPASSWORD = str(f.readline().strip())
+            self.DMXADAPTOR = str(f.readline().strip())
+            self._RedLightDimmer = str(f.readline().strip())
             
             format.message("Files opened successfully", type="success")
             
             self.filesOpened = True
+
+    def hexToASCII(self, hexString):
+ 
+        # initialize the ASCII code string as empty.
+        ascii = ""
+     
+        for i in range(0, len(hexString), 2):
+     
+            # extract two characters from hex string
+            part = hexString[i : i + 2]
+     
+            # change it into base 16 and
+            # typecast as the character 
+            ch = chr(int(part, 16))
+     
+            # add this char to final ASCII string
+            ascii += ch
+         
+        return ascii
 
     def setup_routes(self):
         @self.app.route('/')
@@ -196,34 +260,42 @@ class WebApp:
                         
             return 'Message sent!'
             
-    def start_sniffing(self):
+    def startSniffing(self):
         print("Starting packet sniffer...")
         try:
-            sniff(prn=self.packet_callback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
+            sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
             try:
-                sniff(prn=self.packet_callback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
+                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
                 format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
             except Exception as e:
                 format.message(f"Error while sniffing: {e}", type="error")
 
-    def packet_callback(self, packet):
+    def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
-                packet_bytes = bytes(packet).hex()
-                decodedData = ((packet_bytes.lower())).decode("hex")
-                decodedData = decodedData.split(',')
+                format.message(f"Packet 1: {packet}")
                 
-                if "34" in packet_bytes.lower():
+                packet_data = bytes(packet['Raw']).hex()
+                format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
+                
+                decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
+                format.message(f"Decoded Data: {decodedData}")
+                
+                if "34" in packet_data.lower():
+                    # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
                     self.gameStatusPacket(decodedData)
                     
-                elif "332" in packet_bytes.lower():
+                elif "33" in packet_data.lower():
+                    # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
                     self.finalScorePacket(decodedData)
                 
-                elif "312" in packet_bytes.lower():
+                elif "31" in packet_data.lower():
+                    # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
                     self.timingPacket(decodedData)    
                 
-                elif "352" in packet_bytes.lower():
+                elif "35" in packet_data.lower():
+                    # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
                     self.shotConfirmedPacket(decodedData)
                     
                 # elif "342c403031352c30" in packet_bytes.lower():
@@ -270,7 +342,7 @@ class WebApp:
         print("Web App Started, hiding console")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
-        self.sniffing_thread = threading.Thread(target=self.start_sniffing)
+        self.sniffing_thread = threading.Thread(target=self.startSniffing)
         self.sniffing_thread.daemon = True
         self.sniffing_thread.start()
 
@@ -293,13 +365,23 @@ class WebApp:
     def gameStarted(self):
         format.message("Game started")
         
+        self.handleMusic()
+        self._dmx.dimDeviceToValue(self._RedLightDimmer, 255)
+        
+    def GameEnded(self):
+        format.message("Game ended")
+        
+        self.handleMusic()
+        self._dmx.dimDeviceToValue(self._RedLightDimmer, 0)
+        
     def gameStatusPacket(self, packetData):
         # 4,@015,0 = start
         # 4,@014,0 = end
         
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[2]}")
+        
         if packetData[2] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-            self.handleMusic()
             self.gameStarted()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             format.message(f"Response: {response.text}")
@@ -312,7 +394,7 @@ class WebApp:
     
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
-        if int(timeLeft) % 30 == 0:
+        if int(timeLeft) == 10:
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
     
@@ -320,17 +402,22 @@ class WebApp:
         gunId = packetData[2]
         finalScore = packetData[4]
         accuracy = packetData[7]
+
+        gunName = None
         
         try:
-            gunName = Gun.query.filter_by(id=gunId).first().name
+            with self.app.app_context():
+                gunName = "name: "+ Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
         
         if gunName == None:
-            gunName = gunId
+            gunName = "id: "+gunId
+            
+        format.message(f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", type="success")
         
-        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun Name {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
         
     def shotConfirmedPacket(self, packetData):
         pass
