@@ -68,6 +68,14 @@ def showInterface():
         print(f"Opening file directory: {filedir}")
         subprocess.Popen(rf'explorer /select, "{filedir}"')
         
+    def restartDMX():
+        threading.Thread(target=web_app.setUpDMX).start()
+        
+    def BrightnessSet50BulkHeads():
+        threading.Thread(target=web_app.setBulkheadsTo50Brightness).start()
+        
+    def TurnOffBulkHeadLights():
+        threading.Thread(target=web_app.turnBulkHeadLightsOff).start()
 
     creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
     creditsLbl.pack(pady=10)
@@ -89,6 +97,15 @@ def showInterface():
     
     hideWindowButton = tk.Button(interfaceWindow, text="Hide Python Output", command=hideOutputWindow)
     hideWindowButton.pack(pady=10)
+
+    restartDMXButton = tk.Button(interfaceWindow, text="Re-Start DMX Service", command=restartDMX)
+    restartDMXButton.pack(pady=10)
+    
+    BrightnessSet50BulkHeadsButton = tk.Button(interfaceWindow, text="Set Bulkhead Lights to 50%", command=BrightnessSet50BulkHeads)
+    BrightnessSet50BulkHeadsButton.pack(pady=10)
+
+    TurnOffBulkHeadLightsButton = tk.Button(interfaceWindow, text="Set Bulkhead Lights to 50%", command=TurnOffBulkHeadLights)
+    TurnOffBulkHeadLightsButton.pack(pady=10)
 
     interfaceWindow.geometry("500x400")
     interfaceWindow.mainloop()

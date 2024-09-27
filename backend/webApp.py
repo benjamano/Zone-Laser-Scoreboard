@@ -45,12 +45,15 @@ class WebApp:
         self.devMode = "False"
         self.filesOpened = False
         self.spotifyControl = False
+        self.DMXConnected = False
 
         self.init_logging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
         self.open_files()
         
         self.setup_routes()
+        
+        self.setUpDMX()
         
         with self.app.app_context():
             db.create_all()
@@ -60,6 +63,42 @@ class WebApp:
         self.app.logger.disabled = True
         logging.getLogger('werkzeug').disabled = True
         return
+    
+    def setUpDMX(self):
+        try:
+            format.message("Setting up DMX Connection")
+        
+            from PyDMXControl.controllers import OpenDMXController as Controller
+            from PyDMXControl.profiles.Generic import Dimmer
+
+            # This holds all the fixture information and outputs it.
+            # This will start outputting data immediately.
+            self._dmx = Controller(dynamic_frame=True, suppress_ticker_behind_warnings=True)
+
+            # Add a new Dimmer fixture to our controller
+        
+            try:
+                format.message("Registering Red Bulk-Head Lights", type="info")
+                self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
+
+                # This is done over 5000 milliseconds, or 5 seconds.
+                self._RedBulkHeadLights.dim(255, 5000)
+            
+                self._RedBulkHeadLights.dim(0, 5000)
+            except Exception as e:
+                format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
+        
+            self.DMXConnected = True
+            
+            format.message("DMX Connection set up successfully", type="success")
+        except Exception as e:
+            format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
+            
+    def setBulkheadsTo50Brightness(self):
+        self._RedBulkHeadLights.dim((255/2), 5000)
+        
+    def turnBulkHeadLightsOff(self):
+        self._RedBulkHeadLights.dim(0, 5000)
         
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
@@ -129,6 +168,8 @@ class WebApp:
             self.OBSSERVERIP = str(f.readline().strip())
             self.OBSSERVERPORT = int(f.readline().strip())
             self.OBSSERVERPASSWORD = str(f.readline().strip())
+            self.DMXADAPTOR = str(f.readline().strip())
+            self._RedLightDimmer = str(f.readline().strip())
             
             format.message("Files opened successfully", type="success")
             
@@ -321,13 +362,21 @@ class WebApp:
     def gameStarted(self):
         format.message("Game started")
         
+        self.handleMusic()
+        self._dmx.dimDeviceToValue(self._RedLightDimmer, 255)
+        
+    def GameEnded(self):
+        format.message("Game ended")
+        
+        self.handleMusic()
+        self._dmx.dimDeviceToValue(self._RedLightDimmer, 0)
+        
     def gameStatusPacket(self, packetData):
         # 4,@015,0 = start
         # 4,@014,0 = end
         
         if packetData[2] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-            self.handleMusic()
             self.gameStarted()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             format.message(f"Response: {response.text}")
