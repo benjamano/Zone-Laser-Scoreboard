@@ -378,6 +378,8 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[2]}")
+        
         if packetData[2] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
@@ -392,7 +394,7 @@ class WebApp:
     
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
-        if int(timeLeft) % 30 == 0:
+        if int(timeLeft) == 10:
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
     
@@ -400,18 +402,22 @@ class WebApp:
         gunId = packetData[2]
         finalScore = packetData[4]
         accuracy = packetData[7]
+
+        gunName = None
         
         try:
             with self.app.app_context():
-                gunName = Gun.query.filter_by(id=gunId).first().name
+                gunName = "name: "+ Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
         
         if gunName == None:
-            gunName = gunId
+            gunName = "id: "+gunId
+            
+        format.message(f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", type="success")
         
-        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun Name {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
         
     def shotConfirmedPacket(self, packetData):
         pass
