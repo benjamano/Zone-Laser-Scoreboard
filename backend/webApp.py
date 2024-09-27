@@ -68,7 +68,6 @@ class WebApp:
         try:
             format.message("Setting up DMX Connection")
         
-            import WinUSB
             from PyDMXControl.controllers import OpenDMXController
             # from PyDMXControl.controllers import uDMXController
 
