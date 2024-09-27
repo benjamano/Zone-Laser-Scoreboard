@@ -36,7 +36,7 @@ class WebApp:
         self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
-        self.expecteProcesses = ["Spotify", "obs64"]
+        self.expecteProcesses = ["Spotify.exe", "obs64"]
             
         db.init_app(self.app)
         
