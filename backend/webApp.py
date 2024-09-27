@@ -272,7 +272,7 @@ class WebApp:
                 format.message(f"Packet 1: {packet}")
                 
                 packet_data = bytes(packet['Raw']).hex()  # Get the raw data in hex format
-                format.message(f"Packet Data (hex): {packet_data}")
+                format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
                 
                 # Corrected call to hexToASCII with the right argument
                 decodedData = (self.hexToASCII(hexString=packet_data[0])).split(',')
