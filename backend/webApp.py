@@ -272,10 +272,8 @@ class WebApp:
                 format.message(f"Packet 1: {packet}")
                 packet_bytes = bytes(packet).hex()
                 format.message(f"Packet 2: {packet_bytes}")
-                packetData = bytes(packet_bytes).hex()
-                format.message(f"Packet 3: {packetData}")
                 
-                decodedData =  self.hexToASCII(hexString=packetData)
+                decodedData =  self.hexToASCII(hexString=packet_bytes)
                 decodedData = decodedData.split(',')
                 
                 format.message(f"Decoded Data: {decodedData}")
