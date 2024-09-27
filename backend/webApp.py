@@ -269,10 +269,11 @@ class WebApp:
     def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
+                format.message(f"Packet 1: {packet_bytes},  {packetData}, {packet}")
                 packet_bytes = bytes(packet).hex()
-                packetData = packet.hex()
+                packetData = str(packet).hex()
                 
-                format.message(f"Packet: {packetData},  {packet_bytes}, {packet}")
+                format.message(f"Packet 2: {packetData},  {packet_bytes}, {packet}")
                 
                 decodedData =  self.hexToASCII(hexString=packetData)
                 decodedData = decodedData.split(',')
