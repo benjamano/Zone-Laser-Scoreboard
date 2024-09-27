@@ -47,11 +47,11 @@ class WebApp:
         self.spotifyControl = False
         self.DMXConnected = False
 
-        self.init_logging()
+        self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
-        self.open_files()
+        self.openFiles()
         
-        self.setup_routes()
+        self.setupRoutes()
         
         self.setUpDMX()
         
@@ -59,7 +59,7 @@ class WebApp:
             db.create_all()
             self.seedDBData() 
 
-    def init_logging(self):
+    def initLogging(self):
         self.app.logger.disabled = True
         logging.getLogger('werkzeug').disabled = True
         return
@@ -158,7 +158,7 @@ class WebApp:
         else:
             format.message("Data already exists, skipping seeding.", type="info")
 
-    def open_files(self):
+    def openFiles(self):
         try:
             f = open(fr"{self._dir}\data\keys.txt", "r")
         except:
@@ -181,28 +181,32 @@ class WebApp:
             self.filesOpened = True
 
     def hexToASCII(self, hexString):
- 
-        # initialize the ASCII code string as empty.
         ascii = ""
      
         for i in range(0, len(hexString), 2):
      
-            # extract two characters from hex string
             part = hexString[i : i + 2]
      
-            # change it into base 16 and
-            # typecast as the character 
             ch = chr(int(part, 16))
      
-            # add this char to final ASCII string
             ascii += ch
          
         return ascii
 
-    def setup_routes(self):
+    def setupRoutes(self):
         @self.app.route('/')
         def index():
-            return render_template('index.html', OBSConnected=self.OBSConnected)
+            if not self.OBSConnected:
+                OBSConnection = "DISCONNECTED"
+            else:
+                OBSConnection = "CONNECTED"
+            
+            if not self.DMXConnected:
+                DMXConnection = "DISCONNECTED"
+            else:
+                DMXConnection = "CONNECTED"
+            
+            return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
 
         @self.app.route('/scoreboard')
         def scoreboard():

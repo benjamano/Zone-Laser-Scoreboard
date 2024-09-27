@@ -11,136 +11,332 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/LCARS/lcars-colors.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='styles/LCARS/jquery-3-7-0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script>
 </head>
-<body class="bg-dark">
-    <div class="row justify-content-around m-4">
-        <div class="card col-5 p-0">
-            <div class="card-header bg-dark-subtle">Spotify Playback Control</div>
-            <div class="card-body bg-secondary text-white">
-                <button onclick="controlPlayback('toggle')">Play</button>
-                <div class="form-group">
 
-                    <label for="ControlSpotify">Control Spotify</label>
-                    <input type="checkbox" id="ControlSpotify" name="ControlSpotify" onchange="toggleSpotifyControl()" checked>
+<style>
 
-                </div>
-            </div>
+    body{
+        background-color: black;
+        overflow: hidden;
+    }
 
-        </div>
-        <div class="card col-5 p-0">
-            <div class="card-header bg-dark-subtle">Server Control</div>
-            <div class="card-body bg-secondary text-white">
-                <button onclick="controlPlayback('end')">Terminate</button>
-            </div>
-        </div>
+</style>
 
-        <div class="card mt-3 p-0">
+<body>
+	<div class="wrap-everything">
+		<section id="column-1">
+			<div class="lcars-frame">
+				<div class="frame-col-1">
+					<div class="frame-col-1-cell-a"></div>
+					<div class="frame-col-1-cell-b"></div>
+					<div class="frame-col-1-cell-c"></div>
+				</div>
+				<div class="frame-col-2"> </div>
+				<div class="frame-col-3 display-vertical">
+					<div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>					
+				</div>
+				<div class="frame-col-4"> </div>
+				<div class="frame-col-5">
+					<div class="frame-col-5-cell-a"></div>
+					<div class="frame-col-5-cell-b"></div>
+					<div class="frame-col-5-cell-c"></div>
+				</div>
+			</div>
+			<div class="lcars-frame-after">
+				18-1987
+			</div>
+			<div class="panel-24 first-needle">
+				<div class="panel-24-col-a">
+					<div class="panel-24-block-1">
+						<div class="panel-24-cube cc-1"> </div>
+						<div class="panel-24-cube cc-2"> </div>
+						<div class="panel-24-cube cc-3"> </div>
+					</div>
+					<div class="panel-24-block-2">
+						<div class="panel-24-block-3">
+							<div class="panel-24-block-4 block-4-color-a"> </div>
+						</div>
+					</div>
+					<div class="panel-24-block-5"> </div>
+				</div>
+				<div class="panel-24-col-b">
+					<div class="panel-24-block-6">
+						8047
+					</div>
+					<div class="gauge-wrap">
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							100
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							90
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							80
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							70
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							60
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							50
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							40
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							30
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							20
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							10
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							00
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-base">				
+			</div>
+			<div class="panel-20">
+				20-62
+			</div>
+		</section>
+		<section id="column-3">
+			<div class="top-wrapper">
+				<div class="top-display">
+					<div class="top-display-left">
+						<nav id="primary-nav">
+							<a href="https://www.thelcars.com">TheLCARS.com</a>
+							<a role="button" onclick="toggleSpotifyControl()">SPOTIFY CONTROL: <span id="spotifyPlaybackStatus">OFF</span></a>
+							<a role="button" onclick="controlPlayback('end')">TERMINATE SERVER</a>
+						</nav>
+						<div class="chunk"> </div>
+						<div class="panel-wrapper">
+							<div class="panel-1"><div class="lcars-access">
+                                <a>Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span></a>
+                            </div></div>
+							<div class="panel-1"><div class="lcars-access">
+								<a>DMX NETWORK: <span class="blink medium-dark-blue" id="DMXConnectionStatus">{{DMXConnected}}</span></a>
+                            </div></div>
+							<div class="panel-1"><div class="lcars-access">
+								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
+                            </div></div>
+						</div>
+						
+					</div>
+					<div class="top-display-right">
+						<div class="top-display-content">
+							<div class="top-arch-1">
+								<div class="top-arch-2">
+									<div class="top-arch-content">
+										<div class="lcars-heading">LASER TAG SCOREBOARD NETWORK</div>
+                                        <div style="height: 300px; overflow-y: scroll; line-height: 20px;" id="messages"></div>
+									</div>
+									<div class="top-arch-panel-1">
+									</div>
+									<div class="top-arch-panel-2">
+										23<span class="hop">-</span>09										
+									</div>
+								</div>
+							</div>							
+						</div>
+						<div class="arch-bottom">
+							<div class="arch-base"> </div>
+						</div>
+					</div>
+				</div>
+				<div class="top-display-bottom">					
+					<div class="bar-elbow"></div>
+					<div class="bar-1"></div>
+					<div class="bar-2"></div>
+					<div class="bar-3"></div>
+					<div class="bar-4">
+						
+					</div>
+					<div class="bar-5"></div>		
+				</div>
+			</div> <!-- / top-wrapper -->
+			<div class="spacer">
+				<div class="space-sidebar"></div>
+				<div class="space-1"></div>
+				<div class="space-2"></div>
+				<div class="space-3"></div>
+				<div class="space-4"></div>
+			</div>
+			<div class="wrap">
+				<div class="scroll-top"><a id="scroll-top" href=""><span class="hop">screen</span> top</a></div>
+				<div class="left-frame">
+					<div>
+						<div class="panel-3">03<span class="hop">-111968</span></div>
+						<nav id="secondary-nav">
+							<a href="">BULKHEAD LIGHTS STATUS: <span id="bulkheadLightStatus">OFF</span></a>
+							<a href="">BUTTON-05</a>
+							<a href="">BUTTON-06</a>
+						</nav>
+					</div>
+				</div>
+				<div class="right-frame">
+					<div class="bar-runner">
+						<div class="bar-6"></div>
+						<div class="bar-7"></div>
+						<div class="bar-8"></div>
+						<div class="bar-9"></div>
+						<div class="bar-10"></div>
+					</div>
+					<main>
 
-            <div class="card-header bg-dark-subtle text-dark">Game Details</div>
+						<!-- Start your content here. -->
+						
+							<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>
 
-            <div class="card-body bg-secondary text-white">
+						<!-- End content area -->						
 
-                <h5>Current game status: <span id="gameStatus" class="text-warning">Waiting for game to start...</span></h5>
+						<footer>
+							<div class="footer-inside">
+								<div class="footer-text">
 
-                <h5>OBS is connected: {{OBSConnected}}</h5>
-
-                <div id="messages"></div>
-
-            </div>
-
-        </div>
-    </div>
-
-    <script>
-
-        var controlSpotify = false;
-
-        var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
-
-        window.onload = function() {
-
-            socket.on('connect', function() {
-                socket.emit('client_event', {data: 'Client connected!'});
-                socket.emit('spotifyControlStatus', {data: controlSpotify});
-                console.log("SpotifyControl: " + controlSpotify);
-                console.log("Client connected!");
-
-                var messageDiv = document.getElementById('messages');
-
-                messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
-            });
-
-            socket.on('start', function(msg) {
-                console.log(msg);
-                
-                var messageDiv = document.getElementById('messages');
-
-                var gameStatus = document.getElementById('gameStatus');
-
-                $("#gameStatus").removeClass("text-warning").addClass("text-success");
-
-                gameStatus.innerHTML = 'Game in progress...';
-
-                messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
-            });
-
-            socket.on('end', function(msg) {
-                console.log(msg);
-
-                var messageDiv = document.getElementById('messages');
-
-                var gameStatus = document.getElementById('gameStatus');
-
-                $("#gameStatus").removeClass("text-warning").addClass("text-danger");
-                
-                gameStatus.innerHTML = 'Game ended at ' + new Date().toLocaleTimeString();
-
-                messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-            });
-
-            socket.on('server', function(msg) {
-                console.log(msg);
-
-                var messageDiv = document.getElementById('messages');
-
-                messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-            });
-
-            socket.on('disconnect', function() {
-                var messageDiv = document.getElementById('messages');
-
-                messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
-            });
-
-            socket.on('timeleft', function(msg) {
-                var messageDiv = document.getElementById('messages');
-
-                messageDiv.innerHTML += '<p class="text-danger">'+ msg.message +'</p>';
-            });
-            
-        };
-
-        async function toggleSpotifyControl(){
-            controlSpotify = !controlSpotify;
-
-            socket.emit('SpotifyControl', {data: controlSpotify});
-
-            console.log("SpotifyControl: " + controlSpotify);
-        }
-
-        async function controlPlayback(action) {
-            if (action == "end"){
-                if (window.confirm("Are you sure you want to terminate the server?")) {
-                    const response = await fetch(`/${action}`);
-                    const result = await response.json();
-                    alert(result.message || result.error);
-                }
-            }
-
-            const response = await fetch(`/${action}`);
-            const result = await response.json();
-            alert(result.message || result.error);
-        }
-    </script>
+								</div>
+							</div>
+							<div class="footer-panel"> <span class="hop">22</span>47 </div>
+						</footer>
+					</main>
+				</div>
+			</div>
+		</section>
+	</div>
+	<script type="text/javascript" src="assets/lcars.js"></script>
 </body>
+
+<script>
+
+    var controlSpotify = false;
+
+    var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
+
+    window.onload = function() {
+
+        console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
+
+        socket.on('connect', function() {
+            socket.emit('client_event', {data: 'Client connected!'});
+            socket.emit('spotifyControlStatus', {data: controlSpotify});
+            console.log("SpotifyControl: " + controlSpotify);
+            console.log("Client connected!");
+
+			if (controlSpotify == true){
+				$("#spotifyPlaybackStatus").text("ON")
+			} else {
+				$("#spotifyPlaybackStatus").text("OFF")
+			}
+
+            $("#gameStatus").removeClass("go-red").addClass("go-blue");
+            $("#gameStatus").text("Waiting");
+
+			$("#webAppOnlineStatus").text("ONLINE");
+
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
+        });
+
+        socket.on('start', function(msg) {
+            console.log(msg);
+            
+            var messageDiv = document.getElementById('messages');
+
+            var gameStatus = document.getElementById('gameStatus');
+
+            $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
+            $("#gameStatus").text("Game in Progress...");
+
+            messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
+        });
+
+        socket.on('end', function(msg) {
+            console.log(msg);
+
+            var messageDiv = document.getElementById('messages');
+
+            var gameStatus = document.getElementById('gameStatus');
+
+            $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
+            $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+        });
+
+        socket.on('server', function(msg) {
+            console.log(msg);
+
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+        });
+
+        socket.on('disconnect', function() {
+            var messageDiv = document.getElementById('messages');
+
+			$("#webAppOnlineStatus").text("UNKNOWN");
+
+            messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
+        });
+
+        socket.on('timeleft', function(msg) {
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-danger">'+ msg.message +'</p>';
+        });
+        
+    };
+
+    async function toggleSpotifyControl(){
+        controlSpotify = !controlSpotify;
+
+		if (controlSpotify == true){
+			$("#spotifyPlaybackStatus").text("ON")
+		} else {
+			$("#spotifyPlaybackStatus").text("OFF")
+		}
+
+        socket.emit('SpotifyControl', {data: controlSpotify});
+
+        console.log("SpotifyControl: " + controlSpotify);
+    }
+
+    async function controlPlayback(action) {
+        if (action == "end"){
+            if (window.confirm("Are you sure you want to terminate the server?")) {
+                const response = await fetch(`/${action}`);
+                const result = await response.json();
+                alert(result.message || result.error);
+				return;
+			}
+        }
+		else{
+			const response = await fetch(`/${action}`);
+			const result = await response.json();
+			alert(result.message || result.error);
+		}
+    }
+</script>
 </html>
