@@ -45,6 +45,7 @@ class WebApp:
         self.devMode = "False"
         self.filesOpened = False
         self.spotifyControl = False
+        self.DMXConnected = False
 
         self.init_logging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -137,7 +138,7 @@ class WebApp:
     def setup_routes(self):
         @self.app.route('/')
         def index():
-            return render_template('index.html', OBSConnected=self.OBSConnected)
+            return render_template('index.html', OBSConnected=self.OBSConnected, DMXConnected=self.DMXConnected)
 
         @self.app.route('/scoreboard')
         def scoreboard():

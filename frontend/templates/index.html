@@ -128,6 +128,8 @@
 						<nav id="primary-nav">
 							<a href="https://www.thelcars.com">TheLCARS.com</a>
 							<a onclick="toggleSpotifyControl()">SPOTIFY CONTROL IS <span id="spotifyPlaybackStatus">OFF</span></a>
+							<a>OBS IS <span id="OBSConnectionStatus">{{OBSConnected}}</span></a>
+							<a onclick="restartDMXConnection()">DMX NETWORK IS <span id="OBSConnectionStatus">{{DMXConnected}}</span></a>
 							<a onclick="controlPlayback('end')">TERMINATE SERVER</a>
 						</nav>
 						<div class="chunk"> </div>
