@@ -68,24 +68,30 @@ class WebApp:
         try:
             format.message("Setting up DMX Connection")
         
-            from pyftdi.ftdi import Ftdi
+            from PyDMXControl.controllers import OpenDMXController
+            # from PyDMXControl.controllers import uDMXController
 
-            # This holds all the fixture information and outputs it.
+            # Import the fixture profile we will use,
+            #  the simple Dimmer in this example.
+            from PyDMXControl.profiles.Generic import Dimmer
+
+            # Create an instance of the uDMX controller, 
+            #  this holds all the fixture information and outputs it.
             # This will start outputting data immediately.
-            Ftdi.show_devices()
+            self._dmx = OpenDMXController()
 
             # Add a new Dimmer fixture to our controller
         
-            # try:
-            #     format.message("Registering Red Bulk-Head Lights", type="info")
-            #     self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
+            try:
+                format.message("Registering Red Bulk-Head Lights", type="info")
+                self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
 
-            #     # This is done over 5000 milliseconds, or 5 seconds.
-            #     self._RedBulkHeadLights.dim(255, 5000)
+                # This is done over 5000 milliseconds, or 5 seconds.
+                self._RedBulkHeadLights.dim(255, 5000)
             
-            #     self._RedBulkHeadLights.dim(0, 5000)
-            # except Exception as e:
-            #     format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
+                self._RedBulkHeadLights.dim(0, 5000)
+            except Exception as e:
+                format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
         
             self.DMXConnected = True
             

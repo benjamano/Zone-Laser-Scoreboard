@@ -1,26 +1,11 @@
+from PyDMXControl.controllers import OpenDMXController
+# from PyDMXControl.controllers import uDMXController
 
+# Import the fixture profile we will use,
+#  the simple Dimmer in this example.
+from PyDMXControl.profiles.Generic import Dimmer
 
-def hexToASCII(hexString):
- 
-        # initialize the ASCII code string as empty.
-        ascii = ""
-     
-        for i in range(0, len(hexString), 2):
-     
-            # extract two characters from hex string
-            part = hexString[i : i + 2]
-     
-            # change it into base 16 and
-            # typecast as the character 
-            ch = chr(int(part, 16))
-     
-            # add this char to final ASCII string
-            ascii += ch
-         
-        return ascii
-    
-packet_bytes = bytes(332).hex()
-    
-decodedData =  hexToASCII(hexString=packet_bytes)
-
-print(decodedData)
+# Create an instance of the uDMX controller, 
+#  this holds all the fixture information and outputs it.
+# This will start outputting data immediately.
+dmx = OpenDMXController()
