@@ -175,7 +175,7 @@ class WebApp:
             
             self.filesOpened = True
 
-    def hexToASCII(hexString):
+    def hexToASCII(self, hexString):
  
         # initialize the ASCII code string as empty.
         ascii = ""
