@@ -287,7 +287,7 @@ class WebApp:
                     self.gameStatusPacket(decodedData)
                     
                 elif "33" in packet_data.lower():
-                    # The game has ended and the final scores packets are arriving, becuase 33 (Hex) = 3 (Denary)
+                    # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
                     self.finalScorePacket(decodedData)
                 
                 elif "31" in packet_data.lower():
@@ -402,7 +402,8 @@ class WebApp:
         accuracy = packetData[7]
         
         try:
-            gunName = Gun.query.filter_by(id=gunId).first().name
+            with self.app.app_context():
+                gunName = Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
