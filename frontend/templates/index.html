@@ -401,6 +401,8 @@
 			var finalScore = msg["finalScore"];
 			var Accuracy = msg["accuracy"];
 
+			console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
+
 			$("#gun-"+gunId+"-score").text(finalScore);
 			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%");
 
