@@ -193,6 +193,9 @@ class WebApp:
             ch = chr(int(part, 16))
      
             ascii += ch
+            
+            if ch == "\x00":
+                break
          
         return ascii
 
@@ -296,19 +299,19 @@ class WebApp:
                 
                 if decodedData[0] == "4":
                     # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
-                    self.gameStatusPacket(decodedData)
+                    threading.Thread(target=self.gameStatusPacket, args=(decodedData,)).start()
                     
                 elif decodedData[0] == "3":
                     # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
-                    self.finalScorePacket(decodedData)
+                    threading.Thread(target=self.finalScorePacket, args=(decodedData,)).start()
                 
                 elif decodedData[0] == "1":
                     # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
-                    self.timingPacket(decodedData)    
+                    threading.Thread(target=self.timingPacket, args=(decodedData,)).start()
                 
                 elif decodedData[0] == "5":
                     # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
-                    self.shotConfirmedPacket(decodedData)
+                    threading.Thread(target=self.shotConfirmedPacket, args=(decodedData,)).start()
                     
                 # elif "342c403031352c30" in packet_bytes.lower():
                 #     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
