@@ -439,9 +439,9 @@ class WebApp:
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
     
     def finalScorePacket(self, packetData):
-        gunId = packetData[2]
-        finalScore = packetData[4]
-        accuracy = packetData[7]
+        gunId = packetData[1]
+        finalScore = packetData[3]
+        accuracy = packetData[5]
 
         gunName = None
         
