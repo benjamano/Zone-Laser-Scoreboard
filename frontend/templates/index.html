@@ -397,9 +397,9 @@
         socket.on('server', function(msg) {
             console.log(msg);
 
-			var gunId = msg[0];
-			var finalScore = msg[1];
-			var Accuracy = msg[2];
+			var gunId = msg["gunId"];
+			var finalScore = msg["finalScore"];
+			var Accuracy = msg["accuracy"];
 
 			$("#gun-"+gunId+"-score").text(finalScore);
 			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%");
