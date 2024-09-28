@@ -413,14 +413,32 @@ class WebApp:
     def gameStarted(self):
         format.message("Game started")
         
-        self.handleMusic()
-        self._dmx.dimDeviceToValue(self._RedLightDimmer, 255)
+        try:
+            self.handleMusic()
+        except Exception as e:
+            format.message(f"Error handling music: {e}", type="error")
+            
+        try:
+            self._dmx.dimDeviceToValue(self._RedLightDimmer, 255)
+        except Exception as e:
+            format.message(f"Error dimming red lights: {e}", type="error")
+            format.message(f"Restarting DMX Network: {e}", type="warning")
+            self.setUpDMX()
         
     def GameEnded(self):
         format.message("Game ended")
         
-        self.handleMusic()
-        self._dmx.dimDeviceToValue(self._RedLightDimmer, 0)
+        try:
+            self.handleMusic()
+        except Exception as e:
+            format.message(f"Error handling music: {e}", type="error")
+            
+        try:
+            self._dmx.dimDeviceToValue(self._RedLightDimmer, 0)
+        except Exception as e:
+            format.message(f"Error dimming red lights: {e}", type="error")
+            format.message(f"Restarting DMX Network: {e}", type="warning")
+            self.setUpDMX()
         
     def gameStatusPacket(self, packetData):
         # 4,@015,0 = start
