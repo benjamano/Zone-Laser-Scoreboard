@@ -419,7 +419,7 @@
 			$("#gun-"+gunId+"-score").text(finalScore);
 			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%");
 
-			sortTable();
+			sortScoresTable();
         });
 
         socket.on('disconnect', function() {
@@ -475,20 +475,20 @@
 		}
     }
 
-	function sortTable() {
-		var table = document.getElementById("scoresTable");
-		var rows = Array.from(table.rows).slice(1); // Skip the header row
-	
-		rows.sort(function(a, b) {
-			var scoreA = parseInt(a.querySelector("span[id^='gun-'][id$='-score']").textContent);
-			var scoreB = parseInt(b.querySelector("span[id^='gun-'][id$='-score']").textContent);
-			return scoreB - scoreA;
-		});
-	
-		rows.forEach(function(row) {
-			table.appendChild(row);
-		});
-	}
+	function sortScoresTable() {
+        const table = document.getElementById('scoresTable');
+        const rows = Array.from(table.rows);
+
+        rows.sort((a, b) => {
+            const scoreA = parseInt(a.querySelector(`[id*='score']`).innerText);
+            const scoreB = parseInt(b.querySelector(`[id*='score']`).innerText);
+
+            return scoreB - scoreA; // Sort in descending order
+        });
+
+        // Append the rows in sorted order
+        rows.forEach(row => table.appendChild(row));
+    }
 	
 </script>
 </html>
