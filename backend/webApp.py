@@ -475,7 +475,7 @@ class WebApp:
             "accuracy": accuracy
         }
         
-        response = requests.post('http://localhost:8080/sendMessage', json={'message': data, 'type': "server"})
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': data, 'type': "server"})
         
     def shotConfirmedPacket(self, packetData):
         pass
