@@ -436,9 +436,19 @@ class WebApp:
     
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
+        
+        format.message(f"Time Left: {timeLeft}")
+        
         if int(timeLeft) == 10:
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
+        if int(timeLeft) == 0:
+            format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+            self.handleMusic()
+            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            format.message(f"Response: {response.text}")
+            
+        format.newline()
     
     def finalScorePacket(self, packetData):
         gunId = packetData[1]
@@ -459,7 +469,7 @@ class WebApp:
             
         format.message(f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", type="success")
         
-        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun {gunName} has a score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
         
     def shotConfirmedPacket(self, packetData):
         pass
