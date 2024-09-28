@@ -408,9 +408,11 @@
 		socket.on('gunScores', function(msg) {
             console.log("gunScore: "+msg);
 
-			var gunId = msg["gunId"];
-			var finalScore = msg["finalScore"];
-			var Accuracy = msg["accuracy"];
+			var gunScores = msg.message.split(',');
+
+			var gunId = gunScores[0];
+			var finalScore = gunScores[1];
+			var Accuracy = gunScores[2];
 
 			console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
 
