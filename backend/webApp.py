@@ -363,7 +363,7 @@ class WebApp:
         while True:
             for processName in self.expecteProcesses:
                 processFound = self.checkIfProcessRunning(processName)
-                format.message(f"Process {processName} running: {processFound}")
+                #format.message(f"Process {processName} running: {processFound}")
                 
                 if not processFound:
                     try:
