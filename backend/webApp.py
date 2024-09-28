@@ -291,19 +291,19 @@ class WebApp:
                 decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
                 format.message(f"Decoded Data: {decodedData}")
                 
-                if decodedData[0] == 4:
+                if decodedData[0] == "4":
                     # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
                     self.gameStatusPacket(decodedData)
                     
-                elif decodedData[0] == 3:
+                elif decodedData[0] == "3":
                     # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
                     self.finalScorePacket(decodedData)
                 
-                elif decodedData[0] == 1:
+                elif decodedData[0] == "1":
                     # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
                     self.timingPacket(decodedData)    
                 
-                elif decodedData[0] == 5:
+                elif decodedData[0] == "5":
                     # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
                     self.shotConfirmedPacket(decodedData)
                     
