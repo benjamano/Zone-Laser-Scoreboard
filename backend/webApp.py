@@ -423,15 +423,15 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[2]}")
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
-        if packetData[2] == "@015":
+        if packetData[1] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             format.message(f"Response: {response.text}")
         
-        elif packetData[2] == "@014":
+        elif packetData[1] == "@014":
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.handleMusic()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
