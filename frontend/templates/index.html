@@ -477,15 +477,18 @@
 
 	function sortTable() {
 		var table = document.getElementById("scoresTable");
-		var rows = Array.from(table.rows);
+		var rows = Array.from(table.rows).slice(1); // Skip the header row
+	
 		rows.sort(function(a, b) {
 			var scoreA = parseInt(a.querySelector("span[id^='gun-'][id$='-score']").textContent);
 			var scoreB = parseInt(b.querySelector("span[id^='gun-'][id$='-score']").textContent);
 			return scoreB - scoreA;
 		});
+	
 		rows.forEach(function(row) {
 			table.appendChild(row);
 		});
 	}
+	
 </script>
 </html>
