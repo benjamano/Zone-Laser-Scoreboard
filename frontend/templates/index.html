@@ -480,8 +480,8 @@
         const rows = Array.from(table.rows);
 
         rows.sort((a, b) => {
-            const scoreA = parseInt(a.querySelector(`[id*='score']`).innerText);
-            const scoreB = parseInt(b.querySelector(`[id*='score']`).innerText);
+			const scoreA = parseInt($(a).find("[id*='score']").text());
+			const scoreB = parseInt($(b).find("[id*='score']").text());
 
             return scoreB - scoreA; // Sort in descending order
         });
