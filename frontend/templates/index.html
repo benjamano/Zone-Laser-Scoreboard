@@ -397,6 +397,17 @@
         socket.on('server', function(msg) {
             console.log(msg);
 
+			try{
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+			}
+			catch(err){}
+        });
+
+		socket.on('gunScores', function(msg) {
+            console.log(msg);
+
 			var gunId = msg["gunId"];
 			var finalScore = msg["finalScore"];
 			var Accuracy = msg["accuracy"];
@@ -405,13 +416,6 @@
 
 			$("#gun-"+gunId+"-score").text(finalScore);
 			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%");
-
-			try{
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-			}
-			catch(err){}
         });
 
         socket.on('disconnect', function() {

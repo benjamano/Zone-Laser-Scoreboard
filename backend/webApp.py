@@ -264,6 +264,9 @@ class WebApp:
                     case "timeleft":
                         format.message(f"Sending timeleft message, {message} seconds left")
                         self.socketio.emit('timeleft', {'message': f"{message} seconds remaining"})
+                    case "gunScores":
+                        format.message(f"Sending gunScore message, {message}")
+                        self.socketio.emit('gunScores', {'message': message})
                         
             format.newline()
                         
@@ -471,7 +474,7 @@ class WebApp:
         
         data = f"{gunId},{finalScore},{accuracy}"
         
-        response = requests.post('http://localhost:8080/sendMessage', data={'message': data, 'type': "server"})
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': data, 'type': "gunScores"})
         
     def shotConfirmedPacket(self, packetData):
         pass
