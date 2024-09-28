@@ -469,7 +469,9 @@ class WebApp:
             
         format.message(f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", type="success")
         
-        response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Gun {gunName} has a score of {finalScore} and an overall accuracy of {accuracy}", 'type': "server"})
+        data = {gunId, finalScore, accuracy}
+        
+        response = requests.post('http://localhost:8080/sendMessage', data={'message': data, 'type': "server"})
         
     def shotConfirmedPacket(self, packetData):
         pass
