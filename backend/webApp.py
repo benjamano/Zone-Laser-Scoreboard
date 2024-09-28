@@ -249,7 +249,7 @@ class WebApp:
         def sendMessage():
             message = request.form.get('message')
             type = request.form.get('type')
-            format.message(f"\nSending message: {message} with type: {type}")
+            format.message(f"Sending message: {message} with type: {type}")
             if message:
                 match type.lower():
                     case "start":
@@ -264,7 +264,7 @@ class WebApp:
                     case "timeleft":
                         format.message(f"Sending timeleft message, {message} seconds left")
                         self.socketio.emit('timeleft', {'message': f"{message} seconds remaining"})
-                    case "gunScores":
+                    case "gunscores":
                         format.message(f"Sending gunScore message, {message}")
                         self.socketio.emit('gunScores', {'message': message})
                         
