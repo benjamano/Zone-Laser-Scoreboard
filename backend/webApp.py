@@ -423,7 +423,7 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._dmx.dimDeviceToValue(self._RedLightDimmer, 255)
+            self._dmx.dim(self._RedLightDimmer, 255)
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
             format.message(f"Restarting DMX Network: {e}", type="warning")
@@ -438,7 +438,7 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._dmx.dimDeviceToValue(self._RedLightDimmer, 0)
+            self._dmx.dim(self._RedLightDimmer, 0)
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
             format.message(f"Restarting DMX Network: {e}", type="warning")
