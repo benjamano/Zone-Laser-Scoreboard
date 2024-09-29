@@ -147,7 +147,7 @@
 
 						<div class="panel-wrapper">
 							<div class="panel-1"><div class="lcars-access">
-								<a>TIME REMAINING: <span class="blink medium-dark-blue" id="timeRemaining">00:00</span></a>
+								<a>TIME REMAINING: <span class="medium-dark-blue" id="timeRemaining">00:00</span></a>
 							</div></div>
 						</div>
 						
@@ -447,18 +447,42 @@
 			catch(err){}
         });
 
-		socket.on('timeRemaining', function(msg) {
+		let currentTimeLeft;
+	let countdownInterval;
 
-			function formatTime(seconds) {
-				const minutes = Math.floor(seconds / 60);
-				const remainingSeconds = seconds % 60;
-				return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+	socket.on('timeRemaining', function (msg) {
+		const newTime = parseInt(msg.message);
+
+		// If the current time is different from the new time, update the countdown
+		if (currentTimeLeft !== newTime) {
+			currentTimeLeft = newTime;
+
+			// If there's an existing interval, clear it
+			if (countdownInterval) {
+				clearInterval(countdownInterval);
 			}
 
-			const formattedTime = formatTime(parseInt(msg.message));
-			$("#timeRemaining").text(formattedTime);
+			// Start the countdown
+			countdownInterval = setInterval(function () {
+				if (currentTimeLeft <= 0) {
+					clearInterval(countdownInterval);
+					return;
+				}
 
-        });
+				currentTimeLeft--;
+
+				const formattedTime = formatTime(currentTimeLeft);
+				$("#timeRemaining").text(formattedTime);
+			}, 1000);
+		}
+	});
+
+	// Format the time in minutes and seconds
+	function formatTime(seconds) {
+		const minutes = Math.floor(seconds / 60);
+		const remainingSeconds = seconds % 60;
+		return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
+	}
         
     };
 
