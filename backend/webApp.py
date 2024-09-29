@@ -281,21 +281,21 @@ class WebApp:
             sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
             try:
-                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
                 format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
+                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
             except Exception as e:
                 format.message(f"Error while sniffing: {e}", type="error")
 
     def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
-                format.message(f"Packet 1: {packet}")
+                #format.message(f"Packet 1: {packet}")
                 
                 packet_data = bytes(packet['Raw']).hex()
-                format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
+                #format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
                 
                 decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
-                format.message(f"Decoded Data: {decodedData}")
+                #format.message(f"Decoded Data: {decodedData}")
                 
                 if decodedData[0] == "4":
                     # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
@@ -374,10 +374,14 @@ class WebApp:
                             os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
                         else:
                             format.message(f"Process {processName} not recognized for auto-start", type="error")
+                        if self.DMXConnected == False:
+                            format.message(f"DMX Connection lost, restarting DMX Network")
+                            self.setUpDMX()
+                            
                     except Exception as e:
                         format.message(f"Error starting process {processName}: {e}", type="error")
                 
-            time.sleep(300)
+            time.sleep(600)
 
     def start(self):
         self.obs_thread = threading.Thread(target=self.obs_connect)
@@ -491,7 +495,7 @@ class WebApp:
         if gunName == None:
             gunName = "id: "+gunId
             
-        format.message(f"Gun {gunName} has a final score of {finalScore} and an overall accuracy of {accuracy}", type="success")
+        format.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
         
         data = f"{gunId},{finalScore},{accuracy}"
         
