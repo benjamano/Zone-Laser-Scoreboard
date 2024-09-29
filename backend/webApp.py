@@ -53,6 +53,7 @@ class WebApp:
         self.DMXConnected = False
         self.spotifyStatus = "paused"
         self._localIp = ""
+        self.fixtures = []
 
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -97,6 +98,9 @@ class WebApp:
                 self._RedBulkHeadLights.dim(255, 5000)
             
                 self._RedBulkHeadLights.dim(0, 5000)
+                
+                self.fixtures.append(self._RedBulkHeadLights)
+                
             except Exception as e:
                 format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
         
@@ -220,16 +224,15 @@ class WebApp:
         
         @self.app.route("/lights")
         def lights():   
-            fixtures = self._dmx.get_all_fixtures()
-            format.message(f"Fixtures: {fixtures}")
+            
             return render_template('lights.html')
         
         # API --------------------------------------------------------------------------------------------------------------------
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
-            fixtures = self._dmx.get_all_fixtures()
-            return jsonify(fixtures)
+        
+            return jsonify(self.fixtures)
         
         
 
