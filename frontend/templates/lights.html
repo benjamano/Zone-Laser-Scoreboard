@@ -1,10 +1,10 @@
 <script>
 
-    const response = await fetch(`/api/availableFixtures`);
+    const response = fetch(`/api/availableFixtures`);
 
     console.log(response);
 
-    const result = await response.json();
+    const result = response.json();
 
     console.log(result);
 </script>
