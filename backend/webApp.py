@@ -225,6 +225,8 @@ class WebApp:
         @self.app.route("/lights")
         def lights():   
             
+            format.message(f"{self.fixtures}")
+            
             return render_template('lights.html')
         
         # API --------------------------------------------------------------------------------------------------------------------
