@@ -1,0 +1,10 @@
+<script>
+
+    const response = await fetch(`/api/availableFixtures`);
+
+    console.log(response);
+
+    const result = await response.json();
+
+    console.log(result);
+</script>

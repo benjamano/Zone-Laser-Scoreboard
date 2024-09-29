@@ -217,10 +217,19 @@ class WebApp:
                 DMXConnection = "CONNECTED"
             
             return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
-
-        @self.app.route('/scoreboard')
-        def scoreboard():
-            return render_template('scoreboard.html')
+        
+        @self.app.route("/lights")
+        def lights():   
+            return render_template('lights.html')
+        
+        # API --------------------------------------------------------------------------------------------------------------------
+        
+        self.app.route("/api/availableFixtures", methods=["GET"])
+        def availableFixtures():
+            fixtures = self._dmx.get_fixtures()
+            return jsonify(fixtures)
+        
+        
 
         @self.app.route('/toggle')
         def togglePlayback():
