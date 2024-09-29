@@ -1,15 +1,60 @@
+<div id="fixtures-container"></div>
+
 <script>
-
     async function fetchFixtures() {
-            
         const response = await fetch(`/api/availableFixtures`);
+        const fixtures = await response.json();
 
-        console.log(response);
+        const container = document.getElementById('fixtures-container');
+        fixtures.forEach(fixture => {
+            const fixtureDiv = document.createElement('div');
+            fixtureDiv.className = 'fixture';
 
-        const result = response.json();
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.min = 0;
+            slider.max = 255;
+            slider.value = 0;
+            slider.className = 'slider';
+            slider.oninput = function() {
+                updateDMXValue(fixture.id, this.value);
+            };
 
-        console.log(result);
+            const label = document.createElement('div');
+            label.className = 'label';
+            label.textContent = fixture.name;
+
+            fixtureDiv.appendChild(slider);
+            fixtureDiv.appendChild(label);
+            container.appendChild(fixtureDiv);
+        });
+    }
+
+    function updateDMXValue(fixtureId, value) {
+        console.log(`Fixture ID: ${fixtureId}, DMX Value: ${value}`);
+        // Add your logic to update the DMX value here
     }
 
     fetchFixtures();
 </script>
+
+<style>
+    #fixtures-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .fixture {
+        margin: 10px;
+        text-align: center;
+    }
+    .slider {
+        writing-mode: bt-lr; /* IE */
+        -webkit-appearance: slider-vertical; /* WebKit */
+        width: 8px;
+        height: 100px;
+    }
+    .label {
+        margin-top: 10px;
+    }
+</style>
