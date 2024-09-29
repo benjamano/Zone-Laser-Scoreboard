@@ -67,8 +67,8 @@ class WebApp:
             self.seedDBData() 
 
     def initLogging(self):
-        self.app.logger.disabled = True
-        logging.getLogger('werkzeug').disabled = True
+        #self.app.logger.disabled = True
+        #logging.getLogger('werkzeug').disabled = True
         return
     
     def setUpDMX(self):
