@@ -49,6 +49,7 @@ class WebApp:
         self.filesOpened = False
         self.spotifyControl = False
         self.DMXConnected = False
+        self.currentGameStatus = "ended"
 
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -469,16 +470,16 @@ class WebApp:
         timeLeft = packetData[3]
         
         format.message(f"Time Left: {timeLeft}")
-        
-        if int(timeLeft) == 10:
-            format.message(f"{timeLeft} seconds remain!", type="success") 
-            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
+
         if int(timeLeft) == 0:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.handleMusic()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
-            
+        else:
+            format.message(f"{timeLeft} seconds remain!", type="success") 
+            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
+        
         format.newline()
     
     def finalScorePacket(self, packetData):
