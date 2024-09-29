@@ -225,6 +225,8 @@ class WebApp:
         @self.app.route("/lights")
         def lights():   
             
+            self.fixtures = [{"fixture_id": idx, "fixture": fixture} for idx, fixture in enumerate(self.fixtures)]
+            
             format.message(f"{self.fixtures}")
             
             return render_template('lights.html')
