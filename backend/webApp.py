@@ -429,7 +429,7 @@ class WebApp:
             format.message(f"Restarting DMX Network: {e}", type="warning")
             self.setUpDMX()
         
-    def GameEnded(self):
+    def gameEnded(self):
         format.message("Game ended")
         
         try:
@@ -458,7 +458,7 @@ class WebApp:
         
         elif packetData[1] == "@014":
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-            self.handleMusic()
+            self.gameEnded()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
     

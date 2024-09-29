@@ -364,6 +364,11 @@
         socket.on('start', function(msg) {
             console.log(msg);
 
+			for (let i = 1; i <= 21; i++) {
+				$("#gun-" + i + "-score").text("0");
+				$("#gun-" + i + "-accuracy").text("0%");
+			}
+
             var gameStatus = document.getElementById('gameStatus');
 
             $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
@@ -381,17 +386,15 @@
         socket.on('end', function(msg) {
             console.log(msg);
 
+			for (let i = 1; i <= 21; i++) {
+				$("#gun-" + i + "-score").text("0");
+				$("#gun-" + i + "-accuracy").text("0%");
+			}
+
             var gameStatus = document.getElementById('gameStatus');
 
             $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
             $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
-
-			try{
-				var messageDiv = document.getElementById('messages');
-
-            	messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-			}
-			catch(err){}
         });
 
         socket.on('server', function(msg) {
