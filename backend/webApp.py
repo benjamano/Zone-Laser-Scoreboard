@@ -301,17 +301,17 @@ class WebApp:
                 decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
                 #format.message(f"Decoded Data: {decodedData}")
                 
-                if decodedData[0] == "4":
-                    # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
-                    threading.Thread(target=self.gameStatusPacket, args=(decodedData,)).start()
-                    
+                if decodedData[0] == "1":
+                    # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
+                    threading.Thread(target=self.timingPacket, args=(decodedData,)).start()
+                
                 elif decodedData[0] == "3":
                     # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
                     threading.Thread(target=self.finalScorePacket, args=(decodedData,)).start()
                 
-                elif decodedData[0] == "1":
-                    # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
-                    threading.Thread(target=self.timingPacket, args=(decodedData,)).start()
+                elif decodedData[0] == "4":
+                    # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
+                    threading.Thread(target=self.gameStatusPacket, args=(decodedData,)).start()
                 
                 elif decodedData[0] == "5":
                     # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
@@ -337,12 +337,22 @@ class WebApp:
             format.message(f"Error handling packet: {e}", type="error")
     
     def handleMusic(self):
-        if self.spotifyControl == True:
-            format.message("Toggling playback")
-            pyautogui.press('playpause')
+        if self.spotifyControl:
+            if self.currentGameStatus == "ended":
+                format.message("Game already ended, music is paused")
+                return
+            
+            elif self.currentGameStatus == "started":
+                format.message("Toggling playback to pause music")
+                self.currentGameStatus = "ended"
+                pyautogui.press('playpause')
+            
+            else:
+                format.message("Toggling playback to play music")
+                self.currentGameStatus = "started"
+                pyautogui.press('playpause')
         else:
             format.message("Spotify control is disabled")
-            pass
 
     def obs_connect(self):
         try:
@@ -462,7 +472,6 @@ class WebApp:
         
         elif packetData[1] == "@014":
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-            self.gameEnded()
             response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
     
