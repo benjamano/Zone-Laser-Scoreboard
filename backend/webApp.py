@@ -226,7 +226,7 @@ class WebApp:
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
-            fixtures = self._dmx.get_fixtures()
+            fixtures = self._dmx.get_all_fixtures()
             return jsonify(fixtures)
         
         
