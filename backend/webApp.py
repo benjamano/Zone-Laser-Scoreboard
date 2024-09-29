@@ -225,16 +225,16 @@ class WebApp:
         @self.app.route("/lights")
         def lights():   
             
-            self.fixtures = [{"fixture_id": idx, "fixture": fixture.name} for idx, fixture in enumerate(self.fixtures)]
-            
-            format.message(f"{self.fixtures}")
-            
             return render_template('lights.html')
         
         # API --------------------------------------------------------------------------------------------------------------------
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
+            
+            self.fixtures = [{"fixture_id": idx, "fixture": fixture.name} for idx, fixture in enumerate(self.fixtures)]
+            
+            format.message(f"{self.fixtures}")
         
             return jsonify(self.fixtures)
         
