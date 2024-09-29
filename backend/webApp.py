@@ -14,6 +14,8 @@ from scapy.all import sniff, conf, IP
 from flask_cors import CORS
 import requests
 import psutil
+import socket
+import webbrowser
 
 try:
     from func.format import format
@@ -381,7 +383,7 @@ class WebApp:
                 
                 if not processFound:
                     try:
-                        format.message(f"Process {processName} not found, starting it..")
+                        format.message(f"Process {processName} not found, starting it..", type="warning")
                         if processName.lower() == "spotify":
                             os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                         elif processName.lower() == "obs64":
@@ -412,7 +414,18 @@ class WebApp:
         self.process_checker_thread.daemon = True
         self.process_checker_thread.start()
 
-        self.socketio.run(self.app, host='0.0.0.0', port=8080)
+        try:
+            # Create a dummy socket connection to find the local IP address
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            localIp = s.getsockname()[0]
+            s.close()
+        except Exception as e:
+            format.message(f"Error finding local IP: {e}")
+
+        format.message(f"Web App hosted on IP {localIp}", type="success")
+        webbrowser.open(f"http://{localIp}:8080")
+        self.socketio.run(self.app, host=localIp, port=8080)
 
     
     def sendTestPacket(self, type="server"):
