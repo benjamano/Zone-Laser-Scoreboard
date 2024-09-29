@@ -270,6 +270,9 @@ class WebApp:
                     case "gunscores":
                         format.message(f"Sending gunScore message, {message}")
                         self.socketio.emit('gunScores', {'message': message})
+                    case "timeremaining":
+                        format.message(f"Sending time left message, {message}")
+                        self.socketio.emit('timeRemaining', {'message': message})
                         
             format.newline()
                         
@@ -469,7 +472,7 @@ class WebApp:
         
         if int(timeLeft) == 10:
             format.message(f"{timeLeft} seconds remain!", type="success") 
-            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft} seconds remain!", 'type': "server"})
+            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         if int(timeLeft) == 0:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.handleMusic()

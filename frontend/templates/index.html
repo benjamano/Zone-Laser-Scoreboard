@@ -142,6 +142,14 @@
 								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
                             </div></div>
 						</div>
+
+						<div class="chunk"> </div>
+
+						<div class="panel-wrapper">
+							<div class="panel-1"><div class="lcars-access">
+								<a>TIME REMAINING: <span class="blink medium-dark-blue" id="timeRemaining">00:00</span></a>
+							</div></div>
+						</div>
 						
 					</div>
 					<div class="top-display-right">
@@ -393,6 +401,8 @@
 
             var gameStatus = document.getElementById('gameStatus');
 
+			$("#timeRemaining").text("00:00");
+
             $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
             $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
         });
@@ -437,13 +447,17 @@
 			catch(err){}
         });
 
-        socket.on('timeleft', function(msg) {
-			try{
-            var messageDiv = document.getElementById('messages');
+		socket.on('timeRemaining', function(msg) {
 
-            messageDiv.innerHTML += '<p class="text-danger">'+ msg.message +'</p>';
+			function formatTime(seconds) {
+				const minutes = Math.floor(seconds / 60);
+				const remainingSeconds = seconds % 60;
+				return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 			}
-			catch(err){}
+
+			const formattedTime = formatTime(parseInt(msg.message));
+			$("#timeRemaining").text(formattedTime);
+
         });
         
     };
