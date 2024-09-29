@@ -220,6 +220,8 @@ class WebApp:
         
         @self.app.route("/lights")
         def lights():   
+            fixtures = self._dmx.get_all_fixtures()
+            format.message(f"Fixtures: {fixtures}")
             return render_template('lights.html')
         
         # API --------------------------------------------------------------------------------------------------------------------
