@@ -51,7 +51,8 @@ class WebApp:
         self.filesOpened = False
         self.spotifyControl = False
         self.DMXConnected = False
-        self.currentGameStatus = "ended"
+        self.spotifyStatus = "paused"
+        self._localIp = ""
 
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -338,21 +339,22 @@ class WebApp:
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
     
-    def handleMusic(self):
-        if self.spotifyControl:
-            if self.currentGameStatus == "ended":
-                format.message("Game already ended, music is paused")
-                return
+    def handleMusic(self, mode):
+        if self.spotifyControl == True:
             
-            elif self.currentGameStatus == "started":
-                format.message("Toggling playback to pause music")
-                self.currentGameStatus = "ended"
-                pyautogui.press('playpause')
+            if mode == "pause":
+                if self.spotifyStatus == "paused":
+                    return
+                if self.spotifyStatus == "playing":
+                    format.message("Pausing music", type="warning")
+                    pyautogui.press('playpause')
             
-            else:
-                format.message("Toggling playback to play music")
-                self.currentGameStatus = "started"
-                pyautogui.press('playpause')
+            if mode == "play":
+                if self.spotifyStatus == "playing":
+                    return
+                if self.spotifyStatus == "paused":
+                    format.message("Playing music", type="warning")
+                    pyautogui.press('playpause')
         else:
             format.message("Spotify control is disabled")
 
@@ -418,34 +420,34 @@ class WebApp:
             # Create a dummy socket connection to find the local IP address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
-            localIp = s.getsockname()[0]
+            self._localIp = s.getsockname()[0]
             s.close()
         except Exception as e:
             format.message(f"Error finding local IP: {e}")
 
-        format.message(f"Web App hosted on IP {localIp}", type="success")
-        webbrowser.open(f"http://{localIp}:8080")
-        self.socketio.run(self.app, host=localIp, port=8080)
+        format.message(f"Web App hosted on IP {self._localIp}", type="success")
+        webbrowser.open(f"http://{self._localIp}:8080")
+        self.socketio.run(self.app, host=self._localIp, port=8080)
 
     
     def sendTestPacket(self, type="server"):
         format.message(f"Sending {type} packet")
         match type.lower():
             case "server":
-                response = requests.post('http://localhost:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
                 format.message(f"Response: {response.text}")
             case "start":
-                response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
                 format.message(f"Response: {response.text}")
             case "end":
-                response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
                 format.message(f"Response: {response.text}")
 
     def gameStarted(self):
         format.message("Game started")
         
         try:
-            self.handleMusic()
+            self.handleMusic(mode="play")
         except Exception as e:
             format.message(f"Error handling music: {e}", type="error")
             
@@ -460,7 +462,7 @@ class WebApp:
         format.message("Game ended")
         
         try:
-            self.handleMusic()
+            self.handleMusic(mode="pause")
         except Exception as e:
             format.message(f"Error handling music: {e}", type="error")
             
@@ -480,12 +482,12 @@ class WebApp:
         if packetData[1] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
-            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
     
     def timingPacket(self, packetData):
@@ -495,12 +497,12 @@ class WebApp:
 
         if int(timeLeft) == 0:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-            self.handleMusic()
-            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            self.handleMusic(mode="pause")
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
         else:
             format.message(f"{timeLeft} seconds remain!", type="success") 
-            response = requests.post('http://localhost:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         
         format.newline()
     
