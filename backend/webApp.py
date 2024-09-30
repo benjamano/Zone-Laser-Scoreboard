@@ -365,6 +365,7 @@ class WebApp:
                     return
                 if self.spotifyStatus == "playing":
                     format.message("Pausing music", type="warning")
+                    self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
             
             if mode == "play":
@@ -372,6 +373,7 @@ class WebApp:
                     return
                 if self.spotifyStatus == "paused":
                     format.message("Playing music", type="warning")
+                    self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
         else:
             format.message("Spotify control is disabled")
