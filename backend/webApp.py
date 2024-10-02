@@ -337,22 +337,6 @@ class WebApp:
                 elif decodedData[0] == "5":
                     # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
                     threading.Thread(target=self.shotConfirmedPacket, args=(decodedData,)).start()
-                    
-                # elif "342c403031352c30" in packet_bytes.lower():
-                #     format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
-                #     self.handleMusic()
-                #     self.gameStarted()
-                #     response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
-                #     format.message(f"Response: {response.text}")
-                # elif "342c403031342c30" in packet_bytes.lower():
-                #     format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-                #     self.handleMusic()
-                #     response = requests.post('http://localhost:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-                #     format.message(f"Response: {response.text}")
-                # elif "312c373634312c2240303034222c33302c31" in packet_bytes.lower():
-                #     format.message(f"30 seconds remain!", type="success") 
-                #     response = requests.post('http://localhost:8080/sendMessage', data={'message': f"30", 'type': "timeleft"})
-                
                 
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
@@ -415,6 +399,9 @@ class WebApp:
                         if self.DMXConnected == False:
                             format.message(f"DMX Connection lost, restarting DMX Network")
                             self.setUpDMX()
+                        if self.OBSConnected == False:
+                            format.message(f"OBS Connection lost, restarting OBS")
+                            self.obs_connect()
                             
                     except Exception as e:
                         format.message(f"Error starting process {processName}: {e}", type="error")
