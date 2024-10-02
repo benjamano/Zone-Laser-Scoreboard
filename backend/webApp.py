@@ -459,7 +459,7 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._dmx.dim(self._RedLightDimmer, 255)
+            self._RedBulkHeadLights.dim(255, 5000)
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
             format.message(f"Restarting DMX Network: {e}", type="warning")
@@ -474,7 +474,7 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._dmx.dim(self._RedLightDimmer, 0)
+            self._RedBulkHeadLights.dim(0, 5000)
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
             format.message(f"Restarting DMX Network: {e}", type="warning")
@@ -505,7 +505,7 @@ class WebApp:
 
         if int(timeLeft) == 0:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
-            self.handleMusic(mode="pause")
+            self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
         else:
