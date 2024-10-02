@@ -494,6 +494,7 @@ class WebApp:
         
         elif packetData[1] == "@014":
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+            self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
     
@@ -534,7 +535,7 @@ class WebApp:
         
         data = f"{gunId},{finalScore},{accuracy}"
         
-        response = requests.post('http://localhost:8080/sendMessage', data={'message': data, 'type': "gunScores"})
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
         
     def shotConfirmedPacket(self, packetData):
         pass
