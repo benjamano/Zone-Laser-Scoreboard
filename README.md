@@ -78,7 +78,7 @@ This variable stores the directory the file is running in, making it easier to o
 
 I've skipped a few as I'd like to imagine they are easy to understand.
 
-After the variables have beendefined, it starts setting up the various processes.
+After the variables have been defined, it starts setting up the various processes.
 Firstly, it called the setuplogging function, which is in the name, at the moment it does nothing as I have yet to implement anything.
 Next, It starts a SocketIO connection for quick data transmission between the Web CLient and Host Web App.
 Then it sets up all the routes to be used / available.
