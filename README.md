@@ -60,6 +60,29 @@ I'd like to imagine the code is easily decipherable, but if there are any questi
 This is the "Main" code, it starts all the required processes up, It starts the Tkinter UI, that is mainly used for debugging and a small startup animation, the tray Icon, allowing for the Tkinter debug interface to be opened or the server to be closed.
 When the Tkinter "ui" object is imported and run, the process for starting the WebApp begins, this is done by calling the "WebApp" object imported from the WebApp.py file after a countdown.
 
+### \_\_init__.py
+
+This file is called to import every function that is needed, if it isn't installed on the Host PC, it will download it automatically, which means no PIP work is required to use this.
+
+### func/format.py
+
+This is my replacement for the "print" statement, kinda, it just formats it all nicely and shows errors, warnings, info and successes in different colours, as well as aligning all entries in a very nice way.
+It's pretty simple but it's probably my favourite part of this entire project, and I didn't even make it for this project!
+
+### UserInterf.py
+
+The User Interface code, should be easy to understand if you've used Tkinter before as it's a very simple library.
+There's 2 views defined in this file, the startup view, and debugging view.
+
+#### Startup View
+
+This view has a simple progress bar, countdown and some text, just to show that the WebApp is starting, one day I might link the Progressbar to something other than a countdown as It's just theres for the looks really.
+
+#### Debug View
+
+This view as some debugging features that can be used for testing different parts of the app.
+This view could go completely un used and make no effect on the system what-so-ever.
+
 ### WebApp.py
 
 This is the actually cool bit, it does all the thinking, the doing and the breaking in this whole project.
