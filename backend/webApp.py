@@ -28,6 +28,8 @@ except Exception as e:
         print(f"An error occurred: {e}")
         input("Press any key to exit...")
         
+from func.BPM import MediaBPMFetcher
+    
 import logging
 
 db = SQLAlchemy()
@@ -39,6 +41,10 @@ class WebApp:
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
         self.expecteProcesses = ["Spotify.exe", "obs64"]
+        
+        self.goboModes = ["SpinningAll", "Static", "Stacked"]
+        self.colourModes  = ["BPM", "Static", "Rainbow"]
+        self.panTiltModes  = ["Crazy", "Normal", "Slow"]
             
         db.init_app(self.app)
         
@@ -185,8 +191,10 @@ class WebApp:
             self.OBSSERVERPORT = int(f.readline().strip())
             self.OBSSERVERPASSWORD = str(f.readline().strip())
             self.DMXADAPTOR = str(f.readline().strip())
-            self._RedLightDimmer = str(f.readline().strip())
-            
+            #self._RedLightDimmer = str(f.readline().strip())
+            self.SPOTIPY_CLIENT_ID = str(f.readline().strip())
+            self.SPOTIPY_CLIENT_SECRET = str(f.readline().strip())
+                        
             format.message("Files opened successfully", type="success")
             
             self.filesOpened = True
@@ -274,29 +282,38 @@ class WebApp:
         def sendMessage():
             message = request.form.get('message')
             type = request.form.get('type')
-            format.message(f"Sending message: {message} with type: {type}")
+            #format.message(f"Sending message: {message} with type: {type}")
             if message:
                 match type.lower():
                     case "start":
-                        format.message("Sending start message")
+                        #format.message("Sending start message")
                         self.socketio.emit('start', {'message': message})
                     case "end":
-                        format.message("Sending end message")
+                        #format.message("Sending end message")
                         self.socketio.emit('end', {'message': message})
                     case "server":
-                        format.message("Sending server message")
+                        #format.message("Sending server message")
                         self.socketio.emit('server', {'message': message})
                     case "timeleft":
-                        format.message(f"Sending timeleft message, {message} seconds left")
+                        #format.message(f"Sending timeleft message, {message} seconds left")
                         self.socketio.emit('timeleft', {'message': f"{message} seconds remaining"})
                     case "gunscores":
-                        format.message(f"Sending gunScore message, {message}")
+                        #format.message(f"Sending gunScore message, {message}")
                         self.socketio.emit('gunScores', {'message': message})
                     case "timeremaining":
-                        format.message(f"Sending time left message, {message}")
+                        #format.message(f"Sending time left message, {message}")
                         self.socketio.emit('timeRemaining', {'message': message})
+                    case "songname":
+                        #format.message(f"Sending Music Name, {message}")
+                        self.socketio.emit('songName', {'message': message})
+                    case "songbpm":
+                        #format.message(f"Sending Music BPM, {message}")
+                        self.socketio.emit('songBPM', {'message': message})       
+                    case "songalbum":
+                        #format.message(f"Sending Music Album, {message}")
+                        self.socketio.emit('songAlbum', {'message': message})
                         
-            format.newline()
+            #format.newline()
                         
             return 'Message sent!'
             
@@ -407,6 +424,103 @@ class WebApp:
                         format.message(f"Error starting process {processName}: {e}", type="error")
                 
             time.sleep(600)
+            
+    def handleBPM(self, song, bpm, album):
+        if song == None or bpm  == None or bpm == "Song not found":
+            match song:
+                #This makes me want to die
+                case "Main Theme":
+                    bpm = "69"
+                case "Loon Skirmish":
+                    bpm = "80"
+                case "Crainy Yum (Medium)":
+                    bpm = "80"
+                case "Crainy Yum":
+                    bpm = "80"
+                case "Thing Of It Is":
+                    bpm = "87"
+                case "Bug Zap":
+                    bpm = "87"
+                case "Bug Zap (Medium)":
+                    bpm = "87"
+                case "Only Partially Blown Up (Medium)":
+                    bpm = "87"
+                case "Only Partially Blown Up":
+                    bpm = "87"
+                case "Baron von Bats":
+                    bpm = "87"
+                case "Treasure Yeti":
+                    bpm = "86"
+                case "Normal Wave (A) (Medium)":
+                    bpm = "86"
+                case "Normal Wave A":
+                    bpm = "86"
+                case "Normal Wave B":
+                    bpm = "87"
+                case "Normal Wave (C) (High)":
+                    bpm = "87"
+                case "Special Wave A":
+                    bpm = "87"
+                case "Special Wave B":
+                    bpm = "101"
+                case "Challenge Wave B":
+                    bpm = "101"
+                case "Challenge Wave C":
+                    bpm = "101"
+                case "Boss Wave (A)":
+                    bpm = "93"
+                case "Boss Wave (B)":
+                    bpm = "98"
+                case "The Gnomes Cometh (B)":
+                    bpm = "90"
+                case "The Gnomes Cometh (C)":
+                    bpm = "86"
+                case "Gnome King":
+                    bpm = "95"
+                case "D Boss Is Here":
+                    bpm = "90"
+                case "Excessively Bossy":
+                    bpm = "93"
+                case "One Bad Boss":
+                    bpm = "84"
+                case "Zombie Horde":
+                    bpm = "84"
+                case "Marching Madness":
+                    bpm = "58"
+                case "March Of The Brain Munchers":
+                    bpm = "58"
+                case "SUBURBINATION!!!":
+                    bpm = "86"
+                case "Splattack!":
+                    bpm = "88"
+                case "Science Blasteer":
+                    bpm = "92"
+                case "Undertow":
+                    bpm = "88"
+                case _:
+                    bpm = "60"
+        
+        #format.message(f"Current song: {song}, BPM: {bpm}")
+        
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
+        
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
+        
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
+        
+            
+    def findBPM(self):
+        self.media_bpm_fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
+        self.media_bpm_fetcher.start()
+        
+        while True:
+            # Get the current song and BPM
+            song, bpm, album = self.media_bpm_fetcher.get_current_song_and_bpm()
+            
+            self.handleBPM(song, bpm, album)
+                
+            time.sleep(5)
+
 
     def start(self):
         self.obs_thread = threading.Thread(target=self.obs_connect)
@@ -422,6 +536,10 @@ class WebApp:
         self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
         self.process_checker_thread.daemon = True
         self.process_checker_thread.start()
+        
+        self.bpm_thread = threading.Thread(target=self.findBPM)
+        self.bpm_thread.daemon = True
+        self.bpm_thread.start()
 
         try:
             # Create a dummy socket connection to find the local IP address
@@ -433,7 +551,12 @@ class WebApp:
             format.message(f"Error finding local IP: {e}")
 
         format.message(f"Web App hosted on IP {self._localIp}", type="success")
-        webbrowser.open(f"http://{self._localIp}:8080")
+        
+        if self.devMode == "false":
+            webbrowser.open(f"http://{self._localIp}:8080")
+        
+        format.newline()    
+        
         self.socketio.run(self.app, host=self._localIp, port=8080)
 
     

@@ -10,7 +10,7 @@ class start:
         self.install(["flask_socketio"])
         self.install(["threading"])
         self.install(["eventlet"])
-        self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "obs-websocket-py", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "PyDMXControl[audio]", "PyDMXControl", "psutil", "socket", "webbrowser"]) 
+        self.install(["eventlet", "eventlet.wsgi", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "obs-websocket-py", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "PyDMXControl[audio]", "PyDMXControl", "psutil", "socket", "webbrowser", "pyaudio", "librosa", "sounddevice", "numpy", "spotipy", "winsdk"]) 
         
     def install(self, libraryNames):
         for libraryName in libraryNames:

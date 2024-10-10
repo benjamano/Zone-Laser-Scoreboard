@@ -24,6 +24,31 @@
         overflow: hidden;
     }
 
+	#album-container {
+		position: relative;
+		width: 230px;
+		height: 230px;
+	}
+	
+	#album-cover {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background-size: cover;
+		background-position: center;
+		filter: blur(1.3px);
+	}
+	
+	#album-container p,
+	#album-container span {
+		position: relative;
+		z-index: 1;
+		color: white; /* Make sure the text is visible over the image */
+	}
+	
+
 </style>
 
 <body>
@@ -46,8 +71,23 @@
 					<div class="frame-col-5-cell-c"></div>
 				</div>
 			</div>
-			<div class="lcars-frame-after">
-				18-1987
+			<div class="lcars-frame-after" id="album-container" style="width: 230px; height: 230px;">
+				<p>Song Playing:</p>
+				<p><span id="musicPlaying"></span></p>
+				<div id="album-cover" style="width: 100%; height: 100%;"></div>
+			</div>
+			
+			<div class="lcars-frame-after" >
+				BPM: 
+				<div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
+					<a id="musicBPM"></a>
+					<span style="display: flex;">
+						<div id="flashingDot" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: #f20;"></div>
+					</span>
+					<span style="display: flex;">
+						<div id="flashingDot2" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: #198754;"></div>
+					</span>
+				</div>
 			</div>
 			<div class="panel-24 first-needle">
 				<div class="panel-24-col-a">
@@ -65,7 +105,6 @@
 				</div>
 				<div class="panel-24-col-b">
 					<div class="panel-24-block-6">
-						8047
 					</div>
 					<div class="gauge-wrap">
 						<div class="gauge-1"> </div>
@@ -341,6 +380,8 @@
 
     window.onload = function() {
 
+		var lastBPM = 0;
+
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
 
         socket.on('connect', function() {
@@ -476,6 +517,68 @@
 			}, 1000);
 		}
 	});
+
+	async function getAlbumCover(albumName) {
+        const apiKey = 'ce4aeea69e2f5a8fb184700d5892aa82';
+        const response = await fetch(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${encodeURIComponent(albumName)}&api_key=${apiKey}&format=json`);
+        const data = await response.json();
+        if (data.results.albummatches.album.length > 0) {
+            return data.results.albummatches.album[0].image[3]['#text'];
+        } else {
+            return null;
+        }
+    }
+
+    // Listen for album name updates from the server
+    socket.on('songAlbum', async function(albumName) {
+		console.log(albumName.message);
+        const imageUrl = await getAlbumCover(albumName.message);
+        if (imageUrl) {
+            document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
+        } else {
+            console.log('Album cover not found.');
+        }
+    });
+
+	socket.on('songName', function (msg) {
+		console.log(msg.message);
+
+		$("#musicPlaying").text(msg.message);
+	});
+
+	socket.on('songBPM', function (msg) {
+		console.log(msg.message);
+
+		if (lastBPM == msg.message){
+			return;
+		}
+
+		$("#musicBPM").text(msg.message);
+
+		lastBPM = msg.message;
+
+		// Make a dot flash at the speed of the BPM
+		const flashSpeed = 60000 / parseInt(msg.message); // Calculate flash speed in milliseconds
+
+		// Clear any existing intervals to avoid multiple intervals running simultaneously
+		clearInterval(window.flashInterval);
+		clearInterval(window.flashInterval2);
+
+		// Set a new interval for the dot flashing
+		window.flashInterval = setInterval(function () {
+			$("#flashingDot").css("opacity", function(_, currentOpacity) {
+				return currentOpacity == 1 ? 0 : 1;
+			});
+		}, flashSpeed);
+
+		window.flashInterval2 = setInterval(function () {
+			$("#flashingDot2").css("opacity", function(_, currentOpacity) {
+				return currentOpacity == 1 ? 0 : 1;
+			});
+		}, flashSpeed*2);
+
+	});
+
 
 	// Format the time in minutes and seconds
 	function formatTime(seconds) {
