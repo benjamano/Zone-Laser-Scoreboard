@@ -533,8 +533,22 @@ class WebApp:
         except Exception as e:
             format.message("Failed to start BPM finder: {e}", type="error")
 
+    def startFlask(self):
+        format.message("Attempting to start Flask Server")
+        try:
+            self.socketio.run(self.app, host=self._localIp, port=8080)
+            format.message("Flask Server Started!", type="success")
+        except Exception as e:
+            format.message(f"An error occured while trying to start Flask Server: {e}", type="error")
+   
 
     def start(self):
+        format.newline()    
+        
+        self.flaskThread = threading.Thread(target=self.startFlask)
+        self.flaskThread.daemon = True
+        self.flaskThread.start()
+
         try:
             # Create a dummy socket connection to find the local IP address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -548,12 +562,6 @@ class WebApp:
         
         if self.devMode == "false":
             webbrowser.open(f"http://{self._localIp}:8080")
-        
-        format.newline()    
-        
-        self.flaskThread = threading.Thread(target=self.socketio.run(self.app, host=self._localIp, port=8080))
-        self.flaskThread.daemon = True
-        self.flaskThread.start()
 
         self.obs_thread = threading.Thread(target=self.obs_connect)
         self.obs_thread.daemon = True
@@ -577,6 +585,8 @@ class WebApp:
         self.bpm_thread = threading.Thread(target=self.findBPM)
         self.bpm_thread.daemon = True
         self.bpm_thread.start()
+        
+        format.newline()    
 
     
     def sendTestPacket(self, type="server"):
