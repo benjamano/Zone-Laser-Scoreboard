@@ -278,7 +278,7 @@ class WebApp:
             #format.message(f"Sending message: {message} with type: {type}")
             if message:
                 
-                self.socketio.emit(f"{type}", {f"{message}": message})
+                self.socketio.emit(f"{type}", {f"message": message})
 
                 # match type.lower():
                 #     case "start":

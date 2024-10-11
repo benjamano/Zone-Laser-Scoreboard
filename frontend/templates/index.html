@@ -608,6 +608,13 @@
 
 		lastBPM = msg.message;
 
+		if (msg.message == "0"){
+			clearInterval(window.flashInterval);
+			clearInterval(window.flashInterval2);
+
+			return;
+		}
+
 		// Make a dot flash at the speed of the BPM
 		const flashSpeed = 60000 / parseInt(msg.message); // Calculate flash speed in milliseconds
 
