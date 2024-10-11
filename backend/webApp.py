@@ -238,12 +238,7 @@ class WebApp:
             format.message(f"{self.fixtures}")
         
             return jsonify(self.fixtures)
-        
-        @self.app.route('/toggle')
-        def togglePlayback():
-            self.toggle_playback()
-            return jsonify({"message": "Playback toggled"})
-
+            
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()
@@ -253,6 +248,13 @@ class WebApp:
         def handleConnect():
             format.message("Sniffer Client connected")
             emit('response', {'message': 'Connected to the server!'})
+            
+        @self.socketio.on('toggleMusic')
+        def togglePlayback():
+            response = self.handleMusic("toggle")
+            
+            emit('musicStatus', {'message': f"{response}"})
+
 
         @self.socketio.on('client_event')
         def handleClientEvent(json):
@@ -355,21 +357,50 @@ class WebApp:
     def handleMusic(self, mode):
         if self.spotifyControl == True:
             
-            if mode.lower() == "pause":
+            if mode.lower() == "toggle":
+                if self.spotifyStatus == "paused":
+                    format.message("Playing music", type="warning")
+                    self.spotifyStatus = "playing"
+                    pyautogui.press('playpause')
+                    return "playing"
+                else:
+                    format.message("Pausing music", type="warning")
+                    self.spotifyStatus = "paused"
+                    pyautogui.press('playpause')
+                    return "paused"
+                
+            elif mode.lower() == "next":
+                pyautogui.hotkey('nexttrack')
+                self.spotifyStatus = "playing"
+                return "next"
+            
+            elif mode.lower() == "previous":
+                pyautogui.hotkey('prevtrack')
+                pyautogui.hotkey('prevtrack')
+                self.spotifyStatus = "playing"
+                return "previous"
+            
+            elif mode.lower() == "restart":
+                pyautogui.hotkey('prevtrack')
+                return "restart"
+                
+            elif mode.lower() == "pause":
                 if self.spotifyStatus == "paused":
                     return
                 else:
                     format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
+                    return "playing"
             
-            if mode.lower() == "play":
+            elif mode.lower() == "play":
                 if self.spotifyStatus == "playing":
                     return
                 else:
                     format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
+                    return "paused"
         else:
             format.message("Spotify control is disabled", type="warning")
 
