@@ -362,31 +362,31 @@ class WebApp:
     def handleMusic(self, mode):
         if self.spotifyControl == True:
             
-            if mode == "pause":
+            if mode.lower() == "pause":
                 if self.spotifyStatus == "paused":
                     return
-                if self.spotifyStatus == "playing":
+                else:
                     format.message("Pausing music", type="warning")
-                    self.spotifyStatus = "playing"
-                    pyautogui.press('playpause')
-            
-            if mode == "play":
-                if self.spotifyStatus == "playing":
-                    return
-                if self.spotifyStatus == "paused":
-                    format.message("Playing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
+            
+            if mode.lower() == "play":
+                if self.spotifyStatus == "playing":
+                    return
+                else:
+                    format.message("Playing music", type="warning")
+                    self.spotifyStatus = "playing"
+                    pyautogui.press('playpause')
         else:
-            format.message("Spotify control is disabled")
+            format.message("Spotify control is disabled", type="warning")
 
     def obs_connect(self):
         try:
-            format.message("Connecting to OBS")
+            format.message("Attempting to connect to OBS")
             ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
             ws.connect()
             self.OBSConnected = True
-            format.message("Connected to OBS", type="success")
+            format.message("Successfully Connected to OBS", type="success")
             
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "obsStatus"})
 
@@ -434,6 +434,7 @@ class WebApp:
         if song == None or bpm  == None or bpm == "Song not found":
             match song:
                 #This makes me want to die
+                #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
                 case "Main Theme":
                     bpm = "69"
                 case "Loon Skirmish":
@@ -631,7 +632,7 @@ class WebApp:
         
         format.message(f"Time Left: {timeLeft}")
 
-        if int(timeLeft) == 0:
+        if int(timeLeft) <= 0:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
