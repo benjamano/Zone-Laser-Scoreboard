@@ -626,6 +626,9 @@ class WebApp:
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
+            
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
+
     
     def timingPacket(self, packetData):
         timeLeft = packetData[3]

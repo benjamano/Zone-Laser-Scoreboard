@@ -491,6 +491,17 @@
 			catch(err){}
         });
 
+		socket.on('gameMode', function(msg) {
+            console.log("Game Mode: ", msg.message);
+
+			try{
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+			}
+			catch(err){}
+        });
+
 		socket.on('gunScores', function(msg) {
 			if (gamePlayingStatus == "stopped"){
 				return;
