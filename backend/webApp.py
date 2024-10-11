@@ -16,7 +16,7 @@ import requests
 import psutil
 import socket
 import webbrowser
-
+import sys
 
 try:
     from func import format
@@ -239,8 +239,6 @@ class WebApp:
         
             return jsonify(self.fixtures)
         
-        
-
         @self.app.route('/toggle')
         def togglePlayback():
             self.toggle_playback()
@@ -399,31 +397,34 @@ class WebApp:
         return False
     
     def runProcessChecker(self):
-        while True:
-            for processName in self.expecteProcesses:
-                processFound = self.checkIfProcessRunning(processName)
-                #format.message(f"Process {processName} running: {processFound}")
-                
-                if not processFound:
-                    try:
-                        format.message(f"Process {processName} not found, starting it..", type="warning")
-                        if processName.lower() == "spotify":
-                            os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
-                        elif processName.lower() == "obs64":
-                            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
-                        else:
-                            format.message(f"Process {processName} not recognized for auto-start", type="error")
-                        if self.DMXConnected == False:
-                            format.message(f"DMX Connection lost, restarting DMX Network")
-                            self.setUpDMX()
-                        if self.OBSConnected == False:
-                            format.message(f"OBS Connection lost, restarting OBS")
-                            self.obs_connect()
-                            
-                    except Exception as e:
-                        format.message(f"Error starting process {processName}: {e}", type="error")
-                
-            time.sleep(600)
+        try:
+            while True:
+                time.sleep(600)
+                for processName in self.expecteProcesses:
+                    processFound = self.checkIfProcessRunning(processName)
+                    #format.message(f"Process {processName} running: {processFound}")
+                    
+                    if not processFound:
+                        try:
+                            format.message(f"Process {processName} not found, starting it..", type="warning")
+                            if processName.lower() == "spotify":
+                                os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
+                            elif processName.lower() == "obs64":
+                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                            else:
+                                format.message(f"Process {processName} not recognized for auto-start", type="error")
+                            if self.DMXConnected == False:
+                                format.message(f"DMX Connection lost, restarting DMX Network")
+                                self.setUpDMX()
+                            if self.OBSConnected == False:
+                                format.message(f"OBS Connection lost, restarting OBS")
+                                self.obs_connect()
+                                
+                        except Exception as e:
+                            format.message(f"Error starting process {processName}: {e}", type="error")
+            
+        except Exception as e:
+            format.message(f"Error occured while checking processes: {e}", type="error")
             
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
@@ -496,7 +497,7 @@ class WebApp:
                         bpm = "86"
                     case "Splattack!":
                         bpm = "88"
-                    case "Science Blasteer":
+                    case "Science Blaster":
                         bpm = "92"
                     case "Undertow":
                         bpm = "88"
@@ -529,13 +530,12 @@ class WebApp:
             
                 self.handleBPM(song, bpm, album)
                 
-                time.sleep(5)
+                time.sleep(60)
                 
         except Exception as e:
-            format.message("Failed to start BPM finder: {e}", type="error")
+            format.message(f"Failed to start BPM finder: {e}", type="error")
 
     def startFlask(self):
-        format.message("Attempting to start Flask Server")
         try:
             self.socketio.run(self.app, host=self._localIp, port=8080)
         except Exception as e:
@@ -560,41 +560,64 @@ class WebApp:
             s.close()
         except Exception as e:
             format.message(f"Error finding local IP: {e}")
+            
+        format.message("Attempting to start Flask Server")
         
-        self.flaskThread = threading.Thread(target=self.startFlask)
-        self.flaskThread.daemon = True
-        self.flaskThread.start()
+        try:
+            self.flaskThread = threading.Thread(target=self.startFlask)
+            self.flaskThread.daemon = True
+            self.flaskThread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting Flask Server: {e}", type="error")
 
         format.message(f"Web App hosted on IP {self._localIp}", type="success")
         
         if self.devMode == "false":
             webbrowser.open(f"http://{self._localIp}:8080")
-
-        self.obs_thread = threading.Thread(target=self.obs_connect)
-        self.obs_thread.daemon = True
-        self.obs_thread.start()
-        
-        self.DMXThread = threading.Thread(target=self.setUpDMX)
-        self.DMXThread.daemon = True
-        self.DMXThread.start()
+            
+        try:
+            self.obs_thread = threading.Thread(target=self.obs_connect)
+            self.obs_thread.daemon = True
+            self.obs_thread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting OBS Connection: {e}", type="error")
+            
+        try:
+            self.DMXThread = threading.Thread(target=self.setUpDMX)
+            self.DMXThread.daemon = True
+            self.DMXThread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting DMX Connection: {e}", type="error")
 
         print("Web App Started, hiding console")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-
-        self.sniffing_thread = threading.Thread(target=self.startSniffing)
-        self.sniffing_thread.daemon = True
-        self.sniffing_thread.start()
         
-        self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
-        self.process_checker_thread.daemon = True
-        self.process_checker_thread.start()
+        try:
+            self.sniffing_thread = threading.Thread(target=self.startSniffing)
+            self.sniffing_thread.daemon = True
+            self.sniffing_thread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting packet sniffer: {e}", type="error")
         
-        self.bpm_thread = threading.Thread(target=self.findBPM)
-        self.bpm_thread.daemon = True
-        self.bpm_thread.start()
+        if self.devMode == "false":
+            self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
+            self.process_checker_thread.daemon = True
+            self.process_checker_thread.start()
+            
+        try:
+            self.bpm_thread = threading.Thread(target=self.findBPM)
+            self.bpm_thread.daemon = True
+            self.bpm_thread.start()
+        except Exception as e:
+            format.message(f"Error starting BPM thread: {e}", type="error")
+        
+        self.flaskThread.join()
         
         format.newline()    
-
     
     def sendTestPacket(self, type="server"):
         format.message(f"Sending {type} packet")
