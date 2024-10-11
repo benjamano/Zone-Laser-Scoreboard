@@ -27,7 +27,7 @@
 	#album-container {
 		position: relative;
 		width: 220px;
-		height: 230px;
+		height: 220px;
 	}
 	
 	#album-cover {
@@ -39,7 +39,7 @@
 		background-size: cover;
 		background-position: center;
 		filter: blur(1.3px);
-                filter: brightness(0.4);
+        filter: brightness(0.4);
 	}
 	
 	#album-container p,
@@ -47,6 +47,16 @@
 		position: relative;
 		z-index: 1;
 		color: white; /* Make sure the text is visible over the image */
+	}
+
+	html {
+    overflow: scroll;
+    overflow-x: hidden;
+	}
+
+	::-webkit-scrollbar {
+		width: 0;  /* Remove scrollbar space */
+		background: transparent;  /* Optional: just make scrollbar invisible */
 	}
 	
 
@@ -72,16 +82,15 @@
 					<div class="frame-col-5-cell-c"></div>
 				</div>
 			</div>
-			<div class="lcars-frame-after" id="album-container" style="width: 220px; height: 230px;">
+			<div class="lcars-frame-after" id="album-container" style="width: 220px; height: 220px;">
 				<p>Song Playing:</p>
 				<p><span id="musicPlaying"></span></p>
 				<div id="album-cover" style="width: 100%; height: 100%;"></div>
 			</div>
 			
 			<div class="lcars-frame-after" >
-				BPM: 
+				<span>BPM:	<a id="musicBPM">0</a> </span>
 				<div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
-					<a id="musicBPM"></a>
 					<span style="display: flex;">
 						<div id="flashingDot" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: #f20;"></div>
 					</span>
@@ -301,7 +310,7 @@
 									<div class="top-arch-panel-1">
 									</div>
 									<div class="top-arch-panel-2">
-										23<span class="hop">-</span>09										
+										Ben<span class="hop">-</span>Mercer										
 									</div>
 								</div>
 							</div>							
@@ -373,10 +382,12 @@
 	<script type="text/javascript" src="assets/lcars.js"></script>
 </body>
 
+</html>
+
 <script>
 
     var controlSpotify = false;
-
+	var gamePlayingStatus = "stopped"
     var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
 
     window.onload = function() {
@@ -412,6 +423,9 @@
         });
 
         socket.on('start', function(msg) {
+
+			gamePlayingStatus = "playing";
+
             console.log(msg);
 
 			for (let i = 1; i <= 21; i++) {
@@ -433,7 +447,24 @@
 			catch(err){}
         });
 
+		socket.on('obsStatus', function(msg) {
+            console.log(msg.message);
+
+			$("#OBSConnectionStatus").val(msg.message)
+			
+        });
+
+		socket.on('dmxStatus', function(msg) {
+            console.log(msg.message);
+
+			$("#DMXConnectionStatus").val(msg.message)
+            
+        });
+
         socket.on('end', function(msg) {
+
+			gamePlayingStatus = "stopped";
+
             console.log(msg);
 
 			for (let i = 1; i <= 21; i++) {
@@ -461,6 +492,10 @@
         });
 
 		socket.on('gunScores', function(msg) {
+			if (gamePlayingStatus == "stopped"){
+				return;
+			}
+
             console.log("gunScore: "+msg);
 
 			var gunScores = msg.message.split(',');
@@ -493,6 +528,10 @@
 	let countdownInterval;
 
 	socket.on('timeRemaining', function (msg) {
+		if (gamePlayingStatus == "stopped"){
+				return;
+		}
+
 		const newTime = parseInt(msg.message);
 
 		// If the current time is different from the new time, update the countdown
@@ -636,4 +675,3 @@
     }
 	
 </script>
-</html>
