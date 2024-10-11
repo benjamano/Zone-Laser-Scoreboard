@@ -551,7 +551,8 @@ class WebApp:
         
         format.newline()    
         
-        self.socketio.run(self.app, host=self._localIp, port=8080)
+        self.flaskThread = threading.Thread(target=self.socketio.run(self.app, host=self._localIp, port=8080))
+        self.flaskThread.start()
 
         self.obs_thread = threading.Thread(target=self.obs_connect)
         self.obs_thread.start()
