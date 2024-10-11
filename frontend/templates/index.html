@@ -582,6 +582,11 @@
 
     // Listen for album name updates from the server
     socket.on('songAlbum', async function(albumName) {
+
+		if (albumName == "None"){
+			return;
+		}
+
 		console.log(albumName.message);
         const imageUrl = await getAlbumCover(albumName.message);
         if (imageUrl) {
