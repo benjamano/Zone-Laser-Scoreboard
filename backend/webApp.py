@@ -537,7 +537,6 @@ class WebApp:
         format.message("Attempting to start Flask Server")
         try:
             self.socketio.run(self.app, host=self._localIp, port=8080)
-            format.message("Flask Server Started!", type="success")
         except Exception as e:
             format.message(f"An error occured while trying to start Flask Server: {e}", type="error")
    
@@ -548,6 +547,7 @@ class WebApp:
         self.flaskThread = threading.Thread(target=self.startFlask)
         self.flaskThread.daemon = True
         self.flaskThread.start()
+        format.message("Flask Server Started!", type="success")
 
         try:
             # Create a dummy socket connection to find the local IP address
