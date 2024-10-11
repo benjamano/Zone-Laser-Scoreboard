@@ -17,6 +17,12 @@ import psutil
 import socket
 import webbrowser
 import sys
+import asyncio
+
+try:
+    import winrt.windows.media.control as wmc
+except ImportError:
+    print("Failed to import winrt.windows.media.control")
 
 try:
     from func import format
@@ -254,6 +260,18 @@ class WebApp:
             response = self.handleMusic("toggle")
             
             emit('musicStatus', {'message': f"{response}"})
+            
+        @self.socketio.on('restartSong')
+        def restartSong():
+            response = self.handleMusic("restart")
+            
+            emit('musicStatus', {'message': f"{response}"})
+            
+        @self.socketio.on('nextSong')
+        def nextSong():
+            response = self.handleMusic("next")
+            
+            emit('musicStatus', {'message': f"{response}"})
 
 
         @self.socketio.on('client_event')
@@ -353,6 +371,26 @@ class WebApp:
                 
         except Exception as e:
             format.message(f"Error handling packet: {e}", type="error")
+            
+    async def getPlayingStatus(self):
+        sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
+        current_session = sessions.get_current_session()
+
+        if current_session:
+            info = await current_session.try_get_media_properties_async()
+            playback_info = current_session.get_playback_info()
+
+            # Get media playback status
+            if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING:
+                return "playing"
+            elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PAUSED:
+                return "paused"
+            elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.STOPPED:
+                return "paused"
+            else:
+                return "paused"
+        else:
+            return "paused"
     
     def handleMusic(self, mode):
         if self.spotifyControl == True:
@@ -372,17 +410,17 @@ class WebApp:
             elif mode.lower() == "next":
                 pyautogui.hotkey('nexttrack')
                 self.spotifyStatus = "playing"
-                return "next"
+                return "playing"
             
             elif mode.lower() == "previous":
                 pyautogui.hotkey('prevtrack')
                 pyautogui.hotkey('prevtrack')
                 self.spotifyStatus = "playing"
-                return "previous"
+                return "playing"
             
             elif mode.lower() == "restart":
                 pyautogui.hotkey('prevtrack')
-                return "restart"
+                return self.spotifyStatus
                 
             elif mode.lower() == "pause":
                 if self.spotifyStatus == "paused":
@@ -548,7 +586,6 @@ class WebApp:
         
             
     def findBPM(self):
-        format.message("Attempting to start BPM finder")
         try:
             self.media_bpm_fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
             self.media_bpm_fetcher.start()
@@ -579,7 +616,19 @@ class WebApp:
                 format.message("Fatal: Fall Back IP failed", type="error")
                 sys.exit("Fall Back IP failed")
    
-
+    def mediaStatusChecker(self):
+        while True:
+            temp_spotifyStatus = asyncio.run(self.getPlayingStatus())
+            
+            if temp_spotifyStatus != self.spotifyStatus:
+                self.spotifyStatus = temp_spotifyStatus
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+                
+                format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
+                
+            time.sleep(1)
+        
     def start(self):
         format.newline()    
         
@@ -591,6 +640,16 @@ class WebApp:
             s.close()
         except Exception as e:
             format.message(f"Error finding local IP: {e}")
+            
+        format.message("Attempting to start Media status checker")
+        
+        try:
+            self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker)
+            self.mediaStatusCheckerThread.daemon = True
+            self.mediaStatusCheckerThread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting Flask Server: {e}", type="error")
             
         format.message("Attempting to start Flask Server")
         
@@ -638,7 +697,9 @@ class WebApp:
             self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
             self.process_checker_thread.daemon = True
             self.process_checker_thread.start()
-            
+        
+        format.message("Attempting to start BPM finder")
+        
         try:
             self.bpm_thread = threading.Thread(target=self.findBPM)
             self.bpm_thread.daemon = True
