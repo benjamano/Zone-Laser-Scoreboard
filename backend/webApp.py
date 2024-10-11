@@ -540,24 +540,6 @@ class WebApp:
 
 
     def start(self):
-        self.obs_thread = threading.Thread(target=self.obs_connect)
-        self.obs_thread.start()
-
-        print("Web App Started, hiding console")
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-
-        self.sniffing_thread = threading.Thread(target=self.startSniffing)
-        self.sniffing_thread.daemon = True
-        self.sniffing_thread.start()
-        
-        self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
-        self.process_checker_thread.daemon = True
-        self.process_checker_thread.start()
-        
-        self.bpm_thread = threading.Thread(target=self.findBPM)
-        self.bpm_thread.daemon = True
-        self.bpm_thread.start()
-
         try:
             # Create a dummy socket connection to find the local IP address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -575,6 +557,24 @@ class WebApp:
         format.newline()    
         
         self.socketio.run(self.app, host=self._localIp, port=8080)
+
+        self.obs_thread = threading.Thread(target=self.obs_connect)
+        self.obs_thread.start()
+
+        print("Web App Started, hiding console")
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+
+        self.sniffing_thread = threading.Thread(target=self.startSniffing)
+        self.sniffing_thread.daemon = True
+        self.sniffing_thread.start()
+        
+        self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
+        self.process_checker_thread.daemon = True
+        self.process_checker_thread.start()
+        
+        self.bpm_thread = threading.Thread(target=self.findBPM)
+        self.bpm_thread.daemon = True
+        self.bpm_thread.start()
 
     
     def sendTestPacket(self, type="server"):
