@@ -17,16 +17,13 @@ import psutil
 import socket
 import webbrowser
 
+
 try:
-    from func.format import format
+    from func import format
+    print("Imported functions") 
 except Exception as e:
-    print(f"An error occurred attempting to import format tools: {e}")
-    try:
-        from func import format
-        print("Imported functions") 
-    except Exception as e:
-        print(f"An error occurred: {e}")
-        input("Press any key to exit...")
+    print(f"An error occurred: {e}")
+    input("Press any key to exit...")
         
 from func.BPM import MediaBPMFetcher
     
@@ -66,8 +63,6 @@ class WebApp:
         self.openFiles()
         
         self.setupRoutes()
-        
-        self.setUpDMX()
         
         with self.app.app_context():
             db.create_all()
@@ -560,6 +555,9 @@ class WebApp:
 
         self.obs_thread = threading.Thread(target=self.obs_connect)
         self.obs_thread.start()
+        
+        self.DMXThread = threading.Thread(target=self.self.setUpDMX)
+        self.DMXThread.start()
 
         print("Web App Started, hiding console")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
