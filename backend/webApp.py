@@ -539,17 +539,19 @@ class WebApp:
         try:
             self.socketio.run(self.app, host=self._localIp, port=8080)
         except Exception as e:
-            format.message(f"An error occured while trying to start Flask Server: {e}", type="error")
+            format.message(f"Fatal: error occured while trying to start Flask Server: {e}", type="error")
+            format.message(f"Trying BackUp IP", type="warning")
+            try:
+                self.socketio.run(self.app, host="0.0.0.0", port=8080)
+                self._localIp == "0.0.0.0"
+            except Exception as e:
+                format.message("Fatal: Fall Back IP failed", type="error")
+                sys.exit("Fall Back IP failed")
    
 
     def start(self):
         format.newline()    
         
-        self.flaskThread = threading.Thread(target=self.startFlask)
-        self.flaskThread.daemon = True
-        self.flaskThread.start()
-        format.message("Flask Server Started!", type="success")
-
         try:
             # Create a dummy socket connection to find the local IP address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -558,6 +560,11 @@ class WebApp:
             s.close()
         except Exception as e:
             format.message(f"Error finding local IP: {e}")
+        
+        self.flaskThread = threading.Thread(target=self.startFlask)
+        self.flaskThread.daemon = True
+        self.flaskThread.start()
+        format.message("Flask Server Started!", type="success")
 
         format.message(f"Web App hosted on IP {self._localIp}", type="success")
         
