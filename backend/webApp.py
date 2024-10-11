@@ -426,6 +426,7 @@ class WebApp:
             time.sleep(600)
             
     def handleBPM(self, song, bpm, album):
+        format.message(f"Get Here with {song}, {bpm}, {album}")
         try:
             if song == None or bpm  == None or bpm == "Song not found":
                 match song:
@@ -502,7 +503,7 @@ class WebApp:
                     case _:
                         bpm = "60"
         
-            #format.message(f"Current song: {song}, BPM: {bpm}")
+            format.message(f"Current song: {song}, BPM: {bpm}")
         
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
         
