@@ -552,12 +552,15 @@ class WebApp:
         format.newline()    
         
         self.flaskThread = threading.Thread(target=self.socketio.run(self.app, host=self._localIp, port=8080))
+        self.flaskThread.daemon = True
         self.flaskThread.start()
 
         self.obs_thread = threading.Thread(target=self.obs_connect)
+        self.obs_thread.daemon = True
         self.obs_thread.start()
         
-        self.DMXThread = threading.Thread(target=self.self.setUpDMX)
+        self.DMXThread = threading.Thread(target=self.setUpDMX)
+        self.DMXThread.daemon = True
         self.DMXThread.start()
 
         print("Web App Started, hiding console")
