@@ -245,13 +245,20 @@
 
 											<div id="musicControlCardBody" class="card-body collapse">
 
-												<div class="musicControls p-1" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
-
+												<div class="musicControls p-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
 													<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
-													<i role="button" id="playingIncidator" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+													<i role="button" id="playingIndicator" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
 													<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
+												
+													<!-- Progress bar container -->
+													<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 12rem;">
+														<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
+													</div>
 													
+													<!-- Time Display -->
+													<span id="timeLeft" style="color: #fff; margin-left: 10px;">0:00</span>
 												</div>
+												
 											</div>
 
 										</div>
@@ -439,10 +446,12 @@
 	var gamePlayingStatus = "stopped"
     var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
 
+	var lastBPM = 0;
+	var totalDuration = 0;
+	var currentTime = 0;
+
+
     window.onload = function() {
-
-		var lastBPM = 0;
-
 		fetchFixtures();
 
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
@@ -764,28 +773,49 @@
 
         const container = document.getElementById('fixtures-container');
         fixtures.forEach(fixture => {
-            const fixtureDiv = document.createElement('div');
-            fixtureDiv.className = 'fixture';
 
-            const slider = document.createElement('input');
-            slider.type = 'range';
-            slider.min = 0;
-            slider.max = 255;
-            slider.value = 0;
-            slider.className = 'slider';
-            slider.oninput = function() {
-                updateDMXValue(fixture.id, this.value);
-            };
+			if (fixture.id.includes("cs575xt")) {
+				console.log("Colorspot 575 XT found with ID: " + fixture.id);
+			}
+			else if (fixture.id.includes("cs250at")) {
+				console.log("Colorspot 250 AT found with ID: " + fixture.id);
+			}
+			else if (fixture.id.includes("cw250at")) {
+				console.log("Colorwash 250 AT found with ID: " + fixture.id);
 
-            const label = document.createElement('div');
-            label.className = 'label';
-            label.textContent = fixture.name;
+				
+			}
+			else if (fixture.id.includes("dimmer")) {
+				console.log("Dimmer found with ID: " + fixture.id);
 
-            fixtureDiv.appendChild(slider);
-            fixtureDiv.appendChild(label);
-            container.appendChild(fixtureDiv);
+				createDimmerSlider(fixture.id, fixture.name);
+			}
         });
     }
+
+	function createDimmerSlider(fixtureId, fixtureName) {
+		const fixtureDiv = document.createElement('div');
+		fixtureDiv.className = 'fixture';
+
+		const slider = document.createElement('input');
+		slider.type = 'range';
+		slider.min = 0;
+		slider.max = 255;
+		slider.value = 0;
+		slider.className = 'slider';
+		slider.oninput = function() {
+			updateDMXValue(fixture.id, this.value);
+		};
+
+		const label = document.createElement('div');
+		label.className = 'label';
+		label.textContent = fixture.name;
+
+		fixtureDiv.appendChild(slider);
+		fixtureDiv.appendChild(label);
+		container.appendChild(fixtureDiv);
+
+	}
 
     function updateDMXValue(fixtureId, value) {
         console.log(`Fixture ID: ${fixtureId}, DMX Value: ${value}`);
@@ -802,5 +832,36 @@
 
 	function restartSong(){
 		socket.emit('restartSong');
+	}
+
+	// Listen for the socket events for updates on the song duration and current time
+	socket.on('musicDuration', function(duration) {
+		totalDuration = duration.message;
+		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new duration
+	});
+
+	socket.on('musicPosition', function(position) {
+		currentTime = position.message;
+		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new position
+	});
+
+	// Function to update the progress bar and time left
+	function updateProgressBar(currentTime, totalDuration) {
+		const progressBar = $('#progressBar');
+		const timeLeftDisplay = $('#timeLeft');
+
+		// Calculate percentage progress
+		if (totalDuration > 0) {
+			const progressPercent = (currentTime / totalDuration) * 100;
+			progressBar.css('width', progressPercent + '%');
+		}
+
+		// Calculate time left
+		const timeLeft = totalDuration - currentTime;
+		const minutesLeft = Math.floor(timeLeft / 60);
+		const secondsLeft = Math.floor(timeLeft % 60);
+		
+		// Update the time left display
+		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
 	}
 </script>
