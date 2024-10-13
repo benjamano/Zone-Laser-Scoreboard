@@ -18,6 +18,7 @@ import socket
 import webbrowser
 import sys
 import asyncio
+import random
 
 try:
     import winrt.windows.media.control as wmc
@@ -63,9 +64,8 @@ class WebApp:
         self.spotifyStatus = "paused"
         self._localIp = ""
         self.fixtures = []
+        self.rateLimit = False
         
-        self.fixtures = []
-
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
         self.openFiles()
@@ -161,13 +161,6 @@ class WebApp:
             self.process_checker_thread.start()
         
         format.message("Attempting to start BPM finder")
-        
-        try:
-            self.bpm_thread = threading.Thread(target=self.findBPM)
-            self.bpm_thread.daemon = True
-            self.bpm_thread.start()
-        except Exception as e:
-            format.message(f"Error starting BPM thread: {e}", type="error")
         
         self.flaskThread.join()
         
@@ -945,27 +938,28 @@ class WebApp:
                     format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
-                    return "playing"
+                    
+                    result = "playing"
                 else:
                     format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
-                    return "paused"
+                    result = "paused"
                 
             elif mode.lower() == "next":
                 pyautogui.hotkey('nexttrack')
                 self.spotifyStatus = "playing"
-                return "playing"
+                result = "playing"
             
             elif mode.lower() == "previous":
                 pyautogui.hotkey('prevtrack')
                 pyautogui.hotkey('prevtrack')
                 self.spotifyStatus = "playing"
-                return "playing"
+                result = "playing"
             
             elif mode.lower() == "restart":
                 pyautogui.hotkey('prevtrack')
-                return self.spotifyStatus
+                result = self.spotifyStatus
                 
             elif mode.lower() == "pause":
                 if self.spotifyStatus == "paused":
@@ -974,7 +968,7 @@ class WebApp:
                     format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
-                    return "playing"
+                    result = "playing"
             
             elif mode.lower() == "play":
                 if self.spotifyStatus == "playing":
@@ -983,7 +977,17 @@ class WebApp:
                     format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
-                    return "paused"
+                    result = "paused"
+                
+            try:
+                self.bpm_thread = threading.Thread(target=self.findBPM)
+                self.bpm_thread.daemon = True
+                self.bpm_thread.start()
+            except Exception as e:
+                format.message(f"Error starting BPM thread: {e}", type="error")
+                
+            return result
+                    
         else:
             format.message("Spotify control is disabled", type="warning")
             
@@ -1029,107 +1033,108 @@ class WebApp:
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
         try:
-            if song == None or bpm  == None or bpm == "Song not found":
-                match song:
-                    #This makes me want to die
-                    #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
-                    case "Main Theme":
-                        bpm = "69"
-                    case "Loon Skirmish":
-                        bpm = "80"
-                    case "Crainy Yum (Medium)":
-                        bpm = "80"
-                    case "Crainy Yum":
-                        bpm = "80"
-                    case "Thing Of It Is":
-                        bpm = "87"
-                    case "Bug Zap":
-                        bpm = "87"
-                    case "Bug Zap (Medium)":
-                        bpm = "87"
-                    case "Only Partially Blown Up (Medium)":
-                        bpm = "87"
-                    case "Only Partially Blown Up":
-                        bpm = "87"
-                    case "Baron von Bats":
-                        bpm = "87"
-                    case "Treasure Yeti":
-                        bpm = "86"
-                    case "Normal Wave (A) (Medium)":
-                        bpm = "86"
-                    case "Normal Wave A":
-                        bpm = "86"
-                    case "Normal Wave B":
-                        bpm = "87"
-                    case "Normal Wave (C) (High)":
-                        bpm = "87"
-                    case "Special Wave A":
-                        bpm = "87"
-                    case "Special Wave B":
-                        bpm = "101"
-                    case "Challenge Wave B":
-                        bpm = "101"
-                    case "Challenge Wave C":
-                        bpm = "101"
-                    case "Boss Wave (A)":
-                        bpm = "93"
-                    case "Boss Wave (B)":
-                        bpm = "98"
-                    case "The Gnomes Cometh (B)":
-                        bpm = "90"
-                    case "The Gnomes Cometh (C)":
-                        bpm = "86"
-                    case "Gnome King":
-                        bpm = "95"
-                    case "D Boss Is Here":
-                        bpm = "90"
-                    case "Excessively Bossy":
-                        bpm = "93"
-                    case "One Bad Boss":
-                        bpm = "84"
-                    case "Zombie Horde":
-                        bpm = "84"
-                    case "Marching Madness":
-                        bpm = "58"
-                    case "March Of The Brain Munchers":
-                        bpm = "58"
-                    case "SUBURBINATION!!!":
-                        bpm = "86"
-                    case "Splattack!":
-                        bpm = "88"
-                    case "Science Blaster":
-                        bpm = "92"
-                    case "Undertow":
-                        bpm = "88"
-                    case _:
-                        bpm = "60"
-        
-            #format.message(f"Current song: {song}, BPM: {bpm}")
-        
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
-        
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
-        
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
+            if (self.rateLimit == True and ((random.randint(1, 20)) == 10)) or self.rateLimit == False:
+                
+                if song == None or bpm  == None or bpm == "Song not found":
+                    match song:
+                        #This makes me want to die
+                        #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
+                        case "Main Theme":
+                            bpm = "69"
+                        case "Loon Skirmish":
+                            bpm = "80"
+                        case "Crainy Yum (Medium)":
+                            bpm = "80"
+                        case "Crainy Yum":
+                            bpm = "80"
+                        case "Thing Of It Is":
+                            bpm = "87"
+                        case "Bug Zap":
+                            bpm = "87"
+                        case "Bug Zap (Medium)":
+                            bpm = "87"
+                        case "Only Partially Blown Up (Medium)":
+                            bpm = "87"
+                        case "Only Partially Blown Up":
+                            bpm = "87"
+                        case "Baron von Bats":
+                            bpm = "87"
+                        case "Treasure Yeti":
+                            bpm = "86"
+                        case "Normal Wave (A) (Medium)":
+                            bpm = "86"
+                        case "Normal Wave A":
+                            bpm = "86"
+                        case "Normal Wave B":
+                            bpm = "87"
+                        case "Normal Wave (C) (High)":
+                            bpm = "87"
+                        case "Special Wave A":
+                            bpm = "87"
+                        case "Special Wave B":
+                            bpm = "101"
+                        case "Challenge Wave B":
+                            bpm = "101"
+                        case "Challenge Wave C":
+                            bpm = "101"
+                        case "Boss Wave (A)":
+                            bpm = "93"
+                        case "Boss Wave (B)":
+                            bpm = "98"
+                        case "The Gnomes Cometh (B)":
+                            bpm = "90"
+                        case "The Gnomes Cometh (C)":
+                            bpm = "86"
+                        case "Gnome King":
+                            bpm = "95"
+                        case "D Boss Is Here":
+                            bpm = "90"
+                        case "Excessively Bossy":
+                            bpm = "93"
+                        case "One Bad Boss":
+                            bpm = "84"
+                        case "Zombie Horde":
+                            bpm = "84"
+                        case "Marching Madness":
+                            bpm = "58"
+                        case "March Of The Brain Munchers":
+                            bpm = "58"
+                        case "SUBURBINATION!!!":
+                            bpm = "86"
+                        case "Splattack!":
+                            bpm = "88"
+                        case "Science Blaster":
+                            bpm = "92"
+                        case "Undertow":
+                            bpm = "88"
+                        case _:
+                            bpm = "60"
             
+                #format.message(f"Current song: {song}, BPM: {bpm}")
+            
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
+            
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
+            
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
+                
+                self.rateLimit = False
+                
         except Exception as e:
-            format.message(f"Error occured while handling BPM: {e}", type="warning")
+            if "reason: too many 429 error responses'" in e:
+                self.rateLimit = True
+                return
+            else:
+                format.message(f"Error occured while handling BPM: {e}", type="warning")
         
     def findBPM(self):
         try:
-            self.media_bpm_fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-            self.media_bpm_fetcher.start()
-            
-            format.message("BPM Finder Active", type="success")
+            fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
+            fetcher.fetch()  # Fetch the current song and BPM once
+            song, bpm, album = fetcher.get_current_song_and_bpm()
 
-            while True:
-                # Get the current song and BPM
-                song, bpm, album = self.media_bpm_fetcher.get_current_song_and_bpm()
+            self.handleBPM(song, bpm, album)
             
-                self.handleBPM(song, bpm, album)
-                
-                time.sleep(30)
-                
         except Exception as e:
             format.message(f"Failed to start BPM finder: {e}", type="error")
    
@@ -1143,7 +1148,14 @@ class WebApp:
                     
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
-                    format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
+                    #format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
+                    
+                    try:
+                        self.bpm_thread = threading.Thread(target=self.findBPM)
+                        self.bpm_thread.daemon = True
+                        self.bpm_thread.start()
+                    except Exception as e:
+                        format.message(f"Error starting BPM thread: {e}", type="error")
                     
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
