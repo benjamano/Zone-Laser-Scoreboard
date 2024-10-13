@@ -16,7 +16,13 @@ import requests
 import psutil
 import socket
 import webbrowser
+import sys
+import asyncio
 
+try:
+    import winrt.windows.media.control as wmc
+except ImportError:
+    print("Failed to import winrt.windows.media.control")
 
 try:
     from func import format
@@ -39,9 +45,9 @@ class WebApp:
         
         self.expecteProcesses = ["Spotify.exe", "obs64"]
         
-        self.goboModes = ["SpinningAll", "Static", "Stacked"]
-        self.colourModes  = ["BPM", "Static", "Rainbow"]
-        self.panTiltModes  = ["Crazy", "Normal", "Slow"]
+        # self.goboModes = ["SpinningAll", "Static", "Stacked"]
+        # self.colourModes  = ["BPM", "Static", "Rainbow"]
+        # self.panTiltModes  = ["Crazy", "Normal", "Slow"]
             
         db.init_app(self.app)
         
@@ -57,6 +63,8 @@ class WebApp:
         self.spotifyStatus = "paused"
         self._localIp = ""
         self.fixtures = []
+        
+        self.fixtures = []
 
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -68,42 +76,613 @@ class WebApp:
             db.create_all()
             self.seedDBData() 
 
+    # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
+    
+    def startFlask(self):
+        try:
+            self.socketio.run(self.app, host=self._localIp, port=8080)
+        except Exception as e:
+            format.message(f"Fatal: error occured while trying to start Flask Server: {e}", type="error")
+            format.message(f"Trying BackUp IP", type="warning")
+            try:
+                self.socketio.run(self.app, host="0.0.0.0", port=8080)
+                self._localIp == "0.0.0.0"
+            except Exception as e:
+                format.message("Fatal: Fall Back IP failed", type="error")
+                sys.exit("Fall Back IP failed")
+        
+    def start(self):
+        format.newline()    
+        
+        try:
+            # Create a dummy socket connection to find the local IP address
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            self._localIp = s.getsockname()[0]
+            s.close()
+        except Exception as e:
+            format.message(f"Error finding local IP: {e}")
+            
+        format.message("Attempting to start Media status checker")
+        
+        try:
+            self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker)
+            self.mediaStatusCheckerThread.daemon = True
+            self.mediaStatusCheckerThread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting Flask Server: {e}", type="error")
+            
+        format.message("Attempting to start Flask Server")
+        
+        try:
+            self.flaskThread = threading.Thread(target=self.startFlask)
+            self.flaskThread.daemon = True
+            self.flaskThread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting Flask Server: {e}", type="error")
+
+        format.message(f"Web App hosted on IP {self._localIp}", type="success")
+        
+        if self.devMode == "false":
+            webbrowser.open(f"http://{self._localIp}:8080")
+            
+        try:
+            self.obs_thread = threading.Thread(target=self.obs_connect)
+            self.obs_thread.daemon = True
+            self.obs_thread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting OBS Connection: {e}", type="error")
+            
+        try:
+            self.DMXThread = threading.Thread(target=self.setUpDMX)
+            self.DMXThread.daemon = True
+            self.DMXThread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting DMX Connection: {e}", type="error")
+
+        print("Web App Started, hiding console")
+        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        
+        try:
+            self.sniffing_thread = threading.Thread(target=self.startSniffing)
+            self.sniffing_thread.daemon = True
+            self.sniffing_thread.start()
+            
+        except Exception as e:
+            format.message(f"Error starting packet sniffer: {e}", type="error")
+        
+        if self.devMode == "false":
+            self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
+            self.process_checker_thread.daemon = True
+            self.process_checker_thread.start()
+        
+        format.message("Attempting to start BPM finder")
+        
+        try:
+            self.bpm_thread = threading.Thread(target=self.findBPM)
+            self.bpm_thread.daemon = True
+            self.bpm_thread.start()
+        except Exception as e:
+            format.message(f"Error starting BPM thread: {e}", type="error")
+        
+        self.flaskThread.join()
+        
+        format.newline()    
+
     def initLogging(self):
         #self.app.logger.disabled = True
         #logging.getLogger('werkzeug').disabled = True
         return
     
     def setUpDMX(self):
+        #Requires USB to DMX with driver version of "libusb-win32"
+        
         try:
             format.message("Setting up DMX Connection")
         
             from PyDMXControl.controllers import OpenDMXController
-            # from PyDMXControl.controllers import uDMXController
 
-            # Import the fixture profile we will use,
-            #  the simple Dimmer in this example.
             from PyDMXControl.profiles.Generic import Dimmer
 
-            # Create an instance of the uDMX controller, 
-            #  this holds all the fixture information and outputs it.
-            # This will start outputting data immediately.
             self._dmx = OpenDMXController()
-
-            # Add a new Dimmer fixture to our controller
+            
+            self._fixtureProfiles = {
+                "Dimmer": {
+                    "Dimmer": {list(range(0, 255))},
+                },
+                "Colorspot575XT": {
+                    "Pan": list(range(0, 255)),
+                    "Tilt": list(range(0, 255)),
+                    "Pan Fine": list(range(0, 255)),
+                    "Tilt Fine": list(range(0, 255)),
+                    "PanTilt Speed": {},
+                    "FanLamp Control": {},
+                    "Colour 1": {
+                        "White": 0,
+                        "Light blue": 13,
+                        "Red": 26,
+                        "Blue": 38,
+                        "Light green": 51,
+                        "Yellow": 64,
+                        "Magenta": 77,
+                        "Cyan": 90,
+                        "Green": 102,
+                        "Orange": 115,
+                        "Rainbow": list(range(128, 255)),
+                    },
+                    "Colour 2": {
+                        "White": 0,
+                        "Deep Red": 12,
+                        "Deep Blue": 24,
+                        "Pink": 36,
+                        "Cyan": 48,
+                        "Magenta": 60,
+                        "Yellow": 72,
+                        "5600K Filter": 84,
+                        "3200K Filter": 96,
+                        "UV": 108
+                    },
+                    "Prism": {
+                        "Open": 0,
+                        "Rotation": list(range(1, 127)),
+                    },
+                    "Macros": {},
+                    "Gobos": {
+                        "Open": list(range(0, 7)),
+                        "1": list(range(8, 15)), 
+                        "2": list(range(16, 23)), 
+                        "3": list(range(24, 31)), 
+                        "4": list(range(32, 39)), 
+                        "5": list(range(40, 47)), 
+                        "6": list(range(48, 55)), 
+                        "7": list(range(56, 63)), 
+                        "8": list(range(64, 71)), 
+                        "9": list(range(72, 79)), 
+                        "1 Shaking": list(range(80, 95)), 
+                        "2 Shaking": list(range(96, 111)), 
+                        "3 Shaking": list(range(112, 127)), 
+                        "4 Shaking": list(range(128, 143)), 
+                        "5 Shaking": list(range(144, 159)), 
+                        "6 Shaking": list(range(160, 175)), 
+                        "7 Shaking": list(range(176, 191)), 
+                        "8 Shaking": list(range(192, 207)), 
+                        "9 Shaking": list(range(208, 223)), 
+                        "Rotation Slow Fast": list(range(224, 255)), 
+                    },
+                    "Rotating Gobos": {    
+                        "Open": list(range(0, 31)),
+                        "1": list(range(32, 63)), 
+                        "2": list(range(64, 95)), 
+                        "3": list(range(96, 127)), 
+                        "4": list(range(128, 159)), 
+                        "5": list(range(160, 191)), 
+                        "6": list(range(192, 223)), 
+                        "Rotation Slow Fast": list(range(224, 255)), 
+                    },
+                    "Rotation Speed": {
+                        "Indexing": list(range(0, 127)),    
+                        "Rotation": list(range(128, 255)),    
+                    },
+                    "Iris": {
+                        "Open": 0,
+                        "MaxToMin": list(range(1, 179)),   
+                        "Closed": list(range(180, 191)),   
+                        "Pulse Close Slow Fast": list(range(192, 223)),   
+                        "Pulse Open Fast Slow": list(range(224, 225)),   
+                    },
+                    "Focus": {list(range(0, 255))},
+                    "Strobe / Shutter": {
+                        "Closed": list(range(0, 32)),   
+                        "Open": list(range(32, 63)),   
+                        "Strobe Slow Fast": list(range(64, 95)),   
+                        "Pulse Slow Fast": list(range(128, 159)),   
+                        "Random Slow Fast": list(range(192, 223)),   
+                    },
+                    "Dimmer": {list(range(0, 255))},
+                },
+                "Colorspot250AT": {
+                    "Pan": {list(range(0, 255))},
+                    "Pan Fine": {list(range(0, 255))},
+                    "Tilt": {list(range(0, 255))},
+                    "Tilt Fine": {list(range(0, 255))},
+                    "PanTilt Speed": {
+                        "Max": 0,
+                        "Speed": list(range(1, 255)),
+                    },
+                    "Special Functions": {},
+                    "PanTilt Macros": {},
+                    "PanTilt Macros Speed": {},
+                    "Colour 1": {
+                        "White": 0,
+                        "Dark green": 11,
+                        "Red": 23,
+                        "Light azure": 34,
+                        "Magenta": 46,
+                        "UV filter": 58,
+                        "Yellow": 70,
+                        "Green": 81,
+                        "Pink": 93,
+                        "Blue": 105,
+                        "Deep red": 117,
+                        "Rotation": list(range(190, 243)),
+                        "Audio": list(range(224, 249)),
+                        "Random Fast Slow": list(range(250, 255)),
+                    },
+                    "Colour Fine Position": list(range(0, 255)),
+                    "Spinning Gobos": {
+                        "Open": list(range(0, 3)),
+                        "1": list(range(4, 7)),   
+                        "2": list(range(8, 11)),   
+                        "3": list(range(12, 15)),   
+                        "4": list(range(16, 19)),   
+                        "5": list(range(20, 23)),   
+                        "6": list(range(24, 27)),   
+                        "7": list(range(28, 31)),   
+                        "1 Rotating": list(range(32, 35)),
+                        "2 Rotating": list(range(36, 39)),
+                        "3 Rotating": list(range(40, 43)),
+                        "4 Rotating": list(range(44, 47)),
+                        "5 Rotating": list(range(48, 51)),
+                        "6 Rotating": list(range(52, 55)),
+                        "7 Rotating": list(range(56, 59)),
+                        "1 Shaking Slow Fast": list(range(60, 69)),
+                        "2 Shaking Slow Fast": list(range(70, 79)),
+                        "3 Shaking Slow Fast": list(range(80, 89)),
+                        "4 Shaking Slow Fast": list(range(90, 99)),
+                        "5 Shaking Slow Fast": list(range(100, 109)),
+                        "6 Shaking Slow Fast": list(range(110, 119)),
+                        "7 Shaking Slow Fast": list(range(120, 139)),
+                        "1 Shaking Fast Slow": list(range(130, 139)),
+                        "2 Shaking Fast Slow": list(range(140, 149)),
+                        "3 Shaking Fast Slow": list(range(150, 159)),
+                        "4 Shaking Fast Slow": list(range(160, 169)),
+                        "5 Shaking Fast Slow": list(range(170, 179)),
+                        "6 Shaking Fast Slow": list(range(180, 189)),
+                        "7 Shaking Fast Slow": list(range(190, 199)),
+                        "Rotation": list(range(202, 243)),
+                        "Audio": list(range(244, 249)),
+                        "Random Fast Slow": list(range(250, 255)),
+                    },
+                    "Rotating Gobos": {
+                        "No Rotation": 0,
+                        "Rotation": list(range(1, 255)),  
+                    },
+                    "Gobo Fine Position": list(range(0, 255)),
+                    "Prism": {
+                        "Open position (hole)": list(range(0, 19)),
+                        "3-facet": list(range(20, 159)),
+                        "Macro 1": list(range(160, 167)),
+                        "Macro 2": list(range(168, 175)),
+                        "Macro 3": list(range(176, 183)),
+                        "Macro 4": list(range(184, 191)),
+                        "Macro 5": list(range(192, 199)),
+                        "Macro 6": list(range(200, 207)),
+                        "Macro 7": list(range(208, 215)),
+                        "Macro 8": list(range(216, 223)),
+                        "Macro 9": list(range(224, 231)),
+                        "Macro 10": list(range(232, 239)),
+                        "Macro 11": list(range(240, 247)),
+                        "Macro 12": list(range(248, 255)),
+                    },
+                    "Prism Rotation": {
+                        "No Rotation": 0,
+                        "Rotation": list(range(1, 255)), 
+                    },
+                    "Focus": {list(range(1, 255))},
+                    "Focus Fine": {list(range(1, 255))},
+                    "StrobeShutter": {
+                        "Closed": list(range(0, 31)),
+                        "Open": list(range(32, 63)),
+                        "Strobe Slow Fast": list(range(64, 95)),
+                        "Pulse Slow Fast": list(range(128, 143)),
+                        "Pulse Fast Slow": list(range(144, 159)),
+                        "Random Slow Fast": list(range(192, 223)),
+                    },
+                    "Dimmer": {list(range(0, 255))},
+                    "DimmerFine": {list(range(0, 255))},
+                },
+                "Colorwash250AT": {
+                    "Pan": {{list(range(0, 255))}},
+                    "Pan Fine": {{list(range(0, 255))}},
+                    "Tilt": {{list(range(0, 255))}},
+                    "Tilt Fine": {{list(range(0, 255))}},
+                    "PanTilt Speed": {
+                        "Max": 0,
+                        "Speed": {list(range(1, 255))},},
+                    "Special Functions": {},
+                    "PanTilt Macros": {},
+                    "PanTilt Macros Speed": {},
+                    "Colour 1": {
+                        "White": 0,
+                        "Red": 18,
+                        "Blue": 36,
+                        "Green": 54,
+                        "3200K Filter": 72,
+                        "6000K Filter": 90,
+                        "UV": list(range(190, 243)),
+                        "Audio": list(range(244, 249)),
+                        "Random Fast Slow": list(range(250, 255)),
+                    },
+                    "Colour Fine Position": {list(range(0, 255))},
+                    "Cyan": {{list(range(0, 255))}},
+                    "Magenta": {{list(range(0, 255))}},
+                    "Yellow": {{list(range(0, 255))}},
+                    "CMYDimmerSpeed": {{list(range(0, 255))}},
+                    "CMYMacros": {
+                        "Open": list(range(0, 7)),
+                        "Rainbow Fast Slow": {{list(range(240, 243))}},
+                        "Audio": {{list(range(244, 249))}},
+                        "Random Fast Slow": {{list(range(250, 255))}},
+                    },
+                    "EffectWheel": {
+                    "Open": list(range(0, 70)),  
+                    "Beam Shaper": list(range(71, 179)),  
+                    "Swivelling Slow Fast": list(range(180, 199)),  
+                    "Frost": list(range(200, 255)),  
+                    },
+                    "Zoom": {list(range(0, 255))},
+                    "StrobeShutter": {},
+                    "StrobeShutter": {
+                        "Closed": list(range(0, 31)),
+                        "Open": list(range(32, 63)),
+                        "Strobe Slow Fast": list(range(64, 95)),
+                        "Opening Pulse Slow Fast": list(range(128, 143)),
+                        "Closing Pulse Fast Slow": list(range(144, 159)),
+                        "Random": list(range(192, 223)),
+                    },
+                    "Dimmer": {list(range(0, 255))},
+                    "DimmerFine": {list(range(0, 255))},
+                }
+            }
+            
+            try:
+                self._dmx.web_control()
+                
+            except Exception as e:
+                format.message(f"Error starting DMX web control: {e}", type="error")
         
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
-                self._RedBulkHeadLights = self._dmx.add_fixture(Dimmer, name="RedBulkHeadLights")
-
-                # This is done over 5000 milliseconds, or 5 seconds.
-                self._RedBulkHeadLights.dim(255, 5000)
-            
-                self._RedBulkHeadLights.dim(0, 5000)
+                self._DimmerBulkHeadLights = self._dmx.add_fixture(Dimmer, name="DimmerBulkHeadLights")
                 
-                self.fixtures.append(self._RedBulkHeadLights)
+                self._DimmerBulkHeadLights._register_channel(f"{fixtureName}_Dimmer")
+                
+                self.fixtures.append({"fixture": self._DimmerBulkHeadLights, "type": "Dimmer"})
                 
             except Exception as e:
                 format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
+                
+            try:
+                format.message("Registering Robe Colorspot 575 XT 0", type="info")
+                self._Colorspot575XT_0 = self._dmx.add_fixture(Dimmer, name="Colorspot575XT_0")
+                
+                with self._Colorspot575XT_0 as light:
+                    
+                    fixtureName = light.name
+                
+                    light._register_channel(f"{fixtureName}_Pan")
+                    light._register_channel(f"{fixtureName}_Tilt")
+                    light._register_channel(f"{fixtureName}_Pan Fine")
+                    light._register_channel(f"{fixtureName}_Tilt Fine")
+                    light._register_channel(f"{fixtureName}_PanTilt Speed")
+                    light._register_channel(f"{fixtureName}_FanLamp Control")
+                    light._register_channel(f"{fixtureName}_Colour 1")
+                    light._register_channel(f"{fixtureName}_Colour 2")
+                    light._register_channel(f"{fixtureName}_Prism")
+                    light._register_channel(f"{fixtureName}_Macros")
+                    light._register_channel(f"{fixtureName}_Static Gobos")
+                    light._register_channel(f"{fixtureName}_Rotating Gobos")
+                    light._register_channel(f"{fixtureName}_Gobo Rotation Speed")
+                    light._register_channel(f"{fixtureName}_Iris")
+                    light._register_channel(f"{fixtureName}_Focus")
+                    light._register_channel(f"{fixtureName}_Strobe / Shutter")
+                    light._register_channel(f"{fixtureName}_Dimmer")
+                    
+                    # Set to red for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", 26)
+                    
+                    self.fixtures.append({"fixture": f"{light}_0", "type": "Colorspot575XT"})
+                    
+            except Exception as e:
+                format.message(f"Error registering Robe Colorspot 575 XT 0: {e}", type="error")
+                
+            try:
+                format.message("Registering Robe Colorspot 575 XT 1", type="info")
+                self._Colorspot575XT_1 = self._dmx.add_fixture(Dimmer, name="Colorspot575XT_1")
+                
+                # LIGHT MUST BE IN MODE 1
+                
+                with self._Colorspot575XT_1 as light:
+                    
+                    fixtureName = light.name
+                
+                    light._register_channel(f"{fixtureName}_Pan")
+                    light._register_channel(f"{fixtureName}_Tilt")
+                    light._register_channel(f"{fixtureName}_Pan Fine")
+                    light._register_channel(f"{fixtureName}_Tilt Fine")
+                    light._register_channel(f"{fixtureName}_PanTilt Speed")
+                    light._register_channel(f"{fixtureName}_FanLamp Control")
+                    light._register_channel(f"{fixtureName}_Colour 1")
+                    light._register_channel(f"{fixtureName}_Colour 2")
+                    light._register_channel(f"{fixtureName}_Prism")
+                    light._register_channel(f"{fixtureName}_Macros")
+                    light._register_channel(f"{fixtureName}_Static Gobos")
+                    light._register_channel(f"{fixtureName}_Rotating Gobos")
+                    light._register_channel(f"{fixtureName}_Gobo Rotation Speed")
+                    light._register_channel(f"{fixtureName}_Iris")
+                    light._register_channel(f"{fixtureName}_Focus")
+                    light._register_channel(f"{fixtureName}_StrobeShutter")
+                    light._register_channel(f"{fixtureName}_Dimmer")
+                    
+                    # Set to orange for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", 115)
+
+                    self.fixtures.append({"fixture": light, "type": "Colorspot575XT"})
+
+            except Exception as e:
+                format.message(f"Error registering Robe Colorspot 575 XT 1: {e}", type="error")
+                
+            try:
+                format.message("Registering Robe Colorspot 250 AT 0", type="info")
+                self._Colorspot250AT_0 = self._dmx.add_fixture(Dimmer, name="Colorspot250AT_0")
+                
+                # LIGHT MUST BE IN MODE 3
+                
+                with self._Colorspot250AT_0 as light:
+                    
+                    fixtureName = light.name
+                
+                    light._register_channel(f"{fixtureName}_Pan")
+                    light._register_channel(f"{fixtureName}_Pan Fine")
+                    light._register_channel(f"{fixtureName}_Tilt")
+                    light._register_channel(f"{fixtureName}_Tilt Fine")
+                    light._register_channel(f"{fixtureName}_PanTilt Speed")
+                    light._register_channel(f"{fixtureName}_Special Functions")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
+                    light._register_channel(f"{fixtureName}_Colour 1")
+                    light._register_channel(f"{fixtureName}_Colour Fine Position")
+                    light._register_channel(f"{fixtureName}_Spinning Gobos")
+                    light._register_channel(f"{fixtureName}_Rotating Gobos")
+                    light._register_channel(f"{fixtureName}_Gobo Fine Position")
+                    light._register_channel(f"{fixtureName}_Prism")
+                    light._register_channel(f"{fixtureName}_Prism Rotation")
+                    light._register_channel(f"{fixtureName}_Focus")
+                    light._register_channel(f"{fixtureName}_Focus Fine")
+                    light._register_channel(f"{fixtureName}_StrobeShutter")
+                    light._register_channel(f"{fixtureName}_Dimmer")
+                    light._register_channel(f"{fixtureName}_DimmerFine")
+                    
+                    # Set to pink for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", 93)
+
+                    self.fixtures.append({"fixture": light, "type": "Colorspot250AT"})
+                
+            except Exception as e:
+                format.message(f"Error registering Robe Colorspot 250 AT 0: {e}", type="error")
+                
+            try:
+                format.message("Registering Robe Colorspot 250 AT 1", type="info")
+                self._Colorspot250AT_1 = self._dmx.add_fixture(Dimmer, name="Colorspot250AT_1")
+                
+                # LIGHT MUST BE IN MODE 3
+                
+                with self._Colorspot250AT_1 as light:
+                    
+                    fixtureName = light.name
+                
+                    light._register_channel(f"{fixtureName}_Pan")
+                    light._register_channel(f"{fixtureName}_Pan Fine")
+                    light._register_channel(f"{fixtureName}_Tilt")
+                    light._register_channel(f"{fixtureName}_Tilt Fine")
+                    light._register_channel(f"{fixtureName}_PanTilt Speed")
+                    light._register_channel(f"{fixtureName}_Special Functions")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
+                    light._register_channel(f"{fixtureName}_Colour 1")
+                    light._register_channel(f"{fixtureName}_Colour Fine Position")
+                    light._register_channel(f"{fixtureName}_Spinning Gobos")
+                    light._register_channel(f"{fixtureName}_Rotating Gobos")
+                    light._register_channel(f"{fixtureName}_Gobo Fine Position")
+                    light._register_channel(f"{fixtureName}_Prism")
+                    light._register_channel(f"{fixtureName}_Prism Rotation")
+                    light._register_channel(f"{fixtureName}_Focus")
+                    light._register_channel(f"{fixtureName}_Focus Fine")
+                    light._register_channel(f"{fixtureName}_StrobeShutter")
+                    light._register_channel(f"{fixtureName}_Dimmer")
+                    light._register_channel(f"{fixtureName}_DimmerFine")
+                    
+                    # Set to magenta for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", 46)
+
+                    self.fixtures.append({"fixture": light, "type": "Colorspot250AT"})
+                    
+            except Exception as e:
+                format.message(f"Error registering Robe Colorspot 250 AT 1: {e}", type="error")
+        
+            try:
+                format.message("Registering Robe Colorwash 250 AT 0", type="info")
+                self._Colorwash250AT_0 = self._dmx.add_fixture(Dimmer, name="Colorwash250AT_0")
+                
+                # LIGHT MUST BE IN MODE 3
+                
+                with self._Colorwash250AT_0 as light:
+                    
+                    fixtureName = light.name
+                
+                    light._register_channel(f"{fixtureName}_Pan")
+                    light._register_channel(f"{fixtureName}_Pan Fine")
+                    light._register_channel(f"{fixtureName}_Tilt")
+                    light._register_channel(f"{fixtureName}_Tilt Fine")
+                    light._register_channel(f"{fixtureName}_PanTilt Speed")
+                    light._register_channel(f"{fixtureName}_Special Functions")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
+                    light._register_channel(f"{fixtureName}_Colour 1")
+                    light._register_channel(f"{fixtureName}_Colour Fine Position")
+                    light._register_channel(f"{fixtureName}_Cyan")
+                    light._register_channel(f"{fixtureName}_Magenta")
+                    light._register_channel(f"{fixtureName}_Yellow")
+                    light._register_channel(f"{fixtureName}_CMYDimmerSpeed")
+                    light._register_channel(f"{fixtureName}_CMYMacros")
+                    light._register_channel(f"{fixtureName}_EffectWheel")
+                    light._register_channel(f"{fixtureName}_Zoom")
+                    light._register_channel(f"{fixtureName}_StrobeShutter")
+                    light._register_channel(f"{fixtureName}_Dimmer")
+                    light._register_channel(f"{fixtureName}_DimmerFine")
+                    
+                    # Set to red for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", 18)
+
+                    self.fixtures.append({"fixture": light, "type": "Colorwash250AT"})
+                
+            except Exception as e:
+                format.message(f"Error registering Robe Colorwash 250 AT 0: {e}", type="error")
+                
+            try:
+                format.message("Registering Robe Colorwash 250 AT 1", type="info")
+                self._Colorwash250AT_1 = self._dmx.add_fixture(Dimmer, name="Colorwash250AT_1")
+                
+                # LIGHT MUST BE IN MODE 3
+                
+                with self._Colorwash250AT_1 as light:
+                    
+                    fixtureName = light.name
+                
+                    light._register_channel(f"{fixtureName}_Pan")
+                    light._register_channel(f"{fixtureName}_Pan Fine")
+                    light._register_channel(f"{fixtureName}_Tilt")
+                    light._register_channel(f"{fixtureName}_Tilt Fine")
+                    light._register_channel(f"{fixtureName}_PanTilt Speed")
+                    light._register_channel(f"{fixtureName}_Special Functions")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros")
+                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
+                    light._register_channel(f"{fixtureName}_Colour 1")
+                    light._register_channel(f"{fixtureName}_Colour Fine Position")
+                    light._register_channel(f"{fixtureName}_Cyan")
+                    light._register_channel(f"{fixtureName}_Magenta")
+                    light._register_channel(f"{fixtureName}_Yellow")
+                    light._register_channel(f"{fixtureName}_CMYDimmerSpeed")
+                    light._register_channel(f"{fixtureName}_CMYMacros")
+                    light._register_channel(f"{fixtureName}_EffectWheel")
+                    light._register_channel(f"{fixtureName}_Zoom")
+                    light._register_channel(f"{fixtureName}_StrobeShutter")
+                    light._register_channel(f"{fixtureName}_Dimmer")
+                    light._register_channel(f"{fixtureName}_DimmerFine")
+                    
+                    print(self._fixtureProfiles[self.fixtures[light]["type"]]["Colour 1"]["Red"])
+                    
+                    # Set to green for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[self.fixtures[light]["type"]]["Colour 1"]["Red"])
+
+                    self.fixtures.append({"fixture": light, "type": "Colorwash250AT"})
+                
+            except Exception as e:
+                format.message(f"Error registering Robe Colorwash 250 AT 1: {e}", type="error")
         
             self.DMXConnected = True
             
@@ -115,7 +694,6 @@ class WebApp:
             format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "dmxStatus"})
             
-        
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
             format.message("Empty DB Found! Seeding Data....", type="error")
@@ -192,23 +770,7 @@ class WebApp:
             
             self.filesOpened = True
 
-    def hexToASCII(self, hexString):
-        ascii = ""
-     
-        for i in range(0, len(hexString), 2):
-     
-            part = hexString[i : i + 2]
-     
-            ch = chr(int(part, 16))
-     
-            ascii += ch
-            
-            if ch == "\x00":
-                break
-         
-        return ascii
-
-    def setupRoutes(self):
+    def setupRoutes(self):           
         @self.app.route('/')
         def index():
             if not self.OBSConnected:
@@ -225,10 +787,7 @@ class WebApp:
         
         @self.app.route("/lights")
         def lights():   
-            
             return render_template('lights.html')
-        
-        # API --------------------------------------------------------------------------------------------------------------------
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
@@ -238,14 +797,7 @@ class WebApp:
             format.message(f"{self.fixtures}")
         
             return jsonify(self.fixtures)
-        
-        
-
-        @self.app.route('/toggle')
-        def togglePlayback():
-            self.toggle_playback()
-            return jsonify({"message": "Playback toggled"})
-
+            
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()
@@ -255,6 +807,24 @@ class WebApp:
         def handleConnect():
             format.message("Sniffer Client connected")
             emit('response', {'message': 'Connected to the server!'})
+            
+        @self.socketio.on('toggleMusic')
+        def togglePlayback():
+            response = self.handleMusic("toggle")
+            
+            emit('musicStatus', {'message': f"{response}"})
+            
+        @self.socketio.on('restartSong')
+        def restartSong():
+            response = self.handleMusic("restart")
+            
+            emit('musicStatus', {'message': f"{response}"})
+            
+        @self.socketio.on('nextSong')
+        def nextSong():
+            response = self.handleMusic("next")
+            
+            emit('musicStatus', {'message': f"{response}"})
 
         @self.socketio.on('client_event')
         def handleClientEvent(json):
@@ -312,69 +882,7 @@ class WebApp:
             #format.newline()
                         
             return 'Message sent!'
-            
-    def startSniffing(self):
-        print("Starting packet sniffer...")
-        try:
-            sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
-        except Exception as e:
-            try:
-                format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
-                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
-            except Exception as e:
-                format.message(f"Error while sniffing: {e}", type="error")
-
-    def packetCallback(self, packet):
-        try:
-            if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
-                #format.message(f"Packet 1: {packet}")
-                
-                packet_data = bytes(packet['Raw']).hex()
-                #format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
-                
-                decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
-                #format.message(f"Decoded Data: {decodedData}")
-                
-                if decodedData[0] == "1":
-                    # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
-                    threading.Thread(target=self.timingPacket, args=(decodedData,)).start()
-                
-                elif decodedData[0] == "3":
-                    # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
-                    threading.Thread(target=self.finalScorePacket, args=(decodedData,)).start()
-                
-                elif decodedData[0] == "4":
-                    # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
-                    threading.Thread(target=self.gameStatusPacket, args=(decodedData,)).start()
-                
-                elif decodedData[0] == "5":
-                    # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
-                    threading.Thread(target=self.shotConfirmedPacket, args=(decodedData,)).start()
-                
-        except Exception as e:
-            format.message(f"Error handling packet: {e}", type="error")
     
-    def handleMusic(self, mode):
-        if self.spotifyControl == True:
-            
-            if mode.lower() == "pause":
-                if self.spotifyStatus == "paused":
-                    return
-                else:
-                    format.message("Pausing music", type="warning")
-                    self.spotifyStatus = "paused"
-                    pyautogui.press('playpause')
-            
-            if mode.lower() == "play":
-                if self.spotifyStatus == "playing":
-                    return
-                else:
-                    format.message("Playing music", type="warning")
-                    self.spotifyStatus = "playing"
-                    pyautogui.press('playpause')
-        else:
-            format.message("Spotify control is disabled", type="warning")
-
     def obs_connect(self):
         try:
             format.message("Attempting to connect to OBS")
@@ -388,6 +896,96 @@ class WebApp:
         except Exception as e:
             format.message(f"Failed to connect to OBS: {e}", type="error")
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "obsStatus"})
+    
+    # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
+            
+    def startSniffing(self):
+        print("Starting packet sniffer...")
+        try:
+            sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
+        except Exception as e:
+            try:
+                format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
+                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
+            except Exception as e:
+                format.message(f"Error while sniffing: {e}", type="error")
+            
+    async def getPlayingStatus(self):
+        sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
+        current_session = sessions.get_current_session()
+
+        if current_session:
+            info = await current_session.try_get_media_properties_async()
+            playback_info = current_session.get_playback_info()
+            timeline_properties = current_session.get_timeline_properties()
+
+            # Get media playback status
+            if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING:
+                status = "playing"
+            elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PAUSED:
+                status = "paused"
+            elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.STOPPED:
+                status = "paused"
+            else:
+                status = "paused"
+            
+            currentPosition = timeline_properties.position.total_seconds()
+            totalDuration = timeline_properties.end_time.total_seconds()
+
+            return status, currentPosition, totalDuration
+            
+        else:
+            return "paused", 0, 0
+    
+    def handleMusic(self, mode):
+        if self.spotifyControl == True:
+            
+            if mode.lower() == "toggle":
+                if self.spotifyStatus == "paused":
+                    format.message("Playing music", type="warning")
+                    self.spotifyStatus = "playing"
+                    pyautogui.press('playpause')
+                    return "playing"
+                else:
+                    format.message("Pausing music", type="warning")
+                    self.spotifyStatus = "paused"
+                    pyautogui.press('playpause')
+                    return "paused"
+                
+            elif mode.lower() == "next":
+                pyautogui.hotkey('nexttrack')
+                self.spotifyStatus = "playing"
+                return "playing"
+            
+            elif mode.lower() == "previous":
+                pyautogui.hotkey('prevtrack')
+                pyautogui.hotkey('prevtrack')
+                self.spotifyStatus = "playing"
+                return "playing"
+            
+            elif mode.lower() == "restart":
+                pyautogui.hotkey('prevtrack')
+                return self.spotifyStatus
+                
+            elif mode.lower() == "pause":
+                if self.spotifyStatus == "paused":
+                    return
+                else:
+                    format.message("Pausing music", type="warning")
+                    self.spotifyStatus = "paused"
+                    pyautogui.press('playpause')
+                    return "playing"
+            
+            elif mode.lower() == "play":
+                if self.spotifyStatus == "playing":
+                    return
+                else:
+                    format.message("Playing music", type="warning")
+                    self.spotifyStatus = "playing"
+                    pyautogui.press('playpause')
+                    return "paused"
+        else:
+            format.message("Spotify control is disabled", type="warning")
             
     def checkIfProcessRunning(self, processName):
         for proc in psutil.process_iter():
@@ -399,31 +997,34 @@ class WebApp:
         return False
     
     def runProcessChecker(self):
-        while True:
-            for processName in self.expecteProcesses:
-                processFound = self.checkIfProcessRunning(processName)
-                #format.message(f"Process {processName} running: {processFound}")
-                
-                if not processFound:
-                    try:
-                        format.message(f"Process {processName} not found, starting it..", type="warning")
-                        if processName.lower() == "spotify":
-                            os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
-                        elif processName.lower() == "obs64":
-                            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
-                        else:
-                            format.message(f"Process {processName} not recognized for auto-start", type="error")
-                        if self.DMXConnected == False:
-                            format.message(f"DMX Connection lost, restarting DMX Network")
-                            self.setUpDMX()
-                        if self.OBSConnected == False:
-                            format.message(f"OBS Connection lost, restarting OBS")
-                            self.obs_connect()
-                            
-                    except Exception as e:
-                        format.message(f"Error starting process {processName}: {e}", type="error")
-                
-            time.sleep(600)
+        try:
+            while True:
+                time.sleep(600)
+                for processName in self.expecteProcesses:
+                    processFound = self.checkIfProcessRunning(processName)
+                    #format.message(f"Process {processName} running: {processFound}")
+                    
+                    if not processFound:
+                        try:
+                            format.message(f"Process {processName} not found, starting it..", type="warning")
+                            if processName.lower() == "spotify":
+                                os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
+                            elif processName.lower() == "obs64":
+                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                            else:
+                                format.message(f"Process {processName} not recognized for auto-start", type="error")
+                            if self.DMXConnected == False:
+                                format.message(f"DMX Connection lost, restarting DMX Network")
+                                self.setUpDMX()
+                            if self.OBSConnected == False:
+                                format.message(f"OBS Connection lost, restarting OBS")
+                                self.obs_connect()
+                                
+                        except Exception as e:
+                            format.message(f"Error starting process {processName}: {e}", type="error")
+            
+        except Exception as e:
+            format.message(f"Error occured while checking processes: {e}", type="error")
             
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
@@ -496,7 +1097,7 @@ class WebApp:
                         bpm = "86"
                     case "Splattack!":
                         bpm = "88"
-                    case "Science Blasteer":
+                    case "Science Blaster":
                         bpm = "92"
                     case "Undertow":
                         bpm = "88"
@@ -514,9 +1115,7 @@ class WebApp:
         except Exception as e:
             format.message(f"Error occured while handling BPM: {e}", type="warning")
         
-            
     def findBPM(self):
-        format.message("Attempting to start BPM finder")
         try:
             self.media_bpm_fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
             self.media_bpm_fetcher.start()
@@ -529,115 +1128,64 @@ class WebApp:
             
                 self.handleBPM(song, bpm, album)
                 
-                time.sleep(5)
+                time.sleep(30)
                 
         except Exception as e:
-            format.message("Failed to start BPM finder: {e}", type="error")
-
-    def startFlask(self):
-        format.message("Attempting to start Flask Server")
-        try:
-            self.socketio.run(self.app, host=self._localIp, port=8080)
-        except Exception as e:
-            format.message(f"Fatal: error occured while trying to start Flask Server: {e}", type="error")
-            format.message(f"Trying BackUp IP", type="warning")
-            try:
-                self.socketio.run(self.app, host="0.0.0.0", port=8080)
-                self._localIp == "0.0.0.0"
-            except Exception as e:
-                format.message("Fatal: Fall Back IP failed", type="error")
-                sys.exit("Fall Back IP failed")
+            format.message(f"Failed to start BPM finder: {e}", type="error")
    
-
-    def start(self):
-        format.newline()    
+    def mediaStatusChecker(self):
+        while True:
+            try:
+                temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+                
+                if temp_spotifyStatus != self.spotifyStatus:
+                    self.spotifyStatus = temp_spotifyStatus
+                    
+                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+                    
+                    format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
+                    
+                if currentPosition and totalDuration:
+                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
+                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
+                
+                    
+                time.sleep(1)
+                
+            except Exception as e:
+                format.message(f"Error occured while checking media status: {e}", type="error")
         
+    # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
+        
+    def packetCallback(self, packet):
         try:
-            # Create a dummy socket connection to find the local IP address
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            self._localIp = s.getsockname()[0]
-            s.close()
+            if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
+                #format.message(f"Packet 1: {packet}")
+                
+                packet_data = bytes(packet['Raw']).hex()
+                #format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
+                
+                decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
+                #format.message(f"Decoded Data: {decodedData}")
+                
+                if decodedData[0] == "1":
+                    # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
+                    threading.Thread(target=self.timingPacket, args=(decodedData,)).start()
+                
+                elif decodedData[0] == "3":
+                    # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
+                    threading.Thread(target=self.finalScorePacket, args=(decodedData,)).start()
+                
+                elif decodedData[0] == "4":
+                    # Either a game has started or ended as 34 (Hex) = 4 (Denary) which signifies a Game Start / End event.
+                    threading.Thread(target=self.gameStatusPacket, args=(decodedData,)).start()
+                
+                elif decodedData[0] == "5":
+                    # A shot has been confirmed as the transmitted Event Type = 35 (Hex) = 5
+                    threading.Thread(target=self.shotConfirmedPacket, args=(decodedData,)).start()
+                
         except Exception as e:
-            format.message(f"Error finding local IP: {e}")
-        
-        self.flaskThread = threading.Thread(target=self.startFlask)
-        self.flaskThread.daemon = True
-        self.flaskThread.start()
-
-        format.message(f"Web App hosted on IP {self._localIp}", type="success")
-        
-        if self.devMode == "false":
-            webbrowser.open(f"http://{self._localIp}:8080")
-
-        self.obs_thread = threading.Thread(target=self.obs_connect)
-        self.obs_thread.daemon = True
-        self.obs_thread.start()
-        
-        self.DMXThread = threading.Thread(target=self.setUpDMX)
-        self.DMXThread.daemon = True
-        self.DMXThread.start()
-
-        print("Web App Started, hiding console")
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-
-        self.sniffing_thread = threading.Thread(target=self.startSniffing)
-        self.sniffing_thread.daemon = True
-        self.sniffing_thread.start()
-        
-        self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
-        self.process_checker_thread.daemon = True
-        self.process_checker_thread.start()
-        
-        self.bpm_thread = threading.Thread(target=self.findBPM)
-        self.bpm_thread.daemon = True
-        self.bpm_thread.start()
-        
-        format.newline()    
-
-    
-    def sendTestPacket(self, type="server"):
-        format.message(f"Sending {type} packet")
-        match type.lower():
-            case "server":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
-                format.message(f"Response: {response.text}")
-            case "start":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
-                format.message(f"Response: {response.text}")
-            case "end":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
-                format.message(f"Response: {response.text}")
-
-    def gameStarted(self):
-        format.message("Game started")
-        
-        try:
-            self.handleMusic(mode="play")
-        except Exception as e:
-            format.message(f"Error handling music: {e}", type="error")
-            
-        try:
-            self._RedBulkHeadLights.dim(255, 5000)
-        except Exception as e:
-            format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network: {e}", type="warning")
-            self.setUpDMX()
-        
-    def gameEnded(self):
-        format.message("Game ended")
-        
-        try:
-            self.handleMusic(mode="pause")
-        except Exception as e:
-            format.message(f"Error handling music: {e}", type="error")
-            
-        try:
-            self._RedBulkHeadLights.dim(0, 5000)
-        except Exception as e:
-            format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network: {e}", type="warning")
-            self.setUpDMX()
+            format.message(f"Error handling packet: {e}", type="error")
         
     def gameStatusPacket(self, packetData):
         # 4,@015,0 = start
@@ -659,7 +1207,6 @@ class WebApp:
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
 
-    
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
         
@@ -701,7 +1248,74 @@ class WebApp:
         
     def shotConfirmedPacket(self, packetData):
         pass
+    
+    # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
+    
+    def gameStarted(self):
+        format.message("Game started")
+        
+        try:
+            self.handleMusic(mode="play")
+        except Exception as e:
+            format.message(f"Error handling music: {e}", type="error")
             
+        try:
+            self._RedBulkHeadLights.dim(255, 5000)
+        except Exception as e:
+            format.message(f"Error dimming red lights: {e}", type="error")
+            format.message(f"Restarting DMX Network: {e}", type="warning")
+            self.setUpDMX()
+        
+    def gameEnded(self):
+        format.message("Game ended")
+        
+        try:
+            self.handleMusic(mode="pause")
+        except Exception as e:
+            format.message(f"Error handling music: {e}", type="error")
+            
+        try:
+            self._RedBulkHeadLights.dim(0, 5000)
+        except Exception as e:
+            format.message(f"Error dimming red lights: {e}", type="error")
+            format.message(f"Restarting DMX Network: {e}", type="warning")
+            self.setUpDMX()
+    
+    # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
+    
+    def sendTestPacket(self, type="server"):
+        format.message(f"Sending {type} packet")
+        match type.lower():
+            case "server":
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
+                format.message(f"Response: {response.text}")
+            case "start":
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
+                format.message(f"Response: {response.text}")
+            case "end":
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
+                format.message(f"Response: {response.text}")
+        
+    # -----------------| Utlities |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
+        
+    def hexToASCII(self, hexString):
+        ascii = ""
+     
+        for i in range(0, len(hexString), 2):
+     
+            part = hexString[i : i + 2]
+     
+            ch = chr(int(part, 16))
+     
+            ascii += ch
+            
+            if ch == "\x00":
+                break
+         
+        return ascii
+    
+# -----------------| DB Models |-------------------------------------------------------------------------------------------------------------------------------------------------------- #  
+                   
 class Gun(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
@@ -729,7 +1343,6 @@ class Team(db.Model):
     name = db.Column(db.String(60), unique=True, nullable=False)
     teamColour = db.Column(db.String(10), nullable=False)
     gamePlayers = db.relationship("GamePlayers", backref="team_ref", lazy=True)
-
 
 class GamePlayers(db.Model):
     id = db.Column(db.Integer, primary_key=True)

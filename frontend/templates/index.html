@@ -15,6 +15,7 @@
     <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', filename='styles/LCARS/jquery-3-7-0.min.js') }}"></script>
     <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script>
+	<script src="https://kit.fontawesome.com/9d35a24d36.js" crossorigin="anonymous"></script>
 </head>
 
 <style>
@@ -58,8 +59,26 @@
 		width: 0;  /* Remove scrollbar space */
 		background: transparent;  /* Optional: just make scrollbar invisible */
 	}
-	
 
+	#fixtures-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+    }
+    .fixture {
+        margin: 10px;
+        text-align: center;
+    }
+    .slider {
+        writing-mode: bt-lr; /* IE */
+        -webkit-appearance: slider-vertical; /* WebKit */
+        width: 8px;
+        height: 100px;
+    }
+    .label {
+        margin-top: 10px;
+    }
+	
 </style>
 
 <body>
@@ -207,9 +226,46 @@
 								<div class="top-arch-2">
 									<div class="top-arch-content">
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
+
+										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+
+											<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
+
+											<div id="lightingCardBody" class="card-body collapse">
+
+												<div id="fixtures-container"></div>
+
+											</div>
+
+										</div>
+
+										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+
+											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
+
+											<div id="musicControlCardBody" class="card-body collapse">
+
+												<div class="musicControls p-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
+													<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
+													<i role="button" id="playingIndicator" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+													<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
+												
+													<!-- Progress bar container -->
+													<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 12rem;">
+														<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
+													</div>
+													
+													<!-- Time Display -->
+													<span id="timeLeft" style="color: #fff; margin-left: 10px;">0:00</span>
+												</div>
+												
+											</div>
+
+										</div>
+
                                         <!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
 
-										<table class="table table-bordered border-dark" style="font-size: 0.8rem; margin: 0;">
+										<!-- <table class="table table-bordered border-dark" style="font-size: 0.8rem; margin: 0;">
 											<thead>
 												<tr>
 													<th class="text-center text-white bg-danger">Red Team</th>
@@ -305,12 +361,12 @@
 													</td>
 												</tr>
 											</tbody>
-										</table>
+										</table> -->
 									</div>
 									<div class="top-arch-panel-1">
 									</div>
 									<div class="top-arch-panel-2">
-										Ben<span class="hop">-</span>Mercer										
+																
 									</div>
 								</div>
 							</div>							
@@ -390,9 +446,13 @@
 	var gamePlayingStatus = "stopped"
     var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
 
-    window.onload = function() {
+	var lastBPM = 0;
+	var totalDuration = 0;
+	var currentTime = 0;
 
-		var lastBPM = 0;
+
+    window.onload = function() {
+		fetchFixtures();
 
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
 
@@ -582,6 +642,11 @@
 
     // Listen for album name updates from the server
     socket.on('songAlbum', async function(albumName) {
+
+		if (albumName == "None"){
+			return;
+		}
+
 		console.log(albumName.message);
         const imageUrl = await getAlbumCover(albumName.message);
         if (imageUrl) {
@@ -595,6 +660,16 @@
 		console.log(msg.message);
 
 		$("#musicPlaying").text(msg.message);
+	});
+
+	socket.on('musicStatus', function (msg) {
+		console.log(msg.message);
+
+		if (msg.message == "playing"){
+			$("#playingIncidator").removeClass("fa-circle-play").addClass("fa-circle-pause");
+		} else {
+			$("#playingIncidator").removeClass("fa-circle-pause").addClass("fa-circle-play");
+		}
 	});
 
 	socket.on('songBPM', function (msg) {
@@ -691,5 +766,102 @@
         // Append the rows in sorted order
         rows.forEach(row => table.appendChild(row));
     }
-	
+
+	async function fetchFixtures() {
+        const response = await fetch(`/api/availableFixtures`);
+        const fixtures = await response.json();
+
+        const container = document.getElementById('fixtures-container');
+        fixtures.forEach(fixture => {
+
+			if (fixture.name.includes("Colorspot575XT")) {
+				console.log("Colorspot 575 XT found with ID: " + fixture.id);
+			}
+			else if (fixture.name.includes("Colorspot250AT")) {
+				console.log("Colorspot 250 AT found with ID: " + fixture.id);
+			}
+			else if (fixture.name.includes("Colorwash250AT")) {
+				console.log("Colorwash 250 AT found with ID: " + fixture.id);
+
+
+			}
+			else if (fixture.id.includes("Dimmer")) {
+				console.log("Dimmer found with ID: " + fixture.id);
+
+				createDimmerSlider(fixture.id, fixture.name);
+			}
+        });
+    }
+
+	function createDimmerSlider(fixtureId, fixtureName) {
+		const fixtureDiv = document.createElement('div');
+		fixtureDiv.className = 'fixture';
+
+		const slider = document.createElement('input');
+		slider.type = 'range';
+		slider.min = 0;
+		slider.max = 255;
+		slider.value = 0;
+		slider.className = 'slider';
+		slider.oninput = function() {
+			updateDMXValue(fixture.id, this.value);
+		};
+
+		const label = document.createElement('div');
+		label.className = 'label';
+		label.textContent = fixture.name;
+
+		fixtureDiv.appendChild(slider);
+		fixtureDiv.appendChild(label);
+		container.appendChild(fixtureDiv);
+
+	}
+
+    function updateDMXValue(fixtureId, value) {
+        console.log(`Fixture ID: ${fixtureId}, DMX Value: ${value}`);
+        // Add your logic to update the DMX value here
+    }
+
+	function toggleMusic(){
+		socket.emit('toggleMusic');
+	}
+
+	function nextSong(){
+		socket.emit('nextSong');
+	}
+
+	function restartSong(){
+		socket.emit('restartSong');
+	}
+
+	// Listen for the socket events for updates on the song duration and current time
+	socket.on('musicDuration', function(duration) {
+		totalDuration = duration.message;
+		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new duration
+	});
+
+	socket.on('musicPosition', function(position) {
+		currentTime = position.message;
+		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new position
+	});
+
+	// Function to update the progress bar and time left
+	function updateProgressBar(currentTime, totalDuration) {
+		const progressBar = $('#progressBar');
+		const timeLeftDisplay = $('#timeLeft');
+
+		// Calculate percentage progress
+		if (totalDuration > 0) {
+			const progressPercent = (currentTime / totalDuration) * 100;
+			progressBar.css('width', progressPercent + '%');
+		}
+
+		// Calculate time left
+		const timeLeft = totalDuration - currentTime;
+		const minutesLeft = Math.floor(timeLeft / 60);
+		const secondsLeft = Math.floor(timeLeft % 60);
+		
+		// Update the time left display
+		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
+	}
 </script>

@@ -8,10 +8,20 @@ The app is designed for use inside of a Laser-Tag arena, allowing it to control 
 It also attempts to setup a connection to the OBS Websocket extension, but the connection isn't used as of yet.
 If the system cannot connect to OBS, it will still run.
 
-So far, it can only detect the start and the end of games. I'm currently working on the detection of hits / score logging.
+# Planned Feature Status
 
-I want this system to be able to store historical records of games, allowing for player's real names to be inserted.
-I also want Player data to be deleted after 2 years of inactivity, to save on storage & GDPR regulations.
+| Feature                                                               | Status                                             | Comments                                                                                                                        |
+| :----------------                                                     | :------                                            | :------                                                                                                                         |
+|Store Game Data in Database, Allow Player names to be added / looked up| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
+|DMX Lighting Control                                                   | Started                                            | A DMX connection is setup at runtime, but nothing is done yet as I have no way to test if it works (Will be able to soon)       |
+|DMX Lighting Reacting to game events E.G. Game End / Start, Colour of the winning team, Colour change on BPM | Not Started  | Will get on with this once I can test it                                                                                        |
+|Advanced music control                                                 | Almost Done                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
+|Randomly select lighting effects at game start for unique experience   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
+|Turn certain lights on when a target is shot                           | Not Started                                        | No way of testing and no hardware for target just yet, more of a longshot idea                                                  |
+|Advanced OBS control                                                   | Started                                            | Allow for certains creens around the arena to change based on game status - So far it only creates a web-socket connection      |
+|Track game progress / scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
+|Interactive web page that opens when the program starts                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
+
 
 ## Packets decoded so far:
 This table includes all the packets that I have currently decoded, I couldn't work out what some values are used for, thus the "?".

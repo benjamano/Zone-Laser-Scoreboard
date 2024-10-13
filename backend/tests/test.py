@@ -1,37 +1,26 @@
-import sounddevice as sd
-import numpy as np
-import librosa
+import winrt.windows.media.control as wmc
+import asyncio
 
-device_index = 57  
+async def get_media_status():
+    sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
+    current_session = sessions.get_current_session()
 
-print(sd.query_devices())
+    if current_session:
+        info = await current_session.try_get_media_properties_async()
+        playback_info = current_session.get_playback_info()
 
-SAMPLE_RATE = 48000
-BUFFER_DURATION = 1 
+        # Get media playback status
+        if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING:
+            return f"Currently playing: {info.title}"
+        elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PAUSED:
+            return "Media is paused"
+        elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.STOPPED:
+            return "Media is stopped"
+        else:
+            return "No media playing or unknown status"
+    else:
+        return "No active media session"
 
-audio_buffer = np.zeros(int(SAMPLE_RATE * BUFFER_DURATION), dtype=np.float32)
-
-def calculate_bpm(audio_data, sr):
-    onset_env = librosa.onset.onset_strength(y=audio_data, sr=sr)
-    tempo, _ = librosa.beat.beat_track(onset_envelope=onset_env, sr=sr)
-    return tempo
-
-# Callback function for audio capture
-def audio_callback(indata, frames, time, status):
-    if status:
-        print(status)
-    # Update the rolling buffer with new audio data
-    global audio_buffer
-    audio_buffer = np.roll(audio_buffer, -frames)
-    
-
-    audio_buffer[-frames:] = np.mean(indata, axis=1)
-
-    # Calculate BPM from the buffer
-    bpm = calculate_bpm(audio_buffer, SAMPLE_RATE)
-    print(f"BPM: {bpm}")
-
-# Start capturing audio from the output device
-while True:
-    with sd.InputStream(samplerate=SAMPLE_RATE, device=device_index, channels=2, callback=audio_callback, dtype='float32'):
-        sd.sleep(120000)
+# Run the async function and print the result
+status = asyncio.run(get_media_status())
+print(status)
