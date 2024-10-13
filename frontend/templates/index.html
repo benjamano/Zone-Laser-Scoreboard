@@ -774,18 +774,18 @@
         const container = document.getElementById('fixtures-container');
         fixtures.forEach(fixture => {
 
-			if (fixture.id.includes("cs575xt")) {
+			if (fixture.name.includes("Colorspot575XT")) {
 				console.log("Colorspot 575 XT found with ID: " + fixture.id);
 			}
-			else if (fixture.id.includes("cs250at")) {
+			else if (fixture.name.includes("Colorspot250AT")) {
 				console.log("Colorspot 250 AT found with ID: " + fixture.id);
 			}
-			else if (fixture.id.includes("cw250at")) {
+			else if (fixture.name.includes("Colorwash250AT")) {
 				console.log("Colorwash 250 AT found with ID: " + fixture.id);
 
-				
+
 			}
-			else if (fixture.id.includes("dimmer")) {
+			else if (fixture.id.includes("Dimmer")) {
 				console.log("Dimmer found with ID: " + fixture.id);
 
 				createDimmerSlider(fixture.id, fixture.name);
