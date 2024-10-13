@@ -167,3 +167,4 @@ backend/tests/test2.py
 backend/tests/test3.py
 backend/tests/test.py
 backend/tests/test.py
+backend/runPython.bat
