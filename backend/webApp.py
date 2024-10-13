@@ -1033,7 +1033,7 @@ class WebApp:
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
         try:
-            if (self.rateLimit == True and ((random.randint(1, 20)) == 10)) or self.rateLimit == False:
+            if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
                 
                 if song == None or bpm  == None or bpm == "Song not found":
                     match song:
