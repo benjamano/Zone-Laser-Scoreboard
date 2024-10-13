@@ -243,25 +243,49 @@
 
 											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
-											<div id="musicControlCardBody" class="card-body collapse">
+												<div id="musicControlCardBody" class="card-body collapse">
 
-												<div class="musicControls p-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
-													<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
-													<i role="button" id="playingIndicator" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
-													<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
-												
-													<!-- Progress bar container -->
-													<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 12rem;">
-														<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
-													</div>
+													<div class="row">
+
+														<div class="col-6">
+
+															<div class="musicControls p-2 mb-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
+																<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
+																<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+																<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
+															
+																<!-- Progress bar container -->
+																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 15rem;">
+																	<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
+																</div>
+																
+																<!-- Time Display -->
+																<span id="timeLeft" style="color: #fff; margin-left: 10px;">0:00</span>
+															</div>
+														
+														</div>
+
+														<div class="col-6">
+
+															<div class="card" style="color: #ffffff; background-color: var(--medium-dark-gray);">
+		
+																<div class="card-header collapsed" onclick="$('#musicRequestFormCardBody').collapse('toggle')">Request a song</div>
+		
+																<div class="card-body collapse" id="musicRequestFormCardBody">
+		
+																	<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
+		
+																</div>
+		
+															</div>
+		
+														</div>
 													
-													<!-- Time Display -->
-													<span id="timeLeft" style="color: #fff; margin-left: 10px;">0:00</span>
+													</div>
+												
 												</div>
 												
 											</div>
-
-										</div>
 
                                         <!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
 
@@ -365,8 +389,7 @@
 									</div>
 									<div class="top-arch-panel-1">
 									</div>
-									<div class="top-arch-panel-2">
-																
+									<div class="top-arch-panel-2">				
 									</div>
 								</div>
 							</div>							
@@ -664,9 +687,9 @@
 		console.log(msg.message);
 
 		if (msg.message == "playing"){
-			$("#playingIncidator").removeClass("fa-circle-play").addClass("fa-circle-pause");
+			$("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
 		} else {
-			$("#playingIncidator").removeClass("fa-circle-pause").addClass("fa-circle-play");
+			$("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
 		}
 	});
 
