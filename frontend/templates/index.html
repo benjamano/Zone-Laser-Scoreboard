@@ -578,9 +578,7 @@
 			console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
 
 			$("#gun-"+gunId+"-score").text(finalScore);
-			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%");
-
-			//sortScoresTable();
+			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
         });
 
         socket.on('disconnect', function() {
@@ -750,21 +748,6 @@
 			const result = await response.json();
 			alert(result.message || result.error);
 		}
-    }
-
-	function sortScoresTable() {
-        const table = document.getElementById('scoresTable');
-        const rows = Array.from(table.rows);
-
-        rows.sort((a, b) => {
-			const scoreA = parseInt($(a).find("[id*='score']").text());
-			const scoreB = parseInt($(b).find("[id*='score']").text());
-
-            return scoreB - scoreA; // Sort in descending order
-        });
-
-        // Append the rows in sorted order
-        rows.forEach(row => table.appendChild(row));
     }
 
 	async function fetchFixtures() {
