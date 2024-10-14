@@ -26,7 +26,10 @@ try:
         except:
             logFilePath = os.path.join(r"backend\app.log")
     else:
-        logFilePath = os.path.join(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
+        try:
+            logFilePath = os.path.join(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
+        except:
+            logFilePath = os.path.join(r"C:\Users\Ben (Play2Day)\Documents\GitHub\Zone-Begeara2-Scoreboard\backend\app.log")
 
     logging.basicConfig(filename=logFilePath, level=logging.DEBUG)
 
