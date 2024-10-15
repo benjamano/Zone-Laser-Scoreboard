@@ -168,3 +168,4 @@ backend/tests/test3.py
 backend/tests/test.py
 backend/tests/test.py
 backend/runPython.bat
+backend/data/secrets.txt
