@@ -785,11 +785,11 @@ class WebApp:
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
             
-            self.fixtures = [{"fixture_id": idx, "fixture": fixture.name} for idx, fixture in enumerate(self.fixtures)]
+            temp_fixtures = [{"fixture_id": idx, "fixture": fixture.name, "type": fixtureType} for idx, fixture, fixtureType in enumerate(self.fixtures)]
             
-            format.message(f"{self.fixtures}")
+            format.message(f"Fixtures: {temp_fixtures}")
         
-            return jsonify(self.fixtures)
+            return jsonify(temp_fixtures)
             
         @self.app.route('/end')
         def terminateServer():
