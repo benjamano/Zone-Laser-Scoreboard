@@ -22,7 +22,7 @@ try:
 
     if devMode == "true":
         try:
-            logFilePath = os.path.join(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
+            logFilePath = os.path.join(r"C:\Users\Ben (Play2Day)\Documents\GitHub\Zone-Begeara2-Scoreboard\backend\app.log")
         except:
             logFilePath = os.path.join(r"backend\app.log")
     else:
