@@ -228,6 +228,11 @@
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
 
 										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+											<div class="card-header collapsed" role="button">
+												<button  class="btn btn-primary" onclick="playInfoVideo()">Play Briefing</button>
+											</div>
+
+										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
 
 											<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
@@ -869,5 +874,9 @@
 		
 		// Update the time left display
 		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
+	}
+
+	function playInfoVideo(){
+		socket.emit('playBriefing');
 	}
 </script>

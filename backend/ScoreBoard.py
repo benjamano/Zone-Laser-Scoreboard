@@ -2,6 +2,7 @@ try:
     import __init__ as init
     import os
     import signal
+    #Need to install PIL and pystray
     from PIL import Image, ImageDraw
     import pystray
     import threading

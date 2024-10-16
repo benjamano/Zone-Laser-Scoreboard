@@ -9,7 +9,8 @@ import signal
 import ctypes
 import datetime
 import pyautogui
-from obswebsocket import obsws, requests
+#from obswebsocket import obsws, requests 
+import obsws_python as obs
 from scapy.all import sniff, conf, IP
 from flask_cors import CORS
 import requests
@@ -743,11 +744,8 @@ class WebApp:
     def openFiles(self):
         try:
             f = open(fr"{self._dir}\data\keys.txt", "r")
-        except:
-            try:
-                f = open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r")
-            except Exception as e:
-                format.message(f"Failed to open files: {e}", type="error")
+        except Exception as e:
+            format.message(f"Error opening keys.txt: {e}", type="error")
         finally:
             self.IP1 = str(f.readline().strip())
             self.IP2 = str(f.readline().strip())
@@ -834,6 +832,10 @@ class WebApp:
             self.spotifyControl = json["data"]
             format.message(f"Spotify control = {self.spotifyControl}")
             
+        @self.socketio.on('playBriefing')
+        def playBriefing():
+            self.obs.set_current_program_scene("Video")
+    
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
             message = request.form.get('message')
@@ -875,20 +877,26 @@ class WebApp:
             #format.newline()
                         
             return 'Message sent!'
-    
-    def obs_connect(self):
-        try:
-            format.message("Attempting to connect to OBS")
-            ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
-            ws.connect()
-            self.OBSConnected = True
-            format.message("Successfully Connected to OBS", type="success")
-            
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "obsStatus"})
 
-        except Exception as e:
-            format.message(f"Failed to connect to OBS: {e}", type="error")
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "obsStatus"})
+    def obs_connect(self):
+        if self.devMode == "false":
+            try:
+                format.message("Attempting to connect to OBS")
+                # ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
+                # ws.connect()
+                
+                self.obs = obs.ReqClient(host=self.OBSSERVERIP, port=self.OBSSERVERPORT, password=self.OBSSERVERPASSWORD, timeout=3)
+                
+                self.OBSConnected = True
+                format.message("Successfully Connected to OBS", type="success")
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "obsStatus"})
+
+            except Exception as e:
+                format.message(f"Failed to connect to OBS: {e}", type="error")
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "obsStatus"})
+        else:
+            format.message("Development Mode, skipping OBS Connection", type="warning")
     
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             
@@ -935,13 +943,13 @@ class WebApp:
             
             if mode.lower() == "toggle":
                 if self.spotifyStatus == "paused":
-                    format.message("Playing music", type="warning")
+                    #format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     
                     result = "playing"
                 else:
-                    format.message("Pausing music", type="warning")
+                    #format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
                     result = "paused"
@@ -965,7 +973,7 @@ class WebApp:
                 if self.spotifyStatus == "paused":
                     return
                 else:
-                    format.message("Pausing music", type="warning")
+                    #format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
                     result = "playing"
@@ -974,7 +982,7 @@ class WebApp:
                 if self.spotifyStatus == "playing":
                     return
                 else:
-                    format.message("Playing music", type="warning")
+                    #format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
@@ -1121,7 +1129,7 @@ class WebApp:
                 self.rateLimit = False
                 
         except Exception as e:
-            if "reason: too many 429 error responses'" in e:
+            if "Max Retries, reason: too many 429 error responses" in bpm:
                 self.rateLimit = True
                 return
             else:
@@ -1136,7 +1144,7 @@ class WebApp:
             self.handleBPM(song, bpm, album)
             
         except Exception as e:
-            format.message(f"Failed to start BPM finder: {e}", type="error")
+            format.message(f"Failed to find BPM: {e}", type="error")
    
     def mediaStatusChecker(self):
         while True:
@@ -1155,7 +1163,7 @@ class WebApp:
                         self.bpm_thread.daemon = True
                         self.bpm_thread.start()
                     except Exception as e:
-                        format.message(f"Error starting BPM thread: {e}", type="error")
+                        format.message(f"Error finding BPM at media status change: {e}", type="error")
                     
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})

@@ -2,13 +2,15 @@ import datetime
 import logging
 import ctypes
 import os
+import sys
 
 try:
-    with open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\dev.txt") as f:
+    dir = os.path.dirname(os.path.realpath(__file__))
+    with open(fr"{dir}\data\dev.txt") as f:
         devMode = str(f.readline().strip())
 except:
     try:
-        with open(r"backend\data\dev.txt") as f:
+        with open(fr"{dir}\data\dev.txt") as f:
             devMode = str(f.readline().strip())
         
         format.message(f"Developer mode is {devMode}")
@@ -20,17 +22,12 @@ try:
     
     logger = logging.getLogger("webAppLogger")
 
-    if devMode == "true":
-        try:
-            logFilePath = os.path.join(r"C:\Users\Ben (Play2Day)\Documents\GitHub\Zone-Begeara2-Scoreboard\backend\app.log")
-        except:
-            logFilePath = os.path.join(r"backend\app.log")
-    else:
-        try:
-            logFilePath = os.path.join(r"C:\Users\Ben Mercer\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\app.log")
-        except:
-            logFilePath = os.path.join(r"C:\Users\Ben (Play2Day)\Documents\GitHub\Zone-Begeara2-Scoreboard\backend\app.log")
-
+    try:
+        logFilePath = fr"{dir}\app.log"
+        
+    except:
+        sys.exit("Failed to open log file.")
+        
     logging.basicConfig(filename=logFilePath, level=logging.DEBUG)
 
 except Exception as e:
