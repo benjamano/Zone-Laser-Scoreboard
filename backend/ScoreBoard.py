@@ -36,11 +36,12 @@ def startIcon():
     try:
         dir = os.path.dirname(os.path.realpath(__file__))
         iconImage = loadCustomImage(fr"{dir}\images\SmallLogo.png")
+        
+        icon = pystray.Icon('Laser Tag Scoreboard', icon=iconImage, menu=menu)
+        threading.Thread(target=icon.run).start()
+        
     except:
-        print("Failed to load custom image for icon. Using default.")
-        iconImage = pystray.Icon.DEFAULT_IMAGE
-    icon = pystray.Icon('Laser Tag Scoreboard', icon=iconImage, menu=menu)
-    threading.Thread(target=icon.run).start()
+        print("Failed to load custom image for icon. Not Running Icon.")
     
 try:
     init.start()
