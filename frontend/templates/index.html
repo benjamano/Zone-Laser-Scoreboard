@@ -227,12 +227,12 @@
 									<div class="top-arch-content">
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
 
-										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed" role="button">
 												<button  class="btn btn-primary" onclick="playInfoVideo()">Play Briefing</button>
 											</div>
 
-										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
 											<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
@@ -244,7 +244,7 @@
 
 										</div>
 
-										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
 											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
@@ -272,7 +272,7 @@
 
 														<div class="col-6">
 
-															<div class="card" style="color: #ffffff; background-color: var(--medium-dark-gray);">
+															<div class="card" style="color: #ffffff; background-color: var(--primary-gray);">
 		
 																<div class="card-header collapsed" onclick="$('#musicRequestFormCardBody').collapse('toggle')">Request a song</div>
 		
@@ -291,6 +291,7 @@
 												</div>
 												
 											</div>
+										</div>
 
                                         <!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
 
@@ -463,7 +464,7 @@
 			</div>
 		</section>
 	</div>
-	<script type="text/javascript" src="assets/lcars.js"></script>
+	<!-- <script type="text/javascript" src="assets/lcars.js"></script> -->
 </body>
 
 </html>
@@ -482,147 +483,148 @@
     window.onload = function() {
 		fetchFixtures();
 
-        console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
-
-        socket.on('connect', function() {
-            socket.emit('client_event', {data: 'Client connected!'});
-            socket.emit('spotifyControlStatus', {data: controlSpotify});
-            console.log("SpotifyControl: " + controlSpotify);
-            console.log("Client connected!");
-
-			if (controlSpotify == true){
-				$("#spotifyPlaybackStatus").text("ON")
-			} else {
-				$("#spotifyPlaybackStatus").text("OFF")
-			}
-
-            $("#gameStatus").removeClass("go-red").addClass("go-blue");
-            $("#gameStatus").text("Waiting");
-
-			$("#webAppOnlineStatus").text("ONLINE");
-
-			try{
-
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
-			}
-			catch(err){}
-        });
-
-        socket.on('start', function(msg) {
-
-			gamePlayingStatus = "playing";
-
-            console.log(msg);
-
-			for (let i = 1; i <= 21; i++) {
-				$("#gun-" + i + "-score").text("0");
-				$("#gun-" + i + "-accuracy").text("0%");
-			}
-
-            var gameStatus = document.getElementById('gameStatus');
-
-            $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
-            $("#gameStatus").text("Game in Progress...");
-
-			try{
-
-				var messageDiv = document.getElementById('messages');
-
-				messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
-			}
-			catch(err){}
-        });
-
-		socket.on('obsStatus', function(msg) {
-            console.log(msg.message);
-
-			$("#OBSConnectionStatus").val(msg.message)
-			
-        });
-
-		socket.on('dmxStatus', function(msg) {
-            console.log(msg.message);
-
-			$("#DMXConnectionStatus").val(msg.message)
-            
-        });
-
-        socket.on('end', function(msg) {
-
-			gamePlayingStatus = "stopped";
-
-            console.log(msg);
-
-			for (let i = 1; i <= 21; i++) {
-				$("#gun-" + i + "-score").text("0");
-				$("#gun-" + i + "-accuracy").text("0%");
-			}
-
-            var gameStatus = document.getElementById('gameStatus');
-
-			$("#timeRemaining").text("00:00");
-
-            $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
-            $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
-        });
-
-        socket.on('server', function(msg) {
-            console.log(msg);
-
-			try{
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-			}
-			catch(err){}
-        });
-
-		socket.on('gameMode', function(msg) {
-            console.log("Game Mode: ", msg.message);
-
-			try{
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-			}
-			catch(err){}
-        });
-
-		socket.on('gunScores', function(msg) {
-			if (gamePlayingStatus == "stopped"){
-				return;
-			}
-
-            console.log("gunScore: "+msg);
-
-			var gunScores = msg.message.split(',');
-
-			var gunId = gunScores[0];
-			var finalScore = gunScores[1];
-			var Accuracy = gunScores[2];
-
-			console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
-
-			$("#gun-"+gunId+"-score").text(finalScore);
-			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
-        });
-
-        socket.on('disconnect', function() {
-            var messageDiv = document.getElementById('messages');
-
-			$("#webAppOnlineStatus").text("UNKNOWN");
-			
-			try{
-            messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
-			}
-
-			catch(err){}
-        });
-
 		let currentTimeLeft;
-	let countdownInterval;
+		let countdownInterval;
+
+        console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
+	};
+
+	socket.on('connect', function() {
+		socket.emit('client_event', {data: 'Client connected!'});
+		socket.emit('spotifyControlStatus', {data: controlSpotify});
+		console.log("SpotifyControl: " + controlSpotify);
+		console.log("Client connected!");
+
+		if (controlSpotify == true){
+			$("#spotifyPlaybackStatus").text("ON")
+		} else {
+			$("#spotifyPlaybackStatus").text("OFF")
+		}
+
+		$("#gameStatus").removeClass("go-red").addClass("go-blue");
+		$("#gameStatus").text("Waiting");
+
+		$("#webAppOnlineStatus").text("ONLINE");
+
+		try{
+
+		var messageDiv = document.getElementById('messages');
+
+		messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('start', function(msg) {
+
+		gamePlayingStatus = "playing";
+
+		console.log(msg);
+
+		for (let i = 1; i <= 21; i++) {
+			$("#gun-" + i + "-score").text("0");
+			$("#gun-" + i + "-accuracy").text("0%");
+		}
+
+		var gameStatus = document.getElementById('gameStatus');
+
+		$("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
+		$("#gameStatus").text("Game in Progress...");
+
+		try{
+
+			var messageDiv = document.getElementById('messages');
+
+			messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('obsStatus', function(msg) {
+		console.log(msg.message);
+
+		$("#OBSConnectionStatus").val(msg.message)
+		
+	});
+
+	socket.on('dmxStatus', function(msg) {
+		console.log(msg.message);
+
+		$("#DMXConnectionStatus").val(msg.message)
+		
+	});
+
+	socket.on('end', function(msg) {
+
+		gamePlayingStatus = "stopped";
+
+		console.log(msg);
+
+		for (let i = 1; i <= 21; i++) {
+			$("#gun-" + i + "-score").text("0");
+			$("#gun-" + i + "-accuracy").text("0%");
+		}
+
+		var gameStatus = document.getElementById('gameStatus');
+
+		$("#timeRemaining").text("00:00");
+
+		$("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
+		$("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
+	});
+
+	socket.on('server', function(msg) {
+		console.log(msg);
+
+		try{
+		var messageDiv = document.getElementById('messages');
+
+		messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('gameMode', function(msg) {
+		console.log("Game Mode: ", msg.message);
+
+		try{
+		var messageDiv = document.getElementById('messages');
+
+		messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('gunScores', function(msg) {
+		if (gamePlayingStatus == "stopped"){
+			return;
+		}
+
+		console.log("gunScore: "+msg);
+
+		var gunScores = msg.message.split(',');
+
+		var gunId = gunScores[0];
+		var finalScore = gunScores[1];
+		var Accuracy = gunScores[2];
+
+		console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
+
+		$("#gun-"+gunId+"-score").text(finalScore);
+		$("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
+	});
+
+	socket.on('disconnect', function() {
+		var messageDiv = document.getElementById('messages');
+
+		$("#webAppOnlineStatus").text("UNKNOWN");
+		
+		try{
+		messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
+		}
+
+		catch(err){}
+	});
 
 	socket.on('timeRemaining', function (msg) {
 		if (gamePlayingStatus == "stopped"){
@@ -745,8 +747,6 @@
 		const remainingSeconds = seconds % 60;
 		return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 	}
-        
-    };
 
     async function toggleSpotifyControl(){
         controlSpotify = !controlSpotify;
