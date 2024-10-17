@@ -90,7 +90,7 @@ class WebApp:
                 self._localIp == "0.0.0.0"
             except Exception as e:
                 format.message("Fatal: Fall Back IP failed", type="error")
-                sys.exit("Fall Back IP failed")
+                input("Press any key to exit...")
         
     def start(self):
         format.newline()    
@@ -433,11 +433,11 @@ class WebApp:
                 }
             }
             
-            try:
-                self._dmx.web_control()
+            #try:
+                #self._dmx.web_control()
                 
-            except Exception as e:
-                format.message(f"Error starting DMX web control: {e}", type="error")
+            #except Exception as e:
+                #format.message(f"Error starting DMX web control: {e}", type="error")
         
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
