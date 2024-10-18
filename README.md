@@ -50,7 +50,8 @@ Values are seperated by commas by the control box.
 
 ## Setup Zone Packet Sniffing
 
-This is an annoying process.
+> You can use the "userInterfaces.py" file to crosscheck which network adaptor you want to use. Use IPCONFIG on windows to find the IP / MAC address of the adaptor you want to use and compare it to the list given from the python file.
+
 For this to work, you must connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
 
 After you've done that, I'd recommend opening up "WireShark" a tool used for sniffing packets travelling along a network.
