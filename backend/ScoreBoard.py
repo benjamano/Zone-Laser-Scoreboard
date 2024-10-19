@@ -6,6 +6,7 @@ try:
     from PIL import Image, ImageDraw
     import pystray
     import threading
+    from func import format
     
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -45,13 +46,13 @@ def startIcon():
     
 try:
     init.start()
-    print("\n|----------------------------------------------------------------------------------------------------|\n")
+    format.newline()
     
     global ui
     import userInterf as ui
     
     startIcon()
-    print("User Interface starting")
+    format.message("User Interface starting")
     
     threading.Thread(target=ui.startUI).run()
 

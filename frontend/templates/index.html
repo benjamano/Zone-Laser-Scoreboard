@@ -248,11 +248,9 @@
 
 											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
-												<div id="musicControlCardBody" class="card-body collapse">
+												<div id="musicControlCardBody" class="card-body collapse" style="display: flex; align-content: flex-start; justify-content: flex-start; align-items: flex-start; flex-direction: row; flex-wrap: nowrap; gap: 20px;">
 
-													<div class="row">
-
-														<div class="col-6">
+														<div style="width: 50%;">
 
 															<div class="musicControls p-2 mb-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
 																<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
@@ -260,7 +258,7 @@
 																<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
 															
 																<!-- Progress bar container -->
-																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 15rem;">
+																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
 																	<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
 																</div>
 																
@@ -270,7 +268,7 @@
 														
 														</div>
 
-														<div class="col-6">
+														<div style="width: 50%;">
 
 															<div class="card" style="color: #ffffff; background-color: var(--primary-gray);">
 		
@@ -286,7 +284,7 @@
 		
 														</div>
 													
-													</div>
+													
 												
 												</div>
 												
@@ -424,17 +422,6 @@
 				<div class="space-4"></div>
 			</div>
 			<div class="wrap">
-				<div class="scroll-top"><a id="scroll-top" href=""><span class="hop">screen</span> top</a></div>
-				<div class="left-frame">
-					<div>
-						<div class="panel-3">03<span class="hop">-111968</span></div>
-						<nav id="secondary-nav">
-							<a href="">BULKHEAD LIGHTS STATUS: <span id="bulkheadLightStatus">OFF</span></a>
-							<a href="">BUTTON-05</a>
-							<a href="">BUTTON-06</a>
-						</nav>
-					</div>
-				</div>
 				<div class="right-frame">
 					<div class="bar-runner">
 						<div class="bar-6"></div>
