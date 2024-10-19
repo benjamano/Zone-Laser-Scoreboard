@@ -58,7 +58,7 @@ class WebApp:
         self._dir = os.path.dirname(os.path.realpath(__file__))
 
         self.OBSConnected = False
-        self.devMode = "False"
+        self.devMode = "false"
         self.filesOpened = False
         self.spotifyControl = False
         self.DMXConnected = False
