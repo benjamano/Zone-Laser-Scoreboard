@@ -19,7 +19,15 @@ print("Web App Status Checker Started, hiding console")
     
 while True:
     try:
-        ip = socket.gethostbyname(socket.gethostname())
+        try:
+            print("Finding local IP")
+            # Create a dummy socket connection to find the local IP address
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+        except Exception as e:
+            format.message(f"Error finding local IP: {e}")
         
         dir = os.path.dirname(os.path.realpath(__file__))
         
