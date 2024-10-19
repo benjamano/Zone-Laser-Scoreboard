@@ -782,7 +782,7 @@ class WebApp:
         
         @self.app.route("/ping")
         def ping():   
-            format.message("|--- I'm still alive! ---|")
+            #format.message("|--- I'm still alive! ---|")
             return 'OK'
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
