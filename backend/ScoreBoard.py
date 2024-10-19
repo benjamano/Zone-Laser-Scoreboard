@@ -2,9 +2,6 @@ try:
     import __init__ as init
     import os
     import signal
-    #Need to install PIL and pystray
-    from PIL import Image, ImageDraw
-    import pystray
     import threading
     from func import format
     
@@ -13,6 +10,7 @@ except Exception as e:
     input("Press any key to exit...")
 
 def loadCustomImage(filePath):
+    from PIL import Image, ImageDraw
     return Image.open(filePath)
 
 def stop():
@@ -23,6 +21,9 @@ def showInterface():
     ui.showInterface()
 
 def startIcon():
+    from PIL import Image, ImageDraw
+    import pystray
+    
     def onQuit(icon, item):
         stop()
 
