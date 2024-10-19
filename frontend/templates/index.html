@@ -530,14 +530,14 @@
 	socket.on('obsStatus', function(msg) {
 		console.log(msg.message);
 
-		$("#OBSConnectionStatus").val(msg.message)
+		$("#OBSConnectionStatus").text(msg.message)
 		
 	});
 
 	socket.on('dmxStatus', function(msg) {
 		console.log(msg.message);
 
-		$("#DMXConnectionStatus").val(msg.message)
+		$("#DMXConnectionStatus").text(msg.message)
 		
 	});
 
