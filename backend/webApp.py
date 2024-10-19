@@ -145,7 +145,7 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
 
-        print("Web App Started, hiding console")
+        format.message("Web App Started, hiding console", type="success")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
         
         try:
@@ -780,6 +780,11 @@ class WebApp:
         def lights():   
             return render_template('lights.html')
         
+        @self.app.route("/ping")
+        def ping():   
+            #format.message("|--- I'm still alive! ---|")
+            return 'OK'
+        
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
             
@@ -901,7 +906,7 @@ class WebApp:
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             
     def startSniffing(self):
-        print("Starting packet sniffer...")
+        format.message("Starting packet sniffer...")
         try:
             sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
