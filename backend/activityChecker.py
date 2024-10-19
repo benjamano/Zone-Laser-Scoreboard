@@ -15,7 +15,7 @@ except:
     input("Press enter to exit")
     
 print("Web App Status Checker Started, hiding console")
-ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+#ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
     
 while True:
     try:
@@ -23,13 +23,19 @@ while True:
         
         dir = os.path.dirname(os.path.realpath(__file__))
         
+        print(f"Checking server status at {ip} with directory {dir}")
+        
         try:
+            print("Pinging server")
             response = requests.get(fr"http://{ip}:8080/ping").status_code
         except Exception as e:
             print(f"Failed to ping server: {e}")
             response = 500
+            
+        print(f"Server response: {response}")
 
         if response == 200:
+            print("Server is running, no action needed")
             pass
         else:
             print("Server is not running, starting server")
