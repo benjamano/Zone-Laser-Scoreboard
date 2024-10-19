@@ -802,6 +802,9 @@ class WebApp:
         @self.socketio.on('connect')
         def handleConnect():
             format.message("Sniffer Client connected")
+            
+            emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
+            
             emit('response', {'message': 'Connected to the server!'})
             
         @self.socketio.on('toggleMusic')
