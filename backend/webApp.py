@@ -3,13 +3,12 @@ import time
 import eventlet
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, emit, send
+from flask_socketio import SocketIO, emit
 import os
 import signal
 import ctypes
 import datetime
 import pyautogui
-#from obswebsocket import obsws, requests 
 import obsws_python as obs
 from scapy.all import sniff, conf, IP
 from flask_cors import CORS
@@ -17,7 +16,6 @@ import requests
 import psutil
 import socket
 import webbrowser
-import sys
 import asyncio
 import random
 
@@ -704,7 +702,7 @@ class WebApp:
                 
                 self._DimmerBulkHeadLights._register_channel(f"{fixtureName}_Dimmer")
                 
-                self.fixtures[self._DimmerBulkHeadLights] = {"type": "Dimmer"}
+                self.fixtures[self._DimmerBulkHeadLights.name] = {"type": "Dimmer"}
                 
             except Exception as e:
                 format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
@@ -735,10 +733,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Strobe / Shutter")
                     light._register_channel(f"{fixtureName}_Dimmer")
                     
-                    self.fixtures[light] = {"type": "Colorspot575XT"}
+                    self.fixtures[light.name] = {"type": "Colorspot575XT"}
                     
                     # Set to red for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Red"])
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Red"])
                     
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 575 XT 0: {e}", type="error")
@@ -771,10 +769,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_StrobeShutter")
                     light._register_channel(f"{fixtureName}_Dimmer")
                     
-                    self.fixtures[light] = {"type": "Colorspot575XT"}
+                    self.fixtures[light.name] = {"type": "Colorspot575XT"}
                     
                     # Set to orange for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Orange"])
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Orange"])
 
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 575 XT 1: {e}", type="error")
@@ -810,10 +808,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
-                    self.fixtures[light] = {"type": "Colorspot250AT"}
+                    self.fixtures[light.name] = {"type": "Colorspot250AT"}
                     
                     # Set to pink for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Pink"])
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Pink"])
 
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 250 AT 0: {e}", type="error")
@@ -849,10 +847,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
-                    self.fixtures[light] = {"type": "Colorspot250AT"}
+                    self.fixtures[light.name] = {"type": "Colorspot250AT"}
                     
                     # Set to magenta for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Magenta"])
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Magenta"])
                     
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 250 AT 1: {e}", type="error")
@@ -888,10 +886,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
-                    self.fixtures[light] = {"type": "Colorwash250AT"}
+                    self.fixtures[light.name] = {"type": "Colorwash250AT"}
                     
                     # Set to red for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Red"])
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Red"])
                 
             except Exception as e:
                 format.message(f"Error registering Robe Colorwash 250 AT 0: {e}", type="error")
@@ -927,10 +925,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
-                    self.fixtures[light] = {"type": "Colorwash250AT"}
+                    self.fixtures[light.name] = {"type": "Colorwash250AT"}
                     
                     # Set to green for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Green"])
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Green"])
                 
             except Exception as e:
                 format.message(f"Error registering Robe Colorwash 250 AT 1: {e}", type="error")
