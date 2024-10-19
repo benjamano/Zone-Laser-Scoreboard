@@ -626,9 +626,12 @@
 			currentTimeLeft = newTime;
 
 			// If there's an existing interval, clear it
-			if (countdownInterval) {
-				clearInterval(countdownInterval);
+			try{
+				if (countdownInterval) {
+					clearInterval(countdownInterval);
+				}
 			}
+			catch{}
 
 			// Start the countdown
 			countdownInterval = setInterval(function () {
