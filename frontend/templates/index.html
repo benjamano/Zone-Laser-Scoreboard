@@ -61,19 +61,46 @@
 	}
 
 	#fixtures-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		align-content: center;
+		justify-content: flex-start;
+		font-size: 0.8rem;
     }
+
+	#fixtures-container .fixture .title {
+		color: white;;
+		font-size: 1rem;
+	}
+
     .fixture {
-        margin: 10px;
+        padding: 10px;
         text-align: center;
+		border: #0000002b;
+		border-width: 5px;
+		border-style: solid;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-content: center;
+		justify-content: center;
+		gap: 30px;
     }
+
+	.fixtureChannel{
+		display: flex;
+		flex-direction: column;
+		align-content: center;
+		justify-content: center;
+		align-items: center;
+	}
+	
     .slider {
         writing-mode: bt-lr; /* IE */
         -webkit-appearance: slider-vertical; /* WebKit */
         width: 8px;
-        height: 100px;
+        height: 200px;
     }
     .label {
         margin-top: 10px;
@@ -783,54 +810,83 @@
         const response = await fetch(`/api/availableFixtures`);
         const fixtures = await response.json();
 
-        const container = document.getElementById('fixtures-container');
         fixtures.forEach(fixture => {
 
-			if (fixture.name.includes("Colorspot575XT")) {
-				console.log("Colorspot 575 XT found with ID: " + fixture.id);
+			if (fixture.type.includes("Colorspot575XT")) {
+				console.log("Colorspot 575 XT found with name: " + fixture.name); 
 			}
-			else if (fixture.name.includes("Colorspot250AT")) {
-				console.log("Colorspot 250 AT found with ID: " + fixture.id);
+			else if (fixture.type.includes("Colorspot250AT")) {
+				console.log("Colorspot 250 AT found with ID: " + fixture.name);
 			}
-			else if (fixture.name.includes("Colorwash250AT")) {
-				console.log("Colorwash 250 AT found with ID: " + fixture.id);
+			else if (fixture.type.includes("Colorwash250AT")) {
+				console.log("Colorwash 250 AT found with ID: " + fixture.name);
+			}
+			else if (fixture.type.includes("Dimmer")) {
+				console.log("Dimmer found with ID: " + fixture.name);
 
-
+				//createDimmerSlider(fixture);
 			}
-			else if (fixture.id.includes("Dimmer")) {
-				console.log("Dimmer found with ID: " + fixture.id);
 
-				createDimmerSlider(fixture.id, fixture.name);
-			}
+			const container = document.getElementById('fixtures-container');
+
+			const fixtureDiv = document.createElement('div');
+			fixtureDiv.className = `fixture`;
+			fixtureDiv.id = `fixture-${fixture.id}`;
+
+			const fixtureTitle = document.createElement('h1');
+			fixtureTitle.className = "title";
+			fixtureTitle.textContent = fixture.name;
+
+			fixtureDiv.appendChild(fixtureTitle);
+			container.appendChild(fixtureDiv);
+
+			Object.keys(fixture.attributes).forEach(key => {
+				const attributeName = key;
+
+				const slider = document.createElement('input');
+				slider.type = 'range';
+				slider.min = 0;
+				slider.max = 255;
+				slider.value = 0;
+				slider.className = 'slider';
+				slider.oninput = function() {
+					updateDMXValue(fixture.name, this.value);
+					valueLabel.textContent = this.key;
+				};
+	
+				const label = document.createElement('div');
+				label.className = 'label';
+				label.textContent = attributeName;
+	
+				const valueLabel = document.createElement('div');
+				valueLabel.className = 'valueLabel';
+				valueLabel.id = `valueLabel-${fixture.name}`; 
+				valueLabel.textContent = "0"; 
+	
+				const fixtureChannel = document.createElement('div');
+				fixtureChannel.className = 'fixtureChannel';
+				fixtureChannel.id = `fixtureChannel-${fixture.name}`; 
+
+				fixtureChannel.appendChild(slider);
+				fixtureChannel.appendChild(label);
+				fixtureChannel.appendChild(valueLabel);
+				fixtureDiv.appendChild(fixtureChannel);
+
+			
+			});
         });
     }
 
-	function createDimmerSlider(fixtureId, fixtureName) {
-		const fixtureDiv = document.createElement('div');
-		fixtureDiv.className = 'fixture';
-
-		const slider = document.createElement('input');
-		slider.type = 'range';
-		slider.min = 0;
-		slider.max = 255;
-		slider.value = 0;
-		slider.className = 'slider';
-		slider.oninput = function() {
-			updateDMXValue(fixture.id, this.value);
-		};
-
-		const label = document.createElement('div');
-		label.className = 'label';
-		label.textContent = fixture.name;
-
-		fixtureDiv.appendChild(slider);
-		fixtureDiv.appendChild(label);
-		container.appendChild(fixtureDiv);
+	function createDimmerSlider(fixture) {
+		
 
 	}
 
-    function updateDMXValue(fixtureId, value) {
-        console.log(`Fixture ID: ${fixtureId}, DMX Value: ${value}`);
+    function updateDMXValue(fixtureName, value) {
+        //console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
+
+		$(`#valueLabel-${fixtureName}`).text(value);
+
         // Add your logic to update the DMX value here
     }
 
