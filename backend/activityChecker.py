@@ -31,16 +31,16 @@ while True:
         
         dir = os.path.dirname(os.path.realpath(__file__))
         
-        #print(f"Checking server status at {ip} with directory {dir}")
+        print(f"Checking server status at {ip} with directory {dir}")
         
         try:
             #print("Pinging server")
             response = requests.get(fr"http://{ip}:8080/ping").status_code
         except Exception as e:
-            #print(f"Failed to ping server: {e}")
+            print(f"Failed to ping server: {e}")
             response = 500
             
-        #print(f"Server response: {response}")
+        print(f"Server response: {response}")
 
         if response == 200:
             #print("Server is running, no action needed")
