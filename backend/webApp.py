@@ -834,7 +834,12 @@ class WebApp:
             
         @self.socketio.on('playBriefing')
         def playBriefing():
-            self.obs.set_current_program_scene("Video")
+            try:
+                format.message("Playing briefing")
+                if self.OBSConnected == True:
+                    self.obs.set_current_program_scene("Video")
+            except Exception as e:
+                format.message(f"Error playing briefing: {e}", type="error")
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
