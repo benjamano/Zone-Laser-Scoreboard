@@ -229,7 +229,7 @@
 
 										<div class="card m-2" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed" role="button">
-												<button  class="btn btn-primary" onclick="playInfoVideo()">Play Briefing</button>
+												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
 											</div>
 
 										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
@@ -254,13 +254,13 @@
 
 														<div class="col-6">
 
-															<div class="musicControls p-2 mb-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
+															<div class="musicControls p-2 mb-2" style="font-size: xx-large; display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 20px; width: fit-content;">
 																<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
 																<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
 																<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
 															
 																<!-- Progress bar container -->
-																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 15rem;">
+																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 17vw;">
 																	<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
 																</div>
 																
@@ -876,7 +876,14 @@
 		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
 	}
 
-	function playInfoVideo(){
+	document.addEventListener('keydown', function(event) {
+		if (event.key === 'Home') {
+			console.log("Home Key pressed, Playing Briefing");
+		}
+	});
+
+	function playBriefing(){
+		console.log("Playing Briefing");
 		socket.emit('playBriefing');
 	}
 </script>
