@@ -40,7 +40,7 @@ Values are seperated by commas by the control box.
 | 4 <br />Game End                        |  342c403031342c30                                  | 4,@014,0                   | EventType, Game Status, ?                                        | The Game Ended                                                           |
 | 5 <br />Shot Confirmed                  |  352c31312c312c32<br />2c302c302c302c30            | 5,11,1,2,0,0,0,0           | EventType, GunShotId, ShooterGunId, ?, ?, ?, ?, ?                | Gun Id 11 was shot by Gun Id 1                                           |
 
-* Packets represent teams using a Team Id. Red Team is Id 0 and Green is Id 2 for some reason. *
+> Teams are repsesented using a Team Id. Red Team is Id 0 and Green is Id 2 for some reason. *
 
 #### * Special Thanks to iR377 on Reddit, who helped me with identifying a few of the packets in the table above.
 
@@ -50,7 +50,8 @@ Values are seperated by commas by the control box.
 
 ## Setup Zone Packet Sniffing
 
-This is an annoying process.
+> You can use the "userInterfaces.py" file to crosscheck which network adaptor you want to use. Use IPCONFIG on windows to find the IP / MAC address of the adaptor you want to use and compare it to the list given from the python file.
+
 For this to work, you must connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
 
 After you've done that, I'd recommend opening up "WireShark" a tool used for sniffing packets travelling along a network.

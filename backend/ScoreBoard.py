@@ -2,16 +2,15 @@ try:
     import __init__ as init
     import os
     import signal
-    #Need to install PIL and pystray
-    from PIL import Image, ImageDraw
-    import pystray
     import threading
+    from func import format
     
 except Exception as e:
     print(f"An error occurred: {e}")
     input("Press any key to exit...")
 
 def loadCustomImage(filePath):
+    from PIL import Image, ImageDraw
     return Image.open(filePath)
 
 def stop():
@@ -22,6 +21,9 @@ def showInterface():
     ui.showInterface()
 
 def startIcon():
+    from PIL import Image, ImageDraw
+    import pystray
+    
     def onQuit(icon, item):
         stop()
 
@@ -44,17 +46,36 @@ def startIcon():
         print("Failed to load custom image for icon. Not Running Icon.")
     
 try:
+    import socket
+    
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        localIp = s.getsockname()[0]
+        s.close()
+    except Exception as e:
+        format.message(f"Error finding local IP: {e}")
+    
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex((localIp, 8080)) == 0:
+            format.message(f"Port 8080 is already in use on {localIp}", type="error")
+            raise RuntimeError("Port in use. Exiting application.")
+    
     init.start()
-    print("\n|----------------------------------------------------------------------------------------------------|\n")
+    format.newline()
     
     global ui
     import userInterf as ui
     
     startIcon()
-    print("User Interface starting")
+    format.message("User Interface starting")
     
     threading.Thread(target=ui.startUI).run()
 
 except Exception as e:
     print(f"An error occurred: {e}")
-    input("Press any key to exit...")
+    
+    if type(e) == RuntimeError:
+        pass
+    else:
+        input("Press any key to exit...")
