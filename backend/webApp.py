@@ -18,6 +18,7 @@ import socket
 import webbrowser
 import asyncio
 import random
+import sys
 
 try:
     import winrt.windows.media.control as wmc
@@ -344,12 +345,11 @@ class WebApp:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 if s.connect_ex((self._localIp, 8080)) == 0:
                     format.message(f"Port 8080 is already in use on {self._localIp}", type="error")
-                    raise Exception("Server already running!")
+                    raise RuntimeError("Port in use. Exiting application.")
 
             self.socketio.run(self.app, host=self._localIp, port=8080)
         except Exception as e:
-            format.message(f"Fatal: error occurred while trying to start Flask Server: {e}", type="error")
-            input("Press any key to exit...")
+            os._exit(1)
         
     def start(self):
         format.newline()    

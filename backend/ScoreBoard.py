@@ -46,6 +46,21 @@ def startIcon():
         print("Failed to load custom image for icon. Not Running Icon.")
     
 try:
+    import socket
+    
+    try:
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        localIp = s.getsockname()[0]
+        s.close()
+    except Exception as e:
+        format.message(f"Error finding local IP: {e}")
+    
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex((localIp, 8080)) == 0:
+            format.message(f"Port 8080 is already in use on {localIp}", type="error")
+            raise RuntimeError("Port in use. Exiting application.")
+    
     init.start()
     format.newline()
     
@@ -59,4 +74,8 @@ try:
 
 except Exception as e:
     print(f"An error occurred: {e}")
-    input("Press any key to exit...")
+    
+    if type(e) == RuntimeError:
+        pass
+    else:
+        input("Press any key to exit...")
