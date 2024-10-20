@@ -341,16 +341,15 @@ class WebApp:
     
     def startFlask(self):
         try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex((self._localIp, 8080)) == 0:
+                    format.message(f"Port 8080 is already in use on {self._localIp}", type="error")
+                    raise Exception("Server already running!")
+
             self.socketio.run(self.app, host=self._localIp, port=8080)
         except Exception as e:
-            format.message(f"Fatal: error occured while trying to start Flask Server: {e}", type="error")
-            format.message(f"Trying BackUp IP", type="warning")
-            try:
-                self.socketio.run(self.app, host="0.0.0.0", port=8080)
-                self._localIp == "0.0.0.0"
-            except Exception as e:
-                format.message("Fatal: Fall Back IP failed", type="error")
-                input("Press any key to exit...")
+            format.message(f"Fatal: error occurred while trying to start Flask Server: {e}", type="error")
+            input("Press any key to exit...")
         
     def start(self):
         format.newline()    
