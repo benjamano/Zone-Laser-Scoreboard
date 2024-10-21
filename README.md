@@ -12,7 +12,7 @@ If the system cannot connect to OBS, it will still run.
 
 For DMX to work, you must have a USB - DMX adaptor that support either Open DMX or UDMX. I use a cheap one off Amazon.
 The DMX - USB MUST have the ```libusb-win32``` driver installed.
-> NOTE: Installing thid driver will cause QLC+ (And presumably others) to not recognise the adaptor anymore.
+> NOTE: Installing this driver will cause QLC+ (And presumably others) to not recognise the adaptor anymore.
 > This can be fixed by reinstalling the original driver on the adaptor, the original drivers will most likely be on the manufacturer's website.
 
 For OBS to work, you MUST make a ```keys.txt``` file in the same directory as the scoreboard.py file.
