@@ -8,6 +8,17 @@ The app is designed for use inside of a Laser-Tag arena, allowing it to control 
 It also attempts to setup a connection to the OBS Websocket extension, but the connection isn't used as of yet.
 If the system cannot connect to OBS, it will still run.
 
+# Pre-Requisites
+
+For DMX to work, you must have a USB - DMX adaptor that support either Open DMX or UDMX. I use a cheap one off Amazon.
+The DMX - USB MUST have the ```libusb-win32``` driver installed.
+
+For OBS to work, you MUST make a ```keys.txt``` file in the same directory as the scoreboard.py file.
+Press enter 3 times in this file and then add your ```OBS Websocket IP```, ```OBS Websocket Password``` and the ```OBS Websocket Port```.
+The program will read these and attempt to connect to the OBS Websocket instance.
+
+All libraries should be installed when you run the ```Scoreboard.py``` file.
+
 # Planned Feature Status
 
 | Feature                                                               | Status                                             | Comments                                                                                                                        |
@@ -50,14 +61,14 @@ Values are seperated by commas by the control box.
 
 ## Setup Zone Packet Sniffing
 
-> You can use the "userInterfaces.py" file to crosscheck which network adaptor you want to use. Use IPCONFIG on windows to find the IP / MAC address of the adaptor you want to use and compare it to the list given from the python file.
+> You can use the ```networkInterfaces.py``` file to crosscheck which network adaptor you want to use. Use ```IPCONFIG``` on windows to find the IP / MAC address of the adaptor you want to use and compare it to the list given from the python file.
 
 For this to work, you must connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
 
 After you've done that, I'd recommend opening up "WireShark" a tool used for sniffing packets travelling along a network.
 If you don't know the IP of either the Android or control box, I'd recommend setting the filter to look for the domain of "Begeara.com", and restart the Zone system. 
 
-The Zone system will call the "Begeara.com" URL everytime it starts to verify it's authenticity and license. 
+The Zone system will call the ```Begeara.com``` URL everytime it starts to verify it's authenticity and license. 
 When this packet shows, note down the Source IP address. (This is the control box's IP)
 
 Set a filter on wireshark to find packets coming from that IP, and you should be able to see the box communicating over the network!
@@ -73,7 +84,7 @@ When the Tkinter "ui" object is imported and run, the process for starting the W
 
 ### \_\_init__.py
 
-This file is called to import every function that is needed, if it isn't installed on the Host PC, it will download it automatically, which means no PIP work is required to use this.
+This file is called to import every function that is needed, if a required library isn't installed on the Host PC, it will download it automatically, which means no manual PIP work is required to use this.
 
 ### func/format.py
 
@@ -99,7 +110,7 @@ This view could go completely un used and make no effect on the system what-so-e
 This is the actually cool bit, it does all the thinking, the doing and the breaking in this whole project.
 
 This file starts by defining a class "WebApp" which is used by the "UserInterf.py" to call and start the Web App.
-The first thing that happens is the __init__ function is called, this will start defining all the variabled that may be used, as well as initialise certain parts of the app.
+The first thing that happens is the ```__init__``` function is called, this will start defining all the variables that may be used, as well as initialise certain parts of the app.
 Firstly, it defines the App, using Flask.
 
 #### Variable Context:
