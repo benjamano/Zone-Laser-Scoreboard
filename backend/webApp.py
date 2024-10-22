@@ -3,22 +3,22 @@ import time
 import eventlet
 from flask import Flask, render_template, jsonify, request
 from flask_sqlalchemy import SQLAlchemy
-from flask_socketio import SocketIO, emit, send
+from flask_socketio import SocketIO, emit
 import os
 import signal
 import ctypes
 import datetime
 import pyautogui
-from obswebsocket import obsws, requests
+import obsws_python as obs
 from scapy.all import sniff, conf, IP
 from flask_cors import CORS
 import requests
 import psutil
 import socket
 import webbrowser
-import sys
 import asyncio
 import random
+import sys
 
 try:
     import winrt.windows.media.control as wmc
@@ -57,14 +57,276 @@ class WebApp:
         self._dir = os.path.dirname(os.path.realpath(__file__))
 
         self.OBSConnected = False
-        self.devMode = "False"
+        self.devMode = "false"
         self.filesOpened = False
         self.spotifyControl = True
         self.DMXConnected = False
         self.spotifyStatus = "paused"
         self._localIp = ""
-        self.fixtures = []
         self.rateLimit = False
+        
+        
+        
+        # self._fixtureProfiles = {
+        #     "Dimmer": {
+        #         "Dimmer": list(range(0, 255)),
+        #     },
+        #     "Colorspot575XT": {
+        #         "Pan": list(range(0, 255)),
+        #         "Tilt": list(range(0, 255)),
+        #         "Pan Fine": list(range(0, 255)),
+        #         "Tilt Fine": list(range(0, 255)),
+        #         "PanTilt Speed": {},
+        #         "FanLamp Control": {},
+        #         "Colour 1": {
+        #         "White": 0,
+        #         "Light blue": 13,
+        #         "Red": 26,
+        #         "Blue": 38,
+        #         "Light green": 51,
+        #         "Yellow": 64,
+        #         "Magenta": 77,
+        #         "Cyan": 90,
+        #         "Green": 102,
+        #         "Orange": 115,
+        #         "Rainbow": list(range(128, 255)),
+        #         },
+        #         "Colour 2": {
+        #         "White": 0,
+        #         "Deep Red": 12,
+        #         "Deep Blue": 24,
+        #         "Pink": 36,
+        #         "Cyan": 48,
+        #         "Magenta": 60,
+        #         "Yellow": 72,
+        #         "5600K Filter": 84,
+        #         "3200K Filter": 96,
+        #         "UV": 108
+        #         },
+        #         "Prism": {
+        #         "Open": 0,
+        #         "Rotation": list(range(1, 127)),
+        #         },
+        #         "Macros": {},
+        #         "Gobos": {
+        #         "Open": list(range(0, 7)),
+        #         "1": list(range(8, 15)), 
+        #         "2": list(range(16, 23)), 
+        #         "3": list(range(24, 31)), 
+        #         "4": list(range(32, 39)), 
+        #         "5": list(range(40, 47)), 
+        #         "6": list(range(48, 55)), 
+        #         "7": list(range(56, 63)), 
+        #         "8": list(range(64, 71)), 
+        #         "9": list(range(72, 79)), 
+        #         "1 Shaking": list(range(80, 95)), 
+        #         "2 Shaking": list(range(96, 111)), 
+        #         "3 Shaking": list(range(112, 127)), 
+        #         "4 Shaking": list(range(128, 143)), 
+        #         "5 Shaking": list(range(144, 159)), 
+        #         "6 Shaking": list(range(160, 175)), 
+        #         "7 Shaking": list(range(176, 191)), 
+        #         "8 Shaking": list(range(192, 207)), 
+        #         "9 Shaking": list(range(208, 223)), 
+        #         "Rotation Slow Fast": list(range(224, 255)), 
+        #         },
+        #         "Rotating Gobos": {    
+        #         "Open": list(range(0, 31)),
+        #         "1": list(range(32, 63)), 
+        #         "2": list(range(64, 95)), 
+        #         "3": list(range(96, 127)), 
+        #         "4": list(range(128, 159)), 
+        #         "5": list(range(160, 191)), 
+        #         "6": list(range(192, 223)), 
+        #         "Rotation Slow Fast": list(range(224, 255)), 
+        #         },
+        #         "Rotation Speed": {
+        #         "Indexing": list(range(0, 127)),    
+        #         "Rotation": list(range(128, 255)),    
+        #         },
+        #         "Iris": {
+        #         "Open": 0,
+        #         "MaxToMin": list(range(1, 179)),   
+        #         "Closed": list(range(180, 191)),   
+        #         "Pulse Close Slow Fast": list(range(192, 223)),   
+        #         "Pulse Open Fast Slow": list(range(224, 225)),   
+        #         },
+        #         "Focus": list(range(0, 255)),
+        #         "Strobe / Shutter": {
+        #         "Closed": list(range(0, 32)),   
+        #         "Open": list(range(32, 63)),   
+        #         "Strobe Slow Fast": list(range(64, 95)),   
+        #         "Pulse Slow Fast": list(range(128, 159)),   
+        #         "Random Slow Fast": list(range(192, 223)),   
+        #         },
+        #         "Dimmer": list(range(0, 255)),
+        #     },
+        #     "Colorspot250AT": {
+        #         "Pan": list(range(0, 255)),
+        #         "Pan Fine": list(range(0, 255)),
+        #         "Tilt": list(range(0, 255)),
+        #         "Tilt Fine": list(range(0, 255)),
+        #         "PanTilt Speed": {
+        #         "Max": 0,
+        #         "Speed": list(range(1, 255)),
+        #         },
+        #         "Special Functions": {},
+        #         "PanTilt Macros": {},
+        #         "PanTilt Macros Speed": {},
+        #         "Colour 1": {
+        #         "White": 0,
+        #         "Dark green": 11,
+        #         "Red": 23,
+        #         "Light azure": 34,
+        #         "Magenta": 46,
+        #         "UV filter": 58,
+        #         "Yellow": 70,
+        #         "Green": 81,
+        #         "Pink": 93,
+        #         "Blue": 105,
+        #         "Deep red": 117,
+        #         "Rotation": list(range(190, 243)),
+        #         "Audio": list(range(224, 249)),
+        #         "Random Fast Slow": list(range(250, 255)),
+        #         },
+        #         "Colour Fine Position": list(range(0, 255)),
+        #         "Spinning Gobos": {
+        #         "Open": list(range(0, 3)),
+        #         "1": list(range(4, 7)),   
+        #         "2": list(range(8, 11)),   
+        #         "3": list(range(12, 15)),   
+        #         "4": list(range(16, 19)),   
+        #         "5": list(range(20, 23)),   
+        #         "6": list(range(24, 27)),   
+        #         "7": list(range(28, 31)),   
+        #         "1 Rotating": list(range(32, 35)),
+        #         "2 Rotating": list(range(36, 39)),
+        #         "3 Rotating": list(range(40, 43)),
+        #         "4 Rotating": list(range(44, 47)),
+        #         "5 Rotating": list(range(48, 51)),
+        #         "6 Rotating": list(range(52, 55)),
+        #         "7 Rotating": list(range(56, 59)),
+        #         "1 Shaking Slow Fast": list(range(60, 69)),
+        #         "2 Shaking Slow Fast": list(range(70, 79)),
+        #         "3 Shaking Slow Fast": list(range(80, 89)),
+        #         "4 Shaking Slow Fast": list(range(90, 99)),
+        #         "5 Shaking Slow Fast": list(range(100, 109)),
+        #         "6 Shaking Slow Fast": list(range(110, 119)),
+        #         "7 Shaking Slow Fast": list(range(120, 139)),
+        #         "1 Shaking Fast Slow": list(range(130, 139)),
+        #         "2 Shaking Fast Slow": list(range(140, 149)),
+        #         "3 Shaking Fast Slow": list(range(150, 159)),
+        #         "4 Shaking Fast Slow": list(range(160, 169)),
+        #         "5 Shaking Fast Slow": list(range(170, 179)),
+        #         "6 Shaking Fast Slow": list(range(180, 189)),
+        #         "7 Shaking Fast Slow": list(range(190, 199)),
+        #         "Rotation": list(range(202, 243)),
+        #         "Audio": list(range(244, 249)),
+        #         "Random Fast Slow": list(range(250, 255)),
+        #         },
+        #         "Rotating Gobos": {
+        #         "No Rotation": 0,
+        #         "Rotation": list(range(1, 255)),  
+        #         },
+        #         "Gobo Fine Position": list(range(0, 255)),
+        #         "Prism": {
+        #         "Open position (hole)": list(range(0, 19)),
+        #         "3-facet": list(range(20, 159)),
+        #         "Macro 1": list(range(160, 167)),
+        #         "Macro 2": list(range(168, 175)),
+        #         "Macro 3": list(range(176, 183)),
+        #         "Macro 4": list(range(184, 191)),
+        #         "Macro 5": list(range(192, 199)),
+        #         "Macro 6": list(range(200, 207)),
+        #         "Macro 7": list(range(208, 215)),
+        #         "Macro 8": list(range(216, 223)),
+        #         "Macro 9": list(range(224, 231)),
+        #         "Macro 10": list(range(232, 239)),
+        #         "Macro 11": list(range(240, 247)),
+        #         "Macro 12": list(range(248, 255)),
+        #         },
+        #         "Prism Rotation": {
+        #         "No Rotation": 0,
+        #         "Rotation": list(range(1, 255)), 
+        #         },
+        #         "Focus": list(range(1, 255)),
+        #         "Focus Fine": list(range(1, 255)),
+        #         "StrobeShutter": {
+        #         "Closed": list(range(0, 31)),
+        #         "Open": list(range(32, 63)),
+        #         "Strobe Slow Fast": list(range(64, 95)),
+        #         "Pulse Slow Fast": list(range(128, 143)),
+        #         "Pulse Fast Slow": list(range(144, 159)),
+        #         "Random Slow Fast": list(range(192, 223)),
+        #         },
+        #         "Dimmer": list(range(0, 255)),
+        #         "DimmerFine": list(range(0, 255)),
+        #     },
+        #     "Colorwash250AT": {
+        #         "Pan": list(range(0, 255)),
+        #         "Pan Fine": list(range(0, 255)),
+        #         "Tilt": list(range(0, 255)),
+        #         "Tilt Fine": list(range(0, 255)),
+        #         "PanTilt Speed": {
+        #         "Max": 0,
+        #         "Speed": list(range(1, 255)),
+        #         },
+        #         "Special Functions": {},
+        #         "PanTilt Macros": {},
+        #         "PanTilt Macros Speed": {},
+        #         "Colour 1": {
+        #         "White": 0,
+        #         "Red": 18,
+        #         "Blue": 36,
+        #         "Green": 54,
+        #         "3200K Filter": 72,
+        #         "6000K Filter": 90,
+        #         "UV": list(range(190, 243)),
+        #         "Audio": list(range(244, 249)),
+        #         "Random Fast Slow": list(range(250, 255)),
+        #         },
+        #         "Colour Fine Position": list(range(0, 255)),
+        #         "Cyan": list(range(0, 255)),
+        #         "Magenta": list(range(0, 255)),
+        #         "Yellow": list(range(0, 255)),
+        #         "CMYDimmerSpeed": list(range(0, 255)),
+        #         "CMYMacros": {
+        #         "Open": list(range(0, 7)),
+        #         "Rainbow Fast Slow": list(range(240, 243)),
+        #         "Audio": list(range(244, 249)),
+        #         "Random Fast Slow": list(range(250, 255)),
+        #         },
+        #         "EffectWheel": {
+        #         "Open": list(range(0, 70)),  
+        #         "Beam Shaper": list(range(71, 179)),  
+        #         "Swivelling Slow Fast": list(range(180, 199)),  
+        #         "Frost": list(range(200, 255)),  
+        #         },
+        #         "Zoom": list(range(0, 255)),
+        #         "StrobeShutter": {},
+        #         "StrobeShutter": {
+        #         "Closed": list(range(0, 31)),
+        #         "Open": list(range(32, 63)),
+        #         "Strobe Slow Fast": list(range(64, 95)),
+        #         "Opening Pulse Slow Fast": list(range(128, 143)),
+        #         "Closing Pulse Fast Slow": list(range(144, 159)),
+        #         "Random": list(range(192, 223)),
+        #         },
+        #         "Dimmer": list(range(0, 255)),
+        #         "DimmerFine": list(range(0, 255)),
+        #     }
+        #     }
+        # self.fixtures = {}
+        
+        # self.fixtures["ColorSpot"] = {"type": "Colorspot575XT"}
+        # self.fixtures["BulkHeads"] = {"type": "Dimmer"}
+        
+        # fixture_type = self.fixtures["test"]["type"]
+        # print(fixture_type)
+        
+        # light = "test"
+        
+        # red = self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Red"]
         
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -80,16 +342,14 @@ class WebApp:
     
     def startFlask(self):
         try:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex((self._localIp, 8080)) == 0:
+                    format.message(f"Port 8080 is already in use on {self._localIp}", type="error")
+                    raise RuntimeError("Port in use. Exiting application.")
+
             self.socketio.run(self.app, host=self._localIp, port=8080)
         except Exception as e:
-            format.message(f"Fatal: error occured while trying to start Flask Server: {e}", type="error")
-            format.message(f"Trying BackUp IP", type="warning")
-            try:
-                self.socketio.run(self.app, host="0.0.0.0", port=8080)
-                self._localIp == "0.0.0.0"
-            except Exception as e:
-                format.message("Fatal: Fall Back IP failed", type="error")
-                sys.exit("Fall Back IP failed")
+            os._exit(1)
         
     def start(self):
         format.newline()    
@@ -144,7 +404,7 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
 
-        print("Web App Started, hiding console")
+        format.message("Web App Started, hiding console", type="success")
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
         
         try:
@@ -183,9 +443,10 @@ class WebApp:
 
             self._dmx = OpenDMXController()
             
+            self.fixtures = {}
             self._fixtureProfiles = {
                 "Dimmer": {
-                    "Dimmer": {list(range(0, 255))},
+                    "Dimmer": list(range(0, 255)),
                 },
                 "Colorspot575XT": {
                     "Pan": list(range(0, 255)),
@@ -432,11 +693,11 @@ class WebApp:
                 }
             }
             
-            try:
-                self._dmx.web_control()
+            #try:
+                #self._dmx.web_control()
                 
-            except Exception as e:
-                format.message(f"Error starting DMX web control: {e}", type="error")
+            #except Exception as e:
+                #format.message(f"Error starting DMX web control: {e}", type="error")
         
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
@@ -444,7 +705,7 @@ class WebApp:
                 
                 self._DimmerBulkHeadLights._register_channel(f"{fixtureName}_Dimmer")
                 
-                self.fixtures.append({"fixture": self._DimmerBulkHeadLights, "type": "Dimmer"})
+                self.fixtures[self._DimmerBulkHeadLights.name] = {"type": "Dimmer"}
                 
             except Exception as e:
                 format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
@@ -475,10 +736,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Strobe / Shutter")
                     light._register_channel(f"{fixtureName}_Dimmer")
                     
-                    # Set to red for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", 26)
+                    self.fixtures[light.name] = {"type": "Colorspot575XT"}
                     
-                    self.fixtures.append({"fixture": f"{light}_0", "type": "Colorspot575XT"})
+                    # Set to red for testing
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Red"])
                     
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 575 XT 0: {e}", type="error")
@@ -511,10 +772,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_StrobeShutter")
                     light._register_channel(f"{fixtureName}_Dimmer")
                     
+                    self.fixtures[light.name] = {"type": "Colorspot575XT"}
+                    
                     # Set to orange for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", 115)
-
-                    self.fixtures.append({"fixture": light, "type": "Colorspot575XT"})
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Orange"])
 
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 575 XT 1: {e}", type="error")
@@ -550,11 +811,11 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
+                    self.fixtures[light.name] = {"type": "Colorspot250AT"}
+                    
                     # Set to pink for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", 93)
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Pink"])
 
-                    self.fixtures.append({"fixture": light, "type": "Colorspot250AT"})
-                
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 250 AT 0: {e}", type="error")
                 
@@ -589,10 +850,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
+                    self.fixtures[light.name] = {"type": "Colorspot250AT"}
+                    
                     # Set to magenta for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", 46)
-
-                    self.fixtures.append({"fixture": light, "type": "Colorspot250AT"})
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Magenta"])
                     
             except Exception as e:
                 format.message(f"Error registering Robe Colorspot 250 AT 1: {e}", type="error")
@@ -628,10 +889,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
+                    self.fixtures[light.name] = {"type": "Colorwash250AT"}
+                    
                     # Set to red for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", 18)
-
-                    self.fixtures.append({"fixture": light, "type": "Colorwash250AT"})
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Red"])
                 
             except Exception as e:
                 format.message(f"Error registering Robe Colorwash 250 AT 0: {e}", type="error")
@@ -667,12 +928,10 @@ class WebApp:
                     light._register_channel(f"{fixtureName}_Dimmer")
                     light._register_channel(f"{fixtureName}_DimmerFine")
                     
-                    print(self._fixtureProfiles[self.fixtures[light]["type"]]["Colour 1"]["Red"])
+                    self.fixtures[light.name] = {"type": "Colorwash250AT"}
                     
                     # Set to green for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[self.fixtures[light]["type"]]["Colour 1"]["Red"])
-
-                    self.fixtures.append({"fixture": light, "type": "Colorwash250AT"})
+                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Green"])
                 
             except Exception as e:
                 format.message(f"Error registering Robe Colorwash 250 AT 1: {e}", type="error")
@@ -743,11 +1002,8 @@ class WebApp:
     def openFiles(self):
         try:
             f = open(fr"{self._dir}\data\keys.txt", "r")
-        except:
-            try:
-                f = open(r"C:\Users\benme\Documents\GitHub\Play2Day-Laser-Scoreboard\backend\data\keys.txt", "r")
-            except Exception as e:
-                format.message(f"Failed to open files: {e}", type="error")
+        except Exception as e:
+            format.message(f"Error opening keys.txt: {e}", type="error")
         finally:
             self.IP1 = str(f.readline().strip())
             self.IP2 = str(f.readline().strip())
@@ -778,16 +1034,26 @@ class WebApp:
             
             return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
         
-        @self.app.route("/lights")
-        def lights():   
-            return render_template('lights.html')
+        @self.app.route("/ping")
+        def ping():   
+            #format.message("|--- I'm still alive! ---|")
+            return 'OK'
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
             
-            temp_fixtures = [{"fixture_id": idx, "fixture": fixture.name, "type": fixtureType} for idx, fixture, fixtureType in enumerate(self.fixtures)]
+            temp_fixtures = []
+            for fixture_name, fixture_data in self.fixtures.items():
+                fixture_type = fixture_data["type"]
+                fixture_profile = self._fixtureProfiles.get(fixture_type, {})
+
+                temp_fixtures.append({
+                    "name": fixture_name,            
+                    "type": fixture_type,          
+                    "attributes": fixture_profile      
+                })
             
-            format.message(f"Fixtures: {temp_fixtures}")
+            #format.message(f"Fixtures: {temp_fixtures}")
         
             return jsonify(temp_fixtures)
             
@@ -799,6 +1065,9 @@ class WebApp:
         @self.socketio.on('connect')
         def handleConnect():
             format.message("Sniffer Client connected")
+            
+            emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
+            
             emit('response', {'message': 'Connected to the server!'})
             
         @self.socketio.on('toggleMusic')
@@ -834,6 +1103,15 @@ class WebApp:
             self.spotifyControl = json["data"]
             format.message(f"Spotify control = {self.spotifyControl}")
             
+        @self.socketio.on('playBriefing')
+        def playBriefing():
+            try:
+                format.message("Playing briefing")
+                if self.OBSConnected == True:
+                    self.obs.set_current_program_scene("Video")
+            except Exception as e:
+                format.message(f"Error playing briefing: {e}", type="error")
+    
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
             message = request.form.get('message')
@@ -875,25 +1153,31 @@ class WebApp:
             #format.newline()
                         
             return 'Message sent!'
-    
-    def obs_connect(self):
-        try:
-            format.message("Attempting to connect to OBS")
-            ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
-            ws.connect()
-            self.OBSConnected = True
-            format.message("Successfully Connected to OBS", type="success")
-            
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "obsStatus"})
 
-        except Exception as e:
-            format.message(f"Failed to connect to OBS: {e}", type="error")
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "obsStatus"})
+    def obs_connect(self):
+        if self.devMode == "false":
+            try:
+                format.message("Attempting to connect to OBS")
+                # ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
+                # ws.connect()
+                
+                self.obs = obs.ReqClient(host=self.OBSSERVERIP, port=self.OBSSERVERPORT, password=self.OBSSERVERPASSWORD, timeout=3)
+                
+                self.OBSConnected = True
+                format.message("Successfully Connected to OBS", type="success")
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "obsStatus"})
+
+            except Exception as e:
+                format.message(f"Failed to connect to OBS: {e}", type="error")
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "obsStatus"})
+        else:
+            format.message("Development Mode, skipping OBS Connection", type="warning")
     
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             
     def startSniffing(self):
-        print("Starting packet sniffer...")
+        format.message("Starting packet sniffer...")
         try:
             sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
@@ -935,13 +1219,13 @@ class WebApp:
             
             if mode.lower() == "toggle":
                 if self.spotifyStatus == "paused":
-                    format.message("Playing music", type="warning")
+                    #format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     
                     result = "playing"
                 else:
-                    format.message("Pausing music", type="warning")
+                    #format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
                     result = "paused"
@@ -965,7 +1249,7 @@ class WebApp:
                 if self.spotifyStatus == "paused":
                     return
                 else:
-                    format.message("Pausing music", type="warning")
+                    #format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
                     result = "playing"
@@ -974,7 +1258,7 @@ class WebApp:
                 if self.spotifyStatus == "playing":
                     return
                 else:
-                    format.message("Playing music", type="warning")
+                    #format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
@@ -1121,7 +1405,7 @@ class WebApp:
                 self.rateLimit = False
                 
         except Exception as e:
-            if "reason: too many 429 error responses'" in e:
+            if "Max Retries, reason: too many 429 error responses" in bpm:
                 self.rateLimit = True
                 return
             else:
@@ -1136,7 +1420,7 @@ class WebApp:
             self.handleBPM(song, bpm, album)
             
         except Exception as e:
-            format.message(f"Failed to start BPM finder: {e}", type="error")
+            format.message(f"Failed to find BPM: {e}", type="error")
    
     def mediaStatusChecker(self):
         while True:
@@ -1155,7 +1439,7 @@ class WebApp:
                         self.bpm_thread.daemon = True
                         self.bpm_thread.start()
                     except Exception as e:
-                        format.message(f"Error starting BPM thread: {e}", type="error")
+                        format.message(f"Error finding BPM at media status change: {e}", type="error")
                     
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
@@ -1231,6 +1515,7 @@ class WebApp:
             format.message(f"Response: {response.text}")
         else:
             format.message(f"{timeLeft} seconds remain!", type="success") 
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         
         format.newline()

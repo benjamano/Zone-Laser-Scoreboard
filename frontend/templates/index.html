@@ -61,19 +61,46 @@
 	}
 
 	#fixtures-container {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		align-content: center;
+		justify-content: flex-start;
+		font-size: 0.8rem;
     }
+
+	#fixtures-container .fixture .title {
+		color: white;;
+		font-size: 1rem;
+	}
+
     .fixture {
-        margin: 10px;
+        padding: 10px;
         text-align: center;
+		border: #0000002b;
+		border-width: 5px;
+		border-style: solid;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-content: center;
+		justify-content: center;
+		gap: 30px;
     }
+
+	.fixtureChannel{
+		display: flex;
+		flex-direction: column;
+		align-content: center;
+		justify-content: center;
+		align-items: center;
+	}
+	
     .slider {
         writing-mode: bt-lr; /* IE */
         -webkit-appearance: slider-vertical; /* WebKit */
         width: 8px;
-        height: 100px;
+        height: 200px;
     }
     .label {
         margin-top: 10px;
@@ -227,7 +254,12 @@
 									<div class="top-arch-content">
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
 
-										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2" style="background-color: var(--dark-gray); color: #ffffff;">
+											<div class="card-header collapsed" role="button">
+												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
+											</div>
+
+										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
 											<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
@@ -239,15 +271,13 @@
 
 										</div>
 
-										<div class="card mb-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
 											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
-												<div id="musicControlCardBody" class="card-body collapse">
+												<div id="musicControlCardBody" class="card-body collapse" style="display: flex; align-content: flex-start; justify-content: flex-start; align-items: flex-start; flex-direction: row; flex-wrap: nowrap; gap: 20px;">
 
-													<div class="row">
-
-														<div class="col-6">
+														<div style="width: 50%;">
 
 															<div class="musicControls p-2 mb-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
 																<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
@@ -255,7 +285,7 @@
 																<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
 															
 																<!-- Progress bar container -->
-																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 15rem;">
+																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
 																	<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
 																</div>
 																
@@ -265,9 +295,9 @@
 														
 														</div>
 
-														<div class="col-6">
+														<div style="width: 50%;">
 
-															<div class="card" style="color: #ffffff; background-color: var(--medium-dark-gray);">
+															<div class="card" style="color: #ffffff; background-color: var(--primary-gray);">
 		
 																<div class="card-header collapsed" onclick="$('#musicRequestFormCardBody').collapse('toggle')">Request a song</div>
 		
@@ -281,11 +311,12 @@
 		
 														</div>
 													
-													</div>
+													
 												
 												</div>
 												
 											</div>
+										</div>
 
                                         <!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
 
@@ -418,14 +449,13 @@
 				<div class="space-4"></div>
 			</div>
 			<div class="wrap">
-				<div class="scroll-top"><a id="scroll-top" href=""><span class="hop">screen</span> top</a></div>
 				<div class="left-frame">
 					<div>
-						<div class="panel-3">03<span class="hop">-111968</span></div>
+						<div class="panel-3"><span class="hop"></span></div>
 						<nav id="secondary-nav">
-							<a href="">BULKHEAD LIGHTS STATUS: <span id="bulkheadLightStatus">OFF</span></a>
-							<a href="">BUTTON-05</a>
-							<a href="">BUTTON-06</a>
+							<a href=""></a>
+							<a href=""></a>
+							<a href=""></a>
 						</nav>
 					</div>
 				</div>
@@ -454,7 +484,7 @@
 			</div>
 		</section>
 	</div>
-	<script type="text/javascript" src="assets/lcars.js"></script>
+	<!-- <script type="text/javascript" src="assets/lcars.js"></script> -->
 </body>
 
 </html>
@@ -468,6 +498,7 @@
 	var lastBPM = 0;
 	var totalDuration = 0;
 	var currentTime = 0;
+	var currentTimeLeft = 0;
 
 
     window.onload = function() {
@@ -479,147 +510,148 @@
 
 		fetchFixtures();
 
-        console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
-
-        socket.on('connect', function() {
-            socket.emit('client_event', {data: 'Client connected!'});
-            socket.emit('spotifyControlStatus', {data: controlSpotify});
-            console.log("SpotifyControl: " + controlSpotify);
-            console.log("Client connected!");
-
-			if (controlSpotify == true){
-				$("#spotifyPlaybackStatus").text("ON")
-			} else {
-				$("#spotifyPlaybackStatus").text("OFF")
-			}
-
-            $("#gameStatus").removeClass("go-red").addClass("go-blue");
-            $("#gameStatus").text("Waiting");
-
-			$("#webAppOnlineStatus").text("ONLINE");
-
-			try{
-
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
-			}
-			catch(err){}
-        });
-
-        socket.on('start', function(msg) {
-
-			gamePlayingStatus = "playing";
-
-            console.log(msg);
-
-			for (let i = 1; i <= 21; i++) {
-				$("#gun-" + i + "-score").text("0");
-				$("#gun-" + i + "-accuracy").text("0%");
-			}
-
-            var gameStatus = document.getElementById('gameStatus');
-
-            $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
-            $("#gameStatus").text("Game in Progress...");
-
-			try{
-
-				var messageDiv = document.getElementById('messages');
-
-				messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
-			}
-			catch(err){}
-        });
-
-		socket.on('obsStatus', function(msg) {
-            console.log(msg.message);
-
-			$("#OBSConnectionStatus").val(msg.message)
-			
-        });
-
-		socket.on('dmxStatus', function(msg) {
-            console.log(msg.message);
-
-			$("#DMXConnectionStatus").val(msg.message)
-            
-        });
-
-        socket.on('end', function(msg) {
-
-			gamePlayingStatus = "stopped";
-
-            console.log(msg);
-
-			for (let i = 1; i <= 21; i++) {
-				$("#gun-" + i + "-score").text("0");
-				$("#gun-" + i + "-accuracy").text("0%");
-			}
-
-            var gameStatus = document.getElementById('gameStatus');
-
-			$("#timeRemaining").text("00:00");
-
-            $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
-            $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
-        });
-
-        socket.on('server', function(msg) {
-            console.log(msg);
-
-			try{
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-			}
-			catch(err){}
-        });
-
-		socket.on('gameMode', function(msg) {
-            console.log("Game Mode: ", msg.message);
-
-			try{
-            var messageDiv = document.getElementById('messages');
-
-            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-			}
-			catch(err){}
-        });
-
-		socket.on('gunScores', function(msg) {
-			if (gamePlayingStatus == "stopped"){
-				return;
-			}
-
-            console.log("gunScore: "+msg);
-
-			var gunScores = msg.message.split(',');
-
-			var gunId = gunScores[0];
-			var finalScore = gunScores[1];
-			var Accuracy = gunScores[2];
-
-			console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
-
-			$("#gun-"+gunId+"-score").text(finalScore);
-			$("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
-        });
-
-        socket.on('disconnect', function() {
-            var messageDiv = document.getElementById('messages');
-
-			$("#webAppOnlineStatus").text("UNKNOWN");
-			
-			try{
-            messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
-			}
-
-			catch(err){}
-        });
-
 		let currentTimeLeft;
-	let countdownInterval;
+		let countdownInterval;
+
+        console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
+	};
+
+	socket.on('connect', function() {
+		socket.emit('client_event', {data: 'Client connected!'});
+		socket.emit('spotifyControlStatus', {data: controlSpotify});
+		console.log("SpotifyControl: " + controlSpotify);
+		console.log("Client connected!");
+
+		if (controlSpotify == true){
+			$("#spotifyPlaybackStatus").text("ON")
+		} else {
+			$("#spotifyPlaybackStatus").text("OFF")
+		}
+
+		$("#gameStatus").removeClass("go-red").addClass("go-blue");
+		$("#gameStatus").text("Waiting");
+
+		$("#webAppOnlineStatus").text("ONLINE");
+
+		try{
+
+		var messageDiv = document.getElementById('messages');
+
+		messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('start', function(msg) {
+
+		gamePlayingStatus = "playing";
+
+		console.log(msg);
+
+		for (let i = 1; i <= 21; i++) {
+			$("#gun-" + i + "-score").text("0");
+			$("#gun-" + i + "-accuracy").text("0%");
+		}
+
+		var gameStatus = document.getElementById('gameStatus');
+
+		$("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
+		$("#gameStatus").text("Game in Progress...");
+
+		try{
+
+			var messageDiv = document.getElementById('messages');
+
+			messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('obsStatus', function(msg) {
+		console.log(msg.message);
+
+		$("#OBSConnectionStatus").text(msg.message)
+		
+	});
+
+	socket.on('dmxStatus', function(msg) {
+		console.log(msg.message);
+
+		$("#DMXConnectionStatus").text(msg.message)
+		
+	});
+
+	socket.on('end', function(msg) {
+
+		gamePlayingStatus = "stopped";
+
+		console.log(msg);
+
+		for (let i = 1; i <= 21; i++) {
+			$("#gun-" + i + "-score").text("0");
+			$("#gun-" + i + "-accuracy").text("0%");
+		}
+
+		var gameStatus = document.getElementById('gameStatus');
+
+		$("#timeRemaining").text("00:00");
+
+		$("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
+		$("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
+	});
+
+	socket.on('server', function(msg) {
+		console.log(msg);
+
+		try{
+		var messageDiv = document.getElementById('messages');
+
+		messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('gameMode', function(msg) {
+		console.log("Game Mode: ", msg.message);
+
+		try{
+		var messageDiv = document.getElementById('messages');
+
+		messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+		}
+		catch(err){}
+	});
+
+	socket.on('gunScores', function(msg) {
+		if (gamePlayingStatus == "stopped"){
+			return;
+		}
+
+		console.log("gunScore: "+msg);
+
+		var gunScores = msg.message.split(',');
+
+		var gunId = gunScores[0];
+		var finalScore = gunScores[1];
+		var Accuracy = gunScores[2];
+
+		console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
+
+		$("#gun-"+gunId+"-score").text(finalScore);
+		$("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
+	});
+
+	socket.on('disconnect', function() {
+		var messageDiv = document.getElementById('messages');
+
+		$("#webAppOnlineStatus").text("UNKNOWN");
+		
+		try{
+		messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
+		}
+
+		catch(err){}
+	});
 
 	socket.on('timeRemaining', function (msg) {
 		if (gamePlayingStatus == "stopped"){
@@ -633,9 +665,12 @@
 			currentTimeLeft = newTime;
 
 			// If there's an existing interval, clear it
-			if (countdownInterval) {
-				clearInterval(countdownInterval);
+			try{
+				if (countdownInterval) {
+					clearInterval(countdownInterval);
+				}
 			}
+			catch{}
 
 			// Start the countdown
 			countdownInterval = setInterval(function () {
@@ -742,8 +777,6 @@
 		const remainingSeconds = seconds % 60;
 		return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
 	}
-        
-    };
 
     async function toggleSpotifyControl(){
         controlSpotify = !controlSpotify;
@@ -779,54 +812,83 @@
         const response = await fetch(`/api/availableFixtures`);
         const fixtures = await response.json();
 
-        const container = document.getElementById('fixtures-container');
         fixtures.forEach(fixture => {
 
-			if (fixture.name.includes("Colorspot575XT")) {
-				console.log("Colorspot 575 XT found with ID: " + fixture.id);
+			if (fixture.type.includes("Colorspot575XT")) {
+				console.log("Colorspot 575 XT found with name: " + fixture.name); 
 			}
-			else if (fixture.name.includes("Colorspot250AT")) {
-				console.log("Colorspot 250 AT found with ID: " + fixture.id);
+			else if (fixture.type.includes("Colorspot250AT")) {
+				console.log("Colorspot 250 AT found with ID: " + fixture.name);
 			}
-			else if (fixture.name.includes("Colorwash250AT")) {
-				console.log("Colorwash 250 AT found with ID: " + fixture.id);
+			else if (fixture.type.includes("Colorwash250AT")) {
+				console.log("Colorwash 250 AT found with ID: " + fixture.name);
+			}
+			else if (fixture.type.includes("Dimmer")) {
+				console.log("Dimmer found with ID: " + fixture.name);
 
-
+				//createDimmerSlider(fixture);
 			}
-			else if (fixture.id.includes("Dimmer")) {
-				console.log("Dimmer found with ID: " + fixture.id);
 
-				createDimmerSlider(fixture.id, fixture.name);
-			}
+			const container = document.getElementById('fixtures-container');
+
+			const fixtureDiv = document.createElement('div');
+			fixtureDiv.className = `fixture`;
+			fixtureDiv.id = `fixture-${fixture.id}`;
+
+			const fixtureTitle = document.createElement('h1');
+			fixtureTitle.className = "title";
+			fixtureTitle.textContent = fixture.name;
+
+			fixtureDiv.appendChild(fixtureTitle);
+			container.appendChild(fixtureDiv);
+
+			Object.keys(fixture.attributes).forEach(key => {
+				const attributeName = key;
+
+				const slider = document.createElement('input');
+				slider.type = 'range';
+				slider.min = 0;
+				slider.max = 255;
+				slider.value = 0;
+				slider.className = 'slider';
+				slider.oninput = function() {
+					updateDMXValue(fixture.name, this.value);
+					valueLabel.textContent = this.key;
+				};
+	
+				const label = document.createElement('div');
+				label.className = 'label';
+				label.textContent = attributeName;
+	
+				const valueLabel = document.createElement('div');
+				valueLabel.className = 'valueLabel';
+				valueLabel.id = `valueLabel-${fixture.name}`; 
+				valueLabel.textContent = "0"; 
+	
+				const fixtureChannel = document.createElement('div');
+				fixtureChannel.className = 'fixtureChannel';
+				fixtureChannel.id = `fixtureChannel-${fixture.name}`; 
+
+				fixtureChannel.appendChild(slider);
+				fixtureChannel.appendChild(label);
+				fixtureChannel.appendChild(valueLabel);
+				fixtureDiv.appendChild(fixtureChannel);
+
+			
+			});
         });
     }
 
-	function createDimmerSlider(fixtureId, fixtureName) {
-		const fixtureDiv = document.createElement('div');
-		fixtureDiv.className = 'fixture';
-
-		const slider = document.createElement('input');
-		slider.type = 'range';
-		slider.min = 0;
-		slider.max = 255;
-		slider.value = 0;
-		slider.className = 'slider';
-		slider.oninput = function() {
-			updateDMXValue(fixture.id, this.value);
-		};
-
-		const label = document.createElement('div');
-		label.className = 'label';
-		label.textContent = fixture.name;
-
-		fixtureDiv.appendChild(slider);
-		fixtureDiv.appendChild(label);
-		container.appendChild(fixtureDiv);
+	function createDimmerSlider(fixture) {
+		
 
 	}
 
-    function updateDMXValue(fixtureId, value) {
-        console.log(`Fixture ID: ${fixtureId}, DMX Value: ${value}`);
+    function updateDMXValue(fixtureName, value) {
+        //console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
+
+		$(`#valueLabel-${fixtureName}`).text(value);
+
         // Add your logic to update the DMX value here
     }
 
@@ -871,5 +933,16 @@
 		
 		// Update the time left display
 		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
+	}
+
+	document.addEventListener('keydown', function(event) {
+		if (event.key === 'Home') {
+			console.log("Home Key pressed, Playing Briefing");
+		}
+	});
+
+	function playBriefing(){
+		console.log("Playing Briefing");
+		socket.emit('playBriefing');
 	}
 </script>
