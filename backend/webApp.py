@@ -59,7 +59,7 @@ class WebApp:
         self.OBSConnected = False
         self.devMode = "False"
         self.filesOpened = False
-        self.spotifyControl = False
+        self.spotifyControl = True
         self.DMXConnected = False
         self.spotifyStatus = "paused"
         self._localIp = ""

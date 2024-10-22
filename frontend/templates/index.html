@@ -438,12 +438,8 @@
 						<div class="bar-10"></div>
 					</div>
 					<main>
-
-						<!-- Start your content here. -->
 						
-							<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>
-
-						<!-- End content area -->						
+						<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>				
 
 						<footer>
 							<div class="footer-inside">
@@ -465,7 +461,7 @@
 
 <script>
 
-    var controlSpotify = false;
+    var controlSpotify = true;
 	var gamePlayingStatus = "stopped"
     var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
 
@@ -475,6 +471,12 @@
 
 
     window.onload = function() {
+		if (controlSpotify == true){
+				$("#spotifyPlaybackStatus").text("ON")
+		} else {
+				$("#spotifyPlaybackStatus").text("OFF")
+		}
+
 		fetchFixtures();
 
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
