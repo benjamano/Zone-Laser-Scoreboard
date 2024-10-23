@@ -25,15 +25,15 @@ All libraries should be installed when you run the ```Scoreboard.py``` file.
 
 | Feature                                                               | Status                                             | Comments                                                                                                                        |
 | :----------------                                                     | :------                                            | :------                                                                                                                         |
-|Store Game Data in Database, Allow Player names to be added / looked up| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
+|Store Game Data in Database| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
 |DMX Lighting Control                                                   | Started                                            | A DMX connection is setup at runtime, but nothing is done yet as I have no way to test if it works (Will be able to soon)       |
-|DMX Lighting Reacting to game events E.G. Game End / Start, Colour of the winning team, Colour change on BPM | Not Started  | Will get on with this once I can test it                                                                                        |
-|Advanced music control                                                 | Almost Done                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
-|Randomly select lighting effects at game start for unique experience   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
-|Turn certain lights on when a target is shot                           | Not Started                                        | No way of testing and no hardware for target just yet, more of a longshot idea                                                  |
+|DMX Lighting Reacting to game events  | Not Started  | Will get on with this once I can test it                                                                                        |
+|Advanced music control                                                 | Complete                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
+|Randomly select lighting effects   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
+|Turn lights on when a nearby traget is shot                           | Not Started                                        | No way of testing and no hardware for target just yet, more of a longshot idea                                                  |
 |Advanced OBS control                                                   | Started                                            | Allow for certains creens around the arena to change based on game status - So far it only creates a web-socket connection      |
-|Track game progress / scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
-|Interactive web page that opens when the program starts                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
+|Track game progress & scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
+|Interactive web page                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
 
 
 ## Packets decoded so far:
