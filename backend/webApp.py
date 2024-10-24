@@ -64,6 +64,7 @@ class WebApp:
         self.spotifyStatus = "paused"
         self._localIp = ""
         self.rateLimit = False
+        self.RestartRequested = False
         
         
         
@@ -1307,12 +1308,28 @@ class WebApp:
                             if self.OBSConnected == False:
                                 format.message(f"OBS Connection lost, restarting OBS")
                                 self.obs_connect()
+                            if self.RestartRequested == True:
+                                format.message(f"Restart requested, restarting PC in 5 minutes")
+                                self.PCRestartThread = threading.Thread(target=self.restartPC("Restart Requested"))
+                                self.PCRestartThread.daemon = True
+                                self.PCRestartThread.start()
                                 
                         except Exception as e:
                             format.message(f"Error starting process {processName}: {e}", type="error")
             
         except Exception as e:
             format.message(f"Error occured while checking processes: {e}", type="error")
+            
+    def restartPC(self, reason="unknown"):
+        format.message(f"Restarting PC in 5 minutes due to {reason}", type="warning")
+        
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
+        
+        time.sleep(300)
+        
+        format.message("Restarting PC", type="warning")
+
+        os.system("shutdown -t 0 -r -f")
             
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
@@ -1414,7 +1431,7 @@ class WebApp:
     def findBPM(self):
         try:
             fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-            fetcher.fetch()  # Fetch the current song and BPM once
+            fetcher.fetch()  # Fetch the current song and BPM
             song, bpm, album = fetcher.get_current_song_and_bpm()
 
             self.handleBPM(song, bpm, album)
@@ -1444,12 +1461,16 @@ class WebApp:
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
-                
                     
                 time.sleep(1)
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
+                
+                if "[WinError -2147418110]" in e:
+                    format.message("Error 2147418110, requesting PC restart", type="error")
+                    self.RestartRequested = True
+                
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         

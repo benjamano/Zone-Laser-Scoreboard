@@ -107,9 +107,32 @@
         margin-top: 10px;
     }
 	
+	.warning{
+		position: fixed;
+		top: 0;
+		margin: 0;
+		padding: 0.2rem;
+		background-color: #972100;
+		z-index: 999;
+		width: 100%;
+		display: none;
+		animation: fadeInOut 2s ease-in-out 2;
+	}
+
+	.warning h1{
+		color: white;
+		text-transform: uppercase;
+		font-weight: bold;
+		text-align: center;
+		font-size: 1.5rem;
+	}
+
 </style>
 
 <body>
+	<div id="warningsContainer" class="warning">
+		<h1 id="warningsText"></h1>
+	</div>
 	<div class="wrap-everything">
 		<section id="column-1">
 			<div class="lcars-frame">
@@ -719,6 +742,42 @@
 		console.log(msg.message);
 
 		$("#musicPlaying").text(msg.message);
+	});
+
+	socket.on('createWarning', function (msg) {
+		console.log(msg.message);
+
+		if (msg.message == "Restart"){
+			$("#warningsText").text(msg.message);
+
+			try{
+				if (countdownInterval) {
+					clearInterval(countdownInterval);
+				}
+			}
+			catch{}
+
+			TimeUntilRestart = 300;
+
+			// Start the countdown
+			RestartCountdownInterval = setInterval(function () {
+				if (TimeUntilRestart <= 0) {
+					clearInterval(RestartCountdownInterval);
+					return;
+				}
+
+				TimeUntilRestart--;
+
+				const formattedTime = formatTime(TimeUntilRestart);
+				$("#warningsText").text("warning: pc restarting in "+formattedTime + " MUSIC WILL NOT BE AVAILABLE DURING THIS PERIOD");
+			}, 1000);
+		}
+		else{
+			$("#warningsText").text(msg.message);
+		}
+
+		$("#warningsContainer").css("display", "unset");
+
 	});
 
 	socket.on('musicStatus', function (msg) {
