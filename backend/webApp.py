@@ -65,6 +65,8 @@ class WebApp:
         self._localIp = ""
         self.rateLimit = False
         self.RestartRequested = False
+        self.gameStatus = "stopped" #Either running or stopped
+        
         
         
         
@@ -1309,14 +1311,15 @@ class WebApp:
                             if self.OBSConnected == False:
                                 format.message(f"OBS Connection lost, restarting OBS")
                                 self.obs_connect()
-                            if self.RestartRequested == True and self.gameEnded == True and self.gameStarted == False:
-                                format.message(f"Restart requested, restarting PC in 5 minutes")
-                                self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
-                                self.AppRestartThread.daemon = True
-                                self.AppRestartThread.start()
                                 
                         except Exception as e:
                             format.message(f"Error starting process {processName}: {e}", type="error")
+                            
+                if self.RestartRequested == True and self.gameStatus == "stopped":
+                    format.message(f"Restart requested, restarting PC in 5 minutes")
+                    self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
+                    self.AppRestartThread.daemon = True
+                    self.AppRestartThread.start()
             
         except Exception as e:
             format.message(f"Error occured while checking processes: {e}", type="error")
@@ -1478,6 +1481,7 @@ class WebApp:
     def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
+                
                 #format.message(f"Packet 1: {packet}")
                 
                 packet_data = bytes(packet['Raw']).hex()
@@ -1512,12 +1516,14 @@ class WebApp:
         format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
         if packetData[1] == "@015":
+            self.gameStatus = "running"
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
+            self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
@@ -1531,11 +1537,13 @@ class WebApp:
         format.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
+            self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             format.message(f"Response: {response.text}")
         else:
+            self.gameStatus = "running"
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
