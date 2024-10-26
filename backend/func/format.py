@@ -22,13 +22,9 @@ try:
     
     logger = logging.getLogger("webAppLogger")
 
-    try:
-        logFilePath = fr"{dir}\app.log"
+    logFilePath = fr"{dir}\app.log"
         
-    except:
-        sys.exit("Failed to open log file.")
-        
-    logging.basicConfig(filename=logFilePath, level=logging.DEBUG)
+    logging.basicConfig(filename=logFilePath, level=logging.DEBUG, filemode="a")
 
 except Exception as e:
     print(f"An error occured: {e}")
@@ -65,13 +61,11 @@ def message(message, type="Info", date=True, newline=False):
         else:
             messagetosend += f"{logtime} | {color}{type.title()}{reset} : {message}"
 
-        if type == "Error":
+        if type.upper() == "Error":
             logger.error(f"{logtime} | {message}")
-        elif type == "Warning":
+        elif type.upper() == "Warning":
             logger.warning(f"{logtime} | {message}")
-        elif type == "Success":
-            logger.info(f"{logtime} | {message}")
-        
+
         print(messagetosend)
         
     except Exception as e:
