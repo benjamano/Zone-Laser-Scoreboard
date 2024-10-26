@@ -1311,9 +1311,9 @@ class WebApp:
                                 self.obs_connect()
                             if self.RestartRequested == True and self.gameEnded == True and self.gameStarted == False:
                                 format.message(f"Restart requested, restarting PC in 5 minutes")
-                                self.PCRestartThread = threading.Thread(target=self.restartPC("Restart Requested"))
-                                self.PCRestartThread.daemon = True
-                                self.PCRestartThread.start()
+                                self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
+                                self.AppRestartThread.daemon = True
+                                self.AppRestartThread.start()
                                 
                         except Exception as e:
                             format.message(f"Error starting process {processName}: {e}", type="error")
@@ -1321,16 +1321,16 @@ class WebApp:
         except Exception as e:
             format.message(f"Error occured while checking processes: {e}", type="error")
             
-    def restartPC(self, reason="unknown"):
-        format.message(f"Restarting PC in 5 minutes due to {reason}", type="warning")
+    def restartApp(self, reason="unknown"):
+        format.message(f"Restarting App in 1 minute due to {reason}", type="warning")
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
         
-        time.sleep(300)
+        time.sleep(60)
         
-        format.message("Restarting PC", type="warning")
+        format.message("Restarting App", type="warning")
 
-        os.system("shutdown -t 0 -r -f")
+        os._exit(1)
             
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
@@ -1468,9 +1468,9 @@ class WebApp:
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
                 
-                if "[WinError -2147418110]" in e:
-                    format.message("Error 2147418110, requesting PC restart", type="error")
-                    self.RestartRequested = True
+                format.message("Requesting app restart", type="warning")
+                
+                self.RestartRequested = True
                 
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
@@ -1509,7 +1509,7 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
         if packetData[1] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")

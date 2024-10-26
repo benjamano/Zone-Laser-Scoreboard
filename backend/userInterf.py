@@ -52,7 +52,7 @@ def showInterface():
         threading.Thread(target=web_app.sendTestPacket()).start()
     
     def restartPC():
-        restartPCThread = threading.Thread(target=web_app.restartPC())
+        restartPCThread = threading.Thread(target=web_app.restartApp("UI Request"))
         restartPCThread.daemon = True
         restartPCThread.start()
         
@@ -115,7 +115,7 @@ def showInterface():
     RestartPCButton = tk.Button(interfaceWindow, text="Restart PC", command=restartPC)
     RestartPCButton.pack(pady=10)
     
-    interfaceWindow.geometry("500x400")
+    interfaceWindow.geometry("600x700")
     interfaceWindow.mainloop()
 
 def startWebApp():

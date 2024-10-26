@@ -22,7 +22,6 @@
 
     body{
         background-color: black;
-        overflow: hidden;
     }
 
 	#album-container {
@@ -52,7 +51,6 @@
 
 	html {
     overflow: scroll;
-    overflow-x: hidden;
 	}
 
 	::-webkit-scrollbar {
@@ -67,26 +65,47 @@
 		align-content: center;
 		justify-content: flex-start;
 		font-size: 0.8rem;
-    }
+		overflow-x: auto;
+		white-space: nowrap; 
+		padding-bottom: 10px;
+	}
+	
 
 	#fixtures-container .fixture .title {
 		color: white;;
 		font-size: 1rem;
 	}
 
+	#lightingCardBody {
+		width: 100%;
+		max-width: 100%;
+		overflow-x: auto; 
+	}
+
     .fixture {
-        padding: 10px;
-        text-align: center;
+		padding: 10px;
+		text-align: center;
 		border: #0000002b;
 		border-width: 5px;
 		border-style: solid;
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		flex-wrap: nowrap;
 		align-content: center;
 		justify-content: center;
 		gap: 30px;
-    }
+	}
+	
+	.fixtureContainer {
+		display: flex;
+		flex-direction: row;
+		align-content: center;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 50px;
+		width: auto;
+	}
+	
 
 	.fixtureChannel{
 		display: flex;
@@ -94,6 +113,7 @@
 		align-content: center;
 		justify-content: center;
 		align-items: center;
+		width: 80px;
 	}
 	
     .slider {
@@ -278,18 +298,22 @@
 									<div class="top-arch-content">
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
 
-										<div class="card m-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2 col-12" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed" role="button">
 												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
 											</div>
 
-										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
+										<div class="col-12">
 
-											<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
+											<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
-											<div id="lightingCardBody" class="card-body collapse">
+												<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
-												<div id="fixtures-container"></div>
+												<div id="lightingCardBody" style="width: 100%;" class="card-body collapse col-12">
+
+													<div id="fixtures-container" class="col-12"></div>
+
+												</div>
 
 											</div>
 
@@ -757,7 +781,7 @@
 			}
 			catch{}
 
-			TimeUntilRestart = 300;
+			TimeUntilRestart = 60;
 
 			// Start the countdown
 			RestartCountdownInterval = setInterval(function () {
@@ -895,12 +919,16 @@
 			fixtureDiv.className = `fixture`;
 			fixtureDiv.id = `fixture-${fixture.id}`;
 
+			const fixtureContainer = document.createElement('div');
+			fixtureContainer.className = 'fixtureContainer';
+
 			const fixtureTitle = document.createElement('h1');
 			fixtureTitle.className = "title";
 			fixtureTitle.textContent = fixture.name;
 
-			fixtureDiv.appendChild(fixtureTitle);
 			container.appendChild(fixtureDiv);
+			fixtureDiv.appendChild(fixtureTitle);
+
 
 			Object.keys(fixture.attributes).forEach(key => {
 				const attributeName = key;
@@ -912,30 +940,34 @@
 				slider.value = 0;
 				slider.className = 'slider';
 				slider.oninput = function() {
-					updateDMXValue(fixture.name, this.value);
-					valueLabel.textContent = this.key;
+					updateDMXValue(attributeName, fixture.name, this.value);
+					valueLabel.textContent = this.value;
 				};
 	
-				const label = document.createElement('div');
+				const label = document.createElement('label');
 				label.className = 'label';
 				label.textContent = attributeName;
 	
-				const valueLabel = document.createElement('div');
+				const valueLabel = document.createElement('label');
 				valueLabel.className = 'valueLabel';
-				valueLabel.id = `valueLabel-${fixture.name}`; 
+				valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`; 
 				valueLabel.textContent = "0"; 
 	
 				const fixtureChannel = document.createElement('div');
 				fixtureChannel.className = 'fixtureChannel';
-				fixtureChannel.id = `fixtureChannel-${fixture.name}`; 
+				fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`; 
 
 				fixtureChannel.appendChild(slider);
 				fixtureChannel.appendChild(label);
 				fixtureChannel.appendChild(valueLabel);
-				fixtureDiv.appendChild(fixtureChannel);
-
-			
+				fixtureContainer.appendChild(fixtureChannel);
+				fixtureDiv.appendChild(fixtureContainer);
 			});
+
+			var gLabel = document.getElementById("lightingCardBody");
+			var style = window.getComputedStyle(gLabel , null);
+
+			document.getElementById('fixtures-container').style.width = style.getPropertyValue("width")
         });
     }
 
@@ -944,10 +976,8 @@
 
 	}
 
-    function updateDMXValue(fixtureName, value) {
+    function updateDMXValue(attributeName, fixtureName, value) {
         //console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
-
-		$(`#valueLabel-${fixtureName}`).text(value);
 
         // Add your logic to update the DMX value here
     }
