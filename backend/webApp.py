@@ -1303,6 +1303,8 @@ class WebApp:
                                 os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                             elif processName.lower() == "obs64":
                                 os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                                time.sleep(15)
+                                self.obs_connect()
                             else:
                                 format.message(f"Process {processName} not recognized for auto-start", type="error")
                             if self.DMXConnected == False:
