@@ -65,7 +65,7 @@ class WebApp:
         self._localIp = ""
         self.rateLimit = False
         self.RestartRequested = False
-        self.gameStatus = "stopped" #Either running or stopped
+        self.gameStatus = "stopped" # Either running or stopped
         
         
         
