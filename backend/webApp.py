@@ -1291,7 +1291,7 @@ class WebApp:
     def runProcessChecker(self):
         try:
             while True:
-                time.sleep(600)
+                time.sleep(60)
                 for processName in self.expecteProcesses:
                     processFound = self.checkIfProcessRunning(processName)
                     #format.message(f"Process {processName} running: {processFound}")
