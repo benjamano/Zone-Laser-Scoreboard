@@ -67,8 +67,8 @@ class WebApp:
         self.RestartRequested = False
         self.gameStatus = "stopped" #Either running or stopped
         self.endOfDay = False
-        
-        
+
+        format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
         
         self._fixtureProfiles = {
@@ -1010,6 +1010,7 @@ class WebApp:
         except Exception as e:
             format.message(f"Error opening keys.txt: {e}", type="error")
         finally:
+            blank = f.readline()
             self.IP1 = str(f.readline().strip())
             self.IP2 = str(f.readline().strip())
             self.ETHERNET_INTERFACE = str(f.readline().strip())
@@ -1337,7 +1338,7 @@ class WebApp:
                         
                         try:
                             with open(fr"{self._dir}\data\OBSText.txt", "w") as f:
-                                f.write("EndOfDay: Waiting for next game")
+                                f.write("EndOfDay: Waiting for next game                            ")
                                 
                         except Exception as e:
                             format.message(f"Error opening OBSText.txt: {e}", type="error")
@@ -1499,9 +1500,11 @@ class WebApp:
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
                 
-                format.message("Requesting app restart", type="warning")
-                
-                self.RestartRequested = True
+                if e != "an integer is required":
+        
+                    format.message("Requesting app restart", type="warning")
+                    
+                    self.RestartRequested = True
                 
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
