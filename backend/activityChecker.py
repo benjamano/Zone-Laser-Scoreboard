@@ -10,8 +10,8 @@ try:
     import socket
     import ctypes
     
-except:
-    print("Failed to import required modules")
+except Exception as e:
+    print(f"Failed to import required modules, {e}")
     input("Press enter to exit")
     
 print("Web App Status Checker Started, hiding console")
