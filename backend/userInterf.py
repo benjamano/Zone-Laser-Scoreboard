@@ -47,7 +47,6 @@ def showInterface():
     interfaceWindow = tk.Tk()
     interfaceWindow.title("Control Panel")
     
-
     def sendTestMessage():
         threading.Thread(target=web_app.sendTestPacket()).start()
     

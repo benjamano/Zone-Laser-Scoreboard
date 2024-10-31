@@ -65,7 +65,8 @@ class WebApp:
         self._localIp = ""
         self.rateLimit = False
         self.RestartRequested = False
-        self.gameStatus = "stopped" # Either running or stopped
+        self.gameStatus = "stopped" #Either running or stopped
+        self.endOfday = False
         
         
         
@@ -1220,30 +1221,29 @@ class WebApp:
     
     def handleMusic(self, mode):
         if self.spotifyControl == True:
-            
             if mode.lower() == "toggle":
                 if self.spotifyStatus == "paused":
                     #format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     
-                    result = "playing"
+                    result = self.spotifyStatus
                 else:
                     #format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
-                    result = "paused"
+                    result = self.spotifyStatus
                 
             elif mode.lower() == "next":
                 pyautogui.hotkey('nexttrack')
                 self.spotifyStatus = "playing"
-                result = "playing"
+                result = self.spotifyStatus
             
             elif mode.lower() == "previous":
                 pyautogui.hotkey('prevtrack')
                 pyautogui.hotkey('prevtrack')
                 self.spotifyStatus = "playing"
-                result = "playing"
+                result = self.spotifyStatus
             
             elif mode.lower() == "restart":
                 pyautogui.hotkey('prevtrack')
@@ -1273,6 +1273,14 @@ class WebApp:
                 self.bpm_thread.start()
             except Exception as e:
                 format.message(f"Error starting BPM thread: {e}", type="error")
+                
+            try:
+                self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker)
+                self.mediaStatusCheckerThread.daemon = True
+                self.mediaStatusCheckerThread.start()
+                
+            except Exception as e:
+                format.message(f"Error starting Flask Server: {e}", type="error")
                 
             return result
                     
@@ -1318,11 +1326,29 @@ class WebApp:
                             format.message(f"Error starting process {processName}: {e}", type="error")
                             
                 if self.RestartRequested == True and self.gameStatus == "stopped":
-                    format.message(f"Restart requested, restarting PC in 5 minutes")
+                    format.message(f"Restart requested, restarting PC in 1 minute")
                     self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
                     self.AppRestartThread.daemon = True
                     self.AppRestartThread.start()
-            
+                    
+                if self.gameStatus == "stopped" and self.OBSConnected == True:
+                    if self.endOfDay == True:
+                        format.message(f"EOD, setting OBS output to Test Mode")
+                        
+                        try:
+                            with open(fr"{self._dir}\data\OBSText.txt", "w") as f:
+                                f.write("EndOfDay: Waiting for next game")
+                                
+                        except Exception as e:
+                            format.message(f"Error opening OBSText.txt: {e}", type="error")
+                        
+                        self.obs.set_current_program_scene("Test Mode")
+                    else:
+                        self.endOfDay = True
+                
+                elif self.gameStatus == "running":
+                    self.endOfday = False
+                
         except Exception as e:
             format.message(f"Error occured while checking processes: {e}", type="error")
             
@@ -1515,6 +1541,9 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
+        if self.OBSConnected == True:
+            self.obs.set_current_program_scene("Laser Scores")
+        
         format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
         if packetData[1] == "@015":
@@ -1546,6 +1575,8 @@ class WebApp:
             format.message(f"Response: {response.text}")
         else:
             self.gameStatus = "running"
+            if self.OBSConnected == True:
+                self.obs.set_current_program_scene("Laser Scores")
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
@@ -1578,6 +1609,10 @@ class WebApp:
     def shotConfirmedPacket(self, packetData):
         pass
     
+    # -----------------| DMX Control |---------------------------------------------------------------------------------------------------------------------------------------------------------- #            
+    
+    
+    
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
     def gameStarted(self):
@@ -1589,10 +1624,12 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
+            #self.setFixtureBrightness(255)
+            
             self._RedBulkHeadLights.dim(255, 5000)
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network: {e}", type="warning")
+            format.message(f"Restarting DMX Network", type="warning")
             self.setUpDMX()
         
     def gameEnded(self):
