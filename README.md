@@ -15,6 +15,8 @@ The DMX - USB MUST have the ```libusb-win32``` driver installed.
 > NOTE: Installing this driver will cause QLC+ (And presumably others) to not recognise the adaptor anymore.
 > This can be fixed by reinstalling the original driver on the adaptor, the original drivers will most likely be on the manufacturer's website.
 
+NOTE: For this software, the ```Open-DMX``` standard is being used. It should be easy enough to change it to ```UDMX``` but this has not been implemented.
+
 For OBS to work, you MUST make a ```keys.txt``` file in the same directory as the scoreboard.py file.
 Press enter 3 times in this file and then add your ```OBS Websocket IP```, ```OBS Websocket Password``` and the ```OBS Websocket Port```.
 The program will read these and attempt to connect to the OBS Websocket instance.

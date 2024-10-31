@@ -70,6 +70,7 @@ class WebApp:
         
         
         
+        
         self._fixtureProfiles = {
             "Dimmer": {
                 "Dimmer": list(range(0, 255)),
@@ -1298,7 +1299,7 @@ class WebApp:
     def runProcessChecker(self):
         try:
             while True:
-                time.sleep(600)
+                time.sleep(60)
                 for processName in self.expecteProcesses:
                     processFound = self.checkIfProcessRunning(processName)
                     #format.message(f"Process {processName} running: {processFound}")
@@ -1310,6 +1311,8 @@ class WebApp:
                                 os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                             elif processName.lower() == "obs64":
                                 os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                                time.sleep(15)
+                                self.obs_connect()
                             else:
                                 format.message(f"Process {processName} not recognized for auto-start", type="error")
                             if self.DMXConnected == False:

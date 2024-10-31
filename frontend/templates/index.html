@@ -565,6 +565,9 @@
 	};
 
 	socket.on('connect', function() {
+
+		$("#warningsContainer").css("display", "none");
+
 		socket.emit('client_event', {data: 'Client connected!'});
 		socket.emit('spotifyControlStatus', {data: controlSpotify});
 		console.log("SpotifyControl: " + controlSpotify);
