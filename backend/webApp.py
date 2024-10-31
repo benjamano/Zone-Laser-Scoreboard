@@ -66,7 +66,7 @@ class WebApp:
         self.rateLimit = False
         self.RestartRequested = False
         self.gameStatus = "stopped" #Either running or stopped
-        self.endOfday = False
+        self.endOfDay = False
         
         
         
@@ -1347,7 +1347,7 @@ class WebApp:
                         self.endOfDay = True
                 
                 elif self.gameStatus == "running":
-                    self.endOfday = False
+                    self.endOfDay = False
                 
         except Exception as e:
             format.message(f"Error occured while checking processes: {e}", type="error")
