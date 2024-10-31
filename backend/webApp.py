@@ -1331,6 +1331,14 @@ class WebApp:
                 if self.gameStatus == "stopped" and self.OBSConnected == True:
                     if self.endOfDay == True:
                         format.message(f"EOD, setting OBS output to Test Mode")
+                        
+                        try:
+                            with open(fr"{self._dir}\data\OBSText.txt", "w") as f:
+                                f.write("EndOfDay: Waiting for next game")
+                                
+                        except Exception as e:
+                            format.message(f"Error opening OBSText.txt: {e}", type="error")
+                        
                         self.obs.set_current_program_scene("Test Mode")
                     else:
                         self.endOfDay = True
