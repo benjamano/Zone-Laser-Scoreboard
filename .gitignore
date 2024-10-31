@@ -170,3 +170,4 @@ backend/tests/test.py
 backend/runPython.bat
 backend/data/keys.txt
 backend/data/secrets.txt
+backend/data/OBSText.txt
