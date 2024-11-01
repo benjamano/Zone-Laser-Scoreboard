@@ -1629,11 +1629,11 @@ class WebApp:
         try:
             #self.setFixtureBrightness(255)
             
-            self._RedBulkHeadLights.dim(255, 5000)
+            #self._RedBulkHeadLights.dim(255, 5000)
+            
+            pass
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network", type="warning")
-            self.setUpDMX()
         
     def gameEnded(self):
         format.message("Game ended")
@@ -1644,12 +1644,13 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._RedBulkHeadLights.dim(0, 5000)
+            #self.setFixtureBrightness(0)
+            
+            pass
+            
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network: {e}", type="warning")
-            self.setUpDMX()
-    
+
     # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
     
     def sendTestPacket(self, type="server"):
