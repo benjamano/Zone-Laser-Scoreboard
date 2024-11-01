@@ -1545,6 +1545,7 @@ class WebApp:
         # 4,@014,0 = end
         
         if self.OBSConnected == True:
+            self.endOfDay = False
             self.obs.set_current_program_scene("Laser Scores")
         
         format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
@@ -1579,6 +1580,7 @@ class WebApp:
         else:
             self.gameStatus = "running"
             if self.OBSConnected == True:
+                self.endOfDay = False
                 self.obs.set_current_program_scene("Laser Scores")
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
