@@ -73,19 +73,23 @@ def message(message, type="Info", date=True, newline=False):
                 
                 with open(fr"{dir}\..\data\keys.txt") as f:
                     secretKey = f.readline().strip()  
-                
-                url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
-                data = {
-                    "type": type.title(),
-                    "messegeContent": message,
-                    "secretKey": secretKey
-                }
-                try:
-                    response = requests.post(url, data=data)
-                    response.raise_for_status()
-                except Exception as e:
+                    environment = f.readline().strip()
+                    
+                if "dev" in environment.lower():
                     pass
-                    #print(f"Failed to send log message to server: {e}")
+                else:
+                    url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
+                    data = {
+                        "type": type.title(),
+                        "messegeContent": message + f"<br>Sent by Environment: {environment}",
+                        "secretKey": secretKey
+                    }
+                    try:
+                        response = requests.post(url, data=data)
+                        response.raise_for_status()
+                    except Exception as e:
+                        pass
+                        #print(f"Failed to send log message to server: {e}")
                     
         except Exception as e:
             pass
