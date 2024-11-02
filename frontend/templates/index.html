@@ -68,6 +68,7 @@
 		overflow-x: auto;
 		white-space: nowrap; 
 		padding-bottom: 10px;
+		max-width: 60rem;
 	}
 	
 
@@ -323,44 +324,34 @@
 
 											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
-												<div id="musicControlCardBody" class="card-body collapse" style="display: flex; align-content: flex-start; justify-content: flex-start; align-items: flex-start; flex-direction: row; flex-wrap: nowrap; gap: 20px;">
+												<div id="musicControlCardBody" class="card-body collapse d-flex justify-content-between align-items-start">
 
-														<div style="width: 50%;">
-
-															<div class="musicControls p-2 mb-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
-																<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
-																<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
-																<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
-															
-																<!-- Progress bar container -->
-																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
-																	<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
-																</div>
-																
-																<!-- Time Display -->
-																<span id="timeLeft" style="color: #fff;">0:00</span>
-															</div>
+														<div class="musicControls mb-2 col-5" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; font-size: 1.2rem; padding: 0.6rem 1rem 0.6rem 1.2rem;">
+															<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
+															<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+															<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
 														
-														</div>
-
-														<div style="width: 50%;">
-
-															<div class="card" style="color: #ffffff; background-color: var(--primary-gray);">
-		
-																<div class="card-header collapsed" onclick="$('#musicRequestFormCardBody').collapse('toggle')">Request a song</div>
-		
-																<div class="card-body collapse" id="musicRequestFormCardBody">
-		
-																	<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
-		
-																</div>
-		
+															<!-- Progress bar container -->
+															<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
+																<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
 															</div>
-		
+															
+															<!-- Time Display -->
+															<span id="timeLeft" style="color: #fff;">0:00</span>
 														</div>
-													
-													
-												
+
+														<div class="card col-5" style="color: #ffffff; background-color: var(--primary-gray);">
+	
+															<div class="card-header collapsed d-flex justify-content-between align-items-center" onclick="$('#musicRequestFormCardBody').toggle()"><span>Request a song</span><i class="fa-solid fa-arrow-pointer fa-beat"></i></div>
+	
+															<div class="card-body collapse" id="musicRequestFormCardBody">
+	
+																<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
+	
+															</div>
+	
+														</div>
+
 												</div>
 												
 											</div>
