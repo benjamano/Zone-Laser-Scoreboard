@@ -1011,6 +1011,7 @@ class WebApp:
             format.message(f"Error opening keys.txt: {e}", type="error")
         finally:
             blank = f.readline()
+            blank = f.readline()
             self.IP1 = str(f.readline().strip())
             self.IP2 = str(f.readline().strip())
             self.ETHERNET_INTERFACE = str(f.readline().strip())
@@ -1273,15 +1274,7 @@ class WebApp:
                 self.bpm_thread.daemon = True
                 self.bpm_thread.start()
             except Exception as e:
-                format.message(f"Error starting BPM thread: {e}", type="error")
-                
-            try:
-                self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker)
-                self.mediaStatusCheckerThread.daemon = True
-                self.mediaStatusCheckerThread.start()
-                
-            except Exception as e:
-                format.message(f"Error starting Flask Server: {e}", type="error")
+                format.message(f"Error running BPM thread: {e}", type="error")
                 
             return result
                     
