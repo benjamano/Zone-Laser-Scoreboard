@@ -1326,11 +1326,11 @@ class WebApp:
                         except Exception as e:
                             format.message(f"Error starting process {processName}: {e}", type="error")
                             
-                if self.RestartRequested == True and self.gameStatus == "stopped":
-                    format.message(f"Restart requested, restarting PC in 1 minute")
-                    self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
-                    self.AppRestartThread.daemon = True
-                    self.AppRestartThread.start()
+                # if self.RestartRequested == True and self.gameStatus == "stopped":
+                #     format.message(f"Restart requested, restarting PC in 1 minute")
+                #     self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
+                #     self.AppRestartThread.daemon = True
+                #     self.AppRestartThread.start()
                     
                 if self.gameStatus == "stopped" and self.OBSConnected == True:
                     if self.endOfDay == True:
@@ -1505,6 +1505,10 @@ class WebApp:
                     format.message("Requesting app restart", type="warning")
                     
                     self.RestartRequested = True
+                    
+                    self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested - BPM Issue"))
+                    self.AppRestartThread.daemon = True
+                    self.AppRestartThread.start()
                 
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
