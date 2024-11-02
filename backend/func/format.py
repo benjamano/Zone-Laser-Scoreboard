@@ -84,10 +84,12 @@ def message(message, type="Info", date=True, newline=False):
                     response = requests.post(url, data=data)
                     response.raise_for_status()
                 except Exception as e:
-                    print(f"Failed to send log message to server: {e}")
+                    pass
+                    #print(f"Failed to send log message to server: {e}")
                     
         except Exception as e:
-            print(f"Failed to send log message to server: {e}")
+            pass
+            #print(f"Failed to send log message to server: {e}")
 
         print(messagetosend)
         
