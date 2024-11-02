@@ -1268,6 +1268,8 @@ class WebApp:
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
+                    
+            time.sleep(2)
                 
             try:
                 self.bpm_thread = threading.Thread(target=self.findBPM)
@@ -1462,6 +1464,22 @@ class WebApp:
 
             self.handleBPM(song, bpm, album)
             
+            temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+            
+            if temp_spotifyStatus != self.spotifyStatus:
+                self.spotifyStatus = temp_spotifyStatus
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+                
+                #format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
+                
+                try:
+                    self.bpm_thread = threading.Thread(target=self.findBPM)
+                    self.bpm_thread.daemon = True
+                    self.bpm_thread.start()
+                except Exception as e:
+                    format.message(f"Error finding BPM at media status change: {e}", type="error")
+                
         except Exception as e:
             format.message(f"Failed to find BPM: {e}", type="error")
    
@@ -1469,26 +1487,12 @@ class WebApp:
         while True:
             try:
                 temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
-                
-                if temp_spotifyStatus != self.spotifyStatus:
-                    self.spotifyStatus = temp_spotifyStatus
-                    
-                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
-                    
-                    #format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
-                    
-                    try:
-                        self.bpm_thread = threading.Thread(target=self.findBPM)
-                        self.bpm_thread.daemon = True
-                        self.bpm_thread.start()
-                    except Exception as e:
-                        format.message(f"Error finding BPM at media status change: {e}", type="error")
                     
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
                     
-                time.sleep(1)
+                time.sleep(2)
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
