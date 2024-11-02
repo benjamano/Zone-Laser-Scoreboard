@@ -1311,7 +1311,7 @@ class WebApp:
                             if processName.lower() == "spotify":
                                 os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                             elif processName.lower() == "obs64":
-                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
                                 time.sleep(15)
                                 self.obs_connect()
                             else:
