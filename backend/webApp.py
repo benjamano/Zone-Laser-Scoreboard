@@ -1316,9 +1316,9 @@ class WebApp:
                                 self.obs_connect()
                             else:
                                 format.message(f"Process {processName} not recognized for auto-start", type="error")
-                            if self.DMXConnected == False:
-                                format.message(f"DMX Connection lost, restarting DMX Network")
-                                self.setUpDMX()
+                            # if self.DMXConnected == False:
+                            #     format.message(f"DMX Connection lost, restarting DMX Network")
+                            #     self.setUpDMX()
                             if self.OBSConnected == False:
                                 format.message(f"OBS Connection lost, restarting OBS")
                                 self.obs_connect()
