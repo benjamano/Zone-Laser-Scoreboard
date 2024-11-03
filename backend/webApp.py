@@ -328,13 +328,6 @@ class WebApp:
         self.fixtures["ColorSpot"] = {"type": "Colorspot575XT"}
         self.fixtures["BulkHeads"] = {"type": "Dimmer"}
         
-        fixture_type = self.fixtures["BulkHeads"]["type"]
-        print(fixture_type)
-        
-        light = "ColorSpot"
-        
-        red = self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Red"]
-        
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
         self.openFiles()
