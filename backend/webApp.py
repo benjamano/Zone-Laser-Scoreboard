@@ -1070,7 +1070,7 @@ class WebApp:
             
             emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
             
-            emit('response', {'message': 'Connected to the server!'})
+            emit('response', {'message': 'Connected to server'})
             
         @self.socketio.on('toggleMusic')
         def togglePlayback():
@@ -1089,21 +1089,12 @@ class WebApp:
             response = self.handleMusic("next")
             
             emit('musicStatus', {'message': f"{response}"})
-
-        @self.socketio.on('client_event')
-        def handleClientEvent(json):
-            format.message(f"Received event: {json}")
         
         @self.socketio.on('SpotifyControl')
         def handleSpotifyControl(json):
-            format.message(f"Spotify control = {json["data"]}")
+            #format.message(f"Spotify control = {json["data"]}")
             
             self.spotifyControl = json["data"]
-            
-        @self.socketio.on('spotifyControlStatus')
-        def handleSpotifyControlVariable(json):
-            self.spotifyControl = json["data"]
-            format.message(f"Spotify control = {self.spotifyControl}")
             
         @self.socketio.on('playBriefing')
         def playBriefing():
@@ -1559,14 +1550,14 @@ class WebApp:
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
-            format.message(f"Response: {response.text}")
+            #format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
             self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-            format.message(f"Response: {response.text}")
+            #format.message(f"Response: {response.text}")
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
 
@@ -1580,7 +1571,7 @@ class WebApp:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-            format.message(f"Response: {response.text}")
+            #format.message(f"Response: {response.text}")
         else:
             self.gameStatus = "running"
             if self.OBSConnected == True:
