@@ -1506,9 +1506,12 @@ class WebApp:
         
                     format.message("Requesting app restart", type="warning")
                     
+                    if self.gameStatus != "stopped":
+                        pyautogui.press("playpause")
+                    
                     self.RestartRequested = True
                     
-                    self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested - BPM Issue"))
+                    self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested - BPM Issue: {e}"))
                     self.AppRestartThread.daemon = True
                     self.AppRestartThread.start()
                 
