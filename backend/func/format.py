@@ -69,7 +69,7 @@ def message(message, type="Info", date=True, newline=False):
             logger.warning(f"{logtime} | {message}")
             
         try:            
-            if type.title() == "Error" or type.title() == "Warning" and message != "Failed to connect to OBS: timed out" and message != "Error occured while setting up DMX connection! (No backend available)" and message != "Error while trying to sniff, falling back to default adaptor":
+            if type.title() == "Error" or type.title() == "Warning":
                 
                 with open(fr"{dir}\..\data\keys.txt") as f:
                     secretKey = f.readline().strip()  
