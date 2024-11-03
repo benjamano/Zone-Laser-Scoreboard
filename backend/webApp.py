@@ -1487,6 +1487,11 @@ class WebApp:
         while True:
             try:
                 temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+                
+                if temp_spotifyStatus != self.spotifyStatus:
+                    self.spotifyStatus = temp_spotifyStatus
+                    
+                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
