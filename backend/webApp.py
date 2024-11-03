@@ -67,6 +67,8 @@ class WebApp:
         self.RestartRequested = False
         self.gameStatus = "stopped" #Either running or stopped
         self.endOfDay = False
+        
+        pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
