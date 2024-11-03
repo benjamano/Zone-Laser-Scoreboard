@@ -1497,7 +1497,7 @@ class WebApp:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
                     
-                time.sleep(2)
+                time.sleep(5)
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
