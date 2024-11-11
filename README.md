@@ -18,7 +18,7 @@ The DMX - USB MUST have the ```libusb-win32``` driver installed.
 NOTE: For this software, the ```Open-DMX``` standard is being used. It should be easy enough to change it to ```UDMX``` but this has not been implemented.
 
 For OBS to work, you MUST make a ```keys.txt``` file in the same directory as the scoreboard.py file.
-Press enter 3 times in this file and then add your ```OBS Websocket IP```, ```OBS Websocket Password``` and the ```OBS Websocket Port```.
+Press "enter" (AKA Make a new line) 5 times in this file and then add your ```OBS Websocket IP```, ```OBS Websocket Password``` and the ```OBS Websocket Port```.
 The program will read these and attempt to connect to the OBS Websocket instance.
 
 All libraries should be installed when you run the ```Scoreboard.py``` file.
