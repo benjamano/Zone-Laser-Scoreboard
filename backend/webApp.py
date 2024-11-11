@@ -948,7 +948,7 @@ class WebApp:
             
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
-            format.message("Empty DB Found! Seeding Data....", type="error")
+            format.message("Empty DB Found! Seeding Data....", type="warning")
  
             gunAlpha = Gun(name="Alpha", defaultColor="Red")
             gunApollo = Gun(name="Apollo", defaultColor="Red")
