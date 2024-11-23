@@ -171,3 +171,4 @@ backend/runPython.bat
 backend/data/keys.txt
 backend/data/secrets.txt
 .vscode/settings.json
+backend/data/OBSText.txt

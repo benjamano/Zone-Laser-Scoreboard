@@ -22,7 +22,6 @@
 
     body{
         background-color: black;
-        overflow: hidden;
     }
 
 	#album-container {
@@ -52,7 +51,6 @@
 
 	html {
     overflow: scroll;
-    overflow-x: hidden;
 	}
 
 	::-webkit-scrollbar {
@@ -67,26 +65,48 @@
 		align-content: center;
 		justify-content: flex-start;
 		font-size: 0.8rem;
-    }
+		overflow-x: auto;
+		white-space: nowrap; 
+		padding-bottom: 10px;
+		max-width: 60rem;
+	}
+	
 
 	#fixtures-container .fixture .title {
 		color: white;;
 		font-size: 1rem;
 	}
 
+	#lightingCardBody {
+		width: 100%;
+		max-width: 100%;
+		overflow-x: auto; 
+	}
+
     .fixture {
-        padding: 10px;
-        text-align: center;
+		padding: 10px;
+		text-align: center;
 		border: #0000002b;
 		border-width: 5px;
 		border-style: solid;
 		display: flex;
-		flex-direction: row;
+		flex-direction: column;
 		flex-wrap: nowrap;
 		align-content: center;
 		justify-content: center;
 		gap: 30px;
-    }
+	}
+	
+	.fixtureContainer {
+		display: flex;
+		flex-direction: row;
+		align-content: center;
+		justify-content: flex-start;
+		align-items: center;
+		gap: 50px;
+		width: auto;
+	}
+	
 
 	.fixtureChannel{
 		display: flex;
@@ -94,11 +114,13 @@
 		align-content: center;
 		justify-content: center;
 		align-items: center;
+		width: 80px;
 	}
 	
     .slider {
-        writing-mode: bt-lr; /* IE */
-        -webkit-appearance: slider-vertical; /* WebKit */
+        writing-mode: bt-lr;
+		-webkit-appearance: slider-vertical;
+		appearance: slider-vertical;
         width: 8px;
         height: 200px;
     }
@@ -106,9 +128,32 @@
         margin-top: 10px;
     }
 	
+	.warning{
+		position: fixed;
+		top: 0;
+		margin: 0;
+		padding: 0.2rem;
+		background-color: #972100;
+		z-index: 999;
+		width: 100%;
+		display: none;
+		animation: fadeInOut 2s ease-in-out 2;
+	}
+
+	.warning h1{
+		color: white;
+		text-transform: uppercase;
+		font-weight: bold;
+		text-align: center;
+		font-size: 1.5rem;
+	}
+
 </style>
 
 <body>
+	<div id="warningsContainer" class="warning">
+		<h1 id="warningsText"></h1>
+	</div>
 	<div class="wrap-everything">
 		<section id="column-1">
 			<div class="lcars-frame">
@@ -254,18 +299,22 @@
 									<div class="top-arch-content">
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
 
-										<div class="card m-2" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card m-2 col-12" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed" role="button">
-												<button  class="btn btn-primary" onclick="playInfoVideo()">Play Briefing</button>
+												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
 											</div>
 
-										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
+										<div class="col-12">
 
-											<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
+											<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
-											<div id="lightingCardBody" class="card-body collapse">
+												<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
-												<div id="fixtures-container"></div>
+												<div id="lightingCardBody" style="width: 100%;" class="card-body collapse col-12">
+
+													<div id="fixtures-container" class="col-12"></div>
+
+												</div>
 
 											</div>
 
@@ -275,44 +324,34 @@
 
 											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
-												<div id="musicControlCardBody" class="card-body collapse" style="display: flex; align-content: flex-start; justify-content: flex-start; align-items: flex-start; flex-direction: row; flex-wrap: nowrap; gap: 20px;">
+												<div id="musicControlCardBody" class="card-body collapse d-flex justify-content-between align-items-start">
 
-														<div style="width: 50%;">
-
-															<div class="musicControls p-2 mb-2" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; width: fit-content;">
-																<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
-																<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
-																<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
-															
-																<!-- Progress bar container -->
-																<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
-																	<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
-																</div>
-																
-																<!-- Time Display -->
-																<span id="timeLeft" style="color: #fff;">0:00</span>
-															</div>
+														<div class="musicControls mb-2 col-5" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; font-size: 1.2rem; padding: 0.6rem 1rem 0.6rem 1.2rem;">
+															<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
+															<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+															<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
 														
-														</div>
-
-														<div style="width: 50%;">
-
-															<div class="card" style="color: #ffffff; background-color: var(--primary-gray);">
-		
-																<div class="card-header collapsed" onclick="$('#musicRequestFormCardBody').collapse('toggle')">Request a song</div>
-		
-																<div class="card-body collapse" id="musicRequestFormCardBody">
-		
-																	<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
-		
-																</div>
-		
+															<!-- Progress bar container -->
+															<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
+																<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
 															</div>
-		
+															
+															<!-- Time Display -->
+															<span id="timeLeft" style="color: #fff;">0:00</span>
 														</div>
-													
-													
-												
+
+														<div class="card col-5" style="color: #ffffff; background-color: var(--primary-gray);">
+	
+															<div class="card-header collapsed d-flex justify-content-between align-items-center" onclick="$('#musicRequestFormCardBody').toggle()"><span>Request a song</span><i class="fa-solid fa-arrow-pointer fa-beat"></i></div>
+	
+															<div class="card-body collapse" id="musicRequestFormCardBody">
+	
+																<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
+	
+															</div>
+	
+														</div>
+
 												</div>
 												
 											</div>
@@ -468,12 +507,8 @@
 						<div class="bar-10"></div>
 					</div>
 					<main>
-
-						<!-- Start your content here. -->
 						
-							<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>
-
-						<!-- End content area -->						
+						<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>				
 
 						<footer>
 							<div class="footer-inside">
@@ -495,7 +530,7 @@
 
 <script>
 
-    var controlSpotify = false;
+    var controlSpotify = true;
 	var gamePlayingStatus = "stopped"
     var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
 
@@ -506,6 +541,12 @@
 
 
     window.onload = function() {
+		if (controlSpotify == true){
+				$("#spotifyPlaybackStatus").text("ON")
+		} else {
+				$("#spotifyPlaybackStatus").text("OFF")
+		}
+
 		fetchFixtures();
 
 		let currentTimeLeft;
@@ -515,8 +556,10 @@
 	};
 
 	socket.on('connect', function() {
-		socket.emit('client_event', {data: 'Client connected!'});
-		socket.emit('spotifyControlStatus', {data: controlSpotify});
+
+		$("#warningsContainer").css("display", "none");
+		
+		socket.emit('SpotifyControl', {data: controlSpotify});
 		console.log("SpotifyControl: " + controlSpotify);
 		console.log("Client connected!");
 
@@ -718,6 +761,42 @@
 		$("#musicPlaying").text(msg.message);
 	});
 
+	socket.on('createWarning', function (msg) {
+		console.log(msg.message);
+
+		if (msg.message == "Restart"){
+			$("#warningsText").text(msg.message);
+
+			try{
+				if (countdownInterval) {
+					clearInterval(countdownInterval);
+				}
+			}
+			catch{}
+
+			TimeUntilRestart = 60;
+
+			// Start the countdown
+			RestartCountdownInterval = setInterval(function () {
+				if (TimeUntilRestart <= 0) {
+					clearInterval(RestartCountdownInterval);
+					return;
+				}
+
+				TimeUntilRestart--;
+
+				const formattedTime = formatTime(TimeUntilRestart);
+				$("#warningsText").text("warning: WebApp restarting in "+formattedTime + " | MUSIC WILL NOT BE AVAILABLE DURING THIS PERIOD");
+			}, 1000);
+		}
+		else{
+			$("#warningsText").text(msg.message);
+		}
+
+		$("#warningsContainer").css("display", "unset");
+
+	});
+
 	socket.on('musicStatus', function (msg) {
 		console.log(msg.message);
 
@@ -833,12 +912,16 @@
 			fixtureDiv.className = `fixture`;
 			fixtureDiv.id = `fixture-${fixture.id}`;
 
+			const fixtureContainer = document.createElement('div');
+			fixtureContainer.className = 'fixtureContainer';
+
 			const fixtureTitle = document.createElement('h1');
 			fixtureTitle.className = "title";
 			fixtureTitle.textContent = fixture.name;
 
-			fixtureDiv.appendChild(fixtureTitle);
 			container.appendChild(fixtureDiv);
+			fixtureDiv.appendChild(fixtureTitle);
+
 
 			Object.keys(fixture.attributes).forEach(key => {
 				const attributeName = key;
@@ -850,30 +933,34 @@
 				slider.value = 0;
 				slider.className = 'slider';
 				slider.oninput = function() {
-					updateDMXValue(fixture.name, this.value);
-					valueLabel.textContent = this.key;
+					updateDMXValue(attributeName, fixture.name, this.value);
+					valueLabel.textContent = this.value;
 				};
 	
-				const label = document.createElement('div');
+				const label = document.createElement('label');
 				label.className = 'label';
 				label.textContent = attributeName;
 	
-				const valueLabel = document.createElement('div');
+				const valueLabel = document.createElement('label');
 				valueLabel.className = 'valueLabel';
-				valueLabel.id = `valueLabel-${fixture.name}`; 
+				valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`; 
 				valueLabel.textContent = "0"; 
 	
 				const fixtureChannel = document.createElement('div');
 				fixtureChannel.className = 'fixtureChannel';
-				fixtureChannel.id = `fixtureChannel-${fixture.name}`; 
+				fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`; 
 
 				fixtureChannel.appendChild(slider);
 				fixtureChannel.appendChild(label);
 				fixtureChannel.appendChild(valueLabel);
-				fixtureDiv.appendChild(fixtureChannel);
-
-			
+				fixtureContainer.appendChild(fixtureChannel);
+				fixtureDiv.appendChild(fixtureContainer);
 			});
+
+			var gLabel = document.getElementById("lightingCardBody");
+			var style = window.getComputedStyle(gLabel , null);
+
+			document.getElementById('fixtures-container').style.width = style.getPropertyValue("width")
         });
     }
 
@@ -882,10 +969,8 @@
 
 	}
 
-    function updateDMXValue(fixtureName, value) {
+    function updateDMXValue(attributeName, fixtureName, value) {
         //console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
-
-		$(`#valueLabel-${fixtureName}`).text(value);
 
         // Add your logic to update the DMX value here
     }
@@ -933,7 +1018,15 @@
 		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
 	}
 
-	function playInfoVideo(){
+	document.addEventListener('keydown', function(event) {
+		if (event.key === 'Home') {
+			console.log("Home Key pressed, Playing Briefing");
+			playBriefing()
+		}
+	});
+
+	function playBriefing(){
+		console.log("Playing Briefing");
 		socket.emit('playBriefing');
 	}
 </script>

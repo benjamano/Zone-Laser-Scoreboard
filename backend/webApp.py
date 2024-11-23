@@ -59,274 +59,274 @@ class WebApp:
         self.OBSConnected = False
         self.devMode = "false"
         self.filesOpened = False
-        self.spotifyControl = False
+        self.spotifyControl = True
         self.DMXConnected = False
         self.spotifyStatus = "paused"
         self._localIp = ""
         self.rateLimit = False
+        self.RestartRequested = False
+        self.gameStatus = "stopped" #Either running or stopped
+        self.endOfDay = False
+        
+        pyautogui.FAILSAFE = False
+
+        format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
         
+        self._fixtureProfiles = {
+            "Dimmer": {
+                "Dimmer": list(range(0, 255)),
+            },
+            "Colorspot575XT": {
+                "Pan": list(range(0, 255)),
+                "Tilt": list(range(0, 255)),
+                "Pan Fine": list(range(0, 255)),
+                "Tilt Fine": list(range(0, 255)),
+                "PanTilt Speed": {},
+                "FanLamp Control": {},
+                "Colour 1": {
+                "White": 0,
+                "Light blue": 13,
+                "Red": 26,
+                "Blue": 38,
+                "Light green": 51,
+                "Yellow": 64,
+                "Magenta": 77,
+                "Cyan": 90,
+                "Green": 102,
+                "Orange": 115,
+                "Rainbow": list(range(128, 255)),
+                },
+                "Colour 2": {
+                "White": 0,
+                "Deep Red": 12,
+                "Deep Blue": 24,
+                "Pink": 36,
+                "Cyan": 48,
+                "Magenta": 60,
+                "Yellow": 72,
+                "5600K Filter": 84,
+                "3200K Filter": 96,
+                "UV": 108
+                },
+                "Prism": {
+                "Open": 0,
+                "Rotation": list(range(1, 127)),
+                },
+                "Macros": {},
+                "Gobos": {
+                "Open": list(range(0, 7)),
+                "1": list(range(8, 15)), 
+                "2": list(range(16, 23)), 
+                "3": list(range(24, 31)), 
+                "4": list(range(32, 39)), 
+                "5": list(range(40, 47)), 
+                "6": list(range(48, 55)), 
+                "7": list(range(56, 63)), 
+                "8": list(range(64, 71)), 
+                "9": list(range(72, 79)), 
+                "1 Shaking": list(range(80, 95)), 
+                "2 Shaking": list(range(96, 111)), 
+                "3 Shaking": list(range(112, 127)), 
+                "4 Shaking": list(range(128, 143)), 
+                "5 Shaking": list(range(144, 159)), 
+                "6 Shaking": list(range(160, 175)), 
+                "7 Shaking": list(range(176, 191)), 
+                "8 Shaking": list(range(192, 207)), 
+                "9 Shaking": list(range(208, 223)), 
+                "Rotation Slow Fast": list(range(224, 255)), 
+                },
+                "Rotating Gobos": {    
+                "Open": list(range(0, 31)),
+                "1": list(range(32, 63)), 
+                "2": list(range(64, 95)), 
+                "3": list(range(96, 127)), 
+                "4": list(range(128, 159)), 
+                "5": list(range(160, 191)), 
+                "6": list(range(192, 223)), 
+                "Rotation Slow Fast": list(range(224, 255)), 
+                },
+                "Rotation Speed": {
+                "Indexing": list(range(0, 127)),    
+                "Rotation": list(range(128, 255)),    
+                },
+                "Iris": {
+                "Open": 0,
+                "MaxToMin": list(range(1, 179)),   
+                "Closed": list(range(180, 191)),   
+                "Pulse Close Slow Fast": list(range(192, 223)),   
+                "Pulse Open Fast Slow": list(range(224, 225)),   
+                },
+                "Focus": list(range(0, 255)),
+                "Strobe / Shutter": {
+                "Closed": list(range(0, 32)),   
+                "Open": list(range(32, 63)),   
+                "Strobe Slow Fast": list(range(64, 95)),   
+                "Pulse Slow Fast": list(range(128, 159)),   
+                "Random Slow Fast": list(range(192, 223)),   
+                },
+                "Dimmer": list(range(0, 255)),
+            },
+            "Colorspot250AT": {
+                "Pan": list(range(0, 255)),
+                "Pan Fine": list(range(0, 255)),
+                "Tilt": list(range(0, 255)),
+                "Tilt Fine": list(range(0, 255)),
+                "PanTilt Speed": {
+                "Max": 0,
+                "Speed": list(range(1, 255)),
+                },
+                "Special Functions": {},
+                "PanTilt Macros": {},
+                "PanTilt Macros Speed": {},
+                "Colour 1": {
+                "White": 0,
+                "Dark green": 11,
+                "Red": 23,
+                "Light azure": 34,
+                "Magenta": 46,
+                "UV filter": 58,
+                "Yellow": 70,
+                "Green": 81,
+                "Pink": 93,
+                "Blue": 105,
+                "Deep red": 117,
+                "Rotation": list(range(190, 243)),
+                "Audio": list(range(224, 249)),
+                "Random Fast Slow": list(range(250, 255)),
+                },
+                "Colour Fine Position": list(range(0, 255)),
+                "Spinning Gobos": {
+                "Open": list(range(0, 3)),
+                "1": list(range(4, 7)),   
+                "2": list(range(8, 11)),   
+                "3": list(range(12, 15)),   
+                "4": list(range(16, 19)),   
+                "5": list(range(20, 23)),   
+                "6": list(range(24, 27)),   
+                "7": list(range(28, 31)),   
+                "1 Rotating": list(range(32, 35)),
+                "2 Rotating": list(range(36, 39)),
+                "3 Rotating": list(range(40, 43)),
+                "4 Rotating": list(range(44, 47)),
+                "5 Rotating": list(range(48, 51)),
+                "6 Rotating": list(range(52, 55)),
+                "7 Rotating": list(range(56, 59)),
+                "1 Shaking Slow Fast": list(range(60, 69)),
+                "2 Shaking Slow Fast": list(range(70, 79)),
+                "3 Shaking Slow Fast": list(range(80, 89)),
+                "4 Shaking Slow Fast": list(range(90, 99)),
+                "5 Shaking Slow Fast": list(range(100, 109)),
+                "6 Shaking Slow Fast": list(range(110, 119)),
+                "7 Shaking Slow Fast": list(range(120, 139)),
+                "1 Shaking Fast Slow": list(range(130, 139)),
+                "2 Shaking Fast Slow": list(range(140, 149)),
+                "3 Shaking Fast Slow": list(range(150, 159)),
+                "4 Shaking Fast Slow": list(range(160, 169)),
+                "5 Shaking Fast Slow": list(range(170, 179)),
+                "6 Shaking Fast Slow": list(range(180, 189)),
+                "7 Shaking Fast Slow": list(range(190, 199)),
+                "Rotation": list(range(202, 243)),
+                "Audio": list(range(244, 249)),
+                "Random Fast Slow": list(range(250, 255)),
+                },
+                "Rotating Gobos": {
+                "No Rotation": 0,
+                "Rotation": list(range(1, 255)),  
+                },
+                "Gobo Fine Position": list(range(0, 255)),
+                "Prism": {
+                "Open position (hole)": list(range(0, 19)),
+                "3-facet": list(range(20, 159)),
+                "Macro 1": list(range(160, 167)),
+                "Macro 2": list(range(168, 175)),
+                "Macro 3": list(range(176, 183)),
+                "Macro 4": list(range(184, 191)),
+                "Macro 5": list(range(192, 199)),
+                "Macro 6": list(range(200, 207)),
+                "Macro 7": list(range(208, 215)),
+                "Macro 8": list(range(216, 223)),
+                "Macro 9": list(range(224, 231)),
+                "Macro 10": list(range(232, 239)),
+                "Macro 11": list(range(240, 247)),
+                "Macro 12": list(range(248, 255)),
+                },
+                "Prism Rotation": {
+                "No Rotation": 0,
+                "Rotation": list(range(1, 255)), 
+                },
+                "Focus": list(range(1, 255)),
+                "Focus Fine": list(range(1, 255)),
+                "StrobeShutter": {
+                "Closed": list(range(0, 31)),
+                "Open": list(range(32, 63)),
+                "Strobe Slow Fast": list(range(64, 95)),
+                "Pulse Slow Fast": list(range(128, 143)),
+                "Pulse Fast Slow": list(range(144, 159)),
+                "Random Slow Fast": list(range(192, 223)),
+                },
+                "Dimmer": list(range(0, 255)),
+                "DimmerFine": list(range(0, 255)),
+            },
+            "Colorwash250AT": {
+                "Pan": list(range(0, 255)),
+                "Pan Fine": list(range(0, 255)),
+                "Tilt": list(range(0, 255)),
+                "Tilt Fine": list(range(0, 255)),
+                "PanTilt Speed": {
+                "Max": 0,
+                "Speed": list(range(1, 255)),
+                },
+                "Special Functions": {},
+                "PanTilt Macros": {},
+                "PanTilt Macros Speed": {},
+                "Colour 1": {
+                "White": 0,
+                "Red": 18,
+                "Blue": 36,
+                "Green": 54,
+                "3200K Filter": 72,
+                "6000K Filter": 90,
+                "UV": list(range(190, 243)),
+                "Audio": list(range(244, 249)),
+                "Random Fast Slow": list(range(250, 255)),
+                },
+                "Colour Fine Position": list(range(0, 255)),
+                "Cyan": list(range(0, 255)),
+                "Magenta": list(range(0, 255)),
+                "Yellow": list(range(0, 255)),
+                "CMYDimmerSpeed": list(range(0, 255)),
+                "CMYMacros": {
+                "Open": list(range(0, 7)),
+                "Rainbow Fast Slow": list(range(240, 243)),
+                "Audio": list(range(244, 249)),
+                "Random Fast Slow": list(range(250, 255)),
+                },
+                "EffectWheel": {
+                "Open": list(range(0, 70)),  
+                "Beam Shaper": list(range(71, 179)),  
+                "Swivelling Slow Fast": list(range(180, 199)),  
+                "Frost": list(range(200, 255)),  
+                },
+                "Zoom": list(range(0, 255)),
+                "StrobeShutter": {},
+                "StrobeShutter": {
+                "Closed": list(range(0, 31)),
+                "Open": list(range(32, 63)),
+                "Strobe Slow Fast": list(range(64, 95)),
+                "Opening Pulse Slow Fast": list(range(128, 143)),
+                "Closing Pulse Fast Slow": list(range(144, 159)),
+                "Random": list(range(192, 223)),
+                },
+                "Dimmer": list(range(0, 255)),
+                "DimmerFine": list(range(0, 255)),
+            }
+        }
         
-        # self._fixtureProfiles = {
-        #     "Dimmer": {
-        #         "Dimmer": list(range(0, 255)),
-        #     },
-        #     "Colorspot575XT": {
-        #         "Pan": list(range(0, 255)),
-        #         "Tilt": list(range(0, 255)),
-        #         "Pan Fine": list(range(0, 255)),
-        #         "Tilt Fine": list(range(0, 255)),
-        #         "PanTilt Speed": {},
-        #         "FanLamp Control": {},
-        #         "Colour 1": {
-        #         "White": 0,
-        #         "Light blue": 13,
-        #         "Red": 26,
-        #         "Blue": 38,
-        #         "Light green": 51,
-        #         "Yellow": 64,
-        #         "Magenta": 77,
-        #         "Cyan": 90,
-        #         "Green": 102,
-        #         "Orange": 115,
-        #         "Rainbow": list(range(128, 255)),
-        #         },
-        #         "Colour 2": {
-        #         "White": 0,
-        #         "Deep Red": 12,
-        #         "Deep Blue": 24,
-        #         "Pink": 36,
-        #         "Cyan": 48,
-        #         "Magenta": 60,
-        #         "Yellow": 72,
-        #         "5600K Filter": 84,
-        #         "3200K Filter": 96,
-        #         "UV": 108
-        #         },
-        #         "Prism": {
-        #         "Open": 0,
-        #         "Rotation": list(range(1, 127)),
-        #         },
-        #         "Macros": {},
-        #         "Gobos": {
-        #         "Open": list(range(0, 7)),
-        #         "1": list(range(8, 15)), 
-        #         "2": list(range(16, 23)), 
-        #         "3": list(range(24, 31)), 
-        #         "4": list(range(32, 39)), 
-        #         "5": list(range(40, 47)), 
-        #         "6": list(range(48, 55)), 
-        #         "7": list(range(56, 63)), 
-        #         "8": list(range(64, 71)), 
-        #         "9": list(range(72, 79)), 
-        #         "1 Shaking": list(range(80, 95)), 
-        #         "2 Shaking": list(range(96, 111)), 
-        #         "3 Shaking": list(range(112, 127)), 
-        #         "4 Shaking": list(range(128, 143)), 
-        #         "5 Shaking": list(range(144, 159)), 
-        #         "6 Shaking": list(range(160, 175)), 
-        #         "7 Shaking": list(range(176, 191)), 
-        #         "8 Shaking": list(range(192, 207)), 
-        #         "9 Shaking": list(range(208, 223)), 
-        #         "Rotation Slow Fast": list(range(224, 255)), 
-        #         },
-        #         "Rotating Gobos": {    
-        #         "Open": list(range(0, 31)),
-        #         "1": list(range(32, 63)), 
-        #         "2": list(range(64, 95)), 
-        #         "3": list(range(96, 127)), 
-        #         "4": list(range(128, 159)), 
-        #         "5": list(range(160, 191)), 
-        #         "6": list(range(192, 223)), 
-        #         "Rotation Slow Fast": list(range(224, 255)), 
-        #         },
-        #         "Rotation Speed": {
-        #         "Indexing": list(range(0, 127)),    
-        #         "Rotation": list(range(128, 255)),    
-        #         },
-        #         "Iris": {
-        #         "Open": 0,
-        #         "MaxToMin": list(range(1, 179)),   
-        #         "Closed": list(range(180, 191)),   
-        #         "Pulse Close Slow Fast": list(range(192, 223)),   
-        #         "Pulse Open Fast Slow": list(range(224, 225)),   
-        #         },
-        #         "Focus": list(range(0, 255)),
-        #         "Strobe / Shutter": {
-        #         "Closed": list(range(0, 32)),   
-        #         "Open": list(range(32, 63)),   
-        #         "Strobe Slow Fast": list(range(64, 95)),   
-        #         "Pulse Slow Fast": list(range(128, 159)),   
-        #         "Random Slow Fast": list(range(192, 223)),   
-        #         },
-        #         "Dimmer": list(range(0, 255)),
-        #     },
-        #     "Colorspot250AT": {
-        #         "Pan": list(range(0, 255)),
-        #         "Pan Fine": list(range(0, 255)),
-        #         "Tilt": list(range(0, 255)),
-        #         "Tilt Fine": list(range(0, 255)),
-        #         "PanTilt Speed": {
-        #         "Max": 0,
-        #         "Speed": list(range(1, 255)),
-        #         },
-        #         "Special Functions": {},
-        #         "PanTilt Macros": {},
-        #         "PanTilt Macros Speed": {},
-        #         "Colour 1": {
-        #         "White": 0,
-        #         "Dark green": 11,
-        #         "Red": 23,
-        #         "Light azure": 34,
-        #         "Magenta": 46,
-        #         "UV filter": 58,
-        #         "Yellow": 70,
-        #         "Green": 81,
-        #         "Pink": 93,
-        #         "Blue": 105,
-        #         "Deep red": 117,
-        #         "Rotation": list(range(190, 243)),
-        #         "Audio": list(range(224, 249)),
-        #         "Random Fast Slow": list(range(250, 255)),
-        #         },
-        #         "Colour Fine Position": list(range(0, 255)),
-        #         "Spinning Gobos": {
-        #         "Open": list(range(0, 3)),
-        #         "1": list(range(4, 7)),   
-        #         "2": list(range(8, 11)),   
-        #         "3": list(range(12, 15)),   
-        #         "4": list(range(16, 19)),   
-        #         "5": list(range(20, 23)),   
-        #         "6": list(range(24, 27)),   
-        #         "7": list(range(28, 31)),   
-        #         "1 Rotating": list(range(32, 35)),
-        #         "2 Rotating": list(range(36, 39)),
-        #         "3 Rotating": list(range(40, 43)),
-        #         "4 Rotating": list(range(44, 47)),
-        #         "5 Rotating": list(range(48, 51)),
-        #         "6 Rotating": list(range(52, 55)),
-        #         "7 Rotating": list(range(56, 59)),
-        #         "1 Shaking Slow Fast": list(range(60, 69)),
-        #         "2 Shaking Slow Fast": list(range(70, 79)),
-        #         "3 Shaking Slow Fast": list(range(80, 89)),
-        #         "4 Shaking Slow Fast": list(range(90, 99)),
-        #         "5 Shaking Slow Fast": list(range(100, 109)),
-        #         "6 Shaking Slow Fast": list(range(110, 119)),
-        #         "7 Shaking Slow Fast": list(range(120, 139)),
-        #         "1 Shaking Fast Slow": list(range(130, 139)),
-        #         "2 Shaking Fast Slow": list(range(140, 149)),
-        #         "3 Shaking Fast Slow": list(range(150, 159)),
-        #         "4 Shaking Fast Slow": list(range(160, 169)),
-        #         "5 Shaking Fast Slow": list(range(170, 179)),
-        #         "6 Shaking Fast Slow": list(range(180, 189)),
-        #         "7 Shaking Fast Slow": list(range(190, 199)),
-        #         "Rotation": list(range(202, 243)),
-        #         "Audio": list(range(244, 249)),
-        #         "Random Fast Slow": list(range(250, 255)),
-        #         },
-        #         "Rotating Gobos": {
-        #         "No Rotation": 0,
-        #         "Rotation": list(range(1, 255)),  
-        #         },
-        #         "Gobo Fine Position": list(range(0, 255)),
-        #         "Prism": {
-        #         "Open position (hole)": list(range(0, 19)),
-        #         "3-facet": list(range(20, 159)),
-        #         "Macro 1": list(range(160, 167)),
-        #         "Macro 2": list(range(168, 175)),
-        #         "Macro 3": list(range(176, 183)),
-        #         "Macro 4": list(range(184, 191)),
-        #         "Macro 5": list(range(192, 199)),
-        #         "Macro 6": list(range(200, 207)),
-        #         "Macro 7": list(range(208, 215)),
-        #         "Macro 8": list(range(216, 223)),
-        #         "Macro 9": list(range(224, 231)),
-        #         "Macro 10": list(range(232, 239)),
-        #         "Macro 11": list(range(240, 247)),
-        #         "Macro 12": list(range(248, 255)),
-        #         },
-        #         "Prism Rotation": {
-        #         "No Rotation": 0,
-        #         "Rotation": list(range(1, 255)), 
-        #         },
-        #         "Focus": list(range(1, 255)),
-        #         "Focus Fine": list(range(1, 255)),
-        #         "StrobeShutter": {
-        #         "Closed": list(range(0, 31)),
-        #         "Open": list(range(32, 63)),
-        #         "Strobe Slow Fast": list(range(64, 95)),
-        #         "Pulse Slow Fast": list(range(128, 143)),
-        #         "Pulse Fast Slow": list(range(144, 159)),
-        #         "Random Slow Fast": list(range(192, 223)),
-        #         },
-        #         "Dimmer": list(range(0, 255)),
-        #         "DimmerFine": list(range(0, 255)),
-        #     },
-        #     "Colorwash250AT": {
-        #         "Pan": list(range(0, 255)),
-        #         "Pan Fine": list(range(0, 255)),
-        #         "Tilt": list(range(0, 255)),
-        #         "Tilt Fine": list(range(0, 255)),
-        #         "PanTilt Speed": {
-        #         "Max": 0,
-        #         "Speed": list(range(1, 255)),
-        #         },
-        #         "Special Functions": {},
-        #         "PanTilt Macros": {},
-        #         "PanTilt Macros Speed": {},
-        #         "Colour 1": {
-        #         "White": 0,
-        #         "Red": 18,
-        #         "Blue": 36,
-        #         "Green": 54,
-        #         "3200K Filter": 72,
-        #         "6000K Filter": 90,
-        #         "UV": list(range(190, 243)),
-        #         "Audio": list(range(244, 249)),
-        #         "Random Fast Slow": list(range(250, 255)),
-        #         },
-        #         "Colour Fine Position": list(range(0, 255)),
-        #         "Cyan": list(range(0, 255)),
-        #         "Magenta": list(range(0, 255)),
-        #         "Yellow": list(range(0, 255)),
-        #         "CMYDimmerSpeed": list(range(0, 255)),
-        #         "CMYMacros": {
-        #         "Open": list(range(0, 7)),
-        #         "Rainbow Fast Slow": list(range(240, 243)),
-        #         "Audio": list(range(244, 249)),
-        #         "Random Fast Slow": list(range(250, 255)),
-        #         },
-        #         "EffectWheel": {
-        #         "Open": list(range(0, 70)),  
-        #         "Beam Shaper": list(range(71, 179)),  
-        #         "Swivelling Slow Fast": list(range(180, 199)),  
-        #         "Frost": list(range(200, 255)),  
-        #         },
-        #         "Zoom": list(range(0, 255)),
-        #         "StrobeShutter": {},
-        #         "StrobeShutter": {
-        #         "Closed": list(range(0, 31)),
-        #         "Open": list(range(32, 63)),
-        #         "Strobe Slow Fast": list(range(64, 95)),
-        #         "Opening Pulse Slow Fast": list(range(128, 143)),
-        #         "Closing Pulse Fast Slow": list(range(144, 159)),
-        #         "Random": list(range(192, 223)),
-        #         },
-        #         "Dimmer": list(range(0, 255)),
-        #         "DimmerFine": list(range(0, 255)),
-        #     }
-        #     }
-        # self.fixtures = {}
+        self.fixtures = {}
         
-        # self.fixtures["ColorSpot"] = {"type": "Colorspot575XT"}
-        # self.fixtures["BulkHeads"] = {"type": "Dimmer"}
-        
-        # fixture_type = self.fixtures["test"]["type"]
-        # print(fixture_type)
-        
-        # light = "test"
-        
-        # red = self._fixtureProfiles[f"{self.fixtures[light]["type"]}"]["Colour 1"]["Red"]
+        self.fixtures["ColorSpot"] = {"type": "Colorspot575XT"}
+        self.fixtures["BulkHeads"] = {"type": "Dimmer"}
         
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -948,7 +948,7 @@ class WebApp:
             
     def seedDBData(self):
         if not Gun.query.first() and not Player.query.first():
-            format.message("Empty DB Found! Seeding Data....", type="error")
+            format.message("Empty DB Found! Seeding Data....", type="warning")
  
             gunAlpha = Gun(name="Alpha", defaultColor="Red")
             gunApollo = Gun(name="Apollo", defaultColor="Red")
@@ -1005,6 +1005,8 @@ class WebApp:
         except Exception as e:
             format.message(f"Error opening keys.txt: {e}", type="error")
         finally:
+            blank = f.readline()
+            blank = f.readline()
             self.IP1 = str(f.readline().strip())
             self.IP2 = str(f.readline().strip())
             self.ETHERNET_INTERFACE = str(f.readline().strip())
@@ -1033,6 +1035,11 @@ class WebApp:
                 DMXConnection = "CONNECTED"
             
             return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
+        
+        @self.app.route('/text')
+        def neonText():
+            return render_template('neonFlicker.html')
+
         
         @self.app.route("/ping")
         def ping():   
@@ -1068,7 +1075,7 @@ class WebApp:
             
             emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
             
-            emit('response', {'message': 'Connected to the server!'})
+            emit('response', {'message': 'Connected to server'})
             
         @self.socketio.on('toggleMusic')
         def togglePlayback():
@@ -1087,25 +1094,21 @@ class WebApp:
             response = self.handleMusic("next")
             
             emit('musicStatus', {'message': f"{response}"})
-
-        @self.socketio.on('client_event')
-        def handleClientEvent(json):
-            format.message(f"Received event: {json}")
         
         @self.socketio.on('SpotifyControl')
         def handleSpotifyControl(json):
-            format.message(f"Spotify control = {json["data"]}")
+            #format.message(f"Spotify control = {json["data"]}")
             
             self.spotifyControl = json["data"]
-            
-        @self.socketio.on('spotifyControlStatus')
-        def handleSpotifyControlVariable(json):
-            self.spotifyControl = json["data"]
-            format.message(f"Spotify control = {self.spotifyControl}")
             
         @self.socketio.on('playBriefing')
         def playBriefing():
-            self.obs.set_current_program_scene("Video")
+            try:
+                format.message("Playing briefing")
+                if self.OBSConnected == True:
+                    self.obs.set_current_program_scene("Video")
+            except Exception as e:
+                format.message(f"Error playing briefing: {e}", type="error")
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
@@ -1211,30 +1214,29 @@ class WebApp:
     
     def handleMusic(self, mode):
         if self.spotifyControl == True:
-            
             if mode.lower() == "toggle":
                 if self.spotifyStatus == "paused":
                     #format.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     
-                    result = "playing"
+                    result = self.spotifyStatus
                 else:
                     #format.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
-                    result = "paused"
+                    result = self.spotifyStatus
                 
             elif mode.lower() == "next":
                 pyautogui.hotkey('nexttrack')
                 self.spotifyStatus = "playing"
-                result = "playing"
+                result = self.spotifyStatus
             
             elif mode.lower() == "previous":
                 pyautogui.hotkey('prevtrack')
                 pyautogui.hotkey('prevtrack')
                 self.spotifyStatus = "playing"
-                result = "playing"
+                result = self.spotifyStatus
             
             elif mode.lower() == "restart":
                 pyautogui.hotkey('prevtrack')
@@ -1257,13 +1259,15 @@ class WebApp:
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
+                    
+            time.sleep(2)
                 
             try:
                 self.bpm_thread = threading.Thread(target=self.findBPM)
                 self.bpm_thread.daemon = True
                 self.bpm_thread.start()
             except Exception as e:
-                format.message(f"Error starting BPM thread: {e}", type="error")
+                format.message(f"Error running BPM thread: {e}", type="error")
                 
             return result
                     
@@ -1293,21 +1297,58 @@ class WebApp:
                             if processName.lower() == "spotify":
                                 os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                             elif processName.lower() == "obs64":
-                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk")
+                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
+                                time.sleep(15)
+                                self.obs_connect()
                             else:
                                 format.message(f"Process {processName} not recognized for auto-start", type="error")
-                            if self.DMXConnected == False:
-                                format.message(f"DMX Connection lost, restarting DMX Network")
-                                self.setUpDMX()
+                            # if self.DMXConnected == False:
+                            #     format.message(f"DMX Connection lost, restarting DMX Network")
+                            #     self.setUpDMX()
                             if self.OBSConnected == False:
                                 format.message(f"OBS Connection lost, restarting OBS")
                                 self.obs_connect()
                                 
                         except Exception as e:
                             format.message(f"Error starting process {processName}: {e}", type="error")
-            
+                            
+                # if self.RestartRequested == True and self.gameStatus == "stopped":
+                #     format.message(f"Restart requested, restarting PC in 1 minute")
+                #     self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
+                #     self.AppRestartThread.daemon = True
+                #     self.AppRestartThread.start()
+                    
+                if self.gameStatus == "stopped" and self.OBSConnected == True:
+                    if self.endOfDay == True:
+                        format.message(f"EOD, setting OBS output to Test Mode")
+                        
+                        try:
+                            with open(fr"{self._dir}\data\OBSText.txt", "w") as f:
+                                f.write("EndOfDay: Waiting for next game                            ")
+                                
+                        except Exception as e:
+                            format.message(f"Error opening OBSText.txt: {e}", type="error")
+                        
+                        self.obs.set_current_program_scene("Test Mode")
+                    else:
+                        self.endOfDay = True
+                
+                elif self.gameStatus == "running":
+                    self.endOfDay = False
+                
         except Exception as e:
             format.message(f"Error occured while checking processes: {e}", type="error")
+            
+    def restartApp(self, reason="unknown"):
+        format.message(f"Restarting App in 1 minute due to {reason}", type="warning")
+        
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
+        
+        time.sleep(60)
+        
+        format.message("Restarting App", type="warning")
+
+        os._exit(1)
             
     def handleBPM(self, song, bpm, album):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
@@ -1409,11 +1450,27 @@ class WebApp:
     def findBPM(self):
         try:
             fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-            fetcher.fetch()  # Fetch the current song and BPM once
+            fetcher.fetch()  # Fetch the current song and BPM
             song, bpm, album = fetcher.get_current_song_and_bpm()
 
             self.handleBPM(song, bpm, album)
             
+            temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+            
+            if temp_spotifyStatus != self.spotifyStatus:
+                self.spotifyStatus = temp_spotifyStatus
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+                
+                #format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
+                
+                try:
+                    self.bpm_thread = threading.Thread(target=self.findBPM)
+                    self.bpm_thread.daemon = True
+                    self.bpm_thread.start()
+                except Exception as e:
+                    format.message(f"Error finding BPM at media status change: {e}", type="error")
+                
         except Exception as e:
             format.message(f"Failed to find BPM: {e}", type="error")
    
@@ -1427,30 +1484,35 @@ class WebApp:
                     
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
-                    #format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
-                    
-                    try:
-                        self.bpm_thread = threading.Thread(target=self.findBPM)
-                        self.bpm_thread.daemon = True
-                        self.bpm_thread.start()
-                    except Exception as e:
-                        format.message(f"Error finding BPM at media status change: {e}", type="error")
-                    
                 if currentPosition and totalDuration:
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
                     response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
-                
                     
-                time.sleep(1)
+                time.sleep(5)
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
+                
+                if e != "an integer is required":
+        
+                    format.message("Requesting app restart", type="warning")
+                    
+                    if self.gameStatus != "stopped":
+                        pyautogui.press("playpause")
+                    
+                    self.RestartRequested = True
+                    
+                    self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested - BPM Issue: {e}"))
+                    self.AppRestartThread.daemon = True
+                    self.AppRestartThread.start()
+                
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         
     def packetCallback(self, packet):
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
+                
                 #format.message(f"Packet 1: {packet}")
                 
                 packet_data = bytes(packet['Raw']).hex()
@@ -1482,19 +1544,25 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
+        if self.OBSConnected == True:
+            self.endOfDay = False
+            self.obs.set_current_program_scene("Laser Scores")
+        
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
         if packetData[1] == "@015":
+            self.gameStatus = "running"
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
-            format.message(f"Response: {response.text}")
+            #format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
+            self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-            format.message(f"Response: {response.text}")
+            #format.message(f"Response: {response.text}")
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
 
@@ -1504,11 +1572,16 @@ class WebApp:
         format.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
+            self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-            format.message(f"Response: {response.text}")
+            #format.message(f"Response: {response.text}")
         else:
+            self.gameStatus = "running"
+            if self.OBSConnected == True:
+                self.endOfDay = False
+                self.obs.set_current_program_scene("Laser Scores")
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
@@ -1541,6 +1614,10 @@ class WebApp:
     def shotConfirmedPacket(self, packetData):
         pass
     
+    # -----------------| DMX Control |---------------------------------------------------------------------------------------------------------------------------------------------------------- #            
+    
+    
+    
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
     def gameStarted(self):
@@ -1552,11 +1629,13 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._RedBulkHeadLights.dim(255, 5000)
+            #self.setFixtureBrightness(255)
+            
+            #self._RedBulkHeadLights.dim(255, 5000)
+            
+            pass
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network: {e}", type="warning")
-            self.setUpDMX()
         
     def gameEnded(self):
         format.message("Game ended")
@@ -1567,12 +1646,13 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self._RedBulkHeadLights.dim(0, 5000)
+            #self.setFixtureBrightness(0)
+            
+            pass
+            
         except Exception as e:
             format.message(f"Error dimming red lights: {e}", type="error")
-            format.message(f"Restarting DMX Network: {e}", type="warning")
-            self.setUpDMX()
-    
+
     # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
     
     def sendTestPacket(self, type="server"):

@@ -8,19 +8,34 @@ The app is designed for use inside of a Laser-Tag arena, allowing it to control 
 It also attempts to setup a connection to the OBS Websocket extension, but the connection isn't used as of yet.
 If the system cannot connect to OBS, it will still run.
 
+# Pre-Requisites
+
+For DMX to work, you must have a USB - DMX adaptor that support either Open DMX or UDMX. I use a cheap one off Amazon.
+The DMX - USB MUST have the ```libusb-win32``` driver installed.
+> NOTE: Installing this driver will cause QLC+ (And presumably others) to not recognise the adaptor anymore.
+> This can be fixed by reinstalling the original driver on the adaptor, the original drivers will most likely be on the manufacturer's website.
+
+NOTE: For this software, the ```Open-DMX``` standard is being used. It should be easy enough to change it to ```UDMX``` but this has not been implemented.
+
+For OBS to work, you MUST make a ```keys.txt``` file in the same directory as the scoreboard.py file.
+Press "enter" (AKA Make a new line) 5 times in this file and then add your ```OBS Websocket IP```, ```OBS Websocket Password``` and the ```OBS Websocket Port```.
+The program will read these and attempt to connect to the OBS Websocket instance.
+
+All libraries should be installed when you run the ```Scoreboard.py``` file.
+
 # Planned Feature Status
 
 | Feature                                                               | Status                                             | Comments                                                                                                                        |
 | :----------------                                                     | :------                                            | :------                                                                                                                         |
-|Store Game Data in Database, Allow Player names to be added / looked up| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
+|Store Game Data in Database| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
 |DMX Lighting Control                                                   | Started                                            | A DMX connection is setup at runtime, but nothing is done yet as I have no way to test if it works (Will be able to soon)       |
-|DMX Lighting Reacting to game events E.G. Game End / Start, Colour of the winning team, Colour change on BPM | Not Started  | Will get on with this once I can test it                                                                                        |
-|Advanced music control                                                 | Almost Done                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
-|Randomly select lighting effects at game start for unique experience   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
-|Turn certain lights on when a target is shot                           | Not Started                                        | No way of testing and no hardware for target just yet, more of a longshot idea                                                  |
+|DMX Lighting Reacting to game events  | Not Started  | Will get on with this once I can test it                                                                                        |
+|Advanced music control                                                 | Complete                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
+|Randomly select lighting effects   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
+|Turn lights on when a nearby traget is shot                           | Not Started                                        | No way of testing and no hardware for target just yet, more of a longshot idea                                                  |
 |Advanced OBS control                                                   | Started                                            | Allow for certains creens around the arena to change based on game status - So far it only creates a web-socket connection      |
-|Track game progress / scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
-|Interactive web page that opens when the program starts                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
+|Track game progress & scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
+|Interactive web page                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
 
 
 ## Packets decoded so far:
@@ -50,14 +65,14 @@ Values are seperated by commas by the control box.
 
 ## Setup Zone Packet Sniffing
 
-> You can use the "userInterfaces.py" file to crosscheck which network adaptor you want to use. Use IPCONFIG on windows to find the IP / MAC address of the adaptor you want to use and compare it to the list given from the python file.
+> You can use the ```networkInterfaces.py``` file to crosscheck which network adaptor you want to use. Use ```IPCONFIG``` on windows to find the IP / MAC address of the adaptor you want to use and compare it to the list given from the python file.
 
 For this to work, you must connect to the Begeara 2's local network. I have done it by using a simple ethernet cable connected to the network switch that connects the Android Display Controller and the actual control box.
 
 After you've done that, I'd recommend opening up "WireShark" a tool used for sniffing packets travelling along a network.
 If you don't know the IP of either the Android or control box, I'd recommend setting the filter to look for the domain of "Begeara.com", and restart the Zone system. 
 
-The Zone system will call the "Begeara.com" URL everytime it starts to verify it's authenticity and license. 
+The Zone system will call the ```Begeara.com``` URL everytime it starts to verify it's authenticity and license. 
 When this packet shows, note down the Source IP address. (This is the control box's IP)
 
 Set a filter on wireshark to find packets coming from that IP, and you should be able to see the box communicating over the network!
@@ -73,7 +88,7 @@ When the Tkinter "ui" object is imported and run, the process for starting the W
 
 ### \_\_init__.py
 
-This file is called to import every function that is needed, if it isn't installed on the Host PC, it will download it automatically, which means no PIP work is required to use this.
+This file is called to import every function that is needed, if a required library isn't installed on the Host PC, it will download it automatically, which means no manual PIP work is required to use this.
 
 ### func/format.py
 
@@ -99,7 +114,7 @@ This view could go completely un used and make no effect on the system what-so-e
 This is the actually cool bit, it does all the thinking, the doing and the breaking in this whole project.
 
 This file starts by defining a class "WebApp" which is used by the "UserInterf.py" to call and start the Web App.
-The first thing that happens is the __init__ function is called, this will start defining all the variabled that may be used, as well as initialise certain parts of the app.
+The first thing that happens is the ```__init__``` function is called, this will start defining all the variables that may be used, as well as initialise certain parts of the app.
 Firstly, it defines the App, using Flask.
 
 #### Variable Context:

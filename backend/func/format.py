@@ -3,6 +3,7 @@ import logging
 import ctypes
 import os
 import sys
+import requests
 
 try:
     dir = os.path.dirname(os.path.realpath(__file__))
@@ -22,13 +23,9 @@ try:
     
     logger = logging.getLogger("webAppLogger")
 
-    try:
-        logFilePath = fr"{dir}\app.log"
+    logFilePath = fr"{dir}\app.log"
         
-    except:
-        sys.exit("Failed to open log file.")
-        
-    logging.basicConfig(filename=logFilePath, level=logging.DEBUG)
+    logging.basicConfig(filename=logFilePath, level=logging.DEBUG, filemode="a")
 
 except Exception as e:
     print(f"An error occured: {e}")
@@ -47,6 +44,7 @@ def message(message, type="Info", date=True, newline=False):
     \nnewline : defaults to false, if true, will add a new line before the message."""
     
     try:
+        type = type.title()
     
         logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
@@ -65,13 +63,38 @@ def message(message, type="Info", date=True, newline=False):
         else:
             messagetosend += f"{logtime} | {color}{type.title()}{reset} : {message}"
 
-        if type == "Error":
+        if type.title() == "Error":
             logger.error(f"{logtime} | {message}")
-        elif type == "Warning":
+        elif type.title() == "Warning":
             logger.warning(f"{logtime} | {message}")
-        elif type == "Success":
-            logger.info(f"{logtime} | {message}")
-        
+            
+        try:            
+            if type.title() == "Error" or type.title() == "Warning":
+                
+                with open(fr"{dir}\..\data\keys.txt") as f:
+                    secretKey = f.readline().strip()  
+                    environment = f.readline().strip()
+                    
+                if "dev" in environment.lower():
+                    pass
+                else:
+                    url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
+                    data = {
+                        "type": type.title(),
+                        "messegeContent": message + f"<br>Sent by Environment: {environment}",
+                        "secretKey": secretKey
+                    }
+                    try:
+                        response = requests.post(url, data=data)
+                        response.raise_for_status()
+                    except Exception as e:
+                        pass
+                        #print(f"Failed to send log message to server: {e}")
+                    
+        except Exception as e:
+            pass
+            #print(f"Failed to send log message to server: {e}")
+
         print(messagetosend)
         
     except Exception as e:

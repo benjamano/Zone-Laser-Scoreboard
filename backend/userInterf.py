@@ -47,9 +47,13 @@ def showInterface():
     interfaceWindow = tk.Tk()
     interfaceWindow.title("Control Panel")
     
-
     def sendTestMessage():
         threading.Thread(target=web_app.sendTestPacket()).start()
+    
+    def restartPC():
+        restartPCThread = threading.Thread(target=web_app.restartApp("UI Request"))
+        restartPCThread.daemon = True
+        restartPCThread.start()
         
     def sendGameStartMessage():
         threading.Thread(target=web_app.sendTestPacket(type="start")).start()
@@ -104,10 +108,13 @@ def showInterface():
     BrightnessSet50BulkHeadsButton = tk.Button(interfaceWindow, text="Set Bulkhead Lights to 50%", command=BrightnessSet50BulkHeads)
     BrightnessSet50BulkHeadsButton.pack(pady=10)
 
-    TurnOffBulkHeadLightsButton = tk.Button(interfaceWindow, text="Set Bulkhead Lights to 50%", command=TurnOffBulkHeadLights)
+    TurnOffBulkHeadLightsButton = tk.Button(interfaceWindow, text="Turn off Bulkhead lights", command=TurnOffBulkHeadLights)
     TurnOffBulkHeadLightsButton.pack(pady=10)
-
-    interfaceWindow.geometry("500x400")
+    
+    RestartPCButton = tk.Button(interfaceWindow, text="Restart PC", command=restartPC)
+    RestartPCButton.pack(pady=10)
+    
+    interfaceWindow.geometry("600x700")
     interfaceWindow.mainloop()
 
 def startWebApp():
