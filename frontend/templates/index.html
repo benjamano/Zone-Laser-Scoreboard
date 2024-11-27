@@ -312,18 +312,16 @@
 									<div class="top-arch-content">
 										<div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div>
 
-										<div class="card m-2 col-12" style="background-color: var(--dark-gray); color: #ffffff;">
+										<div class="card p-2" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed" role="button">
 												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
 											</div>
 
-										<div class="col-12">
-
-											<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
+											<div class="card mb-3" style="background-color: var(--medium-dark-gray); color: #ffffff; width: 60.9vw;">
 
 												<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
-												<div id="lightingCardBody" style="width: 100%;" class="card-body collapse col-12">
+												<div id="lightingCardBody" style="width: 100%;" class="card-body collapse">
 
 													<div id="fixtures-container" class="col-12"></div>
 
@@ -331,41 +329,40 @@
 
 											</div>
 
-										</div>
+											<div class="card" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
-										<div class="card m-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
-
-											<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
+												<div class="card-header collapsed" role="button" onclick="$('#musicControlCardBody').collapse('toggle')">Music Control</div>
 
 												<div id="musicControlCardBody" class="card-body collapse d-flex justify-content-between align-items-start">
 
-														<div class="musicControls mb-2 col-5" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; font-size: 1.2rem; padding: 0.6rem 1rem 0.6rem 1.2rem;">
-															<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
-															<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
-															<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
+													<div class="musicControls mb-2 col-5" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; font-size: 1.2rem; padding: 0.6rem 1rem 0.6rem 1.2rem;">
+														<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
+														<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+														<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
+													
+														<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
+															<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
+														</div>
 														
-															<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
-																<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
-															</div>
-															
-															<span id="timeLeft" style="color: #fff;">0:00</span>
+														<span id="timeLeft" style="color: #fff;">0:00</span>
+													</div>
+
+													<div class="card col-5" style="color: #ffffff; background-color: var(--primary-gray);">
+
+														<div class="card-header collapsed d-flex justify-content-between align-items-center" onclick="$('#musicRequestFormCardBody').collapse('toggle')"><span>Request a song</span><i class="fa-solid fa-arrow-pointer fa-beat"></i></div>
+
+														<div class="card-body collapse" id="musicRequestFormCardBody">
+
+															<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
+
 														</div>
 
-														<div class="card col-5" style="color: #ffffff; background-color: var(--primary-gray);">
-	
-															<div class="card-header collapsed d-flex justify-content-between align-items-center" onclick="$('#musicRequestFormCardBody').toggle()"><span>Request a song</span><i class="fa-solid fa-arrow-pointer fa-beat"></i></div>
-	
-															<div class="card-body collapse" id="musicRequestFormCardBody">
-	
-																<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
-	
-															</div>
-	
-														</div>
-
+													</div>
+													
 												</div>
-												
+
 											</div>
+
 										</div>
 
                                         <!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
