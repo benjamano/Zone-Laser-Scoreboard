@@ -53,11 +53,6 @@
     overflow: scroll;
 	}
 
-	::-webkit-scrollbar {
-		width: 0;  /* Remove scrollbar space */
-		background: transparent;  /* Optional: just make scrollbar invisible */
-	}
-
 	#fixtures-container {
 		display: flex;
 		flex-direction: row;
@@ -81,6 +76,10 @@
 		width: 100%;
 		max-width: 100%;
 		overflow-x: auto; 
+		width: 100%;
+		-webkit-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
 	}
 
     .fixture {
@@ -115,15 +114,29 @@
 		justify-content: center;
 		align-items: center;
 		width: 80px;
+		margin-top: 3rem;
+		margin-right: 2rem;
 	}
 	
     .slider {
-        writing-mode: bt-lr;
-		-webkit-appearance: slider-vertical;
-		appearance: slider-vertical;
-        width: 8px;
-        height: 200px;
+		-webkit-appearance: none;
+		width: 280%;
+		height: 10px;
+		background: #d3d3d3;
+		outline: none;
+		-webkit-transform: rotate(-90deg);
+		margin-bottom: 5rem;
     }
+
+	.slider::-webkit-slider-thumb {
+		-webkit-appearance: none;
+		appearance: none;
+		width: 60px;
+		height: 40px;
+		background: #252525;
+		cursor: pointer;
+	  }
+
     .label {
         margin-top: 10px;
     }
@@ -331,12 +344,10 @@
 															<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
 															<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
 														
-															<!-- Progress bar container -->
 															<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
 																<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
 															</div>
 															
-															<!-- Time Display -->
 															<span id="timeLeft" style="color: #fff;">0:00</span>
 														</div>
 
@@ -529,7 +540,6 @@
 </html>
 
 <script>
-
     var controlSpotify = true;
 	var gamePlayingStatus = "stopped"
     var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
@@ -538,7 +548,6 @@
 	var totalDuration = 0;
 	var currentTime = 0;
 	var currentTimeLeft = 0;
-
 
     window.onload = function() {
 		if (controlSpotify == true){
@@ -847,7 +856,6 @@
 
 	});
 
-
 	// Format the time in minutes and seconds
 	function formatTime(seconds) {
 		const minutes = Math.floor(seconds / 60);
@@ -923,56 +931,60 @@
 			fixtureDiv.appendChild(fixtureTitle);
 
 
-			Object.keys(fixture.attributes).forEach(key => {
-				const attributeName = key;
+			Object.entries(fixture.attributes)
+				.map(([key, { DMXValue, index, value }]) => ({ key, DMXValue, index, value }))
+				.sort((a, b) => a.index - b.index) 
+				.forEach(({ key, value, DMXValue }) => {
+					console.log(`DMXVal: ${DMXValue}, Attribute: ${key}`, value);
 
-				const slider = document.createElement('input');
-				slider.type = 'range';
-				slider.min = 0;
-				slider.max = 255;
-				slider.value = 0;
-				slider.className = 'slider';
-				slider.oninput = function() {
-					updateDMXValue(attributeName, fixture.name, this.value);
-					valueLabel.textContent = this.value;
-				};
-	
-				const label = document.createElement('label');
-				label.className = 'label';
-				label.textContent = attributeName;
-	
-				const valueLabel = document.createElement('label');
-				valueLabel.className = 'valueLabel';
-				valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`; 
-				valueLabel.textContent = "0"; 
-	
-				const fixtureChannel = document.createElement('div');
-				fixtureChannel.className = 'fixtureChannel';
-				fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`; 
+					const attributeName = key;
 
-				fixtureChannel.appendChild(slider);
-				fixtureChannel.appendChild(label);
-				fixtureChannel.appendChild(valueLabel);
-				fixtureContainer.appendChild(fixtureChannel);
-				fixtureDiv.appendChild(fixtureContainer);
-			});
+					const slider = document.createElement('input');
+					slider.type = 'range';
+					slider.min = 0;
+					slider.max = 255;
+					slider.value = DMXValue;
+					slider.className = 'slider';
+					slider.oninput = function() {
+						updateDMXValue(attributeName, fixture.name, this.value);
+						valueLabel.textContent = this.value;
+					};
+		
+					const label = document.createElement('label');
+					label.className = 'label';
+					label.textContent = attributeName;
+		
+					const valueLabel = document.createElement('label');
+					valueLabel.className = 'valueLabel';
+					valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`; 
+					valueLabel.textContent = DMXValue; 
+		
+					const fixtureChannel = document.createElement('div');
+					fixtureChannel.className = 'fixtureChannel';
+					fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`; 
 
-			var gLabel = document.getElementById("lightingCardBody");
-			var style = window.getComputedStyle(gLabel , null);
+					fixtureChannel.appendChild(slider);
+					fixtureChannel.appendChild(label);
+					fixtureChannel.appendChild(valueLabel);
+					fixtureContainer.appendChild(fixtureChannel);
+					fixtureDiv.appendChild(fixtureContainer);
+				});
 
-			document.getElementById('fixtures-container').style.width = style.getPropertyValue("width")
+				var gLabel = document.getElementById("lightingCardBody");
+				var style = window.getComputedStyle(gLabel , null);
+
+				document.getElementById('fixtures-container').style.width = style.getPropertyValue("width")
         });
     }
 
 	function createDimmerSlider(fixture) {
-		
 
 	}
 
     function updateDMXValue(attributeName, fixtureName, value) {
-        //console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
+        console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
 
-        // Add your logic to update the DMX value here
+		socket.emit('UpdateDMXValue', {"fixtureName": fixtureName, "attributeName": attributeName, "value": value});
     }
 
 	function toggleMusic(){
