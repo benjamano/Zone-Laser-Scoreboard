@@ -1,7 +1,6 @@
 import threading
 import time
-import eventlet
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, request
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 import os
@@ -10,15 +9,14 @@ import ctypes
 import datetime
 import pyautogui
 import obsws_python as obs
-from scapy.all import sniff, conf, IP
-from flask_cors import CORS
+from scapy.all import sniff, IP
 import requests
 import psutil
 import socket
 import webbrowser
 import asyncio
 import random
-import sys
+import logging
 
 try:
     import winrt.windows.media.control as wmc
@@ -33,8 +31,8 @@ except Exception as e:
     input("Press any key to exit...")
         
 from func.BPM import MediaBPMFetcher
-    
-import logging
+
+from func.DMXControl import dmx
 
 db = SQLAlchemy()
 
@@ -71,262 +69,6 @@ class WebApp:
         pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
-        
-        
-        self._fixtureProfiles = {
-            "Dimmer": {
-                "Dimmer": list(range(0, 255)),
-            },
-            "Colorspot575XT": {
-                "Pan": list(range(0, 255)),
-                "Tilt": list(range(0, 255)),
-                "Pan Fine": list(range(0, 255)),
-                "Tilt Fine": list(range(0, 255)),
-                "PanTilt Speed": {},
-                "FanLamp Control": {},
-                "Colour 1": {
-                "White": 0,
-                "Light blue": 13,
-                "Red": 26,
-                "Blue": 38,
-                "Light green": 51,
-                "Yellow": 64,
-                "Magenta": 77,
-                "Cyan": 90,
-                "Green": 102,
-                "Orange": 115,
-                "Rainbow": list(range(128, 255)),
-                },
-                "Colour 2": {
-                "White": 0,
-                "Deep Red": 12,
-                "Deep Blue": 24,
-                "Pink": 36,
-                "Cyan": 48,
-                "Magenta": 60,
-                "Yellow": 72,
-                "5600K Filter": 84,
-                "3200K Filter": 96,
-                "UV": 108
-                },
-                "Prism": {
-                "Open": 0,
-                "Rotation": list(range(1, 127)),
-                },
-                "Macros": {},
-                "Gobos": {
-                "Open": list(range(0, 7)),
-                "1": list(range(8, 15)), 
-                "2": list(range(16, 23)), 
-                "3": list(range(24, 31)), 
-                "4": list(range(32, 39)), 
-                "5": list(range(40, 47)), 
-                "6": list(range(48, 55)), 
-                "7": list(range(56, 63)), 
-                "8": list(range(64, 71)), 
-                "9": list(range(72, 79)), 
-                "1 Shaking": list(range(80, 95)), 
-                "2 Shaking": list(range(96, 111)), 
-                "3 Shaking": list(range(112, 127)), 
-                "4 Shaking": list(range(128, 143)), 
-                "5 Shaking": list(range(144, 159)), 
-                "6 Shaking": list(range(160, 175)), 
-                "7 Shaking": list(range(176, 191)), 
-                "8 Shaking": list(range(192, 207)), 
-                "9 Shaking": list(range(208, 223)), 
-                "Rotation Slow Fast": list(range(224, 255)), 
-                },
-                "Rotating Gobos": {    
-                "Open": list(range(0, 31)),
-                "1": list(range(32, 63)), 
-                "2": list(range(64, 95)), 
-                "3": list(range(96, 127)), 
-                "4": list(range(128, 159)), 
-                "5": list(range(160, 191)), 
-                "6": list(range(192, 223)), 
-                "Rotation Slow Fast": list(range(224, 255)), 
-                },
-                "Rotation Speed": {
-                "Indexing": list(range(0, 127)),    
-                "Rotation": list(range(128, 255)),    
-                },
-                "Iris": {
-                "Open": 0,
-                "MaxToMin": list(range(1, 179)),   
-                "Closed": list(range(180, 191)),   
-                "Pulse Close Slow Fast": list(range(192, 223)),   
-                "Pulse Open Fast Slow": list(range(224, 225)),   
-                },
-                "Focus": list(range(0, 255)),
-                "Strobe / Shutter": {
-                "Closed": list(range(0, 32)),   
-                "Open": list(range(32, 63)),   
-                "Strobe Slow Fast": list(range(64, 95)),   
-                "Pulse Slow Fast": list(range(128, 159)),   
-                "Random Slow Fast": list(range(192, 223)),   
-                },
-                "Dimmer": list(range(0, 255)),
-            },
-            "Colorspot250AT": {
-                "Pan": list(range(0, 255)),
-                "Pan Fine": list(range(0, 255)),
-                "Tilt": list(range(0, 255)),
-                "Tilt Fine": list(range(0, 255)),
-                "PanTilt Speed": {
-                "Max": 0,
-                "Speed": list(range(1, 255)),
-                },
-                "Special Functions": {},
-                "PanTilt Macros": {},
-                "PanTilt Macros Speed": {},
-                "Colour 1": {
-                "White": 0,
-                "Dark green": 11,
-                "Red": 23,
-                "Light azure": 34,
-                "Magenta": 46,
-                "UV filter": 58,
-                "Yellow": 70,
-                "Green": 81,
-                "Pink": 93,
-                "Blue": 105,
-                "Deep red": 117,
-                "Rotation": list(range(190, 243)),
-                "Audio": list(range(224, 249)),
-                "Random Fast Slow": list(range(250, 255)),
-                },
-                "Colour Fine Position": list(range(0, 255)),
-                "Spinning Gobos": {
-                "Open": list(range(0, 3)),
-                "1": list(range(4, 7)),   
-                "2": list(range(8, 11)),   
-                "3": list(range(12, 15)),   
-                "4": list(range(16, 19)),   
-                "5": list(range(20, 23)),   
-                "6": list(range(24, 27)),   
-                "7": list(range(28, 31)),   
-                "1 Rotating": list(range(32, 35)),
-                "2 Rotating": list(range(36, 39)),
-                "3 Rotating": list(range(40, 43)),
-                "4 Rotating": list(range(44, 47)),
-                "5 Rotating": list(range(48, 51)),
-                "6 Rotating": list(range(52, 55)),
-                "7 Rotating": list(range(56, 59)),
-                "1 Shaking Slow Fast": list(range(60, 69)),
-                "2 Shaking Slow Fast": list(range(70, 79)),
-                "3 Shaking Slow Fast": list(range(80, 89)),
-                "4 Shaking Slow Fast": list(range(90, 99)),
-                "5 Shaking Slow Fast": list(range(100, 109)),
-                "6 Shaking Slow Fast": list(range(110, 119)),
-                "7 Shaking Slow Fast": list(range(120, 139)),
-                "1 Shaking Fast Slow": list(range(130, 139)),
-                "2 Shaking Fast Slow": list(range(140, 149)),
-                "3 Shaking Fast Slow": list(range(150, 159)),
-                "4 Shaking Fast Slow": list(range(160, 169)),
-                "5 Shaking Fast Slow": list(range(170, 179)),
-                "6 Shaking Fast Slow": list(range(180, 189)),
-                "7 Shaking Fast Slow": list(range(190, 199)),
-                "Rotation": list(range(202, 243)),
-                "Audio": list(range(244, 249)),
-                "Random Fast Slow": list(range(250, 255)),
-                },
-                "Rotating Gobos": {
-                "No Rotation": 0,
-                "Rotation": list(range(1, 255)),  
-                },
-                "Gobo Fine Position": list(range(0, 255)),
-                "Prism": {
-                "Open position (hole)": list(range(0, 19)),
-                "3-facet": list(range(20, 159)),
-                "Macro 1": list(range(160, 167)),
-                "Macro 2": list(range(168, 175)),
-                "Macro 3": list(range(176, 183)),
-                "Macro 4": list(range(184, 191)),
-                "Macro 5": list(range(192, 199)),
-                "Macro 6": list(range(200, 207)),
-                "Macro 7": list(range(208, 215)),
-                "Macro 8": list(range(216, 223)),
-                "Macro 9": list(range(224, 231)),
-                "Macro 10": list(range(232, 239)),
-                "Macro 11": list(range(240, 247)),
-                "Macro 12": list(range(248, 255)),
-                },
-                "Prism Rotation": {
-                "No Rotation": 0,
-                "Rotation": list(range(1, 255)), 
-                },
-                "Focus": list(range(1, 255)),
-                "Focus Fine": list(range(1, 255)),
-                "StrobeShutter": {
-                "Closed": list(range(0, 31)),
-                "Open": list(range(32, 63)),
-                "Strobe Slow Fast": list(range(64, 95)),
-                "Pulse Slow Fast": list(range(128, 143)),
-                "Pulse Fast Slow": list(range(144, 159)),
-                "Random Slow Fast": list(range(192, 223)),
-                },
-                "Dimmer": list(range(0, 255)),
-                "DimmerFine": list(range(0, 255)),
-            },
-            "Colorwash250AT": {
-                "Pan": list(range(0, 255)),
-                "Pan Fine": list(range(0, 255)),
-                "Tilt": list(range(0, 255)),
-                "Tilt Fine": list(range(0, 255)),
-                "PanTilt Speed": {
-                "Max": 0,
-                "Speed": list(range(1, 255)),
-                },
-                "Special Functions": {},
-                "PanTilt Macros": {},
-                "PanTilt Macros Speed": {},
-                "Colour 1": {
-                "White": 0,
-                "Red": 18,
-                "Blue": 36,
-                "Green": 54,
-                "3200K Filter": 72,
-                "6000K Filter": 90,
-                "UV": list(range(190, 243)),
-                "Audio": list(range(244, 249)),
-                "Random Fast Slow": list(range(250, 255)),
-                },
-                "Colour Fine Position": list(range(0, 255)),
-                "Cyan": list(range(0, 255)),
-                "Magenta": list(range(0, 255)),
-                "Yellow": list(range(0, 255)),
-                "CMYDimmerSpeed": list(range(0, 255)),
-                "CMYMacros": {
-                "Open": list(range(0, 7)),
-                "Rainbow Fast Slow": list(range(240, 243)),
-                "Audio": list(range(244, 249)),
-                "Random Fast Slow": list(range(250, 255)),
-                },
-                "EffectWheel": {
-                "Open": list(range(0, 70)),  
-                "Beam Shaper": list(range(71, 179)),  
-                "Swivelling Slow Fast": list(range(180, 199)),  
-                "Frost": list(range(200, 255)),  
-                },
-                "Zoom": list(range(0, 255)),
-                "StrobeShutter": {},
-                "StrobeShutter": {
-                "Closed": list(range(0, 31)),
-                "Open": list(range(32, 63)),
-                "Strobe Slow Fast": list(range(64, 95)),
-                "Opening Pulse Slow Fast": list(range(128, 143)),
-                "Closing Pulse Fast Slow": list(range(144, 159)),
-                "Random": list(range(192, 223)),
-                },
-                "Dimmer": list(range(0, 255)),
-                "DimmerFine": list(range(0, 255)),
-            }
-        }
-        
-        self.fixtures = {}
-        
-        self.fixtures["ColorSpot"] = {"type": "Colorspot575XT"}
-        self.fixtures["BulkHeads"] = {"type": "Dimmer"}
         
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -397,6 +139,7 @@ class WebApp:
             format.message(f"Error starting OBS Connection: {e}", type="error")
             
         try:
+            format.message("Setting up DMX Connection")
             self.DMXThread = threading.Thread(target=self.setUpDMX)
             self.DMXThread.daemon = True
             self.DMXThread.start()
@@ -435,264 +178,13 @@ class WebApp:
         #Requires USB to DMX with driver version of "libusb-win32"
         
         try:
-            format.message("Setting up DMX Connection")
+            self._dmx = dmx()
+            
+        except Exception as e:
+            format.message(f"Error starting DMX Connection: {e}", type="error")
+            return
         
-            from PyDMXControl.controllers import OpenDMXController
-
-            from PyDMXControl.profiles.Generic import Dimmer
-
-            self._dmx = OpenDMXController()
-            
-            self.fixtures = {}
-            self._fixtureProfiles = {
-                "Dimmer": {
-                    "Dimmer": list(range(0, 255)),
-                },
-                "Colorspot575XT": {
-                    "Pan": list(range(0, 255)),
-                    "Tilt": list(range(0, 255)),
-                    "Pan Fine": list(range(0, 255)),
-                    "Tilt Fine": list(range(0, 255)),
-                    "PanTilt Speed": {},
-                    "FanLamp Control": {},
-                    "Colour 1": {
-                        "White": 0,
-                        "Light blue": 13,
-                        "Red": 26,
-                        "Blue": 38,
-                        "Light green": 51,
-                        "Yellow": 64,
-                        "Magenta": 77,
-                        "Cyan": 90,
-                        "Green": 102,
-                        "Orange": 115,
-                        "Rainbow": list(range(128, 255)),
-                    },
-                    "Colour 2": {
-                        "White": 0,
-                        "Deep Red": 12,
-                        "Deep Blue": 24,
-                        "Pink": 36,
-                        "Cyan": 48,
-                        "Magenta": 60,
-                        "Yellow": 72,
-                        "5600K Filter": 84,
-                        "3200K Filter": 96,
-                        "UV": 108
-                    },
-                    "Prism": {
-                        "Open": 0,
-                        "Rotation": list(range(1, 127)),
-                    },
-                    "Macros": {},
-                    "Gobos": {
-                        "Open": list(range(0, 7)),
-                        "1": list(range(8, 15)), 
-                        "2": list(range(16, 23)), 
-                        "3": list(range(24, 31)), 
-                        "4": list(range(32, 39)), 
-                        "5": list(range(40, 47)), 
-                        "6": list(range(48, 55)), 
-                        "7": list(range(56, 63)), 
-                        "8": list(range(64, 71)), 
-                        "9": list(range(72, 79)), 
-                        "1 Shaking": list(range(80, 95)), 
-                        "2 Shaking": list(range(96, 111)), 
-                        "3 Shaking": list(range(112, 127)), 
-                        "4 Shaking": list(range(128, 143)), 
-                        "5 Shaking": list(range(144, 159)), 
-                        "6 Shaking": list(range(160, 175)), 
-                        "7 Shaking": list(range(176, 191)), 
-                        "8 Shaking": list(range(192, 207)), 
-                        "9 Shaking": list(range(208, 223)), 
-                        "Rotation Slow Fast": list(range(224, 255)), 
-                    },
-                    "Rotating Gobos": {    
-                        "Open": list(range(0, 31)),
-                        "1": list(range(32, 63)), 
-                        "2": list(range(64, 95)), 
-                        "3": list(range(96, 127)), 
-                        "4": list(range(128, 159)), 
-                        "5": list(range(160, 191)), 
-                        "6": list(range(192, 223)), 
-                        "Rotation Slow Fast": list(range(224, 255)), 
-                    },
-                    "Rotation Speed": {
-                        "Indexing": list(range(0, 127)),    
-                        "Rotation": list(range(128, 255)),    
-                    },
-                    "Iris": {
-                        "Open": 0,
-                        "MaxToMin": list(range(1, 179)),   
-                        "Closed": list(range(180, 191)),   
-                        "Pulse Close Slow Fast": list(range(192, 223)),   
-                        "Pulse Open Fast Slow": list(range(224, 225)),   
-                    },
-                    "Focus": {list(range(0, 255))},
-                    "Strobe / Shutter": {
-                        "Closed": list(range(0, 32)),   
-                        "Open": list(range(32, 63)),   
-                        "Strobe Slow Fast": list(range(64, 95)),   
-                        "Pulse Slow Fast": list(range(128, 159)),   
-                        "Random Slow Fast": list(range(192, 223)),   
-                    },
-                    "Dimmer": {list(range(0, 255))},
-                },
-                "Colorspot250AT": {
-                    "Pan": {list(range(0, 255))},
-                    "Pan Fine": {list(range(0, 255))},
-                    "Tilt": {list(range(0, 255))},
-                    "Tilt Fine": {list(range(0, 255))},
-                    "PanTilt Speed": {
-                        "Max": 0,
-                        "Speed": list(range(1, 255)),
-                    },
-                    "Special Functions": {},
-                    "PanTilt Macros": {},
-                    "PanTilt Macros Speed": {},
-                    "Colour 1": {
-                        "White": 0,
-                        "Dark green": 11,
-                        "Red": 23,
-                        "Light azure": 34,
-                        "Magenta": 46,
-                        "UV filter": 58,
-                        "Yellow": 70,
-                        "Green": 81,
-                        "Pink": 93,
-                        "Blue": 105,
-                        "Deep red": 117,
-                        "Rotation": list(range(190, 243)),
-                        "Audio": list(range(224, 249)),
-                        "Random Fast Slow": list(range(250, 255)),
-                    },
-                    "Colour Fine Position": list(range(0, 255)),
-                    "Spinning Gobos": {
-                        "Open": list(range(0, 3)),
-                        "1": list(range(4, 7)),   
-                        "2": list(range(8, 11)),   
-                        "3": list(range(12, 15)),   
-                        "4": list(range(16, 19)),   
-                        "5": list(range(20, 23)),   
-                        "6": list(range(24, 27)),   
-                        "7": list(range(28, 31)),   
-                        "1 Rotating": list(range(32, 35)),
-                        "2 Rotating": list(range(36, 39)),
-                        "3 Rotating": list(range(40, 43)),
-                        "4 Rotating": list(range(44, 47)),
-                        "5 Rotating": list(range(48, 51)),
-                        "6 Rotating": list(range(52, 55)),
-                        "7 Rotating": list(range(56, 59)),
-                        "1 Shaking Slow Fast": list(range(60, 69)),
-                        "2 Shaking Slow Fast": list(range(70, 79)),
-                        "3 Shaking Slow Fast": list(range(80, 89)),
-                        "4 Shaking Slow Fast": list(range(90, 99)),
-                        "5 Shaking Slow Fast": list(range(100, 109)),
-                        "6 Shaking Slow Fast": list(range(110, 119)),
-                        "7 Shaking Slow Fast": list(range(120, 139)),
-                        "1 Shaking Fast Slow": list(range(130, 139)),
-                        "2 Shaking Fast Slow": list(range(140, 149)),
-                        "3 Shaking Fast Slow": list(range(150, 159)),
-                        "4 Shaking Fast Slow": list(range(160, 169)),
-                        "5 Shaking Fast Slow": list(range(170, 179)),
-                        "6 Shaking Fast Slow": list(range(180, 189)),
-                        "7 Shaking Fast Slow": list(range(190, 199)),
-                        "Rotation": list(range(202, 243)),
-                        "Audio": list(range(244, 249)),
-                        "Random Fast Slow": list(range(250, 255)),
-                    },
-                    "Rotating Gobos": {
-                        "No Rotation": 0,
-                        "Rotation": list(range(1, 255)),  
-                    },
-                    "Gobo Fine Position": list(range(0, 255)),
-                    "Prism": {
-                        "Open position (hole)": list(range(0, 19)),
-                        "3-facet": list(range(20, 159)),
-                        "Macro 1": list(range(160, 167)),
-                        "Macro 2": list(range(168, 175)),
-                        "Macro 3": list(range(176, 183)),
-                        "Macro 4": list(range(184, 191)),
-                        "Macro 5": list(range(192, 199)),
-                        "Macro 6": list(range(200, 207)),
-                        "Macro 7": list(range(208, 215)),
-                        "Macro 8": list(range(216, 223)),
-                        "Macro 9": list(range(224, 231)),
-                        "Macro 10": list(range(232, 239)),
-                        "Macro 11": list(range(240, 247)),
-                        "Macro 12": list(range(248, 255)),
-                    },
-                    "Prism Rotation": {
-                        "No Rotation": 0,
-                        "Rotation": list(range(1, 255)), 
-                    },
-                    "Focus": {list(range(1, 255))},
-                    "Focus Fine": {list(range(1, 255))},
-                    "StrobeShutter": {
-                        "Closed": list(range(0, 31)),
-                        "Open": list(range(32, 63)),
-                        "Strobe Slow Fast": list(range(64, 95)),
-                        "Pulse Slow Fast": list(range(128, 143)),
-                        "Pulse Fast Slow": list(range(144, 159)),
-                        "Random Slow Fast": list(range(192, 223)),
-                    },
-                    "Dimmer": {list(range(0, 255))},
-                    "DimmerFine": {list(range(0, 255))},
-                },
-                "Colorwash250AT": {
-                    "Pan": {{list(range(0, 255))}},
-                    "Pan Fine": {{list(range(0, 255))}},
-                    "Tilt": {{list(range(0, 255))}},
-                    "Tilt Fine": {{list(range(0, 255))}},
-                    "PanTilt Speed": {
-                        "Max": 0,
-                        "Speed": {list(range(1, 255))},},
-                    "Special Functions": {},
-                    "PanTilt Macros": {},
-                    "PanTilt Macros Speed": {},
-                    "Colour 1": {
-                        "White": 0,
-                        "Red": 18,
-                        "Blue": 36,
-                        "Green": 54,
-                        "3200K Filter": 72,
-                        "6000K Filter": 90,
-                        "UV": list(range(190, 243)),
-                        "Audio": list(range(244, 249)),
-                        "Random Fast Slow": list(range(250, 255)),
-                    },
-                    "Colour Fine Position": {list(range(0, 255))},
-                    "Cyan": {{list(range(0, 255))}},
-                    "Magenta": {{list(range(0, 255))}},
-                    "Yellow": {{list(range(0, 255))}},
-                    "CMYDimmerSpeed": {{list(range(0, 255))}},
-                    "CMYMacros": {
-                        "Open": list(range(0, 7)),
-                        "Rainbow Fast Slow": {{list(range(240, 243))}},
-                        "Audio": {{list(range(244, 249))}},
-                        "Random Fast Slow": {{list(range(250, 255))}},
-                    },
-                    "EffectWheel": {
-                    "Open": list(range(0, 70)),  
-                    "Beam Shaper": list(range(71, 179)),  
-                    "Swivelling Slow Fast": list(range(180, 199)),  
-                    "Frost": list(range(200, 255)),  
-                    },
-                    "Zoom": {list(range(0, 255))},
-                    "StrobeShutter": {},
-                    "StrobeShutter": {
-                        "Closed": list(range(0, 31)),
-                        "Open": list(range(32, 63)),
-                        "Strobe Slow Fast": list(range(64, 95)),
-                        "Opening Pulse Slow Fast": list(range(128, 143)),
-                        "Closing Pulse Fast Slow": list(range(144, 159)),
-                        "Random": list(range(192, 223)),
-                    },
-                    "Dimmer": {list(range(0, 255))},
-                    "DimmerFine": {list(range(0, 255))},
-                }
-            }
-            
+        try:
             #try:
                 #self._dmx.web_control()
                 
@@ -701,240 +193,29 @@ class WebApp:
         
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
-                self._DimmerBulkHeadLights = self._dmx.add_fixture(Dimmer, name="DimmerBulkHeadLights")
                 
-                self._DimmerBulkHeadLights._register_channel(f"{fixtureName}_Dimmer")
-                
-                self.fixtures[self._DimmerBulkHeadLights.name] = {"type": "Dimmer"}
+                self.BulkHeadLights = self._dmx.registerDimmerFixture("Bulk-Head Lights")
                 
             except Exception as e:
                 format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
                 
             try:
-                format.message("Registering Robe Colorspot 575 XT 0", type="info")
-                self._Colorspot575XT_0 = self._dmx.add_fixture(Dimmer, name="Colorspot575XT_0")
+                format.message("Registering ColorWash 250 AT", type="info")
                 
-                with self._Colorspot575XT_0 as light:
-                    
-                    fixtureName = light.name
+                self.ColorWash250 = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "Colorwash250AT", 43)
+                self._dmx.addFixtureToGroup(self.ColorWash250, "Moving Heads")
                 
-                    light._register_channel(f"{fixtureName}_Pan")
-                    light._register_channel(f"{fixtureName}_Tilt")
-                    light._register_channel(f"{fixtureName}_Pan Fine")
-                    light._register_channel(f"{fixtureName}_Tilt Fine")
-                    light._register_channel(f"{fixtureName}_PanTilt Speed")
-                    light._register_channel(f"{fixtureName}_FanLamp Control")
-                    light._register_channel(f"{fixtureName}_Colour 1")
-                    light._register_channel(f"{fixtureName}_Colour 2")
-                    light._register_channel(f"{fixtureName}_Prism")
-                    light._register_channel(f"{fixtureName}_Macros")
-                    light._register_channel(f"{fixtureName}_Static Gobos")
-                    light._register_channel(f"{fixtureName}_Rotating Gobos")
-                    light._register_channel(f"{fixtureName}_Gobo Rotation Speed")
-                    light._register_channel(f"{fixtureName}_Iris")
-                    light._register_channel(f"{fixtureName}_Focus")
-                    light._register_channel(f"{fixtureName}_Strobe / Shutter")
-                    light._register_channel(f"{fixtureName}_Dimmer")
-                    
-                    self.fixtures[light.name] = {"type": "Colorspot575XT"}
-                    
-                    # Set to red for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Red"])
-                    
             except Exception as e:
-                format.message(f"Error registering Robe Colorspot 575 XT 0: {e}", type="error")
+                format.message(f"Error registering ColorWash 250 AT: {e}", type="error")
                 
             try:
-                format.message("Registering Robe Colorspot 575 XT 1", type="info")
-                self._Colorspot575XT_1 = self._dmx.add_fixture(Dimmer, name="Colorspot575XT_1")
+                format.message("Registering ColorWash 250 AT 1", type="info")
                 
-                # LIGHT MUST BE IN MODE 1
-                
-                with self._Colorspot575XT_1 as light:
-                    
-                    fixtureName = light.name
-                
-                    light._register_channel(f"{fixtureName}_Pan")
-                    light._register_channel(f"{fixtureName}_Tilt")
-                    light._register_channel(f"{fixtureName}_Pan Fine")
-                    light._register_channel(f"{fixtureName}_Tilt Fine")
-                    light._register_channel(f"{fixtureName}_PanTilt Speed")
-                    light._register_channel(f"{fixtureName}_FanLamp Control")
-                    light._register_channel(f"{fixtureName}_Colour 1")
-                    light._register_channel(f"{fixtureName}_Colour 2")
-                    light._register_channel(f"{fixtureName}_Prism")
-                    light._register_channel(f"{fixtureName}_Macros")
-                    light._register_channel(f"{fixtureName}_Static Gobos")
-                    light._register_channel(f"{fixtureName}_Rotating Gobos")
-                    light._register_channel(f"{fixtureName}_Gobo Rotation Speed")
-                    light._register_channel(f"{fixtureName}_Iris")
-                    light._register_channel(f"{fixtureName}_Focus")
-                    light._register_channel(f"{fixtureName}_StrobeShutter")
-                    light._register_channel(f"{fixtureName}_Dimmer")
-                    
-                    self.fixtures[light.name] = {"type": "Colorspot575XT"}
-                    
-                    # Set to orange for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Orange"])
-
-            except Exception as e:
-                format.message(f"Error registering Robe Colorspot 575 XT 1: {e}", type="error")
-                
-            try:
-                format.message("Registering Robe Colorspot 250 AT 0", type="info")
-                self._Colorspot250AT_0 = self._dmx.add_fixture(Dimmer, name="Colorspot250AT_0")
-                
-                # LIGHT MUST BE IN MODE 3
-                
-                with self._Colorspot250AT_0 as light:
-                    
-                    fixtureName = light.name
-                
-                    light._register_channel(f"{fixtureName}_Pan")
-                    light._register_channel(f"{fixtureName}_Pan Fine")
-                    light._register_channel(f"{fixtureName}_Tilt")
-                    light._register_channel(f"{fixtureName}_Tilt Fine")
-                    light._register_channel(f"{fixtureName}_PanTilt Speed")
-                    light._register_channel(f"{fixtureName}_Special Functions")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
-                    light._register_channel(f"{fixtureName}_Colour 1")
-                    light._register_channel(f"{fixtureName}_Colour Fine Position")
-                    light._register_channel(f"{fixtureName}_Spinning Gobos")
-                    light._register_channel(f"{fixtureName}_Rotating Gobos")
-                    light._register_channel(f"{fixtureName}_Gobo Fine Position")
-                    light._register_channel(f"{fixtureName}_Prism")
-                    light._register_channel(f"{fixtureName}_Prism Rotation")
-                    light._register_channel(f"{fixtureName}_Focus")
-                    light._register_channel(f"{fixtureName}_Focus Fine")
-                    light._register_channel(f"{fixtureName}_StrobeShutter")
-                    light._register_channel(f"{fixtureName}_Dimmer")
-                    light._register_channel(f"{fixtureName}_DimmerFine")
-                    
-                    self.fixtures[light.name] = {"type": "Colorspot250AT"}
-                    
-                    # Set to pink for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Pink"])
-
-            except Exception as e:
-                format.message(f"Error registering Robe Colorspot 250 AT 0: {e}", type="error")
-                
-            try:
-                format.message("Registering Robe Colorspot 250 AT 1", type="info")
-                self._Colorspot250AT_1 = self._dmx.add_fixture(Dimmer, name="Colorspot250AT_1")
-                
-                # LIGHT MUST BE IN MODE 3
-                
-                with self._Colorspot250AT_1 as light:
-                    
-                    fixtureName = light.name
-                
-                    light._register_channel(f"{fixtureName}_Pan")
-                    light._register_channel(f"{fixtureName}_Pan Fine")
-                    light._register_channel(f"{fixtureName}_Tilt")
-                    light._register_channel(f"{fixtureName}_Tilt Fine")
-                    light._register_channel(f"{fixtureName}_PanTilt Speed")
-                    light._register_channel(f"{fixtureName}_Special Functions")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
-                    light._register_channel(f"{fixtureName}_Colour 1")
-                    light._register_channel(f"{fixtureName}_Colour Fine Position")
-                    light._register_channel(f"{fixtureName}_Spinning Gobos")
-                    light._register_channel(f"{fixtureName}_Rotating Gobos")
-                    light._register_channel(f"{fixtureName}_Gobo Fine Position")
-                    light._register_channel(f"{fixtureName}_Prism")
-                    light._register_channel(f"{fixtureName}_Prism Rotation")
-                    light._register_channel(f"{fixtureName}_Focus")
-                    light._register_channel(f"{fixtureName}_Focus Fine")
-                    light._register_channel(f"{fixtureName}_StrobeShutter")
-                    light._register_channel(f"{fixtureName}_Dimmer")
-                    light._register_channel(f"{fixtureName}_DimmerFine")
-                    
-                    self.fixtures[light.name] = {"type": "Colorspot250AT"}
-                    
-                    # Set to magenta for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Magenta"])
-                    
-            except Exception as e:
-                format.message(f"Error registering Robe Colorspot 250 AT 1: {e}", type="error")
-        
-            try:
-                format.message("Registering Robe Colorwash 250 AT 0", type="info")
-                self._Colorwash250AT_0 = self._dmx.add_fixture(Dimmer, name="Colorwash250AT_0")
-                
-                # LIGHT MUST BE IN MODE 3
-                
-                with self._Colorwash250AT_0 as light:
-                    
-                    fixtureName = light.name
-                
-                    light._register_channel(f"{fixtureName}_Pan")
-                    light._register_channel(f"{fixtureName}_Pan Fine")
-                    light._register_channel(f"{fixtureName}_Tilt")
-                    light._register_channel(f"{fixtureName}_Tilt Fine")
-                    light._register_channel(f"{fixtureName}_PanTilt Speed")
-                    light._register_channel(f"{fixtureName}_Special Functions")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
-                    light._register_channel(f"{fixtureName}_Colour 1")
-                    light._register_channel(f"{fixtureName}_Colour Fine Position")
-                    light._register_channel(f"{fixtureName}_Cyan")
-                    light._register_channel(f"{fixtureName}_Magenta")
-                    light._register_channel(f"{fixtureName}_Yellow")
-                    light._register_channel(f"{fixtureName}_CMYDimmerSpeed")
-                    light._register_channel(f"{fixtureName}_CMYMacros")
-                    light._register_channel(f"{fixtureName}_EffectWheel")
-                    light._register_channel(f"{fixtureName}_Zoom")
-                    light._register_channel(f"{fixtureName}_StrobeShutter")
-                    light._register_channel(f"{fixtureName}_Dimmer")
-                    light._register_channel(f"{fixtureName}_DimmerFine")
-                    
-                    self.fixtures[light.name] = {"type": "Colorwash250AT"}
-                    
-                    # Set to red for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Red"])
+                self.ColorWash250_1 = self._dmx.registerFixtureUsingType("ColorWash 250 AT 1", "Colorwash250AT_1", 43)
+                self._dmx.addFixtureToGroup(self.ColorWash250_1, "Moving Heads")
                 
             except Exception as e:
-                format.message(f"Error registering Robe Colorwash 250 AT 0: {e}", type="error")
-                
-            try:
-                format.message("Registering Robe Colorwash 250 AT 1", type="info")
-                self._Colorwash250AT_1 = self._dmx.add_fixture(Dimmer, name="Colorwash250AT_1")
-                
-                # LIGHT MUST BE IN MODE 3
-                
-                with self._Colorwash250AT_1 as light:
-                    
-                    fixtureName = light.name
-                
-                    light._register_channel(f"{fixtureName}_Pan")
-                    light._register_channel(f"{fixtureName}_Pan Fine")
-                    light._register_channel(f"{fixtureName}_Tilt")
-                    light._register_channel(f"{fixtureName}_Tilt Fine")
-                    light._register_channel(f"{fixtureName}_PanTilt Speed")
-                    light._register_channel(f"{fixtureName}_Special Functions")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros")
-                    light._register_channel(f"{fixtureName}_PanTilt Macros Speed")
-                    light._register_channel(f"{fixtureName}_Colour 1")
-                    light._register_channel(f"{fixtureName}_Colour Fine Position")
-                    light._register_channel(f"{fixtureName}_Cyan")
-                    light._register_channel(f"{fixtureName}_Magenta")
-                    light._register_channel(f"{fixtureName}_Yellow")
-                    light._register_channel(f"{fixtureName}_CMYDimmerSpeed")
-                    light._register_channel(f"{fixtureName}_CMYMacros")
-                    light._register_channel(f"{fixtureName}_EffectWheel")
-                    light._register_channel(f"{fixtureName}_Zoom")
-                    light._register_channel(f"{fixtureName}_StrobeShutter")
-                    light._register_channel(f"{fixtureName}_Dimmer")
-                    light._register_channel(f"{fixtureName}_DimmerFine")
-                    
-                    self.fixtures[light.name] = {"type": "Colorwash250AT"}
-                    
-                    # Set to green for testing
-                    light.set_channel(f"{fixtureName}_Colour 1", self._fixtureProfiles[f"{self.fixtures[light.name]["type"]}"]["Colour 1"]["Green"])
-                
-            except Exception as e:
-                format.message(f"Error registering Robe Colorwash 250 AT 1: {e}", type="error")
+                format.message(f"Error registering ColorWash 250 AT 1: {e}", type="error")
         
             self.DMXConnected = True
             
@@ -1036,7 +317,7 @@ class WebApp:
             
             return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
         
-        @self.app.route('/text')
+        @self.app.route("/text")
         def neonText():
             return render_template('neonFlicker.html')
 
@@ -1050,19 +331,57 @@ class WebApp:
         def availableFixtures():
             
             temp_fixtures = []
-            for fixture_name, fixture_data in self.fixtures.items():
-                fixture_type = fixture_data["type"]
-                fixture_profile = self._fixtureProfiles.get(fixture_type, {})
-
-                temp_fixtures.append({
-                    "name": fixture_name,            
-                    "type": fixture_type,          
-                    "attributes": fixture_profile      
-                })
             
+            try:
+                
+                fixtures = self._dmx.getFixtures()
+                
+                for fixtureData in fixtures.items():
+                    fixtureType = fixtureData[1]["type"]
+                    fixtureId = fixtureData[1]["id"]
+                    fixtureName = fixtureData[0]
+                    fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
+
+                    # Add an index to each attribute
+                    indexed_fixture_profile = {}
+                    for index, (key, value) in enumerate(fixtureProfile.items()):
+                        fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
+                        
+                        if fixture_temp.json_data["type"] == "Generic.Dimmer":
+                            indexed_fixture_profile[key] = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0]}
+                        else:
+                            try:
+                                fixtureChannel_temp = 0
+
+                                for key_id, channel in fixture_temp.channels.items():
+                                    if channel["name"] == key.lower():
+                                        fixtureChannel_temp = channel["value"][0]
+
+                                indexed_fixture_profile[key] = {
+                                    "index": index,
+                                    "value": value,
+                                    "DMXValue": fixtureChannel_temp,
+                                }
+                            except Exception as e:
+                                format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
+
+                    temp_fixtures.append({
+                        "name": fixtureName,
+                        "type": fixtureType,
+                        "attributes": indexed_fixture_profile
+                    })
+                    
+            except Exception as e:
+                format.message(f"Error getting available fixtures: {e}", type="error")
+
             #format.message(f"Fixtures: {temp_fixtures}")
         
-            return jsonify(temp_fixtures)
+            return temp_fixtures
+            
+        @self.app.route("/api/dmx/scenes", methods=["GET"])
+        def dmxScenes():
+            
+            pass
             
         @self.app.route('/end')
         def terminateServer():
@@ -1100,6 +419,17 @@ class WebApp:
             #format.message(f"Spotify control = {json["data"]}")
             
             self.spotifyControl = json["data"]
+            
+        @self.socketio.on('UpdateDMXValue')
+        def UpdateDMXValue(json):
+            fixture = json["fixtureName"]
+            channelName = json["attributeName"]
+            value = json["value"]
+            
+            try:
+                self._dmx.setFixtureChannel(fixture, channelName, value)
+            except Exception as e:
+                format.message(f"Error updating DMX Value: {e}", type="error")
             
         @self.socketio.on('playBriefing')
         def playBriefing():

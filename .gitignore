@@ -171,3 +171,5 @@ backend/runPython.bat
 backend/data/keys.txt
 backend/data/secrets.txt
 backend/data/OBSText.txt
+backend/dataProcessing/tests
+backend/data/DMXScenes/local

@@ -1,0 +1,34 @@
+<div class="card mb-3">
+
+    <div class="card-header collapsed" role="button" onclick="$('#DMXScenesCardBody').collapse('toggle');">
+        Scenes
+    </div>
+
+    <div class="card-body collapse" id="DMXScenesCardBody">
+
+
+
+    </div>
+
+</div>
+
+{% block content %}{% endblock %}
+
+<script>
+
+    window.onload = function() {
+		getDMXScenes();
+        fetchFixtures();
+	};
+
+    function getDMXScenes(){
+        $.ajax({
+            url: '/api/dmx/scenes',
+            type: 'GET',
+            success: function(response){
+                $('#DMXScenesCardBody').html(response);
+            }
+        });
+    }
+
+</script>
