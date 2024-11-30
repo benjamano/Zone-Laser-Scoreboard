@@ -448,35 +448,6 @@ class WebApp:
             if message:
                 
                 self.socketio.emit(f"{type}", {f"message": message})
-
-                # match type.lower():
-                #     case "start":
-                #         #format.message("Sending start message")
-                #         self.socketio.emit('start', {'message': message})
-                #     case "end":
-                #         #format.message("Sending end message")
-                #         self.socketio.emit('end', {'message': message})
-                #     case "server":
-                #         #format.message("Sending server message")
-                #         self.socketio.emit('server', {'message': message})
-                #     case "timeleft":
-                #         #format.message(f"Sending timeleft message, {message} seconds left")
-                #         self.socketio.emit('timeleft', {'message': f"{message} seconds remaining"})
-                #     case "gunscores":
-                #         #format.message(f"Sending gunScore message, {message}")
-                #         self.socketio.emit('gunScores', {'message': message})
-                #     case "timeremaining":
-                #         #format.message(f"Sending time left message, {message}")
-                #         self.socketio.emit('timeRemaining', {'message': message})
-                #     case "songname":
-                #         #format.message(f"Sending Music Name, {message}")
-                #         self.socketio.emit('songName', {'message': message})
-                #     case "songbpm":
-                #         #format.message(f"Sending Music BPM, {message}")
-                #         self.socketio.emit('songBPM', {'message': message})       
-                #     case "songalbum":
-                #         #format.message(f"Sending Music Album, {message}")
-                #         self.socketio.emit('songAlbum', {'message': message})
                         
             #format.newline()
                         
