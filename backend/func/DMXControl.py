@@ -262,7 +262,7 @@ class dmx:
             }
     
         try:
-            self.scenes = self.getScenesFromFileSystem()
+            self.scenes = self.getDMXScenes()
         except Exception as e:
             format.message(f"Error processing DMX scenes: {e}", "error")
             
@@ -306,14 +306,14 @@ class dmx:
         
     def registerFixtureUsingType(self, fixtureName, fixtureType, startChannel):
         try:
-            if fixtureType in self._fixtureProfiles:
+            if fixtureType in self.fixtureProfiles:
                 fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=fixtureName))
                 
                 setattr(self, fixtureName, fixture)
                 
                 self.__appendToFixtures(fixture, fixtureType)
                 
-                for channel in self._fixtureProfiles[fixtureType]:
+                for channel in self.fixtureProfiles[fixtureType]:
                     fixture._register_channel(channel)
                 
                 return fixture
@@ -354,14 +354,12 @@ class dmx:
     def getFixtures(self):
         return self.fixtures
     def getFixtureTypes(self):
-        return list(self._fixtureProfiles.keys())
+        return list(self.fixtureProfiles.keys())
     def getFixtureGroups(self):
         return self.fixtureGroups
     def getFixturesByName(self, fixtureName):
         return self._dmx.get_fixtures_by_name(fixtureName)
     def getDMXScenes(self):
-        return self.getScenesFromFileSystem()
-    def getScenesFromFileSystem(self):
         return self.processJSONDMXScenes(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data", "DMXScenes"))
     
     # Processing
@@ -369,12 +367,25 @@ class dmx:
     def processJSONDMXScenes(self, folder):
         scenes = {}
         
-        for (dirpath, dirnames, filenames) in walk(folder):
-            format.message(f"Processing {len(filenames)} DMX scenes", "info")
+        for (dirpath, dirnames, filenames) in walk(folder+"\\local"):
+            format.message(f"Processing {len(filenames)} DMX local scenes", "info")
             
             for filename in filenames:
                 if filename.endswith(".json"):
-                    with open(folder+"\\"+filename) as json_file:
+                    with open(folder+"\\local\\"+filename) as json_file:
+                        try:
+                            scene = json.load(json_file)
+
+                            scenes[str(filename).strip(".json")] = scene           
+                        except Exception as e:
+                            format.message(f"Error processing DMX scene {filename}: {e}", "error")
+                            
+        for (dirpath, dirnames, filenames) in walk(folder+"\\shared"):
+            format.message(f"Processing {len(filenames)} DMX shared scenes", "info")
+            
+            for filename in filenames:
+                if filename.endswith(".json"):
+                    with open(folder+"\\shared\\"+filename) as json_file:
                         try:
                             scene = json.load(json_file)
 
