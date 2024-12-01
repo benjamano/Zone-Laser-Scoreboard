@@ -98,7 +98,7 @@ def message(message, type="Info", date=True, newline=False):
         print(messagetosend)
         
     except Exception as e:
-        print(f"Error sending log message: {e}")
+        print(f"Error sending log message: {e}, MESSAGE: {message}")
     
     
 def newline(withDivider=True, baronly=False):
