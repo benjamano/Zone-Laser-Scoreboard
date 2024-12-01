@@ -361,39 +361,49 @@ class dmx:
         return self._dmx.get_fixtures_by_name(fixtureName)
     def getDMXScenes(self):
         return self.processJSONDMXScenes(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data", "DMXScenes"))
+    def getDMXSceneByName(self, sceneName):
+        return self.findScene(sceneName)
     
     # Processing
     
+    def findScene(self, sceneName):
+        for scene in self.scenes:
+            if scene["name"] == sceneName:
+                return scene
+            
+        return None
+    
     def processJSONDMXScenes(self, folder):
-        scenes = {}
+        scenes = []
         
-        for (dirpath, dirnames, filenames) in walk(folder+"\\local"):
+        for (dirpath, dirnames, filenames) in walk(folder + "\\local"):
             format.message(f"Processing {len(filenames)} DMX local scenes", "info")
             
             for filename in filenames:
                 if filename.endswith(".json"):
-                    with open(folder+"\\local\\"+filename) as json_file:
+                    with open(folder + "\\local\\" + filename) as json_file:
                         try:
                             scene = json.load(json_file)
 
-                            scenes[str(filename).strip(".json")] = scene           
+                            scenes.append(scene[0]) 
                         except Exception as e:
                             format.message(f"Error processing DMX scene {filename}: {e}", "error")
                             
-        for (dirpath, dirnames, filenames) in walk(folder+"\\shared"):
+        for (dirpath, dirnames, filenames) in walk(folder + "\\shared"):
             format.message(f"Processing {len(filenames)} DMX shared scenes", "info")
             
             for filename in filenames:
                 if filename.endswith(".json"):
-                    with open(folder+"\\shared\\"+filename) as json_file:
+                    with open(folder + "\\shared\\" + filename) as json_file:
                         try:
                             scene = json.load(json_file)
 
-                            scenes[str(filename).strip(".json")] = scene           
+                            scenes.append(scene[0])
                         except Exception as e:
                             format.message(f"Error processing DMX scene {filename}: {e}", "error")
         
         return scenes
+
             
     # Config
     
