@@ -28,7 +28,7 @@ All libraries should be installed when you run the ```Scoreboard.py``` file.
 | Feature                                                               | Status                                             | Comments                                                                                                                        |
 | :----------------                                                     | :------                                            | :------                                                                                                                         |
 |Store Game Data in Database| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
-|DMX Lighting Control                                                   | Started                                            | A DMX connection is setup at runtime, but nothing is done yet as I have no way to test if it works (Will be able to soon)       |
+|DMX Lighting Control                                                   | Started                                            | A DMX connection is setup at runtime, And lights are now regististered with the system, need to implement and test this now.       |
 |DMX Lighting Reacting to game events  | Not Started  | Will get on with this once I can test it                                                                                        |
 |Advanced music control                                                 | Complete                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
 |Randomly select lighting effects   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
@@ -36,6 +36,7 @@ All libraries should be installed when you run the ```Scoreboard.py``` file.
 |Advanced OBS control                                                   | Started                                            | Allow for certains creens around the arena to change based on game status - So far it only creates a web-socket connection      |
 |Track game progress & scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
 |Interactive web page                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
+|Phne Screen Friendle design                | Not Started                                 | Want to make it look nice and work of phone screen allowing me to test lighting using my phone or a tablet could be used to control the music / lighting instead of a pc|
 
 
 ## Packets decoded so far:
