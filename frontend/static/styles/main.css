@@ -2,3 +2,143 @@
     background-color: var(--medium-dark-gray); 
     color: #ffffff;
 }
+
+.dmxScene{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-end;
+    background-color: var(--primary-gray); 
+    color: #ffffff;
+    border-radius: 2rem;
+    border-radius: 0.3rem;
+    padding: 0.4rem;
+}
+
+.sceneInfoContainer{
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.sceneSettingContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: flex-start;
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    opacity: 0.6;
+    gap: 0.3rem;
+}
+
+.dmxScene .title{
+    font-size: 0.9rem;
+    margin: 0rem;
+}
+
+.dmxScene .duration{
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin:0;
+}
+
+.dmxScene.active{
+    animation: fade 1s infinite alternate cubic-bezier(0.54, -0.25, 1, 1.23);
+}
+
+@keyframes fade {
+    from {
+        background-color: var(--primary-gray);
+    }
+    to {
+        background-color: var(--light-gray);
+    }
+}
+
+.sceneContainer{
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+}
+
+.sceneContainer{
+    display: flex;
+    flex-direction: row;
+    padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
+}
+
+.sceneContainer .editSceneContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.sceneContainer .editSceneContainer .sceneEventContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+}
+
+.sceneContainer .editSceneContainer .sceneEventContainer .sceneDetailButtons{
+    display: flex;
+    flex-direction: column;
+}
+
+.intSelected{
+    color: rgb(106 255 139 / 46%);
+}
+
+.intSelected:hover{
+    color: rgba(106, 255, 138, 0.781);
+    animation: color 2s alternate linear;
+}
+
+.intNotSelected{
+    color: var(--primary-gray);
+}
+
+.intNotSelected:hover{
+    color: var(--light-gray);
+    animation: color 2s alternate linear;
+}
+
+.editSceneContainer{
+    border-top: 2px #ffffff30 solid;
+    margin-top: 0;
+    padding: 0rem;
+}
+
+.editSceneContainer .sceneName{
+    text-decoration: underline;
+}
+
+.DMXScenesCardBody{
+    padding: 0;
+}
+
+#visualization {
+    color: white; 
+    background-color: #00000040; 
+}
+
+.vis-time-axis .vis-grid.vis-minor, .vis-panel.vis-center{
+    color: #818181 !important; 
+}
+
+.vis-time-axis .vis-text{
+    color: white !important; 
+}
+
+.vis-timeline .vis-item {
+    margin-top: 0;
+}
+
+.vis-timeline{
+    border: none !important;
+    border-radius: 8px !important;
+}
