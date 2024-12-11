@@ -1,6 +1,6 @@
 import threading
 import time
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 import os
@@ -43,11 +43,7 @@ class WebApp:
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
         self.expecteProcesses = ["Spotify.exe", "obs64"]
-        
-        # self.goboModes = ["SpinningAll", "Static", "Stacked"]
-        # self.colourModes  = ["BPM", "Static", "Rainbow"]
-        # self.panTiltModes  = ["Crazy", "Normal", "Slow"]
-            
+
         db.init_app(self.app)
         
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
@@ -55,7 +51,7 @@ class WebApp:
         self._dir = os.path.dirname(os.path.realpath(__file__))
 
         self.OBSConnected = False
-        self.devMode = "false"
+        self.devMode = False
         self.filesOpened = False
         self.spotifyControl = True
         self.DMXConnected = False
@@ -76,6 +72,8 @@ class WebApp:
         
         self.setupRoutes()
         
+        self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
+        
         with self.app.app_context():
             db.create_all()
             self.seedDBData() 
@@ -89,8 +87,13 @@ class WebApp:
                     format.message(f"Port 8080 is already in use on {self._localIp}", type="error")
                     raise RuntimeError("Port in use. Exiting application.")
 
-            self.socketio.run(self.app, host=self._localIp, port=8080)
+                self.socketio.run(self.app, host=self._localIp, port=8080)
+                
+                if self.devMode == True:
+                    self.app.debug = True
+                
         except Exception as e:
+            format.message("Fatal! ", e)
             os._exit(1)
         
     def start(self):
@@ -113,7 +116,7 @@ class WebApp:
             self.mediaStatusCheckerThread.start()
             
         except Exception as e:
-            format.message(f"Error starting Flask Server: {e}", type="error")
+            format.message(f"Error starting Media Status Checker: {e}", type="error")
             
         format.message("Attempting to start Flask Server")
         
@@ -124,31 +127,42 @@ class WebApp:
             
         except Exception as e:
             format.message(f"Error starting Flask Server: {e}", type="error")
+            return SystemExit
 
         format.message(f"Web App hosted on IP {self._localIp}", type="success")
         
-        if self.devMode == "false":
+        if self.devMode == False:
             webbrowser.open(f"http://{self._localIp}:8080")
             
         try:
-            self.obs_thread = threading.Thread(target=self.obs_connect)
-            self.obs_thread.daemon = True
-            self.obs_thread.start()
-            
+            if self.OBSSERVERIP == "" or self.OBSSERVERPASSWORD == "" or self.OBSSERVERPORT == "" or self.devMode == True:
+                format.message(f"Development Mode or Missing Values, skipping OBS Connection ('{self.OBSSERVERIP}', '{self.OBSSERVERPASSWORD}', '{self.OBSSERVERPORT}')", type="warning")
+            else:
+                self.obs_thread = threading.Thread(target=self.obs_connect)
+                self.obs_thread.daemon = True
+                self.obs_thread.start()
+                
         except Exception as e:
             format.message(f"Error starting OBS Connection: {e}", type="error")
             
         try:
-            format.message("Setting up DMX Connection")
-            self.DMXThread = threading.Thread(target=self.setUpDMX)
-            self.DMXThread.daemon = True
-            self.DMXThread.start()
+            if self.devMode == True and False:
+                format.message("Development Mode, skipping DMX Connection", type="warning")
+            else:
+                format.message("Setting up DMX Connection")
+                self.DMXThread = threading.Thread(target=self.setUpDMX)
+                self.DMXThread.daemon = True
+                self.DMXThread.start()
             
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
 
         format.message("Web App Started, hiding console", type="success")
-        ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        
+        try:
+            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        except Exception as e:
+            format.message(f"Hiding console: {e}", type="error")
         
         try:
             self.sniffing_thread = threading.Thread(target=self.startSniffing)
@@ -297,10 +311,22 @@ class WebApp:
             self.DMXADAPTOR = str(f.readline().strip())
             self.SPOTIPY_CLIENT_ID = str(f.readline().strip())
             self.SPOTIPY_CLIENT_SECRET = str(f.readline().strip())
-                        
-            format.message("Files opened successfully", type="success")
             
-            self.filesOpened = True
+        try:
+            f = open(fr"{self._dir}\data\dev.txt", "r")
+        except Exception as e:
+            format.message(f"Error opening keys.txt: {e}", type="error")
+        finally:
+            devMode = f.readline().strip()
+            
+            if devMode.lower() == "true":
+                self.devMode = True
+                
+                format.message("Development Mode Enabled", type="warning")
+            
+        format.message("Files opened successfully", type="success")
+            
+        self.filesOpened = True
 
     def setupRoutes(self):           
         @self.app.route('/')
@@ -329,6 +355,8 @@ class WebApp:
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
+            if self.DMXConnected == False:
+                return jsonify({"error": "DMX Connection not available"})
             
             temp_fixtures = []
             
@@ -379,10 +407,59 @@ class WebApp:
             return temp_fixtures
             
         @self.app.route("/api/dmx/scenes", methods=["GET"])
-        def dmxScenes():
+        def getDMXScenes():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                scenes = self._dmx.getDMXScenes()
+                if isinstance(scenes, dict):
+                    scenes = [scenes]
+
+                return jsonify(scenes)
+            except Exception as e:
+                format.message(f"Failed to fetch scenes: {str(e)}", type="error")
+                return jsonify({"error": f"Failed to fetch scenes: {str(e)}"}), 500
+        
+        @self.app.route("/api/dmx/getScene", methods=["GET"])
+        def getDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneName = request.args.get("sceneName") 
+
+            if not sceneName:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                scene = self._dmx.getDMXSceneByName(sceneName)
+
+                if "events" in scene and isinstance(scene["events"], dict):
+                    scene["events"] = list(scene["events"].values())
+
+                return jsonify(scene)
+            except Exception as e:
+                format.message(f"Failed to fetch scene: {e}", type="error")
+                return jsonify({"error": f"Failed to fetch scene: {e}"}), 500
             
-            pass
-            
+        @self.app.route("/api/dmx/startScene", methods=["POST"])
+        def startDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneName = request.form.get("sceneName") 
+
+            if not sceneName:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                self._dmx.startScene(sceneName)
+
+                return jsonify(200)
+            except Exception as e:
+                format.message(f"Failed to start scene: {e}", type="error")
+                return jsonify({"error": f"Failed to start scene: {e}"}), 500
+
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()
@@ -485,6 +562,7 @@ class WebApp:
                 sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
             except Exception as e:
                 format.message(f"Error while sniffing: {e}", type="error")
+                return
             
     async def getPlayingStatus(self):
         sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
@@ -625,7 +703,7 @@ class WebApp:
                         
                         try:
                             with open(fr"{self._dir}\data\OBSText.txt", "w") as f:
-                                f.write("EndOfDay: Waiting for next game                            ")
+                                f.write("EndOfDay: Waiting for next game ")
                                 
                         except Exception as e:
                             format.message(f"Error opening OBSText.txt: {e}", type="error")
@@ -641,6 +719,10 @@ class WebApp:
             format.message(f"Error occured while checking processes: {e}", type="error")
             
     def restartApp(self, reason="unknown"):
+        if self.devMode == True:
+            format.message("Development mode, skipping restart", type="warning")
+            return
+        
         format.message(f"Restarting App in 1 minute due to {reason}", type="warning")
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
@@ -750,9 +832,8 @@ class WebApp:
         
     def findBPM(self):
         try:
-            fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-            fetcher.fetch()  # Fetch the current song and BPM
-            song, bpm, album = fetcher.get_current_song_and_bpm()
+            self.fetcher.fetch()  # Fetch the current song and BPM
+            song, bpm, album = self.fetcher.get_current_song_and_bpm()
 
             self.handleBPM(song, bpm, album)
             
@@ -783,21 +864,30 @@ class WebApp:
                 if temp_spotifyStatus != self.spotifyStatus:
                     self.spotifyStatus = temp_spotifyStatus
                     
-                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+                    try:
+                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+                    except Exception as e:
+                        format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                     
                 if currentPosition and totalDuration:
-                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
-                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
+                    try:
+                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
+                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
+                    except Exception as e:
+                        format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                     
                 time.sleep(5)
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
                 
-                if e != "an integer is required":
+                if self.devMode == True:
+                    format.message("Development Mode, error handling because its dumb", type="warning")
+                    return
+                
+                if str(e) != "an integer is required":
         
                     format.message("Requesting app restart", type="warning")
-                    
                     if self.gameStatus != "stopped":
                         pyautogui.press("playpause")
                     
@@ -805,7 +895,16 @@ class WebApp:
                     
                     self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested - BPM Issue: {e}"))
                     self.AppRestartThread.daemon = True
-                    self.AppRestartThread.start()
+                    
+                    
+                    # Just makes sure to pause this process, so it doesn't keep logging the same error
+                    time.sleep(600)
+                    
+                else:
+                    format.message("Error not fatal, don't care", type="warning")
+                
+                    time.sleep(5)                
+                
                 
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
