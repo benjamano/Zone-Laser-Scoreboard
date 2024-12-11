@@ -1,13 +1,34 @@
+<script type="text/javascript" src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+
 <div class="card mb-3">
 
     <div class="card-header collapsed" role="button" onclick="$('#DMXScenesCardBody').collapse('toggle');">
-        Scenes
+        Scenes 
+        <span class="float-end">
+            <i id="editScenechk" class="fa-solid fa-square-pen intNotSelected" onclick="event.stopPropagation(); toggleEditMode(this)"></i>
+        </span>
     </div>
+    
+    <div class="card-body collapse DMXScenesCardBody" id="DMXScenesCardBody">
 
-    <div class="card-body collapse" id="DMXScenesCardBody">
+        <div id="sceneContainer" class="sceneContainer"></div>
 
+        <div class="editSceneContainer" id="editSceneContainer">
 
+            <h6 id="sceneName" class="sceneName m-2">Scene Name</h6>
 
+            <div class="sceneParentContainer">
+
+                <div class="sceneEventContainer" id="sceneEventContainer"></div>
+
+                <div class="sceneDetailButtons"></div>
+
+                <div id="visualization"></div>
+
+            </div>
+
+        </div>
+        
     </div>
 
 </div>
@@ -19,14 +40,241 @@
     window.onload = function() {
 		getDMXScenes();
         fetchFixtures();
+
+        $("#editSceneContainer").hide();
 	};
 
-    function getDMXScenes(){
+    function getDMXScenes() {
         $.ajax({
-            url: '/api/dmx/scenes',
-            type: 'GET',
-            success: function(response){
-                $('#DMXScenesCardBody').html(response);
+            url: "/api/dmx/scenes",
+            type: "GET",
+            success: function (response) {
+                if (!Array.isArray(response)) {
+                    response = [response];
+                }
+    
+                response.forEach(function (scene) {
+                    var name = scene.name;
+                    var flash = scene.flash;
+                    var repeat = scene.repeat;
+                    var totalDuration = scene.duration;
+                    var container = $("#sceneContainer");
+    
+                    var sceneDiv = $(document.createElement("div"))
+                        .addClass("dmxScene")
+                        .attr("id", name.replace(/\s+/g, '_') + "_SceneBtn")
+                        .attr("role", "button")
+                        .on("click", function () {
+                            startOrEditScene(name);
+                        });
+    
+                    var sceneText = $(document.createElement("p"))
+                        .addClass("title")
+                        .text(name);
+    
+                    var sceneDuration = $(document.createElement("p"))
+                        .addClass("duration")
+                        .attr("id", name.replace(/\s+/g, '_') + "_Visibleduration")
+                        .text(formatDMXSceneDuration(totalDuration));
+
+                    var sceneDurationHidden = $(document.createElement("p"))
+                        .addClass("duration")
+                        .attr("id", name.replace(/\s+/g, '_')  + "_duration")
+                        .attr("style", "display: none;")
+                        .text(totalDuration);
+    
+                    var sceneInfoContainer = $(document.createElement("div"))
+                        .addClass("sceneInfoContainer");
+    
+                    var sceneSettingContainer = $(document.createElement("div"))
+                        .addClass("sceneSettingContainer");
+    
+                    if (flash) {
+                        var flashButton = $(document.createElement("i"))
+                            .addClass("fas fa-bolt");
+    
+                        sceneSettingContainer.append(flashButton);
+                    }
+    
+                    if (repeat) {
+                        var repeatButton = $(document.createElement("i"))
+                            .addClass("fas fa-rotate-right");
+    
+                        sceneSettingContainer.append(repeatButton);
+                    }
+    
+                    sceneInfoContainer.append(sceneText);
+                    sceneInfoContainer.append(sceneDuration);
+                    sceneInfoContainer.append(sceneDurationHidden);
+                    sceneDiv.append(sceneInfoContainer);
+                    sceneDiv.append(sceneSettingContainer);
+                    container.append(sceneDiv);
+    
+                    if (scene.events) {
+                        Object.keys(scene.events).forEach(function (eventKey) {
+                            var event = scene.events[eventKey];
+                            var duration = event.duration;
+                            var channels = event.channels;
+                            console.log(
+                                `Event ${eventKey}: Duration = ${duration}, Channels = `,
+                                channels
+                            );
+                        });
+                    }
+                });
+            },
+            error: function (xhr) {
+                console.error("Failed to fetch DMX scenes:", xhr.responseText);
+            }
+        });
+    }
+
+    socket.on("sceneStarted", function(message) {
+		sceneName = message.scene;
+		$("#" + sceneName + "_SceneBtn").addClass("active");
+	});
+
+    function formatDMXSceneDuration(duration) {
+        var seconds = Math.floor((duration / 1000) % 60);
+        var minutes = Math.floor((duration / (1000 * 60)) % 60);
+        var hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+        return (
+            (hours < 10 ? "0" + hours : hours) + '"' +
+            (minutes < 10 ? "0" + minutes : minutes) + '"' +
+            (seconds < 10 ? "0" + seconds : seconds)
+        );
+    }
+
+    function editScene(sceneName) {
+        $.ajax({
+            url: "/api/dmx/getScene",
+            type: "GET",
+            data: { sceneName: sceneName },
+            success: function (response) {
+                $("#editSceneContainer").show();
+                $("#sceneEventContainer").empty();
+                $('#lightingCardBody').collapse('show');
+                $("#sceneDetailButtons").empty(); 
+
+                $(".dmxScene").each(function () {
+                    $(this).removeClass("active");
+                });
+    
+                var scene = response;
+    
+                $("#sceneName").text(scene.name);
+                $("#"+scene.name+"_SceneBtn").addClass("active");
+
+                var container = document.getElementById('visualization');
+
+                var items = new vis.DataSet();
+                
+                var options = {
+                    stack: false, 
+                    showMajorLabels: false,
+                    autoResize: false,
+                };
+                
+                if (Array.isArray(scene.events)) {
+                    let currentTime = new Date(0); 
+                    let colorIndex = 0;
+                
+                    const colors = ["#ff000080", "#0000ff78", "#00ff009e", "purple", "#ffa50082"];
+                
+                    scene.events.forEach(function (event) {
+                        const duration = event.duration || 0; 
+                        const startTime = new Date(currentTime.getTime()); 
+                        const endTime = new Date(currentTime.getTime() + duration); 
+                
+                        items.add({
+                            id: event.id,
+                            content: event.id,
+                            start: startTime,
+                            end: endTime,
+                            style: "background-color: " + colors[colorIndex % colors.length] + ";color: white;",
+                            currentTime: new Date(0),
+                        });
+                
+                        colorIndex++;
+                        currentTime = endTime;
+                    });
+                }
+                
+                var timeline = new vis.Timeline(container, items, options);
+
+                timeline.setOptions({ showCurrentTime: false });
+
+                timeline.setCurrentTime(new Date(0));
+
+                timeline.on('select', function (properties) {
+                    if (properties.items.length > 0) {
+                        const selectedItem = properties.items[0];
+                        alert("You clicked on item with ID: " + selectedItem);
+                    }
+                });
+            },
+            error: function (xhr) {
+                console.error("Failed to fetch scene details:", xhr.responseText);
+            }
+        });
+    }
+
+    function toggleEditMode(elem){
+        if ($(elem).hasClass("intNotSelected")){
+            $(elem).removeClass("intNotSelected");
+            $(elem).addClass("intSelected");
+        } else {
+            $(elem).removeClass("intSelected");
+            $(elem).addClass("intNotSelected");
+        }
+    }
+
+    function startOrEditScene(name){
+        if ($("#editScenechk").hasClass("intSelected")){
+            editScene(name);
+        } else {
+            startScene(name);
+        }
+    }
+
+    function startScene(sceneName) {
+        $.ajax({
+            url: "/api/dmx/startScene",
+            type: "POST",
+            data: { sceneName: sceneName },
+            success: function (response) {
+                console.log("Scene started:", response);
+
+                $("#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn").addClass("active");
+
+                var countdownElement = $("#" + sceneName.replace(/\s+/g, '_') + "_duration");
+                var duration = parseInt(countdownElement.text());
+                var visibleDurationElement = $("#" + sceneName.replace(/\s+/g, '_') + "_Visibleduration");
+                var initialDuration = formatDMXSceneDuration(duration);
+
+                var countdownInterval = setInterval(function() {
+                    if (duration <= 0) {
+                        clearInterval(countdownInterval);
+                        $("#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn").removeClass("active");
+                        visibleDurationElement.text(initialDuration);
+                    } else {
+                        duration -= 1000;
+                        var seconds = Math.floor((duration / 1000) % 60);
+                        var minutes = Math.floor((duration / (1000 * 60)) % 60);
+                        var hours = Math.floor((duration / (1000 * 60 * 60)) % 24);
+
+                        visibleDurationElement.text(
+                            (hours < 10 ? "0" + hours : hours) + '"' +
+                            (minutes < 10 ? "0" + minutes : minutes) + '"' +
+                            (seconds < 10 ? "0" + seconds : seconds)
+                        );
+                    }
+                }, 1000);
+
+            },
+            error: function (xhr) {
+                console.error("Failed to start scene:", xhr.responseText);
             }
         });
     }
