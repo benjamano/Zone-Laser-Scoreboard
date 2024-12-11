@@ -4,11 +4,24 @@ from PyDMXControl.controllers import OpenDMXController
 from PyDMXControl.profiles.Generic import Custom, Dimmer
             
 from func import format
+import threading
+import time
+import requests
+import socket
             
 class dmx:
     def __init__(self):
         self._dmx = OpenDMXController()         
 
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            self._localIp = s.getsockname()[0]
+            s.close()
+        except Exception as e:
+            format.message(f"Error getting local IP: {e}", "error")
+            self._localIp = ""
+            
         self.fixtures = {}
         self.scenes = {}
         self.fixtureGroups = {}
@@ -347,6 +360,17 @@ class dmx:
         except Exception as e:
             format.message(f"Error setting channel: {e}", "error")
             
+    def startScene(self, sceneName):
+        scene = self.getDMXSceneByName(sceneName)
+
+        if "events" in scene and isinstance(scene["events"], dict):
+            scene["events"] = list(scene["events"].values())
+        
+        if scene:
+            threading.Thread(target=self.__startScene, args=(scene,)).start()
+        else:
+            format.message(f"Scene {sceneName} not found", "error")
+            
     # Getters
         
     def getFixtureProfiles(self):
@@ -358,22 +382,32 @@ class dmx:
     def getFixtureGroups(self):
         return self.fixtureGroups
     def getFixturesByName(self, fixtureName):
-        return self._dmx.get_fixtures_by_name(fixtureName)
+        fixtures = self._dmx.get_fixtures_by_name(fixtureName)
+        return fixtures
     def getDMXScenes(self):
-        return self.processJSONDMXScenes(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data", "DMXScenes"))
+        return self.__processJSONDMXScenes(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data", "DMXScenes"))
     def getDMXSceneByName(self, sceneName):
-        return self.findScene(sceneName)
+        return self.__findScene(sceneName)
+    def getValueForSettingInChannel(self, fixtureType, channelName, settingName):
+        return self.__getValueForChannelSetting(fixtureType, channelName, settingName)
     
     # Processing
     
-    def findScene(self, sceneName):
+    def __findScene(self, sceneName):
         for scene in self.scenes:
             if scene["name"] == sceneName:
                 return scene
             
         return None
     
-    def processJSONDMXScenes(self, folder):
+    def __getValueForChannelSetting(self, fixtureType, channelName, settingName):
+        try:
+            return self.fixtureProfiles[fixtureType][channelName][settingName]
+        except Exception as e:
+            format.message(f"Error getting value: {e}", "error")
+            return None
+    
+    def __processJSONDMXScenes(self, folder):
         scenes = []
         
         for (dirpath, dirnames, filenames) in walk(folder + "\\local"):
@@ -404,6 +438,22 @@ class dmx:
         
         return scenes
 
+    def __startScene(self, scene):   
+        for event in scene["events"]:
+            if "channels" in event:
+                for fixtureName, channels in event["channels"].items():
+                    fixture = self.getFixturesByName(fixtureName)[0]
+                    
+                    if fixture:
+                        for channel, value in channels.items():
+                            fixture.set_channel(channel.lower(), int(value))
+                    
+            if "duration" in event:
+                requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': event , 'type': "UpdateDMXValue"})
+                
+                time.sleep(event["duration"] / 1000)
+                
+        return 200
             
     # Config
     
