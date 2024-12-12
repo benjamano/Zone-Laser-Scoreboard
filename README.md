@@ -21,7 +21,7 @@ For OBS to work, you MUST make a ```keys.txt``` file in the same directory as th
 Press "enter" (AKA Make a new line) 5 times in this file and then add your ```OBS Websocket IP```, ```OBS Websocket Password``` and the ```OBS Websocket Port```.
 The program will read these and attempt to connect to the OBS Websocket instance.
 
-All libraries should be installed when you run the ```Scoreboard.py``` file.
+All dependancies should be automatically installed when you run the ```Scoreboard.py``` file.
 
 # Planned Feature Status
 
