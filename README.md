@@ -36,7 +36,7 @@ All dependancies should be automatically installed when you run the ```Scoreboar
 |Advanced OBS control                                                   | Started                                            | Allow for certains creens around the arena to change based on game status - So far it only creates a web-socket connection      |
 |Track game progress & scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
 |Interactive web page                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
-|Phne Screen Friendle design                | Not Started                                 | Want to make it look nice and work of phone screen allowing me to test lighting using my phone or a tablet could be used to control the music / lighting instead of a pc|
+|Phone Screen Friendly design                | Not Started                                 | Want to make it look nice and work of phone screen allowing me to test lighting using my phone or a tablet could be used to control the music / lighting instead of a pc|
 
 
 ## Packets decoded so far:
