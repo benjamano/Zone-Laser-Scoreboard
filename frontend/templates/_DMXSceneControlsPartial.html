@@ -15,7 +15,7 @@
 
         <div class="editSceneContainer" id="editSceneContainer">
 
-            <h6 id="sceneName" class="sceneName m-2">Scene Name</h6>
+            <h6 class="sceneName ms-4 mt-2">Timeline</h6>
 
             <div class="sceneParentContainer">
 
@@ -23,8 +23,7 @@
 
                 <div class="sceneDetailButtons"></div>
 
-                <div id="visualization"></div>
-
+                <div id="sceneEventContainer"></div>
             </div>
 
         </div>
@@ -61,7 +60,7 @@
                     var container = $("#sceneContainer");
     
                     var sceneDiv = $(document.createElement("div"))
-                        .addClass("dmxScene")
+                        .addClass("dmxScene user-select-none")
                         .attr("id", name.replace(/\s+/g, '_') + "_SceneBtn")
                         .attr("role", "button")
                         .on("click", function () {
@@ -162,57 +161,43 @@
                 });
     
                 var scene = response;
-    
-                $("#sceneName").text(scene.name);
+
                 $("#"+scene.name+"_SceneBtn").addClass("active");
-
-                var container = document.getElementById('visualization');
-
-                var items = new vis.DataSet();
-                
-                var options = {
-                    stack: false, 
-                    showMajorLabels: false,
-                    autoResize: false,
-                };
                 
                 if (Array.isArray(scene.events)) {
                     let currentTime = new Date(0); 
-                    let colorIndex = 0;
-                
-                    const colors = ["#ff000080", "#0000ff78", "#00ff009e", "purple", "#ffa50082"];
+
+                    var i = 1;
                 
                     scene.events.forEach(function (event) {
                         const duration = event.duration || 0; 
                         const startTime = new Date(currentTime.getTime()); 
                         const endTime = new Date(currentTime.getTime() + duration); 
-                
-                        items.add({
-                            id: event.id,
-                            content: event.id,
-                            start: startTime,
-                            end: endTime,
-                            style: "background-color: " + colors[colorIndex % colors.length] + ";color: white;",
-                            currentTime: new Date(0),
-                        });
-                
-                        colorIndex++;
+                        var sceneContainer = $("#sceneEventContainer");
+                        
+                        sceneContainer.append(
+                            $("<div>")
+                                .attr("id", "sceneEvent_" + i)
+                                .addClass("dmxSceneEvent cursor-pointer user-select-none")
+                                .attr("role", "button")
+                                .append(
+                                    $("<p>")
+                                        .text(startTime.toISOString().substr(11, 8))
+                                )
+                                .append(
+                                    $("<u>")
+                                        .text(formatDMXSceneDuration(duration))
+                                        .addClass("fs-6")
+                                )
+                                .on("click", function () {
+                                    loadSceneEvent(event, this);
+                                })
+                        );
+                        
+                        i++;
                         currentTime = endTime;
                     });
                 }
-                
-                var timeline = new vis.Timeline(container, items, options);
-
-                timeline.setOptions({ showCurrentTime: false });
-
-                timeline.setCurrentTime(new Date(0));
-
-                timeline.on('select', function (properties) {
-                    if (properties.items.length > 0) {
-                        const selectedItem = properties.items[0];
-                        alert("You clicked on item with ID: " + selectedItem);
-                    }
-                });
             },
             error: function (xhr) {
                 console.error("Failed to fetch scene details:", xhr.responseText);
@@ -246,36 +231,98 @@
             success: function (response) {
                 console.log("Scene started:", response);
 
+                repeat = $("#"+sceneName.replace(/\s+/g, '_') + "_SceneBtn").find(".fa-rotate-right").length;
+
                 $("#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn").addClass("active");
 
                 var countdownElement = $("#" + sceneName.replace(/\s+/g, '_') + "_duration");
                 var duration = parseInt(countdownElement.text());
                 var visibleDurationElement = $("#" + sceneName.replace(/\s+/g, '_') + "_Visibleduration");
                 var initialDuration = formatDMXSceneDuration(duration);
+                var btnSelector = "#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn";
 
-                var countdownInterval = setInterval(function() {
-                    if (duration <= 0) {
+                $(btnSelector).addClass("active").off('click').on('click', function () {
+                    if ($(btnSelector).hasClass("active")) {
                         clearInterval(countdownInterval);
-                        $("#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn").removeClass("active");
+                        $(btnSelector).removeClass("active");
                         visibleDurationElement.text(initialDuration);
-                    } else {
+                        duration = parseInt(countdownElement.text());
+    
+                        stopScene(sceneName);
+                    }
+                    else{
+                        startScene(sceneName);
+                    }
+                });
+    
+                function startCountdown() {
+                    countdownInterval = setInterval(function () {
+                        if (duration <= 0) {
+                            if (repeat) {
+                                duration = parseInt(countdownElement.text());
+                            } else {
+                                clearInterval(countdownInterval);
+                                $(btnSelector).removeClass("active");
+                                visibleDurationElement.text(initialDuration);
+                                return;
+                            }
+                        }
+
                         duration -= 10;
                         var milliseconds = duration % 1000;
                         var seconds = Math.floor((duration / 1000) % 60);
                         var minutes = Math.floor((duration / (1000 * 60)) % 60);
-
+    
                         visibleDurationElement.text(
                             (minutes < 10 ? "0" + minutes : minutes) + '"' +
                             (seconds < 10 ? "0" + seconds : seconds) + '"' +
                             (milliseconds < 100 ? (milliseconds < 10 ? "00" + milliseconds : "0" + milliseconds) : milliseconds)
                         );
-                    }
-                }, 10);
+                    }, 10);
+                }
+    
+                startCountdown();
 
             },
             error: function (xhr) {
                 console.error("Failed to start scene:", xhr.responseText);
             }
+        });
+    }
+
+    function stopScene(sceneName){
+        $.ajax({
+            url: "/api/dmx/stopScene",
+            type: "POST",
+            data: { sceneName: sceneName },
+            success: function (response) {
+                console.log("Scene stopped:", response);
+            },
+            error: function (xhr) {
+                console.error("Failed to stop scene:", xhr.responseText);
+            }
+        });
+    }
+
+    function loadSceneEvent(event, element){
+        console.log("Loading scene event:", event);
+
+        if (!Array.isArray(event.channels)) {
+            channels = [event.channels];
+        }
+
+        channels.forEach(function (channel) {
+            var fixture = channel.key;
+            var channelNumber = channel.channel;
+            var value = channel.value;
+
+            var channelElement = $("#fixtureChannel-" + fixture + "-" + channelNumber);
+            var valueElement = channelElement.find(".slider");
+            var valueLabel = channelElement.find(".valueLabel");
+
+            valueElement.val(value);
+            valueElement.trigger("input");
+            valueLabel.text(value);
         });
     }
 

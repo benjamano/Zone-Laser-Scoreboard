@@ -460,6 +460,24 @@ class WebApp:
                 format.message(f"Failed to start scene: {e}", type="error")
                 return jsonify({"error": f"Failed to start scene: {e}"}), 500
 
+        @self.app.route("/api/dmx/stopScene", methods=["POST"])
+        def stopDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneName = request.form.get("sceneName") 
+
+            if not sceneName:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                self._dmx.stopScene(sceneName)
+
+                return jsonify(200)
+            except Exception as e:
+                format.message(f"Failed to start scene: {e}", type="error")
+                return jsonify({"error": f"Failed to start scene: {e}"}), 500
+    
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()

@@ -2,14 +2,19 @@
     {
         "name": "This Is A Test",
         "duration": 3000,
-        "repeat": false,
+        "repeat": true,
         "flash": false,
         "events": {
             "1": {
                 "channels": {
                     "ColorWash 250 AT": {
                         "Pan": 255,
-                        "Tilt": 255
+                        "Tilt": 255,
+                        "Shutter": 255,
+                        "Dimmer": 255,
+                        "Cyan": 255,
+                        "Magenta": 0,
+                        "Yellow": 0
                     }
                 },
                 "duration": 1000
@@ -18,7 +23,12 @@
                 "channels": {
                     "ColorWash 250 AT": {
                         "Pan": 128,
-                        "Tilt": 0
+                        "Tilt": 0,
+                        "Shutter": 255,
+                        "Dimmer": 255,
+                        "Cyan": 0,
+                        "Magenta": 255,
+                        "Yellow": 0
                     }
                 },
                 "duration": 1000
@@ -27,7 +37,12 @@
                 "channels": {
                     "ColorWash 250 AT": {
                         "Pan": 0,
-                        "Tilt": 128
+                        "Tilt": 128,
+                        "Shutter": 255,
+                        "Dimmer": 255,
+                        "Cyan": 0,
+                        "Magenta": 0,
+                        "Yellow": 255
                     }
                 },
                 "duration": 1000

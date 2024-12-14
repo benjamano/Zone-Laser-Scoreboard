@@ -22,6 +22,7 @@ class dmx:
             format.message(f"Error getting local IP: {e}", "error")
             self._localIp = ""
             
+        self.runningScenes = {}
         self.fixtures = {}
         self.scenes = {}
         self.fixtureGroups = {}
@@ -367,9 +368,25 @@ class dmx:
             scene["events"] = list(scene["events"].values())
         
         if scene:
-            threading.Thread(target=self.__startScene, args=(scene,)).start()
+            stopEvent = threading.Event()
+            thread = threading.Thread(target=self.__startScene, args=(scene,stopEvent))
+            thread.name = f"DMXScene Running - {sceneName}"
+            self.runningScenes[sceneName] = (thread, stopEvent)
+            thread.start()
         else:
             format.message(f"Scene {sceneName} not found", "error")
+            
+    def stopScene(self, sceneName):
+        for thread in threading.enumerate():
+            if thread.name == f"DMXScene Running - {sceneName}":
+                thread, stopEvent = self.runningScenes[sceneName]
+                stopEvent.set() 
+                thread.join()   
+                del self.runningScenes[sceneName]
+                format.message(f"Scene {sceneName} stopped", "info")
+                return
+            
+        format.message(f"Scene {sceneName} not found", "error")
             
     # Getters
         
@@ -438,20 +455,26 @@ class dmx:
         
         return scenes
 
-    def __startScene(self, scene):   
-        for event in scene["events"]:
-            if "channels" in event:
-                for fixtureName, channels in event["channels"].items():
-                    fixture = self.getFixturesByName(fixtureName)[0]
+    def __startScene(self, scene, stopEvent):   
+        while not stopEvent.is_set():
+            for event in scene["events"]:
+                if stopEvent.is_set():
+                    return 200
+                if "channels" in event:
+                    for fixtureName, channels in event["channels"].items():
+                        fixture = self.getFixturesByName(fixtureName)[0]
+                        
+                        if fixture:
+                            for channel, value in channels.items():
+                                fixture.set_channel(channel.lower(), int(value))
+                        
+                if "duration" in event:
+                    requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': event , 'type': "UpdateDMXValue"})
                     
-                    if fixture:
-                        for channel, value in channels.items():
-                            fixture.set_channel(channel.lower(), int(value))
-                    
-            if "duration" in event:
-                requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': event , 'type': "UpdateDMXValue"})
-                
-                time.sleep(event["duration"] / 1000)
+                    time.sleep(event["duration"] / 1000)
+            
+            if scene["repeat"]:
+                self.__startScene(scene, stopEvent)
                 
         return 200
             

@@ -142,3 +142,34 @@
     border: none !important;
     border-radius: 8px !important;
 }
+
+.dmxSceneEvent{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--primary-gray);
+    color: #ffffff;
+    border-radius: 2rem;
+    border-radius: 0.3rem;
+    padding: 0.5rem;
+    align-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    font-size: 20.5px;
+}
+
+.dmxSceneEvent p{
+    margin: 0;
+}
+
+.sceneEventContainer{
+    display: flex;
+    align-content: center;
+    flex-wrap: nowrap;
+    overflow: scroll;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 1rem;
+    gap: 10px;
+}
