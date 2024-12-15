@@ -10,7 +10,9 @@ class start:
         self.install(["flask_socketio"])
         self.install(["threading"])
         self.install(["eventlet"])
-        self.install(["winrt.windows.media.control", "pillow", "eventlet", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "PyDMXControl[audio]", "PyDMXControl", "psutil", "socket", "webbrowser", "pyaudio", "librosa", "sounddevice", "numpy", "spotipy", "winsdk", "asyncio", "obsws_python", "winrt.windows.foundation", "socket", "json"]) 
+        self.install(["winrt.windows.media.control", "pillow", "eventlet", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "PyDMXControl[audio]", "PyDMXControl", "psutil", "socket", "webbrowser", "pyaudio", "sounddevice", "numpy", "spotipy", "winsdk", "asyncio", "obsws_python", "winrt.windows.foundation", "socket", "json"]) 
+        
+        #librosa
         
     def install(self, libraryNames):
         for libraryName in libraryNames:

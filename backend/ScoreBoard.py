@@ -3,7 +3,6 @@ try:
     import os
     import signal
     import threading
-    from func import format
     
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -54,14 +53,17 @@ try:
         localIp = s.getsockname()[0]
         s.close()
     except Exception as e:
-        format.message(f"Error finding local IP: {e}")
+        print(f"Error finding local IP: {e}")
     
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         if s.connect_ex((localIp, 8080)) == 0:
-            format.message(f"Port 8080 is already in use on {localIp}", type="error")
+            print(f"Port 8080 is already in use on {localIp}", type="error")
             raise RuntimeError("Port in use. Exiting application.")
     
     init.start()
+    
+    from func import format
+    
     format.newline()
     
     global ui
