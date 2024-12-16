@@ -146,7 +146,7 @@ class WebApp:
             format.message(f"Error starting OBS Connection: {e}", type="error")
             
         try:
-            if self.devMode == True and False:
+            if self.devMode == True:
                 format.message("Development Mode, skipping DMX Connection", type="warning")
             else:
                 format.message("Setting up DMX Connection")
@@ -172,7 +172,7 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting packet sniffer: {e}", type="error")
         
-        if self.devMode == "false":
+        if self.devMode != True:
             self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
             self.process_checker_thread.daemon = True
             self.process_checker_thread.start()
@@ -323,6 +323,8 @@ class WebApp:
                 self.devMode = True
                 
                 format.message("Development Mode Enabled", type="warning")
+            else:
+                self.devMode = False
             
         format.message("Files opened successfully", type="success")
             
@@ -531,7 +533,7 @@ class WebApp:
             return 'Message sent!'
 
     def obs_connect(self):
-        if self.devMode == "false":
+        if self.devMode == False:
             try:
                 format.message("Attempting to connect to OBS")
                 # ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
