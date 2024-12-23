@@ -1,7 +1,6 @@
 import threading
 import time
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 import os
 import signal
@@ -34,7 +33,7 @@ from func.BPM import MediaBPMFetcher
 
 from func.DMXControl import dmx
 
-db = SQLAlchemy()
+from func.DB import context
 
 class WebApp:
     def __init__(self):
@@ -43,8 +42,6 @@ class WebApp:
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
         self.expecteProcesses = ["Spotify.exe", "obs64"]
-
-        db.init_app(self.app)
         
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
         
@@ -63,6 +60,8 @@ class WebApp:
         self.endOfDay = False
         
         pyautogui.FAILSAFE = False
+        
+        self._context = context()
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
@@ -73,10 +72,9 @@ class WebApp:
         self.setupRoutes()
         
         self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-        
+
         with self.app.app_context():
-            db.create_all()
-            self.seedDBData() 
+            self._context.createDatabase()
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -240,59 +238,6 @@ class WebApp:
         except Exception as e:
             format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "dmxStatus"})
-            
-    def seedDBData(self):
-        if not Gun.query.first() and not Player.query.first():
-            format.message("Empty DB Found! Seeding Data....", type="warning")
- 
-            gunAlpha = Gun(name="Alpha", defaultColor="Red")
-            gunApollo = Gun(name="Apollo", defaultColor="Red")
-            gunChaos = Gun(name="Chaos", defaultColor="Red")
-            gunCipher = Gun(name="Cipher", defaultColor="Red")
-            gunCobra = Gun(name="Cobra", defaultColor="Red")
-            gunComet = Gun(name="Comet", defaultColor="Red")
-            gunCommander = Gun(name="Commander", defaultColor="Red")
-            gunCyborg = Gun(name="Cyborg", defaultColor="Red")
-            gunCyclone = Gun(name="Cyclone", defaultColor="Red")
-            gunDelta = Gun(name="Delta", defaultColor="Red")
-            gunDodger = Gun(name="Dodger", defaultColor="Green")
-            gunDragon = Gun(name="Dragon", defaultColor="Green")
-            gunEagle = Gun(name="Eagle", defaultColor="Green")
-            gunEliminator = Gun(name="Eliminator", defaultColor="Green")
-            gunElite = Gun(name="Elite", defaultColor="Green")
-            gunFalcon = Gun(name="Falcon", defaultColor="Green")
-            gunGhost = Gun(name="Ghost", defaultColor="Green")
-            gunGladiator = Gun(name="Gladiator", defaultColor="Green")
-            gunHawk = Gun(name="Hawk", defaultColor="Green")
-            gunHyper = Gun(name="Hyper", defaultColor="Green")
-            gunInferno = Gun(name="Inferno", defaultColor="Green")
-            
-            db.session.add(gunAlpha)
-            db.session.add(gunApollo)
-            db.session.add(gunChaos)
-            db.session.add(gunCipher)
-            db.session.add(gunCobra)
-            db.session.add(gunComet)
-            db.session.add(gunCommander)
-            db.session.add(gunCyborg)
-            db.session.add(gunCyclone)
-            db.session.add(gunDelta)
-            db.session.add(gunDodger)
-            db.session.add(gunDragon)
-            db.session.add(gunEagle)
-            db.session.add(gunEliminator)
-            db.session.add(gunElite)
-            db.session.add(gunFalcon)
-            db.session.add(gunGhost)
-            db.session.add(gunGladiator)
-            db.session.add(gunHawk)
-            db.session.add(gunHyper)
-            db.session.add(gunInferno)
-            
-            db.session.commit()
-            format.message("Data seeded successfully", type="success")
-        else:
-            format.message("Data already exists, skipping seeding.", type="info")
 
     def openFiles(self):
         try:
@@ -1103,41 +1048,3 @@ class WebApp:
                 break
          
         return ascii
-    
-# -----------------| DB Models |-------------------------------------------------------------------------------------------------------------------------------------------------------- #  
-                   
-class Gun(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    defaultColor = db.Column(db.String(60), unique=False, nullable=False)
-    
-class Player(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    kills = db.Column(db.Integer, nullable=False)
-    deaths = db.Column(db.Integer, nullable=False)
-    gamesWon = db.Column(db.Integer, nullable=False)
-    gamesLost = db.Column(db.Integer, nullable=False)
-    
-class Game(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    startTime = db.Column(db.DateTime, nullable=False)
-    endTime = db.Column(db.DateTime, nullable=False)
-    winningPlayer = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
-    winningTeam = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
-    loser = db.Column(db.String(60), nullable=True)
-    
-class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    teamColour = db.Column(db.String(10), nullable=False)
-    gamePlayers = db.relationship("GamePlayers", backref="team_ref", lazy=True)
-
-class GamePlayers(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
-    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
-    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=False)
-    playerWon = db.Column(db.Boolean, nullable=False)
-    team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
