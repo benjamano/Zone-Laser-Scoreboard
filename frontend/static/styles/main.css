@@ -64,11 +64,7 @@
     align-content: center;
     justify-content: flex-start;
     align-items: center;
-}
-
-.sceneContainer{
-    display: flex;
-    flex-direction: row;
+    gap: 0.5rem;
     padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
 }
 

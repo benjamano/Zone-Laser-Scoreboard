@@ -38,7 +38,7 @@ from func.DB import context
 class WebApp:
     def __init__(self):
         self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
+        # self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
         self.expecteProcesses = ["Spotify.exe", "obs64"]
@@ -60,8 +60,6 @@ class WebApp:
         self.endOfDay = False
         
         pyautogui.FAILSAFE = False
-        
-        self._context = context()
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
@@ -74,7 +72,7 @@ class WebApp:
         self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
 
         with self.app.app_context():
-            self._context.createDatabase()
+            self._context = context(self.app)
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -190,7 +188,7 @@ class WebApp:
         #Requires USB to DMX with driver version of "libusb-win32"
         
         try:
-            self._dmx = dmx()
+            self._dmx = dmx(self._context, self.app)
             
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
@@ -357,15 +355,15 @@ class WebApp:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
-                scenes = self._dmx.getDMXScenes()
-                if isinstance(scenes, dict):
-                    scenes = [scenes]
+                scenes = self._dmx.getDMXScenes() 
 
-                return jsonify(scenes)
+                serialized_scenes = [scene.to_dict() for scene in scenes]
+                
+                return jsonify(serialized_scenes)
             except Exception as e:
                 format.message(f"Failed to fetch scenes: {str(e)}", type="error")
                 return jsonify({"error": f"Failed to fetch scenes: {str(e)}"}), 500
-        
+                
         @self.app.route("/api/dmx/getScene", methods=["GET"])
         def getDMXScene():
             if not self.DMXConnected:
@@ -960,7 +958,7 @@ class WebApp:
         
         try:
             with self.app.app_context():
-                gunName = "name: "+ Gun.query.filter_by(id=gunId).first().name
+                gunName = "name: "+ self._context.Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
@@ -976,10 +974,6 @@ class WebApp:
         
     def shotConfirmedPacket(self, packetData):
         pass
-    
-    # -----------------| DMX Control |---------------------------------------------------------------------------------------------------------------------------------------------------------- #            
-    
-    
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     

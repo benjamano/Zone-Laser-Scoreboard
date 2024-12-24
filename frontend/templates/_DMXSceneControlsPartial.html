@@ -7,6 +7,9 @@
         <span class="float-end">
             <i id="editScenechk" class="fa-solid fa-square-pen intNotSelected" onclick="event.stopPropagation(); toggleEditMode(this)"></i>
         </span>
+        <span class="float-end ms-2">
+            <i class="intNotSelected fa-square-plus" onclick="event.stopPropagation(); createNewScene()"></i>
+        </span>
     </div>
     
     <div class="card-body collapse DMXScenesCardBody" id="DMXScenesCardBody">
@@ -15,7 +18,13 @@
 
         <div class="editSceneContainer" id="editSceneContainer">
 
-            <h6 class="sceneName ms-4 mt-2">Timeline</h6>
+            <div class="form-group">
+
+                <input type="text" class="form-control" id="sceneName" placeholder="Scene Name" onchange="updateSceneName(this.value)">
+
+            </div>
+
+            <h6 id="sceneName" class="sceneName ms-4 mt-2">Timeline</h6>
 
             <div class="sceneParentContainer">
 
@@ -43,6 +52,15 @@
         $("#editSceneContainer").hide();
 	};
 
+    function createNewScene(){
+        $("#editSceneContainer").show();
+        $("#sceneEventContainer").empty();
+        $('#lightingCardBody').collapse('show');
+        $("#sceneDetailButtons").empty(); 
+
+        
+    }
+
     function getDMXScenes() {
         $.ajax({
             url: "/api/dmx/scenes",
@@ -51,13 +69,15 @@
                 if (!Array.isArray(response)) {
                     response = [response];
                 }
-    
+                
+                var container = $("#sceneContainer");
+                container.empty();
+
                 response.forEach(function (scene) {
                     var name = scene.name;
                     var flash = scene.flash;
                     var repeat = scene.repeat;
                     var totalDuration = scene.duration;
-                    var container = $("#sceneContainer");
     
                     var sceneDiv = $(document.createElement("div"))
                         .addClass("dmxScene user-select-none")
@@ -121,6 +141,7 @@
                         });
                     }
                 });
+
             },
             error: function (xhr) {
                 console.error("Failed to fetch DMX scenes:", xhr.responseText);
@@ -156,10 +177,8 @@
                 $('#lightingCardBody').collapse('show');
                 $("#sceneDetailButtons").empty(); 
 
-                $(".dmxScene").each(function () {
-                    $(this).removeClass("active");
-                });
-    
+                $("#sceneName").val(sceneName);
+
                 var scene = response;
 
                 $("#"+scene.name+"_SceneBtn").addClass("active");
@@ -324,6 +343,22 @@
             valueElement.trigger("input");
             valueLabel.text(value);
         });
+    }
+
+    function updateSceneName(){
+        $.ajax({
+            url: "/api/dmx/editSceneName",
+            type: "POST",
+            data: { sceneName: sceneName,
+                    newSceneName: $("#sceneName").val() },
+            success: function (response) {
+                console.log("Scene Name Changed:", response);
+            },
+            error: function (xhr) {
+                console.error("Failed to update scene name:", xhr.responseText);
+            }
+        });
+
     }
 
 </script>
