@@ -504,6 +504,8 @@ class dmx:
     def __processJSONDMXScenes(self):
         scenes = []
         folder = os.getcwd() + "\\backend\\data\\DMXScenes\\"
+        
+        format.message(f"Processing DMX scenes in {folder}", "info")
 
         with self.app.app_context():
             for (dirpath, dirnames, filenames) in walk(folder):
