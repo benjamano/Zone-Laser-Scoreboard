@@ -1016,6 +1016,10 @@
 		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new position
 	});
 
+	socket.on('UpdateDMXValue', function(data) {
+		console.log("Updating DMX Value: ", data)
+	});
+
 	// Function to update the progress bar and time left
 	function updateProgressBar(currentTime, totalDuration) {
 		const progressBar = $('#progressBar');

@@ -377,10 +377,7 @@ class WebApp:
             try:
                 scene = self._dmx.getDMXSceneByName(sceneName)
 
-                if "events" in scene and isinstance(scene["events"], dict):
-                    scene["events"] = list(scene["events"].values())
-
-                return jsonify(scene)
+                return jsonify(scene.to_dict())
             except Exception as e:
                 format.message(f"Failed to fetch scene: {e}", type="error")
                 return jsonify({"error": f"Failed to fetch scene: {e}"}), 500
@@ -480,23 +477,19 @@ class WebApp:
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
-            message = request.form.get('message')
-            type = request.form.get('type')
-            #format.message(f"Sending message: {message} with type: {type}")
+            data = request.json 
+            message = data.get("message")
+            type_ = data.get("type") 
+            
             if message:
-                
-                self.socketio.emit(f"{type}", {f"message": message})
-                        
-            #format.newline()
-                        
+                self.socketio.emit(f"{type_}", {"message": message}) 
+                                
             return 'Message sent!'
 
     def obs_connect(self):
         if self.devMode == "false":
             try:
                 format.message("Attempting to connect to OBS")
-                # ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
-                # ws.connect()
                 
                 self.obs = obs.ReqClient(host=self.OBSSERVERIP, port=self.OBSSERVERPORT, password=self.OBSSERVERPASSWORD, timeout=3)
                 

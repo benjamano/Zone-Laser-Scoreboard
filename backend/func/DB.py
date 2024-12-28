@@ -71,6 +71,8 @@ class context:
             duration = self.db.Column(self.db.Integer, nullable=False)
             updateDate = self.db.Column(self.db.DateTime, nullable=True)
             createDate = self.db.Column(self.db.DateTime, nullable=False)
+            repeat = self.db.Column(self.db.Boolean, nullable=False)
+            flash = self.db.Column(self.db.Boolean, nullable=False)
 
             events = self.db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
 
@@ -159,11 +161,13 @@ class context:
                 print(f"Error: {e}")
     
     class DMXSceneDTO:
-        def __init__(self, name, duration, updateDate, createDate, events):
+        def __init__(self, name, duration, updateDate, createDate, repeat, flash, events):
             self.name = name
             self.duration = duration
             self.updateDate = updateDate    
             self.createDate = createDate
+            self.repeat = repeat
+            self.flash = flash
             self.events = events
         
         def to_dict(self):
@@ -172,6 +176,8 @@ class context:
                 "duration": self.duration,
                 "updateDate": self.updateDate.isoformat() if self.updateDate else None,
                 "createDate": self.createDate.isoformat() if self.createDate else None,
+                "repeat": self.repeat,
+                "flash": self.flash,
                 "events": [event.to_dict() for event in self.events]
             }
             

@@ -359,11 +359,16 @@ class dmx:
             
     def startScene(self, sceneName):
         scene = self.getDMXSceneByName(sceneName)
-
-        if "events" in scene and isinstance(scene["events"], dict):
-            scene["events"] = list(scene["events"].values())
         
-        if scene:
+        for thread in threading.enumerate():
+            if thread.name == f"DMXScene Running - {sceneName}":
+                thread, stopEvent = self.runningScenes[sceneName]
+                stopEvent.set() 
+                thread.join()   
+                del self.runningScenes[sceneName]
+                format.message(f"Scene {sceneName} stopped", "info")
+        
+        if scene != None:
             stopEvent = threading.Event()
             thread = threading.Thread(target=self.__startScene, args=(scene,stopEvent))
             thread.name = f"DMXScene Running - {sceneName}"
@@ -411,6 +416,8 @@ class dmx:
                         duration=scene.duration,
                         updateDate=scene.updateDate,
                         createDate=scene.createDate,
+                        flash=scene.flash,
+                        repeat=scene.repeat,
                         events=[
                             self._context.DMXSceneEventDTO(
                                 name=event.name,
@@ -455,11 +462,37 @@ class dmx:
     # Processing
     
     def __findScene(self, sceneName):
-        for scene in self.scenes:
-            if scene["name"] == sceneName:
-                return scene
+        with self.app.app_context():
+            scene = self._context.DMXScene.query.filter_by(name=sceneName).first()
             
-        return None
+            # Map the results to DMXSceneDTO objects
+            DMXScene = self._context.DMXSceneDTO(
+                name=scene.name,
+                duration=scene.duration,
+                updateDate=scene.updateDate,
+                createDate=scene.createDate,
+                repeat = scene.repeat,
+                flash = scene.flash,
+                events=[
+                    self._context.DMXSceneEventDTO(
+                        name=event.name,
+                        duration=event.duration,
+                        updateDate=event.updateDate,
+                        channels=[
+                            {
+                                "fixture": channel.fixture,
+                                "channel": channel.channel,
+                                "value": channel.value
+                            }
+                            for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                        ]
+                    )
+                    for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                ]
+            )
+            
+
+        return DMXScene
     
     def __getValueForChannelSetting(self, fixtureType, channelName, settingName):
         try:
@@ -484,7 +517,9 @@ class dmx:
                                     newDMXScene = self._context.DMXScene(
                                         name=str(filename).strip(".json"),
                                         createDate=datetime.datetime.now(),
-                                        duration=scene["duration"]
+                                        duration=scene["duration"],
+                                        repeat=scene["repeat"],
+                                        flash=scene["flash"]
                                     )
                                     self._context.db.session.add(newDMXScene) 
                                     self._context.db.session.commit()
@@ -525,23 +560,24 @@ class dmx:
 
     def __startScene(self, scene, stopEvent):   
         while not stopEvent.is_set():
-            for event in scene["events"]:
+            for event in scene.events:
                 if stopEvent.is_set():
                     return 200
-                if "channels" in event:
-                    for fixtureName, channels in event["channels"].items():
-                        fixture = self.getFixturesByName(fixtureName)[0]
-                        
-                        if fixture:
-                            for channel, value in channels.items():
-                                fixture.set_channel(channel.lower(), int(value))
-                        
-                if "duration" in event:
-                    requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': event , 'type': "UpdateDMXValue"})
+                for channel in event.channels:
+                    fixture = self.getFixturesByName(channel["fixture"])[0]
+
+                    fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
                     
-                    time.sleep(event["duration"] / 1000)
+                    requests.post(
+                        f'http://{self._localIp}:8080/sendMessage',
+                        json={"message": {"channel": channel["channel"].lower(), "value": int(channel["value"])}, "type": "UpdateDMXValue"}
+                    )
+
+                        
+                if event.duration > 0:
+                    time.sleep(event.duration / 1000)
             
-            if scene["repeat"]:
+            if scene.repeat == True:
                 self.__startScene(scene, stopEvent)
                 
         return 200

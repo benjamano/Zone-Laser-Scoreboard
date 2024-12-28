@@ -169,3 +169,15 @@
     padding: 1rem;
     gap: 10px;
 }
+
+.sceneNameEdit{
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--primary-gray);
+    color: #ffffff;
+    border-radius: 0;
+    width: 30%;
+    font-size: 0.9rem;
+    margin-left: 30px;
+    margin-top: 10px;
+}
