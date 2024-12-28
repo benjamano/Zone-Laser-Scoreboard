@@ -1,7 +1,6 @@
 import threading
 import time
 from flask import Flask, render_template, request, jsonify
-from flask_sqlalchemy import SQLAlchemy
 from flask_socketio import SocketIO, emit
 import os
 import signal
@@ -34,17 +33,15 @@ from func.BPM import MediaBPMFetcher
 
 from func.DMXControl import dmx
 
-db = SQLAlchemy()
+from func.DB import context
 
 class WebApp:
     def __init__(self):
         self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
-        self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
+        # self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
         self.expecteProcesses = ["Spotify.exe", "obs64"]
-
-        db.init_app(self.app)
         
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
         
@@ -73,10 +70,9 @@ class WebApp:
         self.setupRoutes()
         
         self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-        
+
         with self.app.app_context():
-            db.create_all()
-            self.seedDBData() 
+            self._context = context(self.app)
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -192,7 +188,7 @@ class WebApp:
         #Requires USB to DMX with driver version of "libusb-win32"
         
         try:
-            self._dmx = dmx()
+            self._dmx = dmx(self._context, self.app)
             
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
@@ -240,59 +236,6 @@ class WebApp:
         except Exception as e:
             format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "dmxStatus"})
-            
-    def seedDBData(self):
-        if not Gun.query.first() and not Player.query.first():
-            format.message("Empty DB Found! Seeding Data....", type="warning")
- 
-            gunAlpha = Gun(name="Alpha", defaultColor="Red")
-            gunApollo = Gun(name="Apollo", defaultColor="Red")
-            gunChaos = Gun(name="Chaos", defaultColor="Red")
-            gunCipher = Gun(name="Cipher", defaultColor="Red")
-            gunCobra = Gun(name="Cobra", defaultColor="Red")
-            gunComet = Gun(name="Comet", defaultColor="Red")
-            gunCommander = Gun(name="Commander", defaultColor="Red")
-            gunCyborg = Gun(name="Cyborg", defaultColor="Red")
-            gunCyclone = Gun(name="Cyclone", defaultColor="Red")
-            gunDelta = Gun(name="Delta", defaultColor="Red")
-            gunDodger = Gun(name="Dodger", defaultColor="Green")
-            gunDragon = Gun(name="Dragon", defaultColor="Green")
-            gunEagle = Gun(name="Eagle", defaultColor="Green")
-            gunEliminator = Gun(name="Eliminator", defaultColor="Green")
-            gunElite = Gun(name="Elite", defaultColor="Green")
-            gunFalcon = Gun(name="Falcon", defaultColor="Green")
-            gunGhost = Gun(name="Ghost", defaultColor="Green")
-            gunGladiator = Gun(name="Gladiator", defaultColor="Green")
-            gunHawk = Gun(name="Hawk", defaultColor="Green")
-            gunHyper = Gun(name="Hyper", defaultColor="Green")
-            gunInferno = Gun(name="Inferno", defaultColor="Green")
-            
-            db.session.add(gunAlpha)
-            db.session.add(gunApollo)
-            db.session.add(gunChaos)
-            db.session.add(gunCipher)
-            db.session.add(gunCobra)
-            db.session.add(gunComet)
-            db.session.add(gunCommander)
-            db.session.add(gunCyborg)
-            db.session.add(gunCyclone)
-            db.session.add(gunDelta)
-            db.session.add(gunDodger)
-            db.session.add(gunDragon)
-            db.session.add(gunEagle)
-            db.session.add(gunEliminator)
-            db.session.add(gunElite)
-            db.session.add(gunFalcon)
-            db.session.add(gunGhost)
-            db.session.add(gunGladiator)
-            db.session.add(gunHawk)
-            db.session.add(gunHyper)
-            db.session.add(gunInferno)
-            
-            db.session.commit()
-            format.message("Data seeded successfully", type="success")
-        else:
-            format.message("Data already exists, skipping seeding.", type="info")
 
     def openFiles(self):
         try:
@@ -414,15 +357,15 @@ class WebApp:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
-                scenes = self._dmx.getDMXScenes()
-                if isinstance(scenes, dict):
-                    scenes = [scenes]
+                scenes = self._dmx.getDMXScenes() 
 
-                return jsonify(scenes)
+                serialized_scenes = [scene.to_dict() for scene in scenes]
+                
+                return jsonify(serialized_scenes)
             except Exception as e:
                 format.message(f"Failed to fetch scenes: {str(e)}", type="error")
                 return jsonify({"error": f"Failed to fetch scenes: {str(e)}"}), 500
-        
+                
         @self.app.route("/api/dmx/getScene", methods=["GET"])
         def getDMXScene():
             if not self.DMXConnected:
@@ -436,10 +379,7 @@ class WebApp:
             try:
                 scene = self._dmx.getDMXSceneByName(sceneName)
 
-                if "events" in scene and isinstance(scene["events"], dict):
-                    scene["events"] = list(scene["events"].values())
-
-                return jsonify(scene)
+                return jsonify(scene.to_dict())
             except Exception as e:
                 format.message(f"Failed to fetch scene: {e}", type="error")
                 return jsonify({"error": f"Failed to fetch scene: {e}"}), 500
@@ -462,6 +402,24 @@ class WebApp:
                 format.message(f"Failed to start scene: {e}", type="error")
                 return jsonify({"error": f"Failed to start scene: {e}"}), 500
 
+        @self.app.route("/api/dmx/stopScene", methods=["POST"])
+        def stopDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneName = request.form.get("sceneName") 
+
+            if not sceneName:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                self._dmx.stopScene(sceneName)
+
+                return jsonify(200)
+            except Exception as e:
+                format.message(f"Failed to start scene: {e}", type="error")
+                return jsonify({"error": f"Failed to start scene: {e}"}), 500
+    
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()
@@ -521,23 +479,19 @@ class WebApp:
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
-            message = request.form.get('message')
-            type = request.form.get('type')
-            #format.message(f"Sending message: {message} with type: {type}")
+            data = request.json 
+            message = data.get("message")
+            type_ = data.get("type") 
+            
             if message:
-                
-                self.socketio.emit(f"{type}", {f"message": message})
-                        
-            #format.newline()
-                        
+                self.socketio.emit(f"{type_}", {"message": message}) 
+                                
             return 'Message sent!'
 
     def obs_connect(self):
         if self.devMode == False:
             try:
                 format.message("Attempting to connect to OBS")
-                # ws = obsws(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD)
-                # ws.connect()
                 
                 self.obs = obs.ReqClient(host=self.OBSSERVERIP, port=self.OBSSERVERPORT, password=self.OBSSERVERPASSWORD, timeout=3)
                 
@@ -999,7 +953,7 @@ class WebApp:
         
         try:
             with self.app.app_context():
-                gunName = "name: "+ Gun.query.filter_by(id=gunId).first().name
+                gunName = "name: "+ self._context.Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
@@ -1015,10 +969,6 @@ class WebApp:
         
     def shotConfirmedPacket(self, packetData):
         pass
-    
-    # -----------------| DMX Control |---------------------------------------------------------------------------------------------------------------------------------------------------------- #            
-    
-    
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -1087,41 +1037,3 @@ class WebApp:
                 break
          
         return ascii
-    
-# -----------------| DB Models |-------------------------------------------------------------------------------------------------------------------------------------------------------- #  
-                   
-class Gun(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    defaultColor = db.Column(db.String(60), unique=False, nullable=False)
-    
-class Player(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    kills = db.Column(db.Integer, nullable=False)
-    deaths = db.Column(db.Integer, nullable=False)
-    gamesWon = db.Column(db.Integer, nullable=False)
-    gamesLost = db.Column(db.Integer, nullable=False)
-    
-class Game(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    startTime = db.Column(db.DateTime, nullable=False)
-    endTime = db.Column(db.DateTime, nullable=False)
-    winningPlayer = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
-    winningTeam = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
-    loser = db.Column(db.String(60), nullable=True)
-    
-class Team(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(60), unique=True, nullable=False)
-    teamColour = db.Column(db.String(10), nullable=False)
-    gamePlayers = db.relationship("GamePlayers", backref="team_ref", lazy=True)
-
-class GamePlayers(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
-    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
-    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=False)
-    playerWon = db.Column(db.Boolean, nullable=False)
-    team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)

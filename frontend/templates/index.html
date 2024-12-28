@@ -116,7 +116,7 @@
 		align-items: center;
 		width: 80px;
 		margin-top: 3rem;
-		margin-right: 2rem;
+		margin-right: 0.7rem;
 	}
 	
     .slider {
@@ -320,7 +320,7 @@
 
 											<div class="card-body p-2">
 
-												<div class="card mb-3" style="background-color: var(--medium-dark-gray); color: #ffffff; width: 60.9vw;">
+												<div class="card mb-3" style="background-color: var(--medium-dark-gray); color: #ffffff; width: 61vw;">
 
 													<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
 
@@ -1014,6 +1014,10 @@
 	socket.on('musicPosition', function(position) {
 		currentTime = position.message;
 		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new position
+	});
+
+	socket.on('UpdateDMXValue', function(data) {
+		console.log("Updating DMX Value: ", data)
 	});
 
 	// Function to update the progress bar and time left

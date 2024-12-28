@@ -8,20 +8,17 @@ import threading
 import time
 import requests
 import socket
+import datetime
             
 class dmx:
-    def __init__(self):
+    def __init__(self, context, app):
         self._dmx = OpenDMXController()         
+        self._context = context
+        self.app = app
+        
+        self._localIp = self.__getLocalIp()
 
-        try:
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            self._localIp = s.getsockname()[0]
-            s.close()
-        except Exception as e:
-            format.message(f"Error getting local IP: {e}", "error")
-            self._localIp = ""
-            
+        self.runningScenes = {}
         self.fixtures = {}
         self.scenes = {}
         self.fixtureGroups = {}
@@ -362,14 +359,35 @@ class dmx:
             
     def startScene(self, sceneName):
         scene = self.getDMXSceneByName(sceneName)
-
-        if "events" in scene and isinstance(scene["events"], dict):
-            scene["events"] = list(scene["events"].values())
         
-        if scene:
-            threading.Thread(target=self.__startScene, args=(scene,)).start()
+        for thread in threading.enumerate():
+            if thread.name == f"DMXScene Running - {sceneName}":
+                thread, stopEvent = self.runningScenes[sceneName]
+                stopEvent.set() 
+                thread.join()   
+                del self.runningScenes[sceneName]
+                format.message(f"Scene {sceneName} stopped", "info")
+        
+        if scene != None:
+            stopEvent = threading.Event()
+            thread = threading.Thread(target=self.__startScene, args=(scene,stopEvent))
+            thread.name = f"DMXScene Running - {sceneName}"
+            self.runningScenes[sceneName] = (thread, stopEvent)
+            thread.start()
         else:
             format.message(f"Scene {sceneName} not found", "error")
+            
+    def stopScene(self, sceneName):
+        for thread in threading.enumerate():
+            if thread.name == f"DMXScene Running - {sceneName}":
+                thread, stopEvent = self.runningScenes[sceneName]
+                stopEvent.set() 
+                thread.join()   
+                del self.runningScenes[sceneName]
+                format.message(f"Scene {sceneName} stopped", "info")
+                return
+            
+        format.message(f"Scene {sceneName} not found", "error")
             
     # Getters
         
@@ -385,20 +403,96 @@ class dmx:
         fixtures = self._dmx.get_fixtures_by_name(fixtureName)
         return fixtures
     def getDMXScenes(self):
-        return self.__processJSONDMXScenes(os.path.join(os.path.dirname(os.path.dirname(os.path.realpath(__file__))), "data", "DMXScenes"))
+        self.__processJSONDMXScenes()
+        
+        try:
+            with self.app.app_context():
+                scenes = self._context.DMXScene.query.all()
+                
+                # Map the results to DMXSceneDTO objects
+                DMXScenes = [
+                    self._context.DMXSceneDTO(
+                        name=scene.name,
+                        duration=scene.duration,
+                        updateDate=scene.updateDate,
+                        createDate=scene.createDate,
+                        flash=scene.flash,
+                        repeat=scene.repeat,
+                        events=[
+                            self._context.DMXSceneEventDTO(
+                                name=event.name,
+                                duration=event.duration,
+                                updateDate=event.updateDate,
+                                channels=[
+                                    {
+                                        "fixture": channel.fixture,
+                                        "channel": channel.channel,
+                                        "value": channel.value
+                                    }
+                                    for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                                ]
+                            )
+                            for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                        ]
+                    )
+                    for scene in scenes
+                ]
+                
+        except Exception as e:
+            format.message(f"Error getting DMX scenes: {e}", "error")
+            return []
+        
+        return DMXScenes
+        
     def getDMXSceneByName(self, sceneName):
         return self.__findScene(sceneName)
     def getValueForSettingInChannel(self, fixtureType, channelName, settingName):
         return self.__getValueForChannelSetting(fixtureType, channelName, settingName)
+    def __getLocalIp(self):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            ip = s.getsockname()[0]
+            s.close()
+            return ip
+        except Exception as e:
+            format.message(f"Error getting local IP: {e}", "error")
+            return ""
     
     # Processing
     
     def __findScene(self, sceneName):
-        for scene in self.scenes:
-            if scene["name"] == sceneName:
-                return scene
+        with self.app.app_context():
+            scene = self._context.DMXScene.query.filter_by(name=sceneName).first()
             
-        return None
+            # Map the results to DMXSceneDTO objects
+            DMXScene = self._context.DMXSceneDTO(
+                name=scene.name,
+                duration=scene.duration,
+                updateDate=scene.updateDate,
+                createDate=scene.createDate,
+                repeat = scene.repeat,
+                flash = scene.flash,
+                events=[
+                    self._context.DMXSceneEventDTO(
+                        name=event.name,
+                        duration=event.duration,
+                        updateDate=event.updateDate,
+                        channels=[
+                            {
+                                "fixture": channel.fixture,
+                                "channel": channel.channel,
+                                "value": channel.value
+                            }
+                            for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                        ]
+                    )
+                    for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                ]
+            )
+            
+
+        return DMXScene
     
     def __getValueForChannelSetting(self, fixtureType, channelName, settingName):
         try:
@@ -407,51 +501,84 @@ class dmx:
             format.message(f"Error getting value: {e}", "error")
             return None
     
-    def __processJSONDMXScenes(self, folder):
+    def __processJSONDMXScenes(self):
         scenes = []
-        
-        for (dirpath, dirnames, filenames) in walk(folder + "\\local"):
-            format.message(f"Processing {len(filenames)} DMX local scenes", "info")
-            
-            for filename in filenames:
-                if filename.endswith(".json"):
-                    with open(folder + "\\local\\" + filename) as json_file:
-                        try:
-                            scene = json.load(json_file)
+        folder = os.getcwd() + "\\backend\\data\\DMXScenes\\"
 
-                            scenes.append(scene[0]) 
-                        except Exception as e:
-                            format.message(f"Error processing DMX scene {filename}: {e}", "error")
-                            
-        for (dirpath, dirnames, filenames) in walk(folder + "\\shared"):
-            format.message(f"Processing {len(filenames)} DMX shared scenes", "info")
-            
-            for filename in filenames:
-                if filename.endswith(".json"):
-                    with open(folder + "\\shared\\" + filename) as json_file:
-                        try:
-                            scene = json.load(json_file)
-
-                            scenes.append(scene[0])
-                        except Exception as e:
-                            format.message(f"Error processing DMX scene {filename}: {e}", "error")
-        
-        return scenes
-
-    def __startScene(self, scene):   
-        for event in scene["events"]:
-            if "channels" in event:
-                for fixtureName, channels in event["channels"].items():
-                    fixture = self.getFixturesByName(fixtureName)[0]
-                    
-                    if fixture:
-                        for channel, value in channels.items():
-                            fixture.set_channel(channel.lower(), int(value))
-                    
-            if "duration" in event:
-                requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': event , 'type': "UpdateDMXValue"})
+        with self.app.app_context():
+            for (dirpath, dirnames, filenames) in walk(folder):
+                format.message(f"Processing {len(filenames)} DMX shared scenes", "info")
                 
-                time.sleep(event["duration"] / 1000)
+                for filename in filenames:
+                    if filename.endswith(".json") and "_processed" not in filename:
+                        with open(folder + filename) as json_file:
+                            try:
+                                for scene in json.load(json_file):
+                                    newDMXScene = self._context.DMXScene(
+                                        name=str(filename).strip(".json"),
+                                        createDate=datetime.datetime.now(),
+                                        duration=scene["duration"],
+                                        repeat=scene["repeat"],
+                                        flash=scene["flash"]
+                                    )
+                                    self._context.db.session.add(newDMXScene) 
+                                    self._context.db.session.commit()
+
+                                    for event in scene["events"]:
+                                        duration = event["duration"]
+
+                                        newDMXSceneEvent = self._context.DMXSceneEvent(
+                                            sceneID=newDMXScene.id, 
+                                            name=scene["name"], 
+                                            updateDate=datetime.datetime.now(), 
+                                            duration=duration
+                                        )
+                                        self._context.db.session.add(newDMXSceneEvent)
+                                        self._context.db.session.commit()
+
+                                        for channel in event["channels"]:
+                                            for channel, value in channel.items():
+                                                if channel.lower() == "fixture":
+                                                    fixture = value
+                                                    continue
+
+                                                newDMXSceneEventChannel = self._context.DMXSceneEventChannel(
+                                                    eventID=newDMXSceneEvent.id, 
+                                                    fixture=fixture, 
+                                                    channel=channel, 
+                                                    value=value
+                                                )
+                                                self._context.db.session.add(newDMXSceneEventChannel)
+
+                                    self._context.db.session.commit()
+                            except Exception as e:
+                                format.message(f"Error processing DMX scene {filename}: {e}", "error")
+                            
+                        os.rename(folder + "\\" + filename, f"{folder}\\{filename.strip('.json')}_processed.json")
+            
+            return scenes
+
+    def __startScene(self, scene, stopEvent):   
+        while not stopEvent.is_set():
+            for event in scene.events:
+                if stopEvent.is_set():
+                    return 200
+                for channel in event.channels:
+                    fixture = self.getFixturesByName(channel["fixture"])[0]
+
+                    fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
+                    
+                    requests.post(
+                        f'http://{self._localIp}:8080/sendMessage',
+                        json={"message": {"channel": channel["channel"].lower(), "value": int(channel["value"])}, "type": "UpdateDMXValue"}
+                    )
+
+                        
+                if event.duration > 0:
+                    time.sleep(event.duration / 1000)
+            
+            if scene.repeat == True:
+                self.__startScene(scene, stopEvent)
                 
         return 200
             
