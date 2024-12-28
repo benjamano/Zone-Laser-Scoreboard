@@ -509,7 +509,7 @@ class dmx:
 
         with self.app.app_context():
             for (dirpath, dirnames, filenames) in walk(folder):
-                format.message(f"Processing {len(filenames)} DMX shared scenes", "info")
+                format.message(f"Processing {len(filenames)} DMX scenes", "info")
                 
                 for filename in filenames:
                     if filename.endswith(".json") and "_processed" not in filename:
