@@ -951,6 +951,7 @@
 					slider.max = 255;
 					slider.value = DMXValue;
 					slider.className = 'slider';
+					slider.id = `slider-${fixture.name}-${attributeName}`;
 					slider.oninput = function() {
 						updateDMXValue(attributeName, fixture.name, this.value);
 						valueLabel.textContent = this.value;
@@ -1005,22 +1006,35 @@
 		socket.emit('restartSong');
 	}
 
-	// Listen for the socket events for updates on the song duration and current time
 	socket.on('musicDuration', function(duration) {
 		totalDuration = duration.message;
-		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new duration
+		updateProgressBar(currentTime, totalDuration); 
 	});
 
 	socket.on('musicPosition', function(position) {
 		currentTime = position.message;
-		updateProgressBar(currentTime, totalDuration); // Update the progress bar with the new position
+		updateProgressBar(currentTime, totalDuration);
 	});
 
 	socket.on('UpdateDMXValue', function(data) {
 		console.log("Updating DMX Value: ", data)
+
+		var channel = data.message.channel;
+		var value = data.message.value;
+		var fixture = data.message.fixture;
+
+		//slider-${fixture.name}-${attributeName}
+
+		var valueLabel = document.getElementById(`valueLabel-${fixture}-${channel}`);
+		var slider = document.getElementById(`slider-${fixture}-${channel}`);
+
+		valueLabel.textContent = value;
+		slider.value = value;
+
+		//$(`#valueLabel-${fixture}-${channel}`).text(value);
+		//$(`#slider-${fixture}-${channel}`).val(value);
 	});
 
-	// Function to update the progress bar and time left
 	function updateProgressBar(currentTime, totalDuration) {
 		const progressBar = $('#progressBar');
 		const timeLeftDisplay = $('#timeLeft');

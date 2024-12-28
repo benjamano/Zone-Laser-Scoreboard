@@ -570,7 +570,7 @@ class dmx:
                     
                     requests.post(
                         f'http://{self._localIp}:8080/sendMessage',
-                        json={"message": {"channel": channel["channel"].lower(), "value": int(channel["value"])}, "type": "UpdateDMXValue"}
+                        json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.name, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
                     )
 
                         
