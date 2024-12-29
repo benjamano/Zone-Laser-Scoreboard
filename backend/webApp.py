@@ -543,7 +543,7 @@ class WebApp:
                 message = request.form.get("message")
                 type_ = request.form.get("type")
             
-            if message:
+            if type_:
                 self.socketio.emit(f"{type_}", {"message": message}) 
                                 
             return 'Message sent!'

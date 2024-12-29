@@ -6,6 +6,8 @@ import ctypes
 from webApp import WebApp
 import subprocess
 import os
+import requests
+import socket
 
 web_app = WebApp()
 
@@ -44,6 +46,15 @@ def startUI():
     root.mainloop()
 
 def showInterface():
+    try:
+        # Create a dummy socket connection to find the local IP address
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        _localIp = s.getsockname()[0]
+        s.close()
+    except Exception as e:
+        format.message(f"Error finding local IP: {e}")
+    
     interfaceWindow = tk.Tk()
     interfaceWindow.title("Control Panel")
     
@@ -81,6 +92,12 @@ def showInterface():
     def TurnOffBulkHeadLights():
         threading.Thread(target=web_app.turnBulkHeadLightsOff).start()
 
+    def RefreshPages():
+        threading.Thread(target=refreshAllPages).start()
+        
+    def refreshAllPages():
+        response = requests.post(f'http://{_localIp}:8080/sendMessage', data={"message": "", "type": "refreshPage"})
+        
     creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
     creditsLbl.pack(pady=10)
 
@@ -113,6 +130,9 @@ def showInterface():
     
     RestartPCButton = tk.Button(interfaceWindow, text="Restart PC", command=restartPC)
     RestartPCButton.pack(pady=10)
+    
+    RefreshPagesButton = tk.Button(interfaceWindow, text="Refresh connected Pages", command=RefreshPages)
+    RefreshPagesButton.pack(pady=10)
     
     interfaceWindow.geometry("600x700")
     interfaceWindow.mainloop()
