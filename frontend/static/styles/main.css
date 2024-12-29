@@ -1,3 +1,13 @@
+:root{
+    --dark-gray: #2f37498f;
+    --medium-dark-gray: #52596e8c;
+    --primary-gray: #6d748c57;
+    --light-gray: #9ea5ba63;
+    --ghost-gray: #d2d5df54;
+    --blue: #37a6d187;
+    --pale-orange: ff977b8c;
+}
+
 .card{
     background-color: var(--medium-dark-gray); 
     color: #ffffff;
@@ -13,6 +23,15 @@
     border-radius: 2rem;
     border-radius: 0.3rem;
     padding: 0.4rem;
+}
+
+.dmxAddScene{
+    background-color: #ffffff1a;
+    transition: background-color 0.5s;
+}
+
+.dmxAddScene:hover{
+    background-color: #ffffff33;
 }
 
 .sceneInfoContainer{
@@ -181,3 +200,145 @@
     margin-left: 30px;
     margin-top: 10px;
 }
+
+body{
+    background-color: black;
+}
+
+#album-container {
+    position: relative;
+    width: 220px;
+    height: 220px;
+}
+
+#album-cover {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: blur(1.3px);
+    filter: brightness(0.4);
+}
+
+#album-container p,
+#album-container span {
+    position: relative;
+    z-index: 1;
+    color: white; /* Make sure the text is visible over the image */
+}
+
+html {
+overflow: scroll;
+}
+
+#fixtures-container {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: nowrap; 
+    padding-bottom: 10px;
+    max-width: 60rem;
+}
+
+
+#fixtures-container .fixture .title {
+    color: white;;
+    font-size: 1rem;
+}
+
+#lightingCardBody {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto; 
+    width: 100%;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+
+.fixture {
+    padding: 10px;
+    text-align: center;
+    border: #0000002b;
+    border-width: 5px;
+    border-style: solid;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    gap: 30px;
+}
+
+.fixtureContainer {
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 50px;
+    width: auto;
+}
+
+
+.fixtureChannel{
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    width: 80px;
+    margin-top: 3rem;
+    margin-right: 0.7rem;
+}
+
+.slider {
+    -webkit-appearance: none;
+    width: 280%;
+    height: 10px;
+    background: #d3d3d3;
+    outline: none;
+    -webkit-transform: rotate(-90deg);
+    margin-bottom: 5rem;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 60px;
+    height: 40px;
+    background: #252525;
+    cursor: pointer;
+  }
+
+.label {
+    margin-top: 10px;
+}
+
+.warning{
+    position: fixed;
+    top: 0;
+    margin: 0;
+    padding: 0.2rem;
+    background-color: #972100;
+    z-index: 999;
+    width: 100%;
+    display: none;
+    animation: fadeInOut 2s ease-in-out 2;
+}
+
+.warning h1{
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.5rem;
+}
+
