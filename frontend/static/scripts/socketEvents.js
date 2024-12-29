@@ -300,3 +300,7 @@ socket.on('UpdateDMXValue', function(data) {
     valueLabel.textContent = value;
     slider.value = value;
 });
+
+socket.on("refreshPage", function() {
+    location.reload();
+});
