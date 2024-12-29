@@ -18,152 +18,6 @@
 	<script src="https://kit.fontawesome.com/9d35a24d36.js" crossorigin="anonymous"></script>
     <link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet">
 </head>
-
-<style>
-
-    body{
-        background-color: black;
-    }
-
-	#album-container {
-		position: relative;
-		width: 220px;
-		height: 220px;
-	}
-	
-	#album-cover {
-		position: absolute;
-		top: 0;
-		left: 0;
-		width: 100%;
-		height: 100%;
-		background-size: cover;
-		background-position: center;
-		filter: blur(1.3px);
-        filter: brightness(0.4);
-	}
-	
-	#album-container p,
-	#album-container span {
-		position: relative;
-		z-index: 1;
-		color: white; /* Make sure the text is visible over the image */
-	}
-
-	html {
-    overflow: scroll;
-	}
-
-	#fixtures-container {
-		display: flex;
-		flex-direction: row;
-		align-items: center;
-		align-content: center;
-		justify-content: flex-start;
-		font-size: 0.8rem;
-		overflow-x: auto;
-		white-space: nowrap; 
-		padding-bottom: 10px;
-		max-width: 60rem;
-	}
-	
-
-	#fixtures-container .fixture .title {
-		color: white;;
-		font-size: 1rem;
-	}
-
-	#lightingCardBody {
-		width: 100%;
-		max-width: 100%;
-		overflow-x: auto; 
-		width: 100%;
-		-webkit-user-select: none;
-		-ms-user-select: none;
-		user-select: none;
-	}
-
-    .fixture {
-		padding: 10px;
-		text-align: center;
-		border: #0000002b;
-		border-width: 5px;
-		border-style: solid;
-		display: flex;
-		flex-direction: column;
-		flex-wrap: nowrap;
-		align-content: center;
-		justify-content: center;
-		gap: 30px;
-	}
-	
-	.fixtureContainer {
-		display: flex;
-		flex-direction: row;
-		align-content: center;
-		justify-content: flex-start;
-		align-items: center;
-		gap: 50px;
-		width: auto;
-	}
-	
-
-	.fixtureChannel{
-		display: flex;
-		flex-direction: column;
-		align-content: center;
-		justify-content: center;
-		align-items: center;
-		width: 80px;
-		margin-top: 3rem;
-		margin-right: 0.7rem;
-	}
-	
-    .slider {
-		-webkit-appearance: none;
-		width: 280%;
-		height: 10px;
-		background: #d3d3d3;
-		outline: none;
-		-webkit-transform: rotate(-90deg);
-		margin-bottom: 5rem;
-    }
-
-	.slider::-webkit-slider-thumb {
-		-webkit-appearance: none;
-		appearance: none;
-		width: 60px;
-		height: 40px;
-		background: #252525;
-		cursor: pointer;
-	  }
-
-    .label {
-        margin-top: 10px;
-    }
-	
-	.warning{
-		position: fixed;
-		top: 0;
-		margin: 0;
-		padding: 0.2rem;
-		background-color: #972100;
-		z-index: 999;
-		width: 100%;
-		display: none;
-		animation: fadeInOut 2s ease-in-out 2;
-	}
-
-	.warning h1{
-		color: white;
-		text-transform: uppercase;
-		font-weight: bold;
-		text-align: center;
-		font-size: 1.5rem;
-	}
-
-</style>
-
 <body>
 	<div id="warningsContainer" class="warning">
 		<h1 id="warningsText"></h1>
@@ -548,7 +402,6 @@
 <script>
     var controlSpotify = true;
 	var gamePlayingStatus = "stopped"
-    var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
 
 	var lastBPM = 0;
 	var totalDuration = 0;
@@ -557,9 +410,9 @@
 
     window.onload = function() {
 		if (controlSpotify == true){
-				$("#spotifyPlaybackStatus").text("ON")
+			$("#spotifyPlaybackStatus").text("ON")
 		} else {
-				$("#spotifyPlaybackStatus").text("OFF")
+			$("#spotifyPlaybackStatus").text("OFF")
 		}
 
 		fetchFixtures();
@@ -569,179 +422,6 @@
 
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
 	};
-
-	socket.on('connect', function() {
-
-		$("#warningsContainer").css("display", "none");
-		
-		socket.emit('SpotifyControl', {data: controlSpotify});
-		console.log("SpotifyControl: " + controlSpotify);
-		console.log("Client connected!");
-
-		if (controlSpotify == true){
-			$("#spotifyPlaybackStatus").text("ON")
-		} else {
-			$("#spotifyPlaybackStatus").text("OFF")
-		}
-
-		$("#gameStatus").removeClass("go-red").addClass("go-blue");
-		$("#gameStatus").text("Waiting");
-
-		$("#webAppOnlineStatus").text("ONLINE");
-
-		try{
-
-		var messageDiv = document.getElementById('messages');
-
-		messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
-		}
-		catch(err){}
-	});
-
-	socket.on('start', function(msg) {
-
-		gamePlayingStatus = "playing";
-
-		console.log(msg);
-
-		for (let i = 1; i <= 21; i++) {
-			$("#gun-" + i + "-score").text("0");
-			$("#gun-" + i + "-accuracy").text("0%");
-		}
-
-		var gameStatus = document.getElementById('gameStatus');
-
-		$("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
-		$("#gameStatus").text("Game in Progress...");
-
-		try{
-
-			var messageDiv = document.getElementById('messages');
-
-			messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
-		}
-		catch(err){}
-	});
-
-	socket.on('obsStatus', function(msg) {
-		console.log(msg.message);
-
-		$("#OBSConnectionStatus").text(msg.message)
-		
-	});
-
-	socket.on('dmxStatus', function(msg) {
-		console.log(msg.message);
-
-		$("#DMXConnectionStatus").text(msg.message)
-		
-	});
-
-	socket.on('end', function(msg) {
-
-		gamePlayingStatus = "stopped";
-
-		console.log(msg);
-
-		for (let i = 1; i <= 21; i++) {
-			$("#gun-" + i + "-score").text("0");
-			$("#gun-" + i + "-accuracy").text("0%");
-		}
-
-		var gameStatus = document.getElementById('gameStatus');
-
-		$("#timeRemaining").text("00:00");
-
-		$("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
-		$("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
-	});
-
-	socket.on('server', function(msg) {
-		console.log(msg);
-
-		try{
-		var messageDiv = document.getElementById('messages');
-
-		messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-		}
-		catch(err){}
-	});
-
-	socket.on('gameMode', function(msg) {
-		console.log("Game Mode: ", msg.message);
-
-		try{
-		var messageDiv = document.getElementById('messages');
-
-		messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-		}
-		catch(err){}
-	});
-
-	socket.on('gunScores', function(msg) {
-		if (gamePlayingStatus == "stopped"){
-			return;
-		}
-
-		console.log("gunScore: "+msg);
-
-		var gunScores = msg.message.split(',');
-
-		var gunId = gunScores[0];
-		var finalScore = gunScores[1];
-		var Accuracy = gunScores[2];
-
-		console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
-
-		$("#gun-"+gunId+"-score").text(finalScore);
-		$("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
-	});
-
-	socket.on('disconnect', function() {
-		var messageDiv = document.getElementById('messages');
-
-		$("#webAppOnlineStatus").text("UNKNOWN");
-		
-		try{
-		messageDiv.innerHTML += '<p class="text-danger">Disconnected @ '+Date.now()+'</p>';
-		}
-
-		catch(err){}
-	});
-
-	socket.on('timeRemaining', function (msg) {
-		if (gamePlayingStatus == "stopped"){
-				return;
-		}
-
-		const newTime = parseInt(msg.message);
-
-		// If the current time is different from the new time, update the countdown
-		if (currentTimeLeft !== newTime) {
-			currentTimeLeft = newTime;
-
-			// If there's an existing interval, clear it
-			try{
-				if (countdownInterval) {
-					clearInterval(countdownInterval);
-				}
-			}
-			catch{}
-
-			// Start the countdown
-			countdownInterval = setInterval(function () {
-				if (currentTimeLeft <= 0) {
-					clearInterval(countdownInterval);
-					return;
-				}
-
-				currentTimeLeft--;
-
-				const formattedTime = formatTime(currentTimeLeft);
-				$("#timeRemaining").text(formattedTime);
-			}, 1000);
-		}
-	});
 
 	async function getAlbumCover(albumName) {
         const apiKey = 'ce4aeea69e2f5a8fb184700d5892aa82';
@@ -754,115 +434,6 @@
         }
     }
 
-    // Listen for album name updates from the server
-    socket.on('songAlbum', async function(albumName) {
-
-		if (albumName == "None"){
-			return;
-		}
-
-		console.log(albumName.message);
-        const imageUrl = await getAlbumCover(albumName.message);
-        if (imageUrl) {
-            document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
-        } else {
-            console.log('Album cover not found.');
-        }
-    });
-
-	socket.on('songName', function (msg) {
-		console.log(msg.message);
-
-		$("#musicPlaying").text(msg.message);
-	});
-
-	socket.on('createWarning', function (msg) {
-		console.log(msg.message);
-
-		if (msg.message == "Restart"){
-			$("#warningsText").text(msg.message);
-
-			try{
-				if (countdownInterval) {
-					clearInterval(countdownInterval);
-				}
-			}
-			catch{}
-
-			TimeUntilRestart = 60;
-
-			// Start the countdown
-			RestartCountdownInterval = setInterval(function () {
-				if (TimeUntilRestart <= 0) {
-					clearInterval(RestartCountdownInterval);
-					return;
-				}
-
-				TimeUntilRestart--;
-
-				const formattedTime = formatTime(TimeUntilRestart);
-				$("#warningsText").text("warning: WebApp restarting in "+formattedTime + " | MUSIC WILL NOT BE AVAILABLE DURING THIS PERIOD");
-			}, 1000);
-		}
-		else{
-			$("#warningsText").text(msg.message);
-		}
-
-		$("#warningsContainer").css("display", "unset");
-
-	});
-
-	socket.on('musicStatus', function (msg) {
-		console.log(msg.message);
-
-		if (msg.message == "playing"){
-			$("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
-		} else {
-			$("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
-		}
-	});
-
-	socket.on('songBPM', function (msg) {
-		console.log(msg.message);
-
-		if (lastBPM == msg.message){
-			return;
-		}
-
-		$("#musicBPM").text(msg.message);
-
-		lastBPM = msg.message;
-
-		if (msg.message == "0"){
-			clearInterval(window.flashInterval);
-			clearInterval(window.flashInterval2);
-
-			return;
-		}
-
-		// Make a dot flash at the speed of the BPM
-		const flashSpeed = 60000 / parseInt(msg.message); // Calculate flash speed in milliseconds
-
-		// Clear any existing intervals to avoid multiple intervals running simultaneously
-		clearInterval(window.flashInterval);
-		clearInterval(window.flashInterval2);
-
-		// Set a new interval for the dot flashing
-		window.flashInterval = setInterval(function () {
-			$("#flashingDot").css("opacity", function(_, currentOpacity) {
-				return currentOpacity == 1 ? 0 : 1;
-			});
-		}, flashSpeed);
-
-		window.flashInterval2 = setInterval(function () {
-			$("#flashingDot2").css("opacity", function(_, currentOpacity) {
-				return currentOpacity == 1 ? 0 : 1;
-			});
-		}, flashSpeed*2);
-
-	});
-
-	// Format the time in minutes and seconds
 	function formatTime(seconds) {
 		const minutes = Math.floor(seconds / 60);
 		const remainingSeconds = seconds % 60;
@@ -977,7 +548,7 @@
 					fixtureDiv.appendChild(fixtureContainer);
 				});
 
-				var gLabel = document.getElementById("lightingCardBody");
+				var gLabel = document.getElementById("musicControlCardBody");
 				var style = window.getComputedStyle(gLabel , null);
 
 				document.getElementById('fixtures-container').style.width = style.getPropertyValue("width")
@@ -1006,51 +577,19 @@
 		socket.emit('restartSong');
 	}
 
-	socket.on('musicDuration', function(duration) {
-		totalDuration = duration.message;
-		updateProgressBar(currentTime, totalDuration); 
-	});
-
-	socket.on('musicPosition', function(position) {
-		currentTime = position.message;
-		updateProgressBar(currentTime, totalDuration);
-	});
-
-	socket.on('UpdateDMXValue', function(data) {
-		console.log("Updating DMX Value: ", data)
-
-		var channel = data.message.channel;
-		var value = data.message.value;
-		var fixture = data.message.fixture;
-
-		//slider-${fixture.name}-${attributeName}
-
-		var valueLabel = document.getElementById(`valueLabel-${fixture}-${channel}`);
-		var slider = document.getElementById(`slider-${fixture}-${channel}`);
-
-		valueLabel.textContent = value;
-		slider.value = value;
-
-		//$(`#valueLabel-${fixture}-${channel}`).text(value);
-		//$(`#slider-${fixture}-${channel}`).val(value);
-	});
-
 	function updateProgressBar(currentTime, totalDuration) {
 		const progressBar = $('#progressBar');
 		const timeLeftDisplay = $('#timeLeft');
 
-		// Calculate percentage progress
 		if (totalDuration > 0) {
 			const progressPercent = (currentTime / totalDuration) * 100;
 			progressBar.css('width', progressPercent + '%');
 		}
 
-		// Calculate time left
 		const timeLeft = totalDuration - currentTime;
 		const minutesLeft = Math.floor(timeLeft / 60);
 		const secondsLeft = Math.floor(timeLeft % 60);
 		
-		// Update the time left display
 		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
 	}
 
@@ -1066,4 +605,7 @@
 		socket.emit('playBriefing');
 	}
 </script>
+
+<script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>
+
 {% endblock %}

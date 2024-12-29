@@ -161,7 +161,8 @@ class context:
                 print(f"Error: {e}")
     
     class DMXSceneDTO:
-        def __init__(self, name, duration, updateDate, createDate, repeat, flash, events):
+        def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, events):
+            self.id = id
             self.name = name
             self.duration = duration
             self.updateDate = updateDate    
@@ -172,6 +173,7 @@ class context:
         
         def to_dict(self):
             return {
+                "id": self.id,
                 "name": self.name,
                 "duration": self.duration,
                 "updateDate": self.updateDate.isoformat() if self.updateDate else None,
@@ -182,7 +184,8 @@ class context:
             }
             
     class DMXSceneEventDTO:
-        def __init__(self, name, duration, updateDate, channels):
+        def __init__(self, id, name, duration, updateDate, channels):
+            self.id = id
             self.name = name
             self.duration = duration
             self.updateDate = updateDate
@@ -190,6 +193,7 @@ class context:
         
         def to_dict(self):
             return {
+                "id": self.id,
                 "name": self.name,
                 "duration": self.duration,
                 "updateDate": self.updateDate.isoformat() if self.updateDate else None,

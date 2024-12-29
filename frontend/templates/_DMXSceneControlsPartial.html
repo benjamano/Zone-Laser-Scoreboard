@@ -14,13 +14,15 @@
     
     <div class="card-body collapse DMXScenesCardBody" id="DMXScenesCardBody">
 
+        <h1 id="editingSceneId" class="d-none"></h1>
+
         <div id="sceneContainer" class="sceneContainer"></div>
 
         <div class="editSceneContainer" id="editSceneContainer">
 
             <div class="form-group">
 
-                <input type="text" class="form-control sceneNameEdit" id="sceneName" placeholder="Scene Name" onchange="updateSceneName(this.value)">
+                <input type="text" class="form-control sceneNameEdit" id="sceneName" onchange="updateSceneName(this.value)">
 
             </div>
 
@@ -51,12 +53,82 @@
 	};
 
     function createNewScene(){
+        var id;
+
+        $("#editingSceneId").text("");
+
         $("#editSceneContainer").show();
         $("#sceneEventContainer").empty();
         $('#lightingCardBody').collapse('show');
         $("#sceneDetailButtons").empty(); 
 
-        
+        $.ajax({
+            url: "/api/dmx/createScene",
+            type: "POST",
+            success: function (response) {
+                $("#editingSceneId").text(response);
+                $("#sceneName").val("New Scene");
+
+                id = response;
+            },
+            error: function (xhr) {
+                handleError(xhr);
+            }
+        });
+
+        var sceneEventContainer = $("#sceneEventContainer");
+
+        sceneEventContainer.empty()
+                        
+        sceneEventContainer.append(
+            $("<div>")
+                .addClass("dmxSceneEvent dmxAddScene cursor-pointer user-select-none")
+                .attr("role", "button")
+                .text("+")
+                .on("click", function () {
+                    addNewSceneEvent();
+                })
+        );
+
+        var DMXScenecontainer = $("#sceneContainer");
+        var name = id;
+        var totalDuration = 0;
+
+        var sceneDiv = $(document.createElement("div"))
+            .addClass("dmxScene user-select-none")
+            .attr("id", name + "_SceneBtn")
+            .attr("role", "button")
+            .on("click", function () {
+                startOrEditScene(name);
+            });
+
+        var sceneText = $(document.createElement("p"))
+            .addClass("title")
+            .text(scene.name);
+
+        var sceneDuration = $(document.createElement("p"))
+            .addClass("duration")
+            .attr("id", name + "_Visibleduration")
+            .text(formatDMXSceneDuration(totalDuration));
+
+        var sceneDurationHidden = $(document.createElement("p"))
+            .addClass("duration")
+            .attr("id", name  + "_duration")
+            .attr("style", "display: none;")
+            .text(totalDuration);
+
+        var sceneInfoContainer = $(document.createElement("div"))
+            .addClass("sceneInfoContainer");
+
+        var sceneSettingContainer = $(document.createElement("div"))
+            .addClass("sceneSettingContainer");
+
+        sceneInfoContainer.append(sceneText);
+        sceneInfoContainer.append(sceneDuration);
+        sceneInfoContainer.append(sceneDurationHidden);
+        sceneDiv.append(sceneInfoContainer);
+        sceneDiv.append(sceneSettingContainer);
+        DMXScenecontainer.append(sceneDiv);
     }
 
     function getDMXScenes() {
@@ -72,14 +144,14 @@
                 container.empty();
 
                 response.forEach(function (scene) {
-                    var name = scene.name;
+                    var name = scene.id;
                     var flash = scene.flash;
                     var repeat = scene.repeat;
                     var totalDuration = scene.duration;
     
                     var sceneDiv = $(document.createElement("div"))
                         .addClass("dmxScene user-select-none")
-                        .attr("id", name.replace(/\s+/g, '_') + "_SceneBtn")
+                        .attr("id", name + "_SceneBtn")
                         .attr("role", "button")
                         .on("click", function () {
                             startOrEditScene(name);
@@ -91,12 +163,12 @@
     
                     var sceneDuration = $(document.createElement("p"))
                         .addClass("duration")
-                        .attr("id", name.replace(/\s+/g, '_') + "_Visibleduration")
+                        .attr("id", name + "_Visibleduration")
                         .text(formatDMXSceneDuration(totalDuration));
 
                     var sceneDurationHidden = $(document.createElement("p"))
                         .addClass("duration")
-                        .attr("id", name.replace(/\s+/g, '_')  + "_duration")
+                        .attr("id", name  + "_duration")
                         .attr("style", "display: none;")
                         .text(totalDuration);
     
@@ -126,19 +198,21 @@
                     sceneDiv.append(sceneInfoContainer);
                     sceneDiv.append(sceneSettingContainer);
                     container.append(sceneDiv);
-    
-                    if (scene.events) {
-                        Object.keys(scene.events).forEach(function (eventKey) {
-                            var event = scene.events[eventKey];
-                            var duration = event.duration;
-                            var channels = event.channels;
-                            console.log(
-                                `Event ${eventKey}: Duration = ${duration}, Channels = `,
-                                channels
-                            );
-                        });
-                    }
                 });
+
+            var sceneDiv = $(document.createElement("div"))
+                .addClass("dmxScene dmxAddScene user-select-none")
+                .attr("role", "button")
+                .on("click", function () {
+                    createNewScene();
+                });
+
+            var sceneText = $(document.createElement("p"))
+                .addClass("title")
+                .text("+");
+
+            sceneDiv.append(sceneText);
+            container.append(sceneDiv);
 
             },
             error: function (xhr) {
@@ -164,22 +238,25 @@
         );
     }
 
-    function editScene(sceneName) {
+    function editScene(sceneId) {
         $.ajax({
             url: "/api/dmx/getScene",
             type: "GET",
-            data: { sceneName: sceneName },
+            data: { sceneId: sceneId },
             success: function (response) {
                 $("#editSceneContainer").show();
                 $("#sceneEventContainer").empty();
                 $('#lightingCardBody').collapse('show');
                 $("#sceneDetailButtons").empty(); 
 
-                $("#sceneName").val(sceneName);
+                $("#editingSceneId").text("");
+                $("#sceneName").val(response.name);
 
                 var scene = response;
 
-                $("#"+scene.name+"_SceneBtn").addClass("active");
+                $("#"+scene.id+"_SceneBtn").addClass("active");
+
+                $("#editingSceneId").text(scene.id);
                 
                 if (Array.isArray(scene.events)) {
                     let currentTime = new Date(0); 
@@ -191,6 +268,18 @@
                         const startTime = new Date(currentTime.getTime()); 
                         const endTime = new Date(currentTime.getTime() + duration); 
                         var sceneContainer = $("#sceneEventContainer");
+
+                        sceneContainer.empty()
+                                        
+                        sceneContainer.append(
+                            $("<div>")
+                                .addClass("dmxSceneEvent dmxAddScene cursor-pointer user-select-none")
+                                .attr("role", "button")
+                                .text("+")
+                                .on("click", function () {
+                                    addNewSceneEvent();
+                                })
+                        );
                         
                         sceneContainer.append(
                             $("<div>")
@@ -232,31 +321,31 @@
         }
     }
 
-    function startOrEditScene(name){
+    function startOrEditScene(sceneId){
         if ($("#editScenechk").hasClass("intSelected")){
-            editScene(name);
+            editScene(sceneId);
         } else {
-            startScene(name);
+            startScene(sceneId);
         }
     }
 
-    function startScene(sceneName) {
+    function startScene(sceneId) {
         $.ajax({
             url: "/api/dmx/startScene",
             type: "POST",
-            data: { sceneName: sceneName },
+            data: { sceneId: sceneId },
             success: function (response) {
                 console.log("Scene started:", response);
 
-                repeat = $("#"+sceneName.replace(/\s+/g, '_') + "_SceneBtn").find(".fa-rotate-right").length;
+                repeat = $("#"+sceneId + "_SceneBtn").find(".fa-rotate-right").length;
 
-                $("#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn").addClass("active");
+                $("#" + sceneId + "_SceneBtn").addClass("active");
 
-                var countdownElement = $("#" + sceneName.replace(/\s+/g, '_') + "_duration");
+                var countdownElement = $("#" + sceneId + "_duration");
                 var duration = parseInt(countdownElement.text());
-                var visibleDurationElement = $("#" + sceneName.replace(/\s+/g, '_') + "_Visibleduration");
+                var visibleDurationElement = $("#" + sceneId + "_Visibleduration");
                 var initialDuration = formatDMXSceneDuration(duration);
-                var btnSelector = "#" + sceneName.replace(/\s+/g, '_') + "_SceneBtn";
+                var btnSelector = "#" + sceneId + "_SceneBtn";
 
                 $(btnSelector).addClass("active").off('click').on('click', function () {
                     if ($(btnSelector).hasClass("active")) {
@@ -265,10 +354,10 @@
                         visibleDurationElement.text(initialDuration);
                         duration = parseInt(countdownElement.text());
     
-                        stopScene(sceneName);
+                        stopScene(sceneId);
                     }
                     else{
-                        startScene(sceneName);
+                        startScene(sceneId);
                     }
                 });
     
@@ -307,11 +396,11 @@
         });
     }
 
-    function stopScene(sceneName){
+    function stopScene(sceneId){
         $.ajax({
             url: "/api/dmx/stopScene",
             type: "POST",
-            data: { sceneName: sceneName },
+            data: { sceneId: sceneId },
             success: function (response) {
                 console.log("Scene stopped:", response);
             },
@@ -347,8 +436,8 @@
         $.ajax({
             url: "/api/dmx/editSceneName",
             type: "POST",
-            data: { sceneName: sceneName,
-                    newSceneName: $("#sceneName").val() },
+            data: { sceneId: $("#editingSceneId").text(),
+                    newName: $("#sceneName").val() },
             success: function (response) {
                 console.log("Scene Name Changed:", response);
             },

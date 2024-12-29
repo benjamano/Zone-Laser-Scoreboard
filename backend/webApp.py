@@ -142,13 +142,10 @@ class WebApp:
             format.message(f"Error starting OBS Connection: {e}", type="error")
             
         try:
-            if self.devMode == True:
-                format.message("Development Mode, skipping DMX Connection", type="warning")
-            else:
-                format.message("Setting up DMX Connection")
-                self.DMXThread = threading.Thread(target=self.setUpDMX)
-                self.DMXThread.daemon = True
-                self.DMXThread.start()
+            format.message("Setting up DMX Connection")
+            self.DMXThread = threading.Thread(target=self.setUpDMX)
+            self.DMXThread.daemon = True
+            self.DMXThread.start()
             
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
@@ -188,7 +185,7 @@ class WebApp:
         #Requires USB to DMX with driver version of "libusb-win32"
         
         try:
-            self._dmx = dmx(self._context, self.app)
+            self._dmx = dmx(self._context, self.app, self.devMode)
             
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
@@ -371,13 +368,13 @@ class WebApp:
             if not self.DMXConnected:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
-            sceneName = request.args.get("sceneName") 
+            sceneId = request.args.get("sceneId") 
 
-            if not sceneName:
+            if not sceneId:
                 return jsonify({"error": "Scene name is required"}), 400
 
             try:
-                scene = self._dmx.getDMXSceneByName(sceneName)
+                scene = self._dmx.getDMXSceneById(sceneId)
 
                 return jsonify(scene.to_dict())
             except Exception as e:
@@ -389,13 +386,13 @@ class WebApp:
             if not self.DMXConnected:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
-            sceneName = request.form.get("sceneName") 
+            sceneId = request.form.get("sceneId") 
 
-            if not sceneName:
+            if not sceneId:
                 return jsonify({"error": "Scene name is required"}), 400
 
             try:
-                self._dmx.startScene(sceneName)
+                self._dmx.startScene(sceneId)
 
                 return jsonify(200)
             except Exception as e:
@@ -407,19 +404,66 @@ class WebApp:
             if not self.DMXConnected:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
-            sceneName = request.form.get("sceneName") 
+            sceneId = request.form.get("sceneId") 
 
-            if not sceneName:
+            if not sceneId:
                 return jsonify({"error": "Scene name is required"}), 400
 
             try:
-                self._dmx.stopScene(sceneName)
+                self._dmx.stopScene(sceneId)
 
                 return jsonify(200)
             except Exception as e:
                 format.message(f"Failed to start scene: {e}", type="error")
                 return jsonify({"error": f"Failed to start scene: {e}"}), 500
-    
+        
+        @self.app.route("/api/dmx/createScene", methods=["POST"])
+        def createDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                newDMXScene = self._context.DMXScene(
+                    name="New Scene",
+                    createDate=datetime.datetime.now(),
+                    duration=0,
+                    repeat=False,
+                    flash=False
+                )
+                
+                createdScene = self._dmx.createNewScene(newDMXScene)
+
+                return jsonify(createdScene.id)
+            except Exception as e:
+                format.message(f"Failed to create scene: {e}", type="error")
+                return jsonify({"error": f"Failed to create scene: {e}"}), 500
+            
+        @self.app.route("/api/dmx/editSceneName", methods=["POST"])
+        def editDMXSceneName():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                sceneId = request.form.get("sceneId")
+                newName = request.form.get("newName")
+
+                if not sceneId or not newName:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                with self._context.db.session.begin():
+                    scene = self._context.db.session.query(self._context.DMXScene).filter_by(id=sceneId).first()
+
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+
+                    scene.name = newName
+
+                return jsonify({"newName": newName})
+            except Exception as e:
+                format.message(f"Failed to edit scene name: {e}", type="error")
+                return jsonify({"error": f"Failed to edit scene name: {e}"}), 500
+
+
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()
