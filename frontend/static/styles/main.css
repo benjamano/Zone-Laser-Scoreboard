@@ -5,7 +5,9 @@
     --light-gray: #9ea5ba63;
     --ghost-gray: #d2d5df54;
     --blue: #37a6d187;
-    --pale-orange: ff977b8c;
+    --pale-orange: #ff977b8c;
+    --bs-danger: #dc3545d1;
+    
 }
 
 .card{
@@ -220,7 +222,11 @@ body{
     background-size: cover;
     background-position: center;
     filter: blur(1.3px);
-    filter: brightness(0.4);
+    filter: brightness(0.3);
+}
+
+#musicPlaying{
+    font-size: 0.7rem;
 }
 
 #album-container p,

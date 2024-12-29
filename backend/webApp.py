@@ -93,7 +93,19 @@ class WebApp:
             os._exit(1)
         
     def start(self):
-        format.newline()    
+        format.newline()  
+        
+        def bpmLoop():
+            while True:
+                try:
+                    self.findBPM()
+                    time.sleep(10)
+                except Exception as e:
+                    format.message(f"Error in BPM loop: {e}", type="error")
+                    break
+
+        self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
+        self.bpm_thread.start()  
         
         try:
             # Create a dummy socket connection to find the local IP address
@@ -523,9 +535,13 @@ class WebApp:
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
-            data = request.json 
-            message = data.get("message")
-            type_ = data.get("type") 
+            try:
+                data = request.json 
+                message = data.get("message")
+                type_ = data.get("type") 
+            except:
+                message = request.form.get("message")
+                type_ = request.form.get("type")
             
             if message:
                 self.socketio.emit(f"{type_}", {"message": message}) 
@@ -733,7 +749,7 @@ class WebApp:
 
         os._exit(1)
             
-    def handleBPM(self, song, bpm, album):
+    def handleBPM(self, song, album, bpm=0):
         #format.message(f"Get Here with {song}, {bpm}, {album}")
         try:
             if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
@@ -832,29 +848,35 @@ class WebApp:
         
     def findBPM(self):
         try:
-            self.fetcher.fetch()  # Fetch the current song and BPM
-            song, bpm, album = self.fetcher.get_current_song_and_bpm()
-
-            self.handleBPM(song, bpm, album)
+            try:
+                self.fetcher.fetch()
+                song, bpm, album = self.fetcher.get_current_song_and_bpm()
+                
+                if type(bpm) == str:
+                    bpm = 0
+                
+                self.handleBPM(song, album, bpm)
+            except Exception as e:
+                format.message(f"Error fetching BPM: {e}", type="error")
             
             temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
-            
+
             if temp_spotifyStatus != self.spotifyStatus:
                 self.spotifyStatus = temp_spotifyStatus
-                
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
-                
-                #format.message(f"Spotify manually changed to {self.spotifyStatus}", type="warning")
-                
+
                 try:
-                    self.bpm_thread = threading.Thread(target=self.findBPM)
-                    self.bpm_thread.daemon = True
-                    self.bpm_thread.start()
+                    response = requests.post(
+                        f'http://{self._localIp}:8080/sendMessage',
+                        data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"}
+                    )
+                    if response.status_code != 200:
+                        raise Exception(f"Failed to send status: {response.text}")
                 except Exception as e:
-                    format.message(f"Error finding BPM at media status change: {e}", type="error")
-                
+                    format.message(f"Error sending Spotify status: {e}", type="error")
+
         except Exception as e:
             format.message(f"Failed to find BPM: {e}", type="error")
+
    
     def mediaStatusChecker(self):
         while True:

@@ -1,5 +1,5 @@
 
-var socket = io.connect('http://' + document.domain + ':8080', {transports: ['websocket']});
+var socket = io.connect('http://' + window.location.hostname + ':8080', {transports: ['websocket']});
 
 socket.on('connect', function() {
 
@@ -174,6 +174,7 @@ socket.on('timeRemaining', function (msg) {
 });
 
 socket.on('songAlbum', async function(albumName) {
+    console.log(albumName);
 
     if (albumName == "None"){
         return;
