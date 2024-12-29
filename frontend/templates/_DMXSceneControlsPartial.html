@@ -445,7 +445,24 @@
                 console.error("Failed to update scene name:", xhr.responseText);
             }
         });
+    }
 
+    function addNewSceneEvent(){
+        var id = $("#editingSceneId").text();
+
+        $.ajax({
+            url: "/api/dmx/createSceneEvent",
+            type: "POST",
+            data: { sceneId: id },
+            success: function (response) {
+                $("#sceneName").val("New Scene");
+
+                
+            },
+            error: function (xhr) {
+                handleError(xhr);
+            }
+        });
     }
 
 </script>

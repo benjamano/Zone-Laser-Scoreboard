@@ -427,42 +427,13 @@ class dmx:
         return fixtures
     def getDMXScenes(self):
         self.__processJSONDMXScenes()
-        
+        DMXScenes = []
         try:
             with self.app.app_context():
                 scenes = self._context.DMXScene.query.all()
-                
-                # Map the results to DMXSceneDTO objects
-                DMXScenes = [
-                    self._context.DMXSceneDTO(
-                        id=scene.id,
-                        name=scene.name,
-                        duration=scene.duration,
-                        updateDate=scene.updateDate,
-                        createDate=scene.createDate,
-                        flash=scene.flash,
-                        repeat=scene.repeat,
-                        events=[
-                            self._context.DMXSceneEventDTO(
-                                id=event.id,
-                                name=event.name,
-                                duration=event.duration,
-                                updateDate=event.updateDate,
-                                channels=[
-                                    {
-                                        "fixture": channel.fixture,
-                                        "channel": channel.channel,
-                                        "value": channel.value
-                                    }
-                                    for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
-                                ]
-                            )
-                            for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
-                        ]
-                    )
-                    for scene in scenes
-                ]
-                
+
+                for scene in scenes:
+                    DMXScenes += self.__mapToDMXSceneDTO(scene)
         except Exception as e:
             format.message(f"Error getting DMX scenes: {e}", "error")
             return []
@@ -488,6 +459,39 @@ class dmx:
     
     # Processing
     
+    def __mapToDMXSceneDTO(self, scene):
+        DMXScene = [
+            self._context.DMXSceneDTO(
+                id=scene.id,
+                name=scene.name,
+                duration=scene.duration,
+                updateDate=scene.updateDate,
+                createDate=scene.createDate,
+                flash=scene.flash,
+                repeat=scene.repeat,
+                keybind=scene.keybind,
+                events=[
+                    self._context.DMXSceneEventDTO(
+                        id=event.id,
+                        name=event.name,
+                        duration=event.duration,
+                        updateDate=event.updateDate,
+                        channels=[
+                            {
+                                "fixture": channel.fixture,
+                                "channel": channel.channel,
+                                "value": channel.value
+                            }
+                            for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                        ]
+                    )
+                    for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                ]
+            )
+        ]
+        
+        return DMXScene
+    
     def __findScene(self, sceneName):
         with self.app.app_context():
             scene = self._context.DMXScene.query.filter_by(name=sceneName).first()
@@ -501,6 +505,7 @@ class dmx:
                 createDate=scene.createDate,
                 repeat = scene.repeat,
                 flash = scene.flash,
+                keybind = scene.keybind,
                 events=[
                     self._context.DMXSceneEventDTO(
                         id=event.id,
@@ -539,6 +544,7 @@ class dmx:
                     createDate=scene.createDate,
                     repeat=scene.repeat,
                     flash=scene.flash,
+                    keybind = scene.keybind,
                     events=[
                         self._context.DMXSceneEventDTO(
                             id=event.id,
@@ -591,7 +597,8 @@ class dmx:
                                         createDate=datetime.datetime.now(),
                                         duration=scene["duration"],
                                         repeat=scene["repeat"],
-                                        flash=scene["flash"]
+                                        flash=scene["flash"],
+                                        keybind=scene["keybind"]
                                     )
                                     self._context.db.session.add(newDMXScene) 
                                     self._context.db.session.commit()

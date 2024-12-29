@@ -297,11 +297,14 @@ class WebApp:
             
             return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
         
+        @self.app.route("/schedule")
+        def scehdule():
+            return render_template('schedule.html')
+        
         @self.app.route("/text")
         def neonText():
             return render_template('neonFlicker.html')
 
-        
         @self.app.route("/ping")
         def ping():   
             #format.message("|--- I'm still alive! ---|")
