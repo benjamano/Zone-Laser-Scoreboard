@@ -407,6 +407,7 @@
 	var totalDuration = 0;
 	var currentTime = 0;
 	var currentTimeLeft = 0;
+	var musicTimeInterval;
 
     window.onload = function() {
 		if (controlSpotify == true){
@@ -577,21 +578,45 @@
 		socket.emit('restartSong');
 	}
 
-	function updateProgressBar(currentTime, totalDuration) {
-		const progressBar = $('#progressBar');
-		const timeLeftDisplay = $('#timeLeft');
+function updateProgressBar(currentTime, totalDuration) {
+    const progressBar = $('#progressBar');
+    const timeLeftDisplay = $('#timeLeft');
 
-		if (totalDuration > 0) {
-			const progressPercent = (currentTime / totalDuration) * 100;
-			progressBar.css('width', progressPercent + '%');
+    if (musicTimeInterval) {
+        clearInterval(musicTimeInterval);
+    }
+
+    let internalCurrentTime = currentTime;
+
+    function updateDisplay() {
+		if (gamePlayingStatus == "stopped"){
+			return;
 		}
 
-		const timeLeft = totalDuration - currentTime;
-		const minutesLeft = Math.floor(timeLeft / 60);
-		const secondsLeft = Math.floor(timeLeft % 60);
-		
-		timeLeftDisplay.text(`-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`);
-	}
+        if (totalDuration > 0) {
+            const progressPercent = (internalCurrentTime / totalDuration) * 100;
+            progressBar.css('width', progressPercent + '%');
+        }
+
+        const timeLeft = totalDuration - internalCurrentTime;
+        if (timeLeft >= 0) {
+            const minutesLeft = Math.floor(timeLeft / 60);
+            const secondsLeft = Math.floor(timeLeft % 60);
+
+            timeLeftDisplay.text(
+                `-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`
+            );
+        }
+
+        internalCurrentTime++;
+    }
+
+    updateDisplay();
+
+    musicTimeInterval = setInterval(() => {
+        updateDisplay();
+    }, 1000);
+}
 
 	document.addEventListener('keydown', function(event) {
 		if (event.key === 'Home') {

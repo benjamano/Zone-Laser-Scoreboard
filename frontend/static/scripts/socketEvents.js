@@ -234,8 +234,10 @@ socket.on('musicStatus', function (msg) {
     console.log(msg.message);
 
     if (msg.message == "playing"){
+        gamePlayingStatus = "playing";
         $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
     } else {
+        gamePlayingStatus = "stopped";
         $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
     }
 });

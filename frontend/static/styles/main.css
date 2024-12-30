@@ -199,11 +199,19 @@ html{
     border: none;
     border-bottom: 1px solid var(--primary-gray);
     color: #ffffff;
-    border-radius: 0;
+    border-radius: 0.2rem;
     width: 30%;
     font-size: 0.9rem;
-    margin-left: 30px;
-    margin-top: 10px;
+    margin-left: 15px;
+    padding: 0.3rem;
+}
+
+.sceneNameEdit:focus, .sceneNameEdit:active, .sceneNameEdit:hover, .sceneNameEdit:focus-visible{
+    transition: background-color 0.8s;  
+    /* border: none !important; */
+    background-color: #ffffff09;
+    box-shadow: none;
+    outline: 0px;
 }
 
 body{

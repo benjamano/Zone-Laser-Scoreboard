@@ -18,21 +18,31 @@
 
         <div id="sceneContainer" class="sceneContainer"></div>
 
-        <div class="editSceneContainer" id="editSceneContainer">
+        <div class="card">
 
-            <div class="form-group">
+            <div class="card-header d-flex flex-row align-items-center">Editing Scene <input type="text" class="sceneNameEdit col-2" id="sceneName" onchange="updateSceneName(this.value)"></div>
 
-                <input type="text" class="form-control sceneNameEdit" id="sceneName" onchange="updateSceneName(this.value)">
+            <div class="card-body">
 
-            </div>
+                <div class="editSceneContainer" id="editSceneContainer">
 
-            <div class="sceneParentContainer">
+                    <div class="form-group">
 
-                <div class="sceneEventContainer" id="sceneEventContainer"></div>
+                        
 
-                <div class="sceneDetailButtons"></div>
+                    </div>
 
-                <div id="sceneEventContainer"></div>
+                    <div class="sceneParentContainer">
+
+                        <div class="sceneEventContainer" id="sceneEventContainer"></div>
+
+                        <div class="sceneDetailButtons"></div>
+
+                        <div id="sceneEventContainer"></div>
+                    </div>
+
+                </div>
+
             </div>
 
         </div>
