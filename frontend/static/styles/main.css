@@ -128,7 +128,6 @@ html{
 }
 
 .editSceneContainer{
-    border-top: 2px #ffffff30 solid;
     margin-top: 0;
     padding: 0rem;
 }
@@ -186,7 +185,7 @@ html{
     display: flex;
     align-content: center;
     flex-wrap: nowrap;
-    overflow: scroll;
+    overflow-x: scroll;
     flex-direction: row;
     justify-content: flex-start;
     align-items: center;
@@ -201,7 +200,7 @@ html{
     color: #ffffff;
     border-radius: 0.2rem;
     width: 30%;
-    font-size: 0.9rem;
+    font-size: 1rem;
     margin-left: 15px;
     padding: 0.3rem;
 }
@@ -266,8 +265,10 @@ overflow: scroll;
 
 
 #fixtures-container .fixture .title {
-    color: white;;
+    color: white;
     font-size: 1rem;
+    text-align: center;
+    text-decoration: underline;
 }
 
 #lightingCardBody {
@@ -359,3 +360,7 @@ overflow: scroll;
     font-size: 1.5rem;
 }
 
+.attributeIcon{
+    scale: 0.7;
+    filter: invert(1);
+}

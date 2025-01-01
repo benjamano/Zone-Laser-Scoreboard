@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" style="overflow: auto;">
+<head>
+	<meta charset="UTF-8">
+	<title>Real-Time Packet Sniffer</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/LCARS/lcars-colors.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='styles/LCARS/jquery-3-7-0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script>
+	<script src="https://kit.fontawesome.com/9d35a24d36.js" crossorigin="anonymous"></script>
+    <link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet">
+</head>
+
+<style>
+    #footer{
+        background-color: var(--bs-dark);
+        left: 0;
+        position: fixed; 
+        bottom: 0; 
+        width: 100vw; 
+        height: 15vh; 
+        z-index: 1;
+    }
+</style>
+
+<body>
+
+    <div class="d-flex justify-content-center col-12">
+        
+        <div class="col-5">
+
+            <div class="card">
+
+                <div class="card-header">Oops!</div>
+
+                <div class="card-body">
+
+                    <h5 class="card-title">An Error Occured while serving your request!</h5>
+
+                    <h6 class="card-subtitle">Details: {{message}}</h6>
+
+                </div>
+
+                <div class="card-footer">
+
+                    <button class="btn btn-dark" onclick="window.location.href = '/';">Go Home</button>
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</body>
+
+<div id="footer" class="d-flex align-items-center justify-content-center">
+
+    <canvas id="pongCanvas" style="z-index: 2"></canvas>  
+
+</div>
+
+<script src="{{ url_for('static', filename='/scripts/pong.js') }}"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', (event) => {
+        const dateElement = document.createElement('small');
+        dateElement.textContent = `Logged Date: ${new Date().toLocaleString()}`;
+        document.querySelector('.card-body').appendChild(dateElement);
+    });
+</script>
+
+</html>
