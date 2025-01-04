@@ -20,17 +20,15 @@
 
         <div class="card">
 
-            <div class="card-header d-flex flex-row align-items-center">Editing Scene <input type="text" class="sceneNameEdit col-2" id="sceneName" onchange="updateSceneName(this.value)"></div>
+            <div class="card-header">
+                Editing Scene 
+                <input type="text" class="sceneNameEdit col-2" id="sceneName" onchange="updateSceneName(this.value)"> 
+                <button class="btn btn-dark float-end" role="button" onclick="redirectToAdvancedScenePage()">Advanced View</button>
+            </div>
 
             <div class="card-body">
 
                 <div class="editSceneContainer" id="editSceneContainer">
-
-                    <div class="form-group">
-
-                        
-
-                    </div>
 
                     <div class="sceneParentContainer">
 
@@ -39,6 +37,7 @@
                         <div class="sceneDetailButtons"></div>
 
                         <div id="sceneEventContainer"></div>
+
                     </div>
 
                 </div>
@@ -473,6 +472,11 @@
                 handleError(xhr);
             }
         });
+    }
+
+    function redirectToAdvancedScenePage(){
+        var sceneId = $("#editingSceneId").text();
+        window.location.href = "/editScene?Id=" + sceneId;
     }
 
 </script>

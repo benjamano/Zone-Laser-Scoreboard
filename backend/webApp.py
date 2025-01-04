@@ -907,7 +907,7 @@ class WebApp:
                 format.message(f"Error occured while checking media status: {e}", type="error")
                 
                 if self.devMode == True:
-                    format.message("Development Mode, error handling because its dumb", type="warning")
+                    format.message("Development Mode, ignoring error handling because its dumb", type="warning")
                     return
                 
                 if str(e) != "an integer is required":
@@ -921,16 +921,13 @@ class WebApp:
                     self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested - BPM Issue: {e}"))
                     self.AppRestartThread.daemon = True
                     
-                    
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
                     time.sleep(600)
                     
                 else:
                     format.message("Error not fatal, don't care", type="warning")
                 
-                    time.sleep(5)                
-                
-                
+                    time.sleep(5)                 
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         
