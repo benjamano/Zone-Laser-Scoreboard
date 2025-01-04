@@ -301,6 +301,28 @@ class WebApp:
         def scehdule():
             return render_template('schedule.html')
         
+        @self.app.route("/editScene")
+        def editScene():
+            #Accessed by /EditScene?Id=[sceneId]
+            
+            sceneId = request.args.get('Id') 
+            
+            try:
+            
+                if sceneId != None or sceneId == "":
+                    dmxScene = self._dmx.getDMXSceneById(sceneId)
+                    
+                    if dmxScene:
+                        return render_template("scene.html", sceneId=sceneId, scene=dmxScene.to_dict())
+                    else:
+                        return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
+                else:
+                    return render_template("error.html", message=f"Select a scene to open! (Id was null)")
+                
+            except Exception as e:
+                format.message(f"Error fetching scene with Id for Advanced Scene view: {e}", type="error")
+                return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
+        
         @self.app.route("/text")
         def neonText():
             return render_template('neonFlicker.html')
