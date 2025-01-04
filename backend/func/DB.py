@@ -18,6 +18,7 @@ class context:
         self.DMXScene = None
         self.DMXSceneEvent = None
         self.DMXSceneEventChannel = None
+        self.Notification = None
 
         self.__createDatabase(app)
     
@@ -94,6 +95,13 @@ class context:
             channel = col(self.db.String(100), nullable=False)
             value = col(self.db.Integer, nullable=False)
             
+        class Notification(self.db.Model):
+            id = col(self.db.Integer, primary_key=True)
+            title = col(self.db.String(100), nullable=False)
+            message = col(self.db.String(100), nullable=False)
+            date = col(self.db.DateTime, nullable=False)
+            dismissed = col(self.db.Boolean, nullable=False)
+            
         self.Gun = Gun
         self.Player = Player
         self.Game = Game
@@ -102,6 +110,7 @@ class context:
         self.DMXScene = DMXScene
         self.DMXSceneEvent = DMXSceneEvent
         self.DMXSceneEventChannel = DMXSceneEventChannel
+        self.Notification = Notification
         
         self.db.Model.metadata.create_all(bind=self.db.engine)
         
