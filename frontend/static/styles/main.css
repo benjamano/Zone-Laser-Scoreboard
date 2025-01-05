@@ -292,8 +292,7 @@ overflow: scroll;
     flex-wrap: nowrap;
     align-content: center;
     justify-content: space-between;
-    gap: 30px;
-    height: 25rem;
+    height: 20rem;
 }
 
 .fixtureContainer {
@@ -302,7 +301,6 @@ overflow: scroll;
     align-content: center;
     justify-content: flex-start;
     align-items: center;
-    gap: 50px;
     width: auto;
 }
 
@@ -314,28 +312,26 @@ overflow: scroll;
     justify-content: center;
     align-items: center;
     width: 80px;
-    margin-top: 5rem;
-    margin-right: 0.7rem;
 }
 
 .slider {
     -webkit-appearance: none;
-    width: 280%;
-    height: 10px;
+    width: 215%;
+    height: 6px;
     background: #d3d3d3;
     outline: none;
     -webkit-transform: rotate(-90deg);
-    margin-bottom: 5rem;
+    margin-bottom: 3rem;
 }
 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 60px;
-    height: 40px;
+    width: 40px;
+    height: 25px;
     background: #252525;
     cursor: pointer;
-  }
+}
 
 .label {
     margin-top: 10px;
@@ -363,7 +359,7 @@ overflow: scroll;
 
 .attributeIcon{
     scale: 0.7;
-    filter: invert(1);
+    max-height: 5vh;
 }
 
 .controlButton{
@@ -392,10 +388,6 @@ overflow: scroll;
     /* align-items: center; */
     padding: 0.5rem;
     background-color: var(--dark-gray);
-}
-
-.attributeIcon{
-    max-height: 5vh;
 }
 
 .valueLabel{

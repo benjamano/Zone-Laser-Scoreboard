@@ -111,92 +111,101 @@
         const fixtures = await response.json();
 
         fixtures.forEach(fixture => {
-
-			if (fixture.type.includes("Colorspot575XT")) {
-				console.log("Colorspot 575 XT found with name: " + fixture.name); 
-			}
-			else if (fixture.type.includes("Colorspot250AT")) {
-				console.log("Colorspot 250 AT found with ID: " + fixture.name);
-			}
-			else if (fixture.type.includes("Colorwash250AT")) {
-				console.log("Colorwash 250 AT found with ID: " + fixture.name);
-			}
-			else if (fixture.type.includes("Dimmer")) {
-				console.log("Dimmer found with ID: " + fixture.name);
-			}
-
 			const container = document.getElementById('fixtures-container');
-
+		
 			const fixtureDiv = document.createElement('div');
 			fixtureDiv.className = `fixture`;
-			fixtureDiv.id = `fixture-${fixture.id}`;
-
+			fixtureDiv.id = `fixture-${fixture.fixture.id}`;
+		
 			const fixtureContainer = document.createElement('div');
 			fixtureContainer.className = 'fixtureContainer';
-
+		
 			const fixtureTitle = document.createElement('h1');
 			fixtureTitle.className = "title";
 			fixtureTitle.textContent = fixture.name;
-
+		
 			container.appendChild(fixtureDiv);
 			fixtureDiv.appendChild(fixtureTitle);
+		
+			fixture.fixture.channels.forEach(channel => {
+				const fixtureChannel = document.createElement('div');
+				fixtureChannel.className = 'fixtureChannel';
+				fixtureChannel.id = `fixtureChannel-${fixture.name}-${channel.name}`;
 
-
-			Object.entries(fixture.attributes)
-			.map(([key, { DMXValue, index, value }]) => ({ key, DMXValue, index, value }))
-			.sort((a, b) => a.index - b.index) 
-			.forEach(({ key, value, DMXValue }) => {
-				console.log(`DMXVal: ${DMXValue}, Attribute: ${key}`, value);
-
-				const attributeName = key;
-
+				console.log(`DMXVal: ${channel.name}, Attribute: ${channel.value}`);
+	
 				const slider = document.createElement('input');
 				slider.type = 'range';
 				slider.min = 0;
 				slider.max = 255;
-				slider.value = DMXValue;
+				slider.value = 0;
 				slider.className = 'slider';
-				slider.id = `slider-${fixture.name}-${attributeName}`;
-				slider.oninput = function() {
-					updateDMXValue(attributeName, fixture.name, this.value);
+				slider.id = `slider-${fixture.name}-${channel.name}`;
+				slider.oninput = function () {
+					updateDMXValue(channel.name, fixture.name, this.value);
 					valueLabel.textContent = this.value;
 				};
-
+	
 				const valueLabel = document.createElement('label');
 				valueLabel.className = 'valueLabel';
-				valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`; 
-				valueLabel.textContent = DMXValue; 
-
-				const createLabelOrImage = (name) => {
-					const img = new Image();
-					img.src = `/static/images/channelImageStore/${(name.toLowerCase()).replace("1", "").replace("2", "")}.png`;
-					img.className = 'attributeIcon';
-					img.title = name;
-
-					// Fallback to label if image doesn't exist
-					img.onerror = () => {
-						img.src = `/static/images/channelImageStore/Undef.png`;
-						fixtureChannel.appendChild(img);
-					};
-
-					img.onload = () => {
-						fixtureChannel.appendChild(img);
-					};
+				valueLabel.id = `valueLabel-${fixture.name}-${channel.name}`;
+				valueLabel.textContent = 0;
+	
+				const img = new Image();
+				img.className = 'attributeIcon';
+				img.title = channel.name;
+				img.src = `/static/images/channelImageStore/${channel.name.toLowerCase()}.png`;
+	
+				img.onerror = () => {
+					img.src = `/static/images/channelImageStore/Undef.png`;
 				};
-			
-			const fixtureChannel = document.createElement('div');
-			fixtureChannel.className = 'fixtureChannel';
-			fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`; 
-
-			fixtureChannel.appendChild(slider);
-			createLabelOrImage(attributeName);
-			fixtureChannel.appendChild(valueLabel);
-			fixtureContainer.appendChild(fixtureChannel);
+	
+				fixtureChannel.appendChild(slider);
+				fixtureChannel.appendChild(valueLabel);
+				fixtureChannel.appendChild(img);
+				fixtureContainer.appendChild(fixtureChannel);
+			});
+		
 			fixtureDiv.appendChild(fixtureContainer);
-		});
 
-	});
+			fetchDMXChannelValues();
+		});
     }
+
+	async function fetchDMXChannelValues() {
+		const response = await fetch(`/api/dmx/dmxChannelValues`);
+		const channelValues = await response.json();
+	
+		channelValues.forEach(channelValue => {
+			console.log("Updating DMX Value: ", channelValue);
+	
+			const attributes = channelValue.attributes;
+	
+			if (attributes.channel && attributes.DMXValue !== undefined) {
+				const channel = attributes.channel.replace(/\b\w/g, char => char.toUpperCase());
+				const value = attributes.DMXValue;
+				const fixture = channelValue.name;
+	
+				const valueLabel = document.getElementById(`valueLabel-${fixture}-${channel}`);
+				const slider = document.getElementById(`slider-${fixture}-${channel}`);
+	
+				if (valueLabel) valueLabel.textContent = value;
+				if (slider) slider.value = value;
+			} else {
+				for (const [key, attribute] of Object.entries(attributes)) {
+					const channel = attribute.channel.replace(/\b\w/g, char => char.toUpperCase());
+					const value = attribute.DMXValue;
+					const fixture = channelValue.name;
+	
+					const valueLabel = document.getElementById(`valueLabel-${fixture}-${channel}`);
+					const slider = document.getElementById(`slider-${fixture}-${channel}`);
+	
+					if (valueLabel) valueLabel.textContent = value;
+					if (slider) slider.value = value;
+				}
+			}
+		});
+	}
 
     function updateDMXValue(attributeName, fixtureName, value) {
         console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
