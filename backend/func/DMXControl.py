@@ -417,6 +417,25 @@ class dmx:
     def getFixtureProfiles(self):
         return self.fixtureProfiles
     def getFixtures(self):
+        Fixtures = []
+        try:
+            with self.app.app_context():
+                registeredFixtures = self.fixtures
+                
+                for registeredFixture in registeredFixtures.items():
+                
+                    fixtures = self._context.Fixture.query.filter_by(name=str(registeredFixture[1]["type"])).all()
+
+                    for fixture in fixtures:
+                        fixtureDTO = self.__mapToFixtureDTO(fixture)
+                        fixtureDict = fixtureDTO[0].to_dict()
+                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture[0]})
+        except Exception as e:
+            format.message(f"Error getting fixtures: {e}", "error")
+            return []
+        
+        return Fixtures
+    def getRegisteredFixtures(self):
         return self.fixtures
     def getFixtureTypes(self):
         return list(self.fixtureProfiles.keys())
@@ -491,6 +510,37 @@ class dmx:
         ]
         
         return DMXScene
+    
+    def __mapToFixtureDTO(self, fixture):
+        return [
+            self._context.FixtureDTO(
+                id=fixture.id,
+                name=fixture.name,
+                mode=fixture.mode,
+                notes=fixture.notes,
+                icon=fixture.icon,
+                noOfchannels=fixture.noOfchannels,
+                channels=[
+                    self._context.FixtureChannelDTO(
+                        id=channel.id,
+                        fixtureID=channel.fixtureID,
+                        channelNo=channel.channelNo,
+                        name=channel.name,
+                        description=channel.description,
+                        icon=channel.icon,
+                        channelValues = [
+                            {
+                                "value": value.value,
+                                "name": value.name,
+                                "icon": value.icon
+                            }
+                            for value in self._context.FixtureChannelValue.query.filter_by(channelID=channel.id).all()
+                        ]
+                    )
+                    for channel in self._context.FixtureChannel.query.filter_by(fixtureID=fixture.id).all()
+                ]
+            )
+        ]
     
     def __findScene(self, sceneName):
         with self.app.app_context():

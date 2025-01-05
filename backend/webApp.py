@@ -341,12 +341,66 @@ class WebApp:
             
             try:
                 
-                fixtures = self._dmx.getFixtures()
+                temp_fixtures = self._dmx.getFixtures()
                 
-                for fixtureData in fixtures.items():
-                    fixtureType = fixtureData[1]["type"]
-                    fixtureId = fixtureData[1]["id"]
-                    fixtureName = fixtureData[0]
+                # for fixtureData in fixtures:
+                #     fixtureId = fixtureData[1]["id"]
+                #     fixtureName = fixtureData[0]
+                #     fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
+
+                #     # Add an index to each attribute
+                #     indexed_fixture_profile = {}
+                #     for index, (key, value) in enumerate(fixtureProfile.items()):
+                #         fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
+                        
+                #         if fixture_temp.json_data["type"] == "Generic.Dimmer":
+                #             indexed_fixture_profile[key] = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0]}
+                #         else:
+                #             try:
+                #                 fixtureChannel_temp = 0
+
+                #                 for key_id, channel in fixture_temp.channels.items():
+                #                     if channel["name"] == key.lower():
+                #                         fixtureChannel_temp = channel["value"][0]
+
+                #                 indexed_fixture_profile[key] = {
+                #                     "index": index,
+                #                     "value": value,
+                #                     "DMXValue": fixtureChannel_temp,
+                #                 }
+                #             except Exception as e:
+                #                 format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
+
+                #     temp_fixtures.append({
+                #         "name": fixtureName,
+                #         "id": fixtureId,
+                #         "attributes": indexed_fixture_profile
+                #     })
+                
+                serialized_fixtures = temp_fixtures
+                
+                return jsonify(serialized_fixtures)
+                    
+            except Exception as e:
+                format.message(f"Error getting available fixtures: {e}", type="error")
+                
+                return jsonify({"error": f"Error getting available fixtures: {e}"}), 500
+            
+        @self.app.route("/api/dmx/dmxChannelValues", methods=["GET"])
+        def getDMXChannelValues():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+
+                fixtures = self._dmx.getRegisteredFixtures()
+                
+                fixtureChannels = []
+
+                for fixture in fixtures.items():
+                    fixtureId = fixture[1]["id"]
+                    fixtureName = fixture[0]
+                    fixtureType = fixture[1]["type"]
                     fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
 
                     # Add an index to each attribute
@@ -355,7 +409,7 @@ class WebApp:
                         fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
                         
                         if fixture_temp.json_data["type"] == "Generic.Dimmer":
-                            indexed_fixture_profile[key] = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0]}
+                            indexed_fixture_profile = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0], "channel": fixture_temp.channels[1]["name"]}
                         else:
                             try:
                                 fixtureChannel_temp = 0
@@ -365,25 +419,23 @@ class WebApp:
                                         fixtureChannel_temp = channel["value"][0]
 
                                 indexed_fixture_profile[key] = {
-                                    "index": index,
-                                    "value": value,
                                     "DMXValue": fixtureChannel_temp,
+                                    "channel": key
                                 }
                             except Exception as e:
                                 format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
 
-                    temp_fixtures.append({
+                    fixtureChannels.append({
                         "name": fixtureName,
-                        "type": fixtureType,
+                        "id": fixtureId,
                         "attributes": indexed_fixture_profile
                     })
                     
+                return jsonify(fixtureChannels)
+            
             except Exception as e:
-                format.message(f"Error getting available fixtures: {e}", type="error")
-
-            #format.message(f"Fixtures: {temp_fixtures}")
-        
-            return temp_fixtures
+                format.message(f"Error getting DMX Channel Values: {e}", type="error")
+                return jsonify({"error": f"Error getting DMX Channel Values: {e}"}), 500
             
         @self.app.route("/api/dmx/scenes", methods=["GET"])
         def getDMXScenes():
