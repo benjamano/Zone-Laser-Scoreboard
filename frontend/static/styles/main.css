@@ -291,8 +291,9 @@ overflow: scroll;
     flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
-    justify-content: center;
+    justify-content: space-between;
     gap: 30px;
+    height: 25rem;
 }
 
 .fixtureContainer {
@@ -313,7 +314,7 @@ overflow: scroll;
     justify-content: center;
     align-items: center;
     width: 80px;
-    margin-top: 3rem;
+    margin-top: 5rem;
     margin-right: 0.7rem;
 }
 
@@ -363,4 +364,70 @@ overflow: scroll;
 .attributeIcon{
     scale: 0.7;
     filter: invert(1);
+}
+
+.controlButton{
+    background-color: var(--primary-gray);
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px grey solid;
+}
+
+.buttonControlsContainer{
+    padding: 1rem;
+}
+
+.buttonControlsContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.header{
+    /* display: flex;
+    flex-direction: row;
+    justify-content: space-between; */
+    /* align-items: center; */
+    padding: 0.5rem;
+    background-color: var(--dark-gray);
+}
+
+.attributeIcon{
+    max-height: 5vh;
+}
+
+.valueLabel{
+    margin-top: 40px;
+    font-size: 1.5rem;
+}
+
+.invert{
+    filter: invert(1);
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--dark-gray);
+    border-radius: 10px;
+    border: 3px solid var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-gray);
+}
+
+.virtualConsole{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
 }
