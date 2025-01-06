@@ -22,6 +22,9 @@
 	<div id="warningsContainer" class="warning">
 		<h1 id="warningsText"></h1>
 	</div>
+	<div id="notificationContainer collapse" class="alert alert-primary" role="alert">
+		<div class="notificationEntry">I am a notifcation!</div>
+	</div>
 	<div class="wrap-everything">
 		<section id="column-1">
 			<div class="lcars-frame">
@@ -423,6 +426,19 @@
 
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
 	};
+
+	async function getNotifications(){
+		const response = await fetch("/api/notifications");
+		const notifications = await response.json();
+
+		notifications.forEach(notification => {
+			$newNotification = $("div").addClass("notificationEntry").text(notification.message);
+
+			$("#notificationContainer").append($newNotification);
+		});
+
+		$("#notificationContainer").collapse("show");
+	}
 
 	async function getAlbumCover(albumName) {
         const apiKey = 'ce4aeea69e2f5a8fb184700d5892aa82';
