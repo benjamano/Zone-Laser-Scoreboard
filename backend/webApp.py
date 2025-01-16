@@ -317,7 +317,7 @@ class WebApp:
                     else:
                         return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
                 else:
-                    return render_template("error.html", message=f"Select a scene to open! (Id was null)")
+                    return render_template("scene.html")
                 
             except Exception as e:
                 format.message(f"Error fetching scene with Id for Advanced Scene view: {e}", type="error")
@@ -631,21 +631,36 @@ class WebApp:
             
         else:
             return "paused", 0, 0
+        
+    def playMusic(self):
+        self.spotifyStatus = "playing"
+        pyautogui.press("playpause")
+        
+        x = 0
+        while x < 50:
+            pyautogui.press("volumeup")
+            x+=1
+        
+        return self.spotifyStatus
+    
+    def stopMusic(self):
+        x = 0
+        while x < 50:
+            pyautogui.press("volumedown")
+            x+=1
+        
+        self.spotifyStatus = "paused"
+        pyautogui.press("playpause")
+        
+        return self.spotifyStatus
     
     def handleMusic(self, mode):
         if self.spotifyControl == True:
             if mode.lower() == "toggle":
                 if self.spotifyStatus == "paused":
-                    #format.message("Playing music", type="warning")
-                    self.spotifyStatus = "playing"
-                    pyautogui.press('playpause')
-                    
-                    result = self.spotifyStatus
+                    result = self.playMusic()
                 else:
-                    #format.message("Pausing music", type="warning")
-                    self.spotifyStatus = "paused"
-                    pyautogui.press('playpause')
-                    result = self.spotifyStatus
+                    result = self.stopMusic()
                 
             elif mode.lower() == "next":
                 pyautogui.hotkey('nexttrack')
@@ -666,28 +681,15 @@ class WebApp:
                 if self.spotifyStatus == "paused":
                     return
                 else:
-                    #format.message("Pausing music", type="warning")
-                    self.spotifyStatus = "paused"
-                    pyautogui.press('playpause')
-                    result = "playing"
+                    result = self.stopMusic()
             
             elif mode.lower() == "play":
                 if self.spotifyStatus == "playing":
                     return
                 else:
-                    #format.message("Playing music", type="warning")
-                    self.spotifyStatus = "playing"
-                    pyautogui.press('playpause')
-                    result = "paused"
+                    result = self.playMusic()
                     
             time.sleep(2)
-                
-            try:
-                self.bpm_thread = threading.Thread(target=self.findBPM)
-                self.bpm_thread.daemon = True
-                self.bpm_thread.start()
-            except Exception as e:
-                format.message(f"Error running BPM thread: {e}", type="error")
                 
             return result
                     
