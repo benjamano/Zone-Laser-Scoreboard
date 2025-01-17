@@ -19,15 +19,28 @@
     <link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet">
 </head>
 
-<header class="header">
-
-	<button class="fas fa-left-long controlButton invert" onclick="window.location.href='/'"></button>
-
-</header>
-
 <body>
 
-	<div class="col-12 p-3">
+	<div class="sidebar" id="sidebar">
+		<ul>
+			<li class="nav-item closeSidebarButton">
+				<a class="nav-link" onclick="toggleSidebar();" role="button"><i id="toggleSideBarButton" class="fas fa-angles-left me-2"></i></a>
+			</li>
+	
+			<li class="nav-item">
+				<a class="nav-link" href="/" role="button"><i class="fas fa-home me-2"></i><span class="sidebarText">Home</span></a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="/patchPanel" role="button"><i class="fas fa-regular fa-lightbulb me-2"></i><span class="sidebarText">Patch</span></a>
+			</li>
+			<li class="nav-item">
+				<a class="nav-link" href="/scoreboard" role="button"><i class="fas fa-table-columns me-2"></i><span class="sidebarText">Scoreboard</span></a>
+			</li>
+	
+		</ul>
+	</div>
+	
+	<main id="main">
 
 		<div class="row">
 
@@ -39,7 +52,7 @@
 
 					<div class="card-body col-12">
 
-						<div class="scenes-container col-12" id="scenes-container" style="max-width: unset;"></div>
+						<div class="sceneContainer col-12" id="sceneContainer"></div>
 
 					</div>
 
@@ -77,19 +90,19 @@
 
 		</div>
 
-	</div>
+		<div class="virtualConsole">
 
-	<div class="virtualConsole p-3">
+			<div class="col-12">
 
-		<div class="col-12">
+				<div class="card">
 
-			<div class="card">
+					<div class="card-header">Virtual Desk</div>
 
-				<div class="card-header">Virtual Desk</div>
+					<div class="card-body col-12">
 
-				<div class="card-body col-12">
+						<div class="fixtures-container col-12" id="fixtures-container" style="max-width: unset;"></div>
 
-					<div class="fixtures-container col-12" id="fixtures-container" style="max-width: unset;"></div>
+					</div>
 
 				</div>
 
@@ -97,14 +110,27 @@
 
 		</div>
 
-	</div>
+	</main>
 
 </body>
 
 <script>
 	window.onload = function() {
 		fetchFixtures();
+		getDMXScenes();
 	};
+
+	function formatDMXSceneDuration(duration) {
+        var milliseconds = duration % 1000;
+        var seconds = Math.floor((duration / 1000) % 60);
+        var minutes = Math.floor((duration / (1000 * 60)) % 60);
+
+        return (
+            (minutes < 10 ? "0" + minutes : minutes) + '"' +
+            (seconds < 10 ? "0" + seconds : seconds) + '"' +
+            (milliseconds < 100 ? (milliseconds < 10 ? "00" + milliseconds : "0" + milliseconds) : milliseconds)
+        );
+    }
 
 	async function fetchFixtures() {
         const response = await fetch(`/api/availableFixtures`);
@@ -170,6 +196,96 @@
 
 			fetchDMXChannelValues();
 		});
+    }
+
+	function getDMXScenes() {
+        $.ajax({
+            url: "/api/dmx/scenes",
+            type: "GET",
+            success: function (response) {
+                if (!Array.isArray(response)) {
+                    response = [response];
+                }
+                
+                var container = $("#sceneContainer");
+                container.empty();
+
+                response.forEach(function (scene) {
+                    var name = scene.id;
+                    var flash = scene.flash;
+                    var repeat = scene.repeat;
+                    var totalDuration = scene.duration;
+    
+                    var sceneDiv = $(document.createElement("div"))
+                        .addClass("dmxScene user-select-none")
+                        .attr("id", name + "_SceneBtn")
+                        .attr("role", "button")
+                        .on("click", function () {
+                            startOrEditScene(name);
+                        });
+    
+                    var sceneText = $(document.createElement("p"))
+                        .addClass("title")
+                        .text(scene.name);
+    
+                    var sceneDuration = $(document.createElement("p"))
+                        .addClass("duration")
+                        .attr("id", name + "_Visibleduration")
+                        .text(formatDMXSceneDuration(totalDuration));
+
+                    var sceneDurationHidden = $(document.createElement("p"))
+                        .addClass("duration")
+                        .attr("id", name  + "_duration")
+                        .attr("style", "display: none;")
+                        .text(totalDuration);
+    
+                    var sceneInfoContainer = $(document.createElement("div"))
+                        .addClass("sceneInfoContainer");
+    
+                    var sceneSettingContainer = $(document.createElement("div"))
+                        .addClass("sceneSettingContainer");
+    
+                    if (flash) {
+                        var flashButton = $(document.createElement("i"))
+                            .addClass("fas fa-bolt");
+    
+                        sceneSettingContainer.append(flashButton);
+                    }
+    
+                    if (repeat) {
+                        var repeatButton = $(document.createElement("i"))
+                            .addClass("fas fa-rotate-right");
+    
+                        sceneSettingContainer.append(repeatButton);
+                    }
+    
+                    sceneInfoContainer.append(sceneText);
+                    sceneInfoContainer.append(sceneDuration);
+                    sceneInfoContainer.append(sceneDurationHidden);
+                    sceneDiv.append(sceneInfoContainer);
+                    sceneDiv.append(sceneSettingContainer);
+                    container.append(sceneDiv);
+                });
+
+            var sceneDiv = $(document.createElement("div"))
+                .addClass("dmxScene dmxAddScene user-select-none")
+                .attr("role", "button")
+                .on("click", function () {
+                    createNewScene();
+                });
+
+            var sceneText = $(document.createElement("p"))
+                .addClass("title")
+                .text("+");
+
+            sceneDiv.append(sceneText);
+            container.append(sceneDiv);
+
+            },
+            error: function (xhr) {
+                console.error("Failed to fetch DMX scenes:", xhr.responseText);
+            }
+        });
     }
 
 	async function fetchDMXChannelValues() {
@@ -255,6 +371,20 @@
             }
         });
     }
+
+	function toggleSidebar(){
+		if ($("#sidebar").hasClass("collapsed")){
+			$("#sidebar").removeClass("collapsed");
+			$("#main").removeClass("collapsed");
+			$("#toggleSideBarButton").addClass("fa-angles-left");
+			$("#toggleSideBarButton").removeClass("fa-angles-right");
+		} else {
+			$("#sidebar").addClass("collapsed");
+			$("#main").addClass("collapsed");
+			$("#toggleSideBarButton").removeClass("fa-angles-left");
+			$("#toggleSideBarButton").addClass("fa-angles-right");
+		}
+	}
 </script>
 <!-- 
 <script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script> -->

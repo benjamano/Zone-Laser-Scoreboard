@@ -7,6 +7,10 @@
     --blue: #37a6d187;
     --pale-orange: #ff977b8c;
     --bs-danger: #dc3545d1;
+
+    --TBSHover: var(--primary-gray);
+    --TBSBGPrimary: var(--dark-gray);
+    --TBSBGSecondary: var(--medium-dark-gray);
 }
 
 html{
@@ -269,6 +273,8 @@ overflow: scroll;
     font-size: 1rem;
     text-align: center;
     text-decoration: underline;
+    margin-bottom: 6rem;
+    text-transform: uppercase;
 }
 
 #lightingCardBody {
@@ -422,4 +428,69 @@ overflow: scroll;
     position: fixed;
     bottom: 0;
     width: 100%;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 12vw;
+    background-color: var(--TBSBGPrimary);
+    color: white;
+    z-index: 999;
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 3vw;
+}
+
+.sidebarText{
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .sidebarText{
+    opacity: 0;
+    font-size: 0px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    width: 100%;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--TBSBGSecondary);
+    transition: background-color 0.3s ease, padding 0.3s ease, text-align 0.3s ease;
+}
+
+.sidebar.collapsed ul li {
+    text-align: center;
+}
+
+.sidebar ul li:hover {
+    background-color: var(--TBSHover);
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    margin-left: 12vw;
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+}
+
+main.collapsed {
+    margin-left: 3vw;
+}
+
+.closeSidebarButton{
+    text-align: end;
 }

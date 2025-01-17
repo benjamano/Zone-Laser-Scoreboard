@@ -317,7 +317,7 @@ class WebApp:
                     else:
                         return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
                 else:
-                    return render_template("error.html", message=f"Select a scene to open! (Id was null)")
+                    return render_template("scene.html", message=f"Select a scene to open! (Id was null)")
                 
             except Exception as e:
                 format.message(f"Error fetching scene with Id for Advanced Scene view: {e}", type="error")
