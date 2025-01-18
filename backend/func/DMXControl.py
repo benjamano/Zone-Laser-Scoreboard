@@ -19,6 +19,8 @@ class dmx:
             
             format.message(f"Error starting DMX controller: {e}", "error")
             if devmode != True:
+                AttributeError(f"DMX controller not started, {e}")
+                
                 return
             else:
                 format.message("Continuing DMX connection in devmode", "warning")
@@ -639,52 +641,57 @@ class dmx:
                 
                 for filename in filenames:
                     if filename.endswith(".json") and "_processed" not in filename:
-                        with open(folder + filename) as json_file:
-                            try:
-                                for scene in json.load(json_file):
-                                    newDMXScene = self._context.DMXScene(
-                                        name=str(filename).strip(".json"),
-                                        createDate=datetime.datetime.now(),
-                                        duration=scene["duration"],
-                                        repeat=scene["repeat"],
-                                        flash=scene["flash"],
-                                        keybind=scene["keybind"]
-                                    )
-                                    self._context.db.session.add(newDMXScene) 
-                                    self._context.db.session.commit()
-
-                                    for event in scene["events"]:
-                                        duration = event["duration"]
-
-                                        newDMXSceneEvent = self._context.DMXSceneEvent(
-                                            sceneID=newDMXScene.id, 
-                                            name=scene["name"], 
-                                            updateDate=datetime.datetime.now(), 
-                                            duration=duration
+                        try:
+                            with open(folder + filename) as json_file:
+                                try:
+                                    for scene in json.load(json_file):
+                                        newDMXScene = self._context.DMXScene(
+                                            name=str(filename).strip(".json"),
+                                            createDate=datetime.datetime.now(),
+                                            duration=scene["duration"],
+                                            repeat=scene["repeat"],
+                                            flash=scene["flash"],
+                                            keybind=scene["keybind"]
                                         )
-                                        self._context.db.session.add(newDMXSceneEvent)
+                                        self._context.db.session.add(newDMXScene) 
                                         self._context.db.session.commit()
 
-                                        for channel in event["channels"]:
-                                            for channel, value in channel.items():
-                                                if channel.lower() == "fixture":
-                                                    fixture = value
-                                                    continue
+                                        for event in scene["events"]:
+                                            duration = event["duration"]
 
-                                                newDMXSceneEventChannel = self._context.DMXSceneEventChannel(
-                                                    eventID=newDMXSceneEvent.id, 
-                                                    fixture=fixture, 
-                                                    channel=channel, 
-                                                    value=value
-                                                )
-                                                self._context.db.session.add(newDMXSceneEventChannel)
+                                            newDMXSceneEvent = self._context.DMXSceneEvent(
+                                                sceneID=newDMXScene.id, 
+                                                name=scene["name"], 
+                                                updateDate=datetime.datetime.now(), 
+                                                duration=duration
+                                            )
+                                            self._context.db.session.add(newDMXSceneEvent)
+                                            self._context.db.session.commit()
 
-                                    self._context.db.session.commit()
-                            except Exception as e:
-                                format.message(f"Error processing DMX scene {filename}: {e}", "error")
+                                            for channel in event["channels"]:
+                                                for channel, value in channel.items():
+                                                    if channel.lower() == "fixture":
+                                                        fixture = value
+                                                        continue
+
+                                                    newDMXSceneEventChannel = self._context.DMXSceneEventChannel(
+                                                        eventID=newDMXSceneEvent.id, 
+                                                        fixture=fixture, 
+                                                        channel=channel, 
+                                                        value=value
+                                                    )
+                                                    self._context.db.session.add(newDMXSceneEventChannel)
+
+                                        self._context.db.session.commit()
+
+                                except Exception as e:
+                                    format.message(f"Error processing DMX scene {filename}: {e}", "error")
                             
-                        os.rename(folder + "\\" + filename, f"{folder}\\{filename.strip('.json')}_processed.json")
-            
+                            os.rename(folder + "\\" + filename, f"{folder}\\{filename.strip('.json')}_processed.json")
+                            
+                        except Exception as e:
+                            format.message(f"Error opening DMX scene {filename}: {e}", "error")
+                
             return scenes
 
     def __startScene(self, scene, stopEvent):   
