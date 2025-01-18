@@ -1,3 +1,11 @@
+var controlSpotify = true;
+var gamePlayingStatus = "stopped"
+
+var lastBPM = 0;
+var totalDuration = 0;
+var currentTime = 0;
+var currentTimeLeft = 0;
+var musicTimeInterval;
 
 var socket = io.connect('http://' + window.location.hostname + ':8080', {transports: ['websocket']});
 

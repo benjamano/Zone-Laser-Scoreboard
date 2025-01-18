@@ -58,6 +58,7 @@ class WebApp:
         self.RestartRequested = False
         self.gameStatus = "stopped" #Either running or stopped
         self.endOfDay = False
+        self.SysName = "TBS"
         
         pyautogui.FAILSAFE = False
 
@@ -249,25 +250,26 @@ class WebApp:
     def openFiles(self):
         try:
             f = open(fr"{self._dir}\data\keys.txt", "r")
-        except Exception as e:
-            format.message(f"Error opening keys.txt: {e}", type="error")
-        finally:
+            
             blank = f.readline()
             blank = f.readline()
             self.IP1 = str(f.readline().strip())
             self.IP2 = str(f.readline().strip())
             self.ETHERNET_INTERFACE = str(f.readline().strip())
             self.OBSSERVERIP = str(f.readline().strip())
-            self.OBSSERVERPORT = int(f.readline().strip())
+            self.OBSSERVERPORT = int(f.readline().strip() or 0)
             self.OBSSERVERPASSWORD = str(f.readline().strip())
             self.DMXADAPTOR = str(f.readline().strip())
-            self.SPOTIPY_CLIENT_ID = str(f.readline().strip())
-            self.SPOTIPY_CLIENT_SECRET = str(f.readline().strip())
+            self.SPOTIPY_CLIENT_ID = str(f.readline().strip() or "null")
+            self.SPOTIPY_CLIENT_SECRET = str(f.readline().strip() or "null")
+            
+        except Exception as e:
+            format.message(f"Error opening keys.txt: {e}", type="error")
             
         try:
             f = open(fr"{self._dir}\data\dev.txt", "r")
         except Exception as e:
-            format.message(f"Error opening keys.txt: {e}", type="error")
+            format.message(f"Error opening dev.txt: {e}", type="error")
         finally:
             devMode = f.readline().strip()
             
@@ -317,7 +319,7 @@ class WebApp:
                     else:
                         return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
                 else:
-                    return render_template("scene.html", message=f"Select a scene to open! (Id was null)")
+                    return render_template("scene.html", SysName=self.SysName, PageTitle="Advanced DMX Control")
                 
             except Exception as e:
                 format.message(f"Error fetching scene with Id for Advanced Scene view: {e}", type="error")
