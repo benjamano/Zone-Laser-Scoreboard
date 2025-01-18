@@ -88,12 +88,11 @@ html{
 .sceneContainer{
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-content: center;
     justify-content: flex-start;
     align-items: center;
     gap: 0.5rem;
-    padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
 }
 
 .sceneContainer .editSceneContainer{
@@ -375,7 +374,7 @@ overflow: scroll;
     border: 1px grey solid;
 }
 
-.buttonControlsContainer{
+.controls{
     padding: 1rem;
 }
 
@@ -385,6 +384,7 @@ overflow: scroll;
     justify-content: space-between;
     align-items: center;
     gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .header{
@@ -493,4 +493,40 @@ main.collapsed {
 
 .closeSidebarButton{
     text-align: end;
+}
+
+.sceneTitleText{
+    background: none;
+    color: white;
+    border: none;
+    border-bottom: solid 1px grey;
+    width: 6rem;
+    margin-bottom: 0.2rem;
+}
+
+.hideSelectEffect:focus, .hideSelectEffect:active, .hideSelectEffect:hover, .hideSelectEffect:focus-visible{
+    box-shadow: none;
+    outline: 0px;
+}
+
+.songPlayingTriggerInput{
+    font-size: 0.9rem;
+    background: var(--TBSBGSecondary);
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
+}
+
+.songTriggerLabel{
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+}
+
+.songPlayingTriggerAddButton{
+    color: var(--bs-success);
+    background-color: var(--TBSBGSecondary);
+    border: none;
+    border-radius: 0;
 }

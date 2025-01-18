@@ -67,21 +67,31 @@
 
 					<div class="controls">
 
-						<div class="row">
+						<div class="buttonControlsContainer">
 
-							<div class="col-12">
+							<button class="fas fa-play col-3 controlButton"></button>
+							<button class="fas fa-pause col-3 controlButton"></button>
+							<button class="fas fa-stop col-3 controlButton"></button>
 
-								<div class="buttonControlsContainer">
+						</div>
 
-									<button class="fas fa-play col-3 controlButton"></button>
-									<button class="fas fa-pause col-3 controlButton"></button>
-									<button class="fas fa-stop col-3 controlButton"></button>
+						<button onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" role="button" class="controlButton col-3 fas fa-eye mb-2" id="blindEditModeIcon"></button>
 
-								</div>
+						<div class="songTriggerSelector">
 
+							<label class="songTriggerLabel">Trigger on Song</label>
+							<div class="input-group">
+								<input type="text" id="currentPlayingSongForTrigger" class="pe-none col-9 songPlayingTriggerInput hideSelectEffect" readonly>
+								<button onclick="setThisSongAsKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
 							</div>
 
 						</div>
+
+					</div>
+
+					<div class="sceneTimeline">
+
+						
 
 					</div>
 
@@ -116,6 +126,8 @@
 </body>
 
 <script>
+	var sceneTimeLeftCountdownInterval;
+
 	window.onload = function() {
 		fetchFixtures();
 		getDMXScenes();
@@ -215,57 +227,61 @@
                     var name = scene.id;
                     var flash = scene.flash;
                     var repeat = scene.repeat;
-                    var totalDuration = scene.duration;
-    
-                    var sceneDiv = $(document.createElement("div"))
-                        .addClass("dmxScene user-select-none")
-                        .attr("id", name + "_SceneBtn")
-                        .attr("role", "button")
-                        .on("click", function () {
-                            startOrEditScene(name);
-                        });
-    
-                    var sceneText = $(document.createElement("p"))
-                        .addClass("title")
-                        .text(scene.name);
-    
-                    var sceneDuration = $(document.createElement("p"))
-                        .addClass("duration")
-                        .attr("id", name + "_Visibleduration")
-                        .text(formatDMXSceneDuration(totalDuration));
+					var totalDuration = scene.duration;
+	
+					var sceneDiv = $("<div>")
+						.addClass("dmxScene user-select-none")
+						.attr("id", name + "_SceneBtn")
+						.attr("role", "button")
+						.on("click", function () {
+							startOrEditScene(name);
+						});
+	
+					var sceneTitleInput = $("<input>")
+						.addClass("sceneTitleText hideSelectEffect")
+						.attr("type", "text")
+						.val(scene.name)
+						.on("change", function () {
+							updateSceneName();
+						});
+	
+					var sceneDuration = $("<p>")
+						.addClass("duration")
+						.attr("id", name + "_Visibleduration")
+						.text(formatDMXSceneDuration(totalDuration));
 
-                    var sceneDurationHidden = $(document.createElement("p"))
-                        .addClass("duration")
-                        .attr("id", name  + "_duration")
-                        .attr("style", "display: none;")
-                        .text(totalDuration);
-    
-                    var sceneInfoContainer = $(document.createElement("div"))
-                        .addClass("sceneInfoContainer");
-    
-                    var sceneSettingContainer = $(document.createElement("div"))
-                        .addClass("sceneSettingContainer");
-    
-                    if (flash) {
-                        var flashButton = $(document.createElement("i"))
-                            .addClass("fas fa-bolt");
-    
-                        sceneSettingContainer.append(flashButton);
-                    }
-    
-                    if (repeat) {
-                        var repeatButton = $(document.createElement("i"))
-                            .addClass("fas fa-rotate-right");
-    
-                        sceneSettingContainer.append(repeatButton);
-                    }
-    
-                    sceneInfoContainer.append(sceneText);
-                    sceneInfoContainer.append(sceneDuration);
-                    sceneInfoContainer.append(sceneDurationHidden);
-                    sceneDiv.append(sceneInfoContainer);
-                    sceneDiv.append(sceneSettingContainer);
-                    container.append(sceneDiv);
+					var sceneDurationHidden = $("<p>")
+						.addClass("duration")
+						.attr("id", name + "_duration")
+						.attr("style", "display: none;")
+						.text(totalDuration);
+	
+					var sceneInfoContainer = $("<div>")
+						.addClass("sceneInfoContainer");
+	
+					var sceneSettingContainer = $("<div>")
+						.addClass("sceneSettingContainer");
+	
+					if (flash) {
+						var flashButton = $("<i>")
+							.addClass("fas fa-bolt");
+	
+						sceneSettingContainer.append(flashButton);
+					}
+	
+					if (repeat) {
+						var repeatButton = $("<i>")
+							.addClass("fas fa-rotate-right");
+	
+						sceneSettingContainer.append(repeatButton);
+					}
+	
+					sceneInfoContainer.append(sceneTitleInput);
+					sceneInfoContainer.append(sceneDuration);
+					sceneInfoContainer.append(sceneDurationHidden);
+					sceneDiv.append(sceneInfoContainer);
+					sceneDiv.append(sceneSettingContainer);
+					container.append(sceneDiv);
                 });
 
             var sceneDiv = $(document.createElement("div"))
@@ -464,6 +480,196 @@
         sceneDiv.append(sceneInfoContainer);
         sceneDiv.append(sceneSettingContainer);
         DMXScenecontainer.append(sceneDiv);
+    }
+
+	function startOrEditScene(sceneId){
+		if ($("#"+sceneId + "_SceneBtn").hasClass("active")){
+			stopScene(sceneId);
+			return;
+		}
+
+		if (getBlindEditModeStatus() == false){
+			editScene(sceneId);
+			startScene(sceneId);
+		} else {
+			editScene(sceneId);
+		}
+    }
+
+	function startScene(sceneId) {
+        $.ajax({
+            url: "/api/dmx/startScene",
+            type: "POST",
+            data: { sceneId: sceneId },
+            success: function (response) {
+                console.log("Scene started:", response);
+
+                repeat = $("#"+sceneId + "_SceneBtn").find(".fa-rotate-right").length;
+
+                $("#" + sceneId + "_SceneBtn").addClass("active");
+
+                var countdownElement = $("#" + sceneId + "_duration");
+                var duration = parseInt(countdownElement.text());
+                var visibleDurationElement = $("#" + sceneId + "_Visibleduration");
+                var initialDuration = formatDMXSceneDuration(duration);
+                var btnSelector = "#" + sceneId + "_SceneBtn";
+
+                // $(btnSelector).addClass("active").off('click').on('click', function () {
+                  //  if ($(btnSelector).hasClass("active")) {
+                    //    clearInterval(sceneTimeLeftCountdownInterval);
+                        //$(btnSelector).removeClass("active");
+                      //  visibleDurationElement.text(initialDuration);
+                      //  duration = parseInt(countdownElement.text());
+    
+                       // stopScene(sceneId);
+                    //}
+                    //else{
+                      //  startScene(sceneId);
+                    //}
+                //}); 
+    
+                function startCountdown() {
+                    sceneTimeLeftCountdownInterval = setInterval(function () {
+                        if (duration <= 0) {
+                            if (repeat) {
+                                duration = parseInt(countdownElement.text());
+                            } else {
+                                clearInterval(sceneTimeLeftCountdownInterval);
+                                $(btnSelector).removeClass("active");
+                                visibleDurationElement.text(initialDuration);
+                                return;
+                            }
+                        }
+
+                        duration -= 10;
+                        var milliseconds = duration % 1000;
+                        var seconds = Math.floor((duration / 1000) % 60);
+                        var minutes = Math.floor((duration / (1000 * 60)) % 60);
+    
+                        visibleDurationElement.text(
+                            (minutes < 10 ? "0" + minutes : minutes) + '"' +
+                            (seconds < 10 ? "0" + seconds : seconds) + '"' +
+                            (milliseconds < 100 ? (milliseconds < 10 ? "00" + milliseconds : "0" + milliseconds) : milliseconds)
+                        );
+                    }, 10);
+                }
+    
+                startCountdown();
+
+            },
+            error: function (xhr) {
+                console.error("Failed to start scene:", xhr.responseText);
+            }
+        });
+    }
+
+	function getBlindEditModeStatus(){
+		if ($("#blindEditModeIcon").hasClass("fa-eye")){
+			return false;
+		} else {
+			return true;
+		}
+	}
+
+	function toggleBlindEditMode(){
+		if (getBlindEditModeStatus() == false) {
+			$("#blindEditModeIcon").removeClass("fa-eye");
+			$("#blindEditModeIcon").addClass("fa-eye-slash");
+		} else {
+			$("#blindEditModeIcon").removeClass("fa-eye-slash");
+			$("#blindEditModeIcon").addClass("fa-eye");
+		}
+	}
+
+	function editScene(sceneId) {
+        $.ajax({
+            url: "/api/dmx/getScene",
+            type: "GET",
+            data: { sceneId: sceneId },
+            success: function (response) {
+                $("#editSceneContainer").show();
+                $("#sceneEventContainer").empty();
+                $('#lightingCardBody').collapse('show');
+                $("#sceneDetailButtons").empty(); 
+
+                $("#editingSceneId").text("");
+                $("#sceneName").val(response.name);
+
+                var scene = response;
+
+                $("#"+scene.id+"_SceneBtn").addClass("active");
+
+                $("#editingSceneId").text(scene.id);
+                
+                if (Array.isArray(scene.events)) {
+                    let currentTime = new Date(0); 
+
+                    var i = 1;
+                
+                    scene.events.forEach(function (event) {
+                        const duration = event.duration || 0; 
+                        const startTime = new Date(currentTime.getTime()); 
+                        const endTime = new Date(currentTime.getTime() + duration); 
+                        var sceneContainer = $("#sceneEventContainer");
+
+                        sceneContainer.empty()
+                                        
+                        sceneContainer.append(
+                            $("<div>")
+                                .addClass("dmxSceneEvent dmxAddScene cursor-pointer user-select-none")
+                                .attr("role", "button")
+                                .text("+")
+                                .on("click", function () {
+                                    addNewSceneEvent();
+                                })
+                        );
+                        
+                        sceneContainer.append(
+                            $("<div>")
+                                .attr("id", "sceneEvent_" + i)
+                                .addClass("dmxSceneEvent cursor-pointer user-select-none")
+                                .attr("role", "button")
+                                .append(
+                                    $("<p>")
+                                        .text(startTime.toISOString().substr(11, 8))
+                                )
+                                .append(
+                                    $("<u>")
+                                        .text(formatDMXSceneDuration(duration))
+                                        .addClass("fs-6")
+                                )
+                                .on("click", function () {
+                                    loadSceneEvent(event, this);
+                                })
+                        );
+                        
+                        i++;
+                        currentTime = endTime;
+                    });
+                }
+            },
+            error: function (xhr) {
+                console.error("Failed to fetch scene details:", xhr.responseText);
+            }
+        });
+    }
+
+	function stopScene(sceneId){
+        $.ajax({
+            url: "/api/dmx/stopScene",
+            type: "POST",
+            data: { sceneId: sceneId },
+            success: function (response) {
+				clearInterval(sceneTimeLeftCountdownInterval);
+				$("#"+ sceneId +"_SceneBtn").removeClass("active");
+				$("#" + sceneId + "_Visibleduration").text(formatDMXSceneDuration(("#" + sceneId + "_duration").text()));
+
+                console.log("Scene stopped:", response);
+            },
+            error: function (xhr) {
+                console.error("Failed to stop scene:", xhr.responseText);
+            }
+        });
     }
 </script> 
 </html>
