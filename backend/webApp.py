@@ -1117,7 +1117,12 @@ class WebApp:
     def gameStarted(self):
         format.message("Game started")
         
+        if self.gameStatus == "running":
+            return
+        
         try:
+            self.gameStatus = "running"
+            
             self.handleMusic(mode="play")
         except Exception as e:
             format.message(f"Error handling music: {e}", type="error")
@@ -1134,7 +1139,12 @@ class WebApp:
     def gameEnded(self):
         format.message("Game ended")
         
+        if self.gameStatus == "stopped":
+            return
+        
         try:
+            self.gameStatus = "stopped"
+            
             self.handleMusic(mode="pause")
         except Exception as e:
             format.message(f"Error handling music: {e}", type="error")
