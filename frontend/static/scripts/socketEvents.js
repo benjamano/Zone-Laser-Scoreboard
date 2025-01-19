@@ -200,7 +200,7 @@ socket.on('songAlbum', async function(albumName) {
 socket.on('songName', function (msg) {
     console.log(msg.message);
 
-    $("#currentPlayingSongForTrigger").val(msg.message);
+    $("#currentPlayingSongForTrigger").val((msg.message).split(" - ")[1] + " - " + (msg.message).split(" - ")[0]);
 
     $("#musicPlaying").text(msg.message);
 });
