@@ -23,22 +23,6 @@ The program will read these and attempt to connect to the OBS Websocket instance
 
 All dependancies should be automatically installed when you run the ```Scoreboard.py``` file.
 
-# Planned Feature Status
-
-| Feature                                                               | Status                                             | Comments                                                                                                                        |
-| :----------------                                                     | :------                                            | :------                                                                                                                         |
-|Store Game Data in Database| Started                                            | DB is setup, saving to DB is not supported yet as the game doesn't keep track of scores in the backend just yet.                |
-|DMX Lighting Control                                                   | Started                                            | A DMX connection is setup at runtime, And lights are now regististered with the system, need to implement and test this now.       |
-|DMX Lighting Reacting to game events  | Not Started  | Will get on with this once I can test it                                                                                        |
-|Advanced music control                                                 | Complete                                        | Music starts when games ends, some bugs have shown up where it wont pause on game end, this is being looked into                |
-|Randomly select lighting effects   | Not Started                                        | Some small bits for this - Basically not started as no way of testing yet.                                                      |
-|Turn lights on when a nearby traget is shot                           | Not Started                                        | No way of testing and no hardware for target just yet, more of a longshot idea                                                  |
-|Advanced OBS control                                                   | Started                                            | Allow for certains creens around the arena to change based on game status - So far it only creates a web-socket connection      |
-|Track game progress & scores                                           | Almost Done                                        | Can detect game end, start, shot, individual player scores and timing packets. Left is shot confirmed and team scores           |
-|Interactive web page                | Done                                               | Page works well, tracking player scores, song BPM / playing song details, game status but there are plans for some new things...|
-|Phone Screen Friendly design                | Not Started                                 | Want to make it look nice and work of phone screen allowing me to test lighting using my phone or a tablet could be used to control the music / lighting instead of a pc|
-
-
 ## Packets decoded so far:
 This table includes all the packets that I have currently decoded, I couldn't work out what some values are used for, thus the "?".
 These should work exactly the same across all Begeara 2 Zone Laser systems.
