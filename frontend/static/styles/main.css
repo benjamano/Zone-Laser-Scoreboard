@@ -362,5 +362,209 @@ overflow: scroll;
 
 .attributeIcon{
     scale: 0.7;
+    max-height: 5vh;
+}
+
+.controlButton{
+    background-color: var(--primary-gray);
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px grey solid;
+}
+
+.controls{
+    padding: 1rem;    
+    height: 23vh;
+}
+
+.buttonControlsContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.header{
+    /* display: flex;
+    flex-direction: row;
+    justify-content: space-between; */
+    /* align-items: center; */
+    padding: 0.5rem;
+    background-color: var(--dark-gray);
+}
+
+.valueLabel{
+    margin-top: 40px;
+    font-size: 1.5rem;
+}
+
+.invert{
     filter: invert(1);
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--dark-gray);
+    border-radius: 10px;
+    border: 3px solid var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-gray);
+}
+
+.virtualConsole{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 12vw;
+    background-color: var(--TBSBGPrimary);
+    color: white;
+    z-index: 999;
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 3vw;
+}
+
+.sidebarText{
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .sidebarText{
+    opacity: 0;
+    font-size: 0px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    width: 100%;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--TBSBGSecondary);
+    transition: background-color 0.3s ease, padding 0.3s ease, text-align 0.3s ease;
+}
+
+.sidebar.collapsed ul li {
+    text-align: center;
+}
+
+.sidebar ul li:hover {
+    background-color: var(--TBSHover);
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    margin-left: 12vw;
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+}
+
+main.collapsed {
+    margin-left: 3vw;
+}
+
+.closeSidebarButton{
+    text-align: end;
+}
+
+.sceneTitleText{
+    background: none;
+    color: white;
+    border: none;
+    border-bottom: solid 1px grey;
+    width: 6rem;
+    margin-bottom: 0.2rem;
+}
+
+.hideSelectEffect:focus, .hideSelectEffect:active, .hideSelectEffect:hover, .hideSelectEffect:focus-visible{
+    box-shadow: none;
+    outline: 0px;
+}
+
+.songPlayingTriggerInput{
+    font-size: 0.9rem;
+    background: var(--TBSBGSecondary);
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
+}
+
+.songTriggerLabel{
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+}
+
+.songPlayingTriggerAddButton{
+    color: #45b452;
+    background-color: var(--TBSBGSecondary);
+    border: none;
+    border-radius: 0;
+}
+
+.settingsIcon{
+    transition: transform 0.5s ease-in-out;
+}
+
+.nav-item:hover .settingsIcon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.sceneTimeline{
+    height: 65vh;
+}
+
+.gunScoreTable {
+    width: 100%;
+    table-layout: fixed;
+}
+
+.gunScoreTable td {
+    width: 25%;
+}
+
+.gunScoreTableHeader{
+    background-color: var(--TBSBGSecondary);
+}
+
+.gunScoreTableHeader td{
+    background-color: var(--TBSBGSecondary);
+    padding: 0.5rem;
 }
