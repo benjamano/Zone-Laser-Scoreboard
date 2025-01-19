@@ -1,18 +1,15 @@
-<script type="text/javascript" src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script>
+<!-- <script type="text/javascript" src="https://unpkg.com/vis-timeline@latest/standalone/umd/vis-timeline-graph2d.min.js"></script> -->
 
 <div class="card mb-2">
 
-    <div class="card-header collapsed" role="button" onclick="$('#DMXScenesCardBody').collapse('toggle');">
-        Scenes 
+    <div class="card-header collapsed" role="button" onclick="window.location.href='/editScene'">
+        Advanced DMX Controls
         <span class="float-end">
-            <i id="editScenechk" class="fa-solid fa-square-pen intNotSelected" onclick="event.stopPropagation(); toggleEditMode(this)"></i>
-        </span>
-        <span class="float-end ms-2">
-            <i class="intNotSelected fa-square-plus" onclick="event.stopPropagation(); createNewScene()"></i>
+            <i class="fas fa-up-right-from-square"></i>
         </span>
     </div>
     
-    <div class="card-body collapse DMXScenesCardBody" id="DMXScenesCardBody">
+    <!-- <div class="card-body collapse DMXScenesCardBody" id="DMXScenesCardBody">
 
         <h1 id="editingSceneId" class="d-none"></h1>
 
@@ -20,17 +17,17 @@
 
         <div class="card">
 
-            <div class="card-header d-flex flex-row align-items-center">Editing Scene <input type="text" class="sceneNameEdit col-2" id="sceneName" onchange="updateSceneName(this.value)"></div>
+            <div class="card-header">
+                Editing Scene 
+                <input type="text" class="sceneNameEdit col-2" id="sceneName" onchange="updateSceneName(this.value)">  -->
+                <!-- <button class="btn btn-dark float-end" role="button" onclick="redirectToAdvancedScenePage()">Advanced View</button>
+            </div> -->
 
-            <div class="card-body">
+            <!-- <div class="card-body">
 
-                <div class="editSceneContainer" id="editSceneContainer">
+                <span> I'm deprecated :-p</span> -->
 
-                    <div class="form-group">
-
-                        
-
-                    </div>
+                <!-- <div class="editSceneContainer" id="editSceneContainer">
 
                     <div class="sceneParentContainer">
 
@@ -39,15 +36,16 @@
                         <div class="sceneDetailButtons"></div>
 
                         <div id="sceneEventContainer"></div>
+
                     </div>
 
-                </div>
+                </div> -->
 
-            </div>
-
-        </div>
+            <!-- </div> -->
+<!-- 
+        </div> -->
         
-    </div>
+    <!-- </div> -->
 
 </div>
 
@@ -332,6 +330,10 @@
     }
 
     function startOrEditScene(sceneId){
+        window.location.href = "/editScene?Id=" + sceneId;
+
+        //This feature is now deprecated, as the user will be redirected to the advanced scene page
+
         if ($("#editScenechk").hasClass("intSelected")){
             editScene(sceneId);
         } else {
@@ -473,6 +475,11 @@
                 handleError(xhr);
             }
         });
+    }
+
+    function redirectToAdvancedScenePage(){
+        var sceneId = $("#editingSceneId").text();
+        window.location.href = "/editScene?Id=" + sceneId;
     }
 
 </script>

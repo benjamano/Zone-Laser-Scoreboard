@@ -168,7 +168,7 @@
 										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div> -->
 
 										<div class="card" style="background-color: var(--dark-gray); color: #ffffff;">
-											<div class="card-header collapsed" role="button">
+											<div class="card-header collapsed">
 												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
 											</div>
 
@@ -521,15 +521,6 @@
 </html>
 
 <script>
-    var controlSpotify = true;
-	var gamePlayingStatus = "stopped"
-
-	var lastBPM = 0;
-	var totalDuration = 0;
-	var currentTime = 0;
-	var currentTimeLeft = 0;
-	var musicTimeInterval;
-
     window.onload = function() {
 		if (controlSpotify == true){
 			$("#spotifyPlaybackStatus").text("ON")

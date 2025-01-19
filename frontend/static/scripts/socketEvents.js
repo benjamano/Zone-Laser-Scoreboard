@@ -1,3 +1,11 @@
+var controlSpotify = true;
+var gamePlayingStatus = "stopped"
+
+var lastBPM = 0;
+var totalDuration = 0;
+var currentTime = 0;
+var currentTimeLeft = 0;
+var musicTimeInterval;
 
 var socket = io.connect('http://' + window.location.hostname + ':8080', {transports: ['websocket']});
 
@@ -191,6 +199,8 @@ socket.on('songAlbum', async function(albumName) {
 
 socket.on('songName', function (msg) {
     console.log(msg.message);
+
+    $("#currentPlayingSongForTrigger").val((msg.message).split(" - ")[1] + " - " + (msg.message).split(" - ")[0]);
 
     $("#musicPlaying").text(msg.message);
 });

@@ -7,6 +7,10 @@
     --blue: #37a6d187;
     --pale-orange: #ff977b8c;
     --bs-danger: #dc3545d1;
+
+    --TBSHover: var(--primary-gray);
+    --TBSBGPrimary: var(--dark-gray);
+    --TBSBGSecondary: var(--medium-dark-gray);
 }
 
 html{
@@ -84,12 +88,11 @@ html{
 .sceneContainer{
     display: flex;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-content: center;
     justify-content: flex-start;
     align-items: center;
     gap: 0.5rem;
-    padding: var(--bs-card-spacer-y) var(--bs-card-spacer-x);
 }
 
 .sceneContainer .editSceneContainer{
@@ -269,6 +272,8 @@ overflow: scroll;
     font-size: 1rem;
     text-align: center;
     text-decoration: underline;
+    margin-bottom: 6rem;
+    text-transform: uppercase;
 }
 
 #lightingCardBody {
@@ -291,8 +296,8 @@ overflow: scroll;
     flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
-    justify-content: center;
-    gap: 30px;
+    justify-content: space-between;
+    height: 20rem;
 }
 
 .fixtureContainer {
@@ -301,7 +306,6 @@ overflow: scroll;
     align-content: center;
     justify-content: flex-start;
     align-items: center;
-    gap: 50px;
     width: auto;
 }
 
@@ -313,28 +317,26 @@ overflow: scroll;
     justify-content: center;
     align-items: center;
     width: 80px;
-    margin-top: 3rem;
-    margin-right: 0.7rem;
 }
 
 .slider {
     -webkit-appearance: none;
-    width: 280%;
-    height: 10px;
+    width: 215%;
+    height: 6px;
     background: #d3d3d3;
     outline: none;
     -webkit-transform: rotate(-90deg);
-    margin-bottom: 5rem;
+    margin-bottom: 3rem;
 }
 
 .slider::-webkit-slider-thumb {
     -webkit-appearance: none;
     appearance: none;
-    width: 60px;
-    height: 40px;
+    width: 40px;
+    height: 25px;
     background: #252525;
     cursor: pointer;
-  }
+}
 
 .label {
     margin-top: 10px;
@@ -362,6 +364,44 @@ overflow: scroll;
 
 .attributeIcon{
     scale: 0.7;
+    max-height: 5vh;
+}
+
+.controlButton{
+    background-color: var(--primary-gray);
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px grey solid;
+}
+
+.controls{
+    padding: 1rem;
+}
+
+.buttonControlsContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+}
+
+.header{
+    /* display: flex;
+    flex-direction: row;
+    justify-content: space-between; */
+    /* align-items: center; */
+    padding: 0.5rem;
+    background-color: var(--dark-gray);
+}
+
+.valueLabel{
+    margin-top: 40px;
+    font-size: 1.5rem;
+}
+
+.invert{
     max-height: 5vh;
 }
 
@@ -402,6 +442,132 @@ overflow: scroll;
 
 .invert{
     filter: invert(1);
+}
+
+::-webkit-scrollbar {
+    width: 12px;
+    height: 12px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--dark-gray);
+    border-radius: 10px;
+    border: 3px solid var(--dark-gray);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--primary-gray);
+}
+
+.virtualConsole{
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+}
+
+.sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 12vw;
+    background-color: var(--TBSBGPrimary);
+    color: white;
+    z-index: 999;
+    transition: width 0.3s ease;
+}
+
+.sidebar.collapsed {
+    width: 3vw;
+}
+
+.sidebarText{
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+.sidebar.collapsed .sidebarText{
+    opacity: 0;
+    font-size: 0px;
+}
+
+.sidebar ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+.sidebar ul li {
+    width: 100%;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--TBSBGSecondary);
+    transition: background-color 0.3s ease, padding 0.3s ease, text-align 0.3s ease;
+}
+
+.sidebar.collapsed ul li {
+    text-align: center;
+}
+
+.sidebar ul li:hover {
+    background-color: var(--TBSHover);
+}
+
+.sidebar ul li a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    margin-left: 12vw;
+    padding: 1rem;
+    transition: margin-left 0.3s ease;
+}
+
+main.collapsed {
+    margin-left: 3vw;
+}
+
+.closeSidebarButton{
+    text-align: end;
+}
+
+.sceneTitleText{
+    background: none;
+    color: white;
+    border: none;
+    border-bottom: solid 1px grey;
+    width: 6rem;
+    margin-bottom: 0.2rem;
+}
+
+.hideSelectEffect:focus, .hideSelectEffect:active, .hideSelectEffect:hover, .hideSelectEffect:focus-visible{
+    box-shadow: none;
+    outline: 0px;
+}
+
+.songPlayingTriggerInput{
+    font-size: 0.9rem;
+    background: var(--TBSBGSecondary);
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
+}
+
+.songTriggerLabel{
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
+}
+
+.songPlayingTriggerAddButton{
+    color: var(--bs-success);
+    background-color: var(--TBSBGSecondary);
+    border: none;
+    border-radius: 0;
 }
 
 ::-webkit-scrollbar {
