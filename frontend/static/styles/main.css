@@ -11,6 +11,9 @@
     --TBSHover: var(--primary-gray);
     --TBSBGPrimary: var(--dark-gray);
     --TBSBGSecondary: var(--medium-dark-gray);
+    --TSBBGLight: var(--light-gray);
+    --TBSBGExtraLight: #9ea5ba1a;
+    --TBSBGDark: #10101273;
 }
 
 html{
@@ -74,6 +77,10 @@ html{
 
 .dmxScene.active{
     animation: fade 1s infinite alternate cubic-bezier(0.54, -0.25, 1, 1.23);
+}
+
+.dmxScene.selected{
+    background-color: var(--light-gray);
 }
 
 @keyframes fade {
@@ -289,15 +296,16 @@ overflow: scroll;
 .fixture {
     padding: 10px;
     text-align: center;
-    border: #0000002b;
-    border-width: 5px;
-    border-style: solid;
+    border: none;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
     justify-content: space-between;
-    height: 20rem;
+}
+
+.fixture:not(:last-child) {
+    border-right: 2px solid var(--TBSBGSecondary);
 }
 
 .fixtureContainer {
@@ -367,17 +375,6 @@ overflow: scroll;
     max-height: 5vh;
 }
 
-.controlButton{
-    background-color: var(--primary-gray);
-    padding: 0.5rem;
-    text-align: center;
-    border: 1px grey solid;
-}
-
-.controls{
-    padding: 1rem;
-}
-
 .buttonControlsContainer{
     display: flex;
     flex-direction: row;
@@ -410,6 +407,7 @@ overflow: scroll;
     padding: 0.5rem;
     text-align: center;
     border: 1px grey solid;
+    color: #ffffff8c;
 }
 
 .controls{
@@ -461,12 +459,6 @@ overflow: scroll;
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--primary-gray);
-}
-
-.virtualConsole{
-    position: fixed;
-    bottom: 0;
-    width: 100%;
 }
 
 .sidebar {
@@ -590,9 +582,7 @@ main.collapsed {
 }
 
 .virtualConsole{
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+    margin-top: 1rem;
 }
 
 .sidebar {
@@ -714,7 +704,9 @@ main.collapsed {
 }
 
 .sceneTimeline{
-    height: 65vh;
+    height: 40vh;
+    padding: 1rem;
+    border-top: solid 2px var(--TBSBGExtraLight);
 }
 
 .gunScoreTable {
@@ -733,4 +725,72 @@ main.collapsed {
 .gunScoreTableHeader td{
     background-color: var(--TBSBGSecondary);
     padding: 0.5rem;
+}
+
+.sceneEventTable {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+}
+
+.sceneEventTable::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sceneEventTable tr.header td {
+    background-color: var(--TBSBGSecondary);
+}
+
+.sceneEventTable .active td{
+    background-color: var(--TBSBGExtraLight);
+} 
+
+.sceneEventTable th, 
+.sceneEventTable td {
+    padding: 0.2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1; 
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.sceneEventTable tr:hover td{
+    background-color: var(--TBSHover);
+}
+
+.sceneEventTable tr {
+    border-bottom: 1px dashed #adadad;
+}
+
+.sceneEventTable th:last-child,
+.sceneEventTable td:last-child {
+    border-right: none;
+}
+
+.sceneEventTable tr:first-child {
+    border-top: none;
+}
+
+.sceneEventsContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.5rem;
+    background-color: var(--TBSBGDark);
+    height: 100%;
+    border: black 1px solid;
+}
+
+.sceneEvent {
+    flex-grow: 1;
 }
