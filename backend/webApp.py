@@ -16,6 +16,7 @@ import webbrowser
 import asyncio
 import random
 import logging
+import json
 
 try:
     import winrt.windows.media.control as wmc
@@ -345,40 +346,6 @@ class WebApp:
                 
                 temp_fixtures = self._dmx.getFixtures()
                 
-                # for fixtureData in fixtures:
-                #     fixtureId = fixtureData[1]["id"]
-                #     fixtureName = fixtureData[0]
-                #     fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
-
-                #     # Add an index to each attribute
-                #     indexed_fixture_profile = {}
-                #     for index, (key, value) in enumerate(fixtureProfile.items()):
-                #         fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
-                        
-                #         if fixture_temp.json_data["type"] == "Generic.Dimmer":
-                #             indexed_fixture_profile[key] = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0]}
-                #         else:
-                #             try:
-                #                 fixtureChannel_temp = 0
-
-                #                 for key_id, channel in fixture_temp.channels.items():
-                #                     if channel["name"] == key.lower():
-                #                         fixtureChannel_temp = channel["value"][0]
-
-                #                 indexed_fixture_profile[key] = {
-                #                     "index": index,
-                #                     "value": value,
-                #                     "DMXValue": fixtureChannel_temp,
-                #                 }
-                #             except Exception as e:
-                #                 format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
-
-                #     temp_fixtures.append({
-                #         "name": fixtureName,
-                #         "id": fixtureId,
-                #         "attributes": indexed_fixture_profile
-                #     })
-                
                 serialized_fixtures = temp_fixtures
                 
                 return jsonify(serialized_fixtures)
@@ -554,6 +521,45 @@ class WebApp:
                 format.message(f"Failed to edit scene name: {e}", type="error")
                 return jsonify({"error": f"Failed to edit scene name: {e}"}), 500
 
+        @self.app.route("/api/dmx/getSceneEvent", methods=["GET"])
+        def getSceneEvent():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
+            eventId = request.args.get("eventId")
+            
+            try:
+                event = self._dmx.getSceneEventById(eventId)
+                
+                return jsonify(event.to_dict())
+            except Exception as e:
+                format.message(f"Failed to fetch scene event: {e}", type="error")
+                return jsonify({"error": f"Failed to fetch scene event: {e}"}), 500
+
+        @self.app.route("/api/dmx/saveSceneEvent", methods=["POST"])
+        def saveSceneEvent():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
+            try:
+                sceneEventId = int(request.form.get("sceneEventId"))
+                DMXValues = request.form.get("DMXValues")
+                DMXValues = json.loads(DMXValues)
+                
+                if not sceneEventId or not DMXValues:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                for value in DMXValues:
+                    fixture = value["fixture"]
+                    channel = value["channel"]
+                    value = int(value["value"])
+                    self._dmx.updateFixtureChannelEvent(sceneEventId, fixture, channel, value)
+                    
+                return jsonify({"success": "Scene event saved"}), 200
+                
+            except Exception as e:
+                format.message(f"Failed to save scene event: {e}", type="error")
+                return jsonify({"error": f"Failed to save scene event: {e}"}), 500
 
         @self.app.route('/end')
         def terminateServer():

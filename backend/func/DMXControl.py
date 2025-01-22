@@ -397,6 +397,7 @@ class dmx:
                 stopEvent.set() 
                 thread.join()   
                 del self.runningScenes[sceneId]
+                self.turnOffAllChannels()
                 format.message(f"Scene {sceneId} stopped", "info")
                 return
             
@@ -413,6 +414,51 @@ class dmx:
         except Exception as e:
             format.message(f"Error creating new scene: {e}", "error")
             return
+        
+    def updateFixtureChannelEvent(self, sceneEventID, fixture, channel, value):
+        try:
+            with self.app.app_context():
+                event = self._context.DMXSceneEventChannel.query.filter_by(
+                    eventID=sceneEventID,
+                    fixture=fixture,
+                    channel=channel
+                ).first()
+
+                if event:
+                    event.value = value
+                else:
+                    event = self._context.DMXSceneEventChannel(
+                        eventID=sceneEventID,
+                        fixture=fixture,
+                        channel=channel,
+                        value=value
+                    )
+                    self._context.db.session.add(event)
+                
+                try:
+                    self._context.db.session.commit()
+                    return event
+                except Exception as e:
+                    self._context.db.session.rollback()
+                    format.message(f"Error saving event to database: {e}", "error")
+                    return None
+
+        except Exception as e:
+            format.message(f"Error accessing database context: {e}", "error")
+            return None
+        
+    def turnOffAllChannels(self):
+        fixtures = self.getRegisteredFixtures()
+        
+        for fixture in fixtures.items():
+            fixtureName = fixture[0]
+            fixtureType = fixture[1]["type"]
+            fixtureProfile = (self.getFixtureProfiles()).get(fixtureType)
+            
+            for channel in fixtureProfile.items():
+                self.setFixtureChannel(fixtureName, channel[0], 0)
+                
+        return
         
     # Getters
         
@@ -477,7 +523,22 @@ class dmx:
         except Exception as e:
             format.message(f"Error getting local IP: {e}", "error")
             return ""
-    
+    def getSceneEventById(self, eventId):
+        event = self._context.DMXSceneEvent.query.get(eventId)
+        return self._context.DMXSceneEventDTO(
+            id=event.id,
+            name=event.name, 
+            duration=event.duration,
+            updateDate=event.updateDate,
+            channels=[
+                {
+                    "fixture": channel.fixture,
+                    "channel": channel.channel,
+                    "value": channel.value
+                }
+                for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+            ]
+        )
     # Processing
     
     def __mapToDMXSceneDTO(self, scene):
