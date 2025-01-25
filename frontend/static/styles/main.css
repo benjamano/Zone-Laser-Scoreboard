@@ -11,6 +11,10 @@
     --TBSHover: var(--primary-gray);
     --TBSBGPrimary: var(--dark-gray);
     --TBSBGSecondary: var(--medium-dark-gray);
+    --TSBBGLight: var(--light-gray);
+    --TBSBGExtraLight: #9ea5ba1a;
+    --TBSBGDark: #10101273;
+    --contextMenu: #5e6473;
 }
 
 html{
@@ -74,6 +78,10 @@ html{
 
 .dmxScene.active{
     animation: fade 1s infinite alternate cubic-bezier(0.54, -0.25, 1, 1.23);
+}
+
+.dmxScene.selected{
+    background-color: var(--light-gray);
 }
 
 @keyframes fade {
@@ -289,15 +297,16 @@ overflow: scroll;
 .fixture {
     padding: 10px;
     text-align: center;
-    border: #0000002b;
-    border-width: 5px;
-    border-style: solid;
+    border: none;
     display: flex;
     flex-direction: column;
     flex-wrap: nowrap;
     align-content: center;
     justify-content: space-between;
-    height: 20rem;
+}
+
+.fixture:not(:last-child) {
+    border-right: 2px solid var(--TBSBGSecondary);
 }
 
 .fixtureContainer {
@@ -367,17 +376,6 @@ overflow: scroll;
     max-height: 5vh;
 }
 
-.controlButton{
-    background-color: var(--primary-gray);
-    padding: 0.5rem;
-    text-align: center;
-    border: 1px grey solid;
-}
-
-.controls{
-    padding: 1rem;
-}
-
 .buttonControlsContainer{
     display: flex;
     flex-direction: row;
@@ -410,6 +408,7 @@ overflow: scroll;
     padding: 0.5rem;
     text-align: center;
     border: 1px grey solid;
+    color: #ffffff8c;
 }
 
 .controls{
@@ -461,12 +460,6 @@ overflow: scroll;
 
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--primary-gray);
-}
-
-.virtualConsole{
-    position: fixed;
-    bottom: 0;
-    width: 100%;
 }
 
 .sidebar {
@@ -590,9 +583,7 @@ main.collapsed {
 }
 
 .virtualConsole{
-    position: fixed;
-    bottom: 0;
-    width: 100%;
+    margin-top: 1rem;
 }
 
 .sidebar {
@@ -631,6 +622,19 @@ main.collapsed {
     padding: 0.8rem;
     border-bottom: 1px solid var(--TBSBGSecondary);
     transition: background-color 0.3s ease, padding 0.3s ease, text-align 0.3s ease;
+}
+
+.nav-item-options{
+    display: none;
+    border-bottom: none;
+    padding: 0;
+    padding-left: 1.0rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.sidebar li.nav-item.active .nav-item-options{
+    display: block;
 }
 
 .sidebar.collapsed ul li {
@@ -714,7 +718,7 @@ main.collapsed {
 }
 
 .sceneTimeline{
-    height: 65vh;
+    height: 39vh;
 }
 
 .gunScoreTable {
@@ -733,4 +737,104 @@ main.collapsed {
 .gunScoreTableHeader td{
     background-color: var(--TBSBGSecondary);
     padding: 0.5rem;
+}
+
+.contextMenu{
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--contextMenu);
+    color: white;
+    z-index: 999;
+    opacity: 1;
+}
+
+.contextMenu ul{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.contextMenu li{
+    list-style: none;
+    padding: 1.5rem;
+    cursor: pointer;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    border: solid 1px black;
+}
+
+.sceneEventTable {
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
+}
+
+.sceneEventTable::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.sceneEventTable tr.header td {
+    background-color: var(--TBSBGSecondary);
+}
+
+.sceneEventTable .active td{
+    background-color: var(--TBSBGExtraLight);
+} 
+
+.sceneEventTable th, 
+.sceneEventTable td {
+    padding: 0.2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1; 
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+}
+
+.sceneEventTable tr:hover td{
+    background-color: var(--TBSHover);
+}
+
+.sceneEventTable tr {
+    border-bottom: 1px dashed #adadad;
+}
+
+.sceneEventTable th:last-child,
+.sceneEventTable td:last-child {
+    border-right: none;
+}
+
+.sceneEventTable tr:first-child {
+    border-top: none;
+}
+
+.sceneEventsContainer {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.5rem;
+    background-color: var(--TBSBGDark);
+    height: 100%;
+    border: black 1px solid;
+}
+
+.sceneEvent {
+    flex-grow: 1;
 }

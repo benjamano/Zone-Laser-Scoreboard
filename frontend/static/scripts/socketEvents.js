@@ -10,117 +10,134 @@ var musicTimeInterval;
 var socket = io.connect('http://' + window.location.hostname + ':8080', {transports: ['websocket']});
 
 socket.on('connect', function() {
-
-    $("#warningsContainer").css("display", "none");
-    
-    socket.emit('SpotifyControl', {data: controlSpotify});
-    console.log("SpotifyControl: " + controlSpotify);
-    console.log("Client connected!");
-
-    if (controlSpotify == true){
-        $("#spotifyPlaybackStatus").text("ON")
-    } else {
-        $("#spotifyPlaybackStatus").text("OFF")
-    }
-
-    $("#gameStatus").removeClass("go-red").addClass("go-blue");
-    $("#gameStatus").text("Waiting");
-
-    $("#webAppOnlineStatus").text("ONLINE");
-
     try{
+        $("#warningsContainer").css("display", "none");
+        
+        socket.emit('SpotifyControl', {data: controlSpotify});
+        console.log("SpotifyControl: " + controlSpotify);
+        console.log("Client connected!");
 
-    var messageDiv = document.getElementById('messages');
+        if (controlSpotify == true){
+            $("#spotifyPlaybackStatus").text("ON")
+        } else {
+            $("#spotifyPlaybackStatus").text("OFF")
+        }
 
-    messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
+        $("#gameStatus").removeClass("go-red").addClass("go-blue");
+        $("#gameStatus").text("Waiting");
+
+        $("#webAppOnlineStatus").text("ONLINE");
+
+        try{
+
+        var messageDiv = document.getElementById('messages');
+
+        messageDiv.innerHTML += '<p class="text-success">Connected @ '+Date.now()+'</p>';
+        }
+        catch(err){}
     }
     catch(err){}
 });
 
 socket.on('start', function(msg) {
-
-    gamePlayingStatus = "playing";
-
-    console.log(msg);
-
-    for (let i = 1; i <= 21; i++) {
-        $("#gun-" + i + "-score").text("0");
-        $("#gun-" + i + "-accuracy").text("0%");
-    }
-
-    var gameStatus = document.getElementById('gameStatus');
-
-    $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
-    $("#gameStatus").text("Game in Progress...");
-
     try{
+        gamePlayingStatus = "playing";
 
-        var messageDiv = document.getElementById('messages');
+        console.log(msg);
 
-        messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
+        for (let i = 1; i <= 21; i++) {
+            $("#gun-" + i + "-score").text("0");
+            $("#gun-" + i + "-accuracy").text("0%");
+        }
+
+        var gameStatus = document.getElementById('gameStatus');
+
+        $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-green");
+        $("#gameStatus").text("Game in Progress...");
+
+        try{
+
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-success">' + msg.message + '</p>';
+        }
+        catch(err){}
     }
     catch(err){}
 });
 
 socket.on('obsStatus', function(msg) {
-    console.log(msg.message);
+    try{
+        console.log(msg.message);
 
-    $("#OBSConnectionStatus").text(msg.message)
-    
+        $("#OBSConnectionStatus").text(msg.message)
+    }
+    catch(err){}
 });
 
 socket.on('dmxStatus', function(msg) {
-    console.log(msg.message);
+    try{
+        console.log(msg.message);
 
-    $("#DMXConnectionStatus").text(msg.message)
-    
+        $("#DMXConnectionStatus").text(msg.message)
+    }
+    catch(err){}
 });
 
 socket.on('end', function(msg) {
+    try{
+        gamePlayingStatus = "stopped";
 
-    gamePlayingStatus = "stopped";
+        console.log(msg);
 
-    console.log(msg);
+        for (let i = 1; i <= 21; i++) {
+            $("#gun-" + i + "-score").text("0");
+            $("#gun-" + i + "-accuracy").text("0%");
+        }
 
-    for (let i = 1; i <= 21; i++) {
-        $("#gun-" + i + "-score").text("0");
-        $("#gun-" + i + "-accuracy").text("0%");
+        var gameStatus = document.getElementById('gameStatus');
+
+        $("#timeRemaining").text("00:00");
+
+        $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
+        $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
     }
-
-    var gameStatus = document.getElementById('gameStatus');
-
-    $("#timeRemaining").text("00:00");
-
-    $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
-    $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
+    catch(err){}
 });
 
 socket.on('server', function(msg) {
-    console.log(msg);
-
     try{
-    var messageDiv = document.getElementById('messages');
+        console.log(msg);
 
-    messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+        try{
+            var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+        }
+        catch(err){}
     }
     catch(err){}
 });
 
 socket.on('gameMode', function(msg) {
-    console.log("Game Mode: ", msg.message);
-
     try{
-    var messageDiv = document.getElementById('messages');
+        console.log("Game Mode: ", msg.message);
 
-    messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
-    }
+        try{
+        var messageDiv = document.getElementById('messages');
+
+            messageDiv.innerHTML += '<p class="text-danger">' + msg.message + '</p>';
+        }
+        catch(err){}
+        }
     catch(err){}
 });
 
 socket.on('gunScores', function(msg) {
-    if (gamePlayingStatus == "stopped"){
-        return;
-    }
+    try{
+        if (gamePlayingStatus == "stopped"){
+            return;
+        }
 
     console.log("gunScore: "+msg);
 
@@ -132,8 +149,10 @@ socket.on('gunScores', function(msg) {
 
     console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
 
-    $("#gun-"+gunId+"-score").text(finalScore);
-    $("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
+        $("#gun-"+gunId+"-score").text(finalScore);
+        $("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
+    }
+    catch(err){}
 });
 
 socket.on('disconnect', function() {
@@ -149,40 +168,44 @@ socket.on('disconnect', function() {
 });
 
 socket.on('timeRemaining', function (msg) {
-    if (gamePlayingStatus == "stopped"){
+    try{
+        if (gamePlayingStatus == "stopped"){
             return;
-    }
-
-    const newTime = parseInt(msg.message);
-
-    // If the current time is different from the new time, update the countdown
-    if (currentTimeLeft !== newTime) {
-        currentTimeLeft = newTime;
-
-        // If there's an existing interval, clear it
-        try{
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
         }
-        catch{}
 
-        countdownInterval = setInterval(function () {
-            if (currentTimeLeft <= 0) {
-                clearInterval(countdownInterval);
-                return;
+        const newTime = parseInt(msg.message);
+
+        // If the current time is different from the new time, update the countdown
+        if (currentTimeLeft !== newTime) {
+            currentTimeLeft = newTime;
+
+            // If there's an existing interval, clear it
+            try{
+                if (countdownInterval) {
+                    clearInterval(countdownInterval);
+                }
             }
+            catch{}
 
-            currentTimeLeft--;
+            countdownInterval = setInterval(function () {
+                if (currentTimeLeft <= 0) {
+                    clearInterval(countdownInterval);
+                    return;
+                }
 
-            const formattedTime = formatTime(currentTimeLeft);
-            $("#timeRemaining").text(formattedTime);
-        }, 1000);
+                currentTimeLeft--;
+
+                const formattedTime = formatTime(currentTimeLeft);
+                $("#timeRemaining").text(formattedTime);
+            }, 1000);
+        }
     }
+    catch(err){}
 });
 
 socket.on('songAlbum', async function(albumName) {
-    console.log(albumName);
+    try{
+        console.log(albumName);
 
     if (albumName == "None"){
         return;
@@ -193,16 +216,21 @@ socket.on('songAlbum', async function(albumName) {
     if (imageUrl) {
         document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
     } else {
-        console.log('Album cover not found.');
+            console.log('Album cover not found.');
+        }
     }
+    catch(err){}
 });
 
 socket.on('songName', function (msg) {
-    console.log(msg.message);
+    try{
+        console.log(msg.message);
 
-    $("#currentPlayingSongForTrigger").val((msg.message).split(" - ")[1] + " - " + (msg.message).split(" - ")[0]);
+        $("#currentPlayingSongForTrigger").val((msg.message).split(" - ")[1] + " - " + (msg.message).split(" - ")[0]);
 
-    $("#musicPlaying").text(msg.message);
+        $("#musicPlaying").text(msg.message);
+    }
+    catch(err){}
 });
 
 socket.on('createWarning', function (msg) {
@@ -241,62 +269,73 @@ socket.on('createWarning', function (msg) {
 });
 
 socket.on('musicStatus', function (msg) {
-    console.log(msg.message);
+    try{
+        console.log(msg.message);
 
-    if (msg.message == "playing"){
-        gamePlayingStatus = "playing";
-        $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
-    } else {
+        if (msg.message == "playing"){
+            gamePlayingStatus = "playing";
+            $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
+        } else {
         gamePlayingStatus = "stopped";
-        $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+            $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+        }
     }
+    catch(err){}
 });
 
 socket.on('songBPM', function (msg) {
-    console.log(msg.message);
+    try{
+        console.log(msg.message);
 
-    if (lastBPM == msg.message){
-        return;
-    }
+        if (lastBPM == msg.message){
+            return;
+        }
 
-    $("#musicBPM").text(msg.message);
+        $("#musicBPM").text(msg.message);
 
-    lastBPM = msg.message;
+        lastBPM = msg.message;
 
-    if (msg.message == "0"){
+        if (msg.message == "0"){
+            clearInterval(window.flashInterval);
+            clearInterval(window.flashInterval2);
+
+            return;
+        }
+
+        const flashSpeed = 60000 / parseInt(msg.message); // Calculate flash speed in milliseconds
+
         clearInterval(window.flashInterval);
         clearInterval(window.flashInterval2);
 
-        return;
-    }
+        window.flashInterval = setInterval(function () {
+            $("#flashingDot").css("opacity", function(_, currentOpacity) {
+                return currentOpacity == 1 ? 0 : 1;
+            });
+        }, flashSpeed);
 
-    const flashSpeed = 60000 / parseInt(msg.message); // Calculate flash speed in milliseconds
-
-    clearInterval(window.flashInterval);
-    clearInterval(window.flashInterval2);
-
-    window.flashInterval = setInterval(function () {
-        $("#flashingDot").css("opacity", function(_, currentOpacity) {
-            return currentOpacity == 1 ? 0 : 1;
-        });
-    }, flashSpeed);
-
-    window.flashInterval2 = setInterval(function () {
-        $("#flashingDot2").css("opacity", function(_, currentOpacity) {
-            return currentOpacity == 1 ? 0 : 1;
-        });
-    }, flashSpeed*2);
-
+        window.flashInterval2 = setInterval(function () {
+            $("#flashingDot2").css("opacity", function(_, currentOpacity) {
+                return currentOpacity == 1 ? 0 : 1;
+                });
+            }, flashSpeed*2);
+        }
+    catch(err){}
 });
 
 socket.on('musicDuration', function(duration) {
-    totalDuration = duration.message;
-    updateProgressBar(currentTime, totalDuration); 
+    try{
+        totalDuration = duration.message;
+        updateProgressBar(currentTime, totalDuration); 
+    }
+    catch(err){}
 });
 
 socket.on('musicPosition', function(position) {
-    currentTime = position.message;
-    updateProgressBar(currentTime, totalDuration);
+    try{
+        currentTime = position.message;
+        updateProgressBar(currentTime, totalDuration);
+    }
+    catch(err){}
 });
 
 socket.on('UpdateDMXValue', function(data) {
@@ -306,11 +345,11 @@ socket.on('UpdateDMXValue', function(data) {
     var value = data.message.value;
     var fixture = data.message.fixture;
 
-    var valueLabel = document.getElementById(`valueLabel-${fixture}-${channel}`);
-    var slider = document.getElementById(`slider-${fixture}-${channel}`);
+    var valueLabel = document.getElementById(`valueLabel_${fixture}_${channel}`);
+    var slider = document.getElementById(`slider_${fixture}_${channel}`);
 
-    valueLabel.textContent = value;
-    slider.value = value;
+    if (valueLabel) valueLabel.textContent = value;
+    if (slider) slider.value = value;
 });
 
 socket.on("refreshPage", function() {
