@@ -27,13 +27,12 @@
 			<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
 				<a class="nav-link"><i id="toggleSideBarButton" class="fas fa-angles-left me-2"></i></a>
 			</li>
-	
 			<li class="nav-item" onclick="window.location.href='/'" role="button">
 				<a class="nav-link"><i class="fas fa-home me-2"></i><span class="sidebarText">Home</span></a>
 			</li>
-			<li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
+			<!-- <li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
 				<a class="nav-link"><i class="fas fa-regular fa-lightbulb me-2"></i><span class="sidebarText">Patch</span></a>
-			</li>
+			</li> -->
 			<li class="nav-item" onclick="window.location.href='/scoreboard'" role="button">
 				<a class="nav-link"><i class="fas fa-table-columns me-2"></i><span class="sidebarText">Scoreboard</span></a>
 			</li>
@@ -88,6 +87,17 @@
 							<div class="input-group">
 								<input type="text" id="currentPlayingSongForTrigger" class="pe-none col-7 songPlayingTriggerInput hideSelectEffect" readonly>
 								<button onclick="setThisSongAsKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+								<label class="input-group-text songPlayingTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
+							</div>
+
+						</div>
+
+						<div class="songTriggerSelector">
+
+							<label class="songTriggerLabel">Trigger on Keybind</label>
+							<div class="input-group">
+								<input type="text" id="triggerKeybindClick" class="col-7 cursor-pointer songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
+								<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
 							</div>
 
 						</div>
@@ -171,6 +181,13 @@
 		getDMXScenes();
 	};
 
+	document.addEventListener('click', function(e) {
+		var contextMenu = document.getElementById('contextMenu');
+		if (contextMenu && !contextMenu.contains(e.target)) {
+			contextMenu.style.display = 'none';
+		}
+	});
+
 	function formatDMXSceneDuration(duration) {
         var milliseconds = duration % 1000;
         var seconds = Math.floor((duration / 1000) % 60);
@@ -183,23 +200,39 @@
         );
     }
 
-	function openContextMenu(channel, e) {
+	function openContextMenu(channel, e, id) {
 		var contextMenu = $("#contextMenuList");
 
 		contextMenu.empty();
 
-		var fixtureId = channel.fixtureID;
+		var fixtureId = id;
 		var channelName = channel.name;
 
-		channel.channelValues.forEach(channelValue => {
+		const distinctValues = [...new Set(channel.channelValues.map(cv => cv.name))]
+			.map(name => channel.channelValues.find(cv => cv.name === name));
+			
+		distinctValues.forEach(channelValue => {
 			var contextMenuItem = $("<li>").text(channelValue.name);
 			contextMenuItem.on("click", function () {
-				updateDMXValue(channelName, fixtureId, channelValue.value);
+				const channelIdSafe = channelName.replace(/\s+/g, '_');
+				var sliderId = `slider_${fixtureId}_${channelIdSafe}`;
+				var valueId = `valueLabel_${fixtureId}_${channelIdSafe}`;
+
+				slider = $(`#${sliderId}`);
+				valueLabel = $(`#${valueId}`);
+
+				if (slider.length && valueLabel.length) {
+					slider.val(channelValue.value);
+					valueLabel.text(channelValue.value);
+					updateDMXValue(channelName, fixtureId, channelValue.value);
+				} else {
+					console.error(`Could not find slider or value label with IDs: ${sliderId}, ${valueId}`);
+				}
 			});
 			contextMenu.append(contextMenuItem);
 		});
 
-		contextMenu.css({
+		$("#contextMenu").css({
 			display: "block",
 			top: e.pageY,
 			left: e.pageX,
@@ -212,10 +245,12 @@
 
         fixtures.forEach(fixture => {
 			const container = document.getElementById('fixtures-container');
+
+			var fixtureId = fixture.id;
 		
 			const fixtureDiv = document.createElement('div');
 			fixtureDiv.className = `fixture`;
-			fixtureDiv.id = `fixture-${fixture.fixture.id}`;
+			fixtureDiv.id = `fixture-${fixtureId}`;
 		
 			const fixtureContainer = document.createElement('div');
 			fixtureContainer.className = 'fixtureContainer';
@@ -230,10 +265,11 @@
 			fixture.fixture.channels.forEach(channel => {
 				const fixtureChannel = $(document.createElement('div')).on('contextmenu', function(e) {
 					e.preventDefault();
-					openContextMenu(channel, e);
+					openContextMenu(channel, e, fixture.id);
 				})[0];
 				fixtureChannel.className = 'fixtureChannel';
-				fixtureChannel.id = `fixtureChannel_${fixture.name}_${channel.name}`;
+				const channelIdSafe = channel.name.replace(/\s+/g, '_');
+				fixtureChannel.id = `fixtureChannel_${fixtureId}_${channelIdSafe}`;
 
 				console.log(`DMXVal: ${channel.name}, Attribute: ${channel.value}`);
 	
@@ -243,21 +279,21 @@
 				slider.max = 255;
 				slider.value = 0;
 				slider.className = 'slider';
-				slider.id = `slider_${fixture.name}_${channel.name}`;
+				slider.id = `slider_${fixtureId}_${channelIdSafe}`;
 				slider.oninput = function () {
-					updateDMXValue(channel.name, fixture.name, this.value);
+					updateDMXValue(channel.name, fixtureId, this.value);
 					valueLabel.textContent = this.value;
 				};
 	
 				const valueLabel = document.createElement('label');
 				valueLabel.className = 'valueLabel';
-				valueLabel.id = `valueLabel_${fixture.name}_${channel.name}`;
+				valueLabel.id = `valueLabel_${fixtureId}_${channelIdSafe}`;
 				valueLabel.textContent = 0;
 	
 				const img = new Image();
 				img.className = 'attributeIcon';
 				img.title = channel.name;
-				img.src = `/static/images/channelImageStore/${channel.name.toLowerCase().includes('speed') ? 'speed' : channel.name.replace(/[0-9\s]/g, '').toLowerCase()}.png`;
+				img.src = `/static/images/channelImageStore/${channel.name.toLowerCase().includes('speed') ? 'speed' : channel.name.replace(/[0-9\s]/g, '').toLowerCase().replace(/_+$/, '')}.png`;
 	
 				img.onerror = () => {
 					img.src = `/static/images/channelImageStore/Undef.png`;
@@ -380,22 +416,24 @@
 	
 			if (attributes.channel && attributes.DMXValue !== undefined) {
 				const channel = attributes.channel.replace(/\b\w/g, char => char.toUpperCase());
+				const channelIdSafe = channel.replace(/\s+/g, '_');
 				const value = attributes.DMXValue;
-				const fixture = channelValue.name;
+				const fixture = channelValue.id;
 	
-				const valueLabel = document.getElementById(`valueLabel_${fixture}_${channel}`);
-				const slider = document.getElementById(`slider_${fixture}_${channel}`);
+				const valueLabel = document.getElementById(`valueLabel_${fixture}_${channelIdSafe}`);
+				const slider = document.getElementById(`slider_${fixture}_${channelIdSafe}`);
 	
 				if (valueLabel) valueLabel.textContent = value;
 				if (slider) slider.value = value;
 			} else {
 				for (const [key, attribute] of Object.entries(attributes)) {
 					const channel = attribute.channel.replace(/\b\w/g, char => char.toUpperCase());
+					const channelIdSafe = channel.replace(/\s+/g, '_');
 					const value = attribute.DMXValue;
-					const fixture = channelValue.name;
+					const fixture = channelValue.id;
 	
-					const valueLabel = document.getElementById(`valueLabel_${fixture}_${channel}`);
-					const slider = document.getElementById(`slider_${fixture}_${channel}`);
+					const valueLabel = document.getElementById(`valueLabel_${fixture}_${channelIdSafe}`);
+					const slider = document.getElementById(`slider_${fixture}_${channelIdSafe}`);
 	
 					if (valueLabel) valueLabel.textContent = value;
 					if (slider) slider.value = value;
@@ -417,25 +455,6 @@
 		$("#warningsContainer").css("display", "none");
 		
 		console.log("Client connected!");
-	});
-
-
-	socket.on('UpdateDMXValue', function(data) {
-		console.log("Updating DMX Value: ", data)
-	
-		var channel = data.message.channel;
-		var value = data.message.value;
-		var fixture = data.message.fixture;
-	
-		var valueLabel = document.getElementById(`valueLabel_${fixture}_${channel}`);
-		var slider = document.getElementById(`slider_${fixture}_${channel}`);
-	
-		valueLabel.textContent = value;
-		slider.value = value;
-	});
-	
-	socket.on("refreshPage", function() {
-		location.reload();
 	});
 
 	function updateSceneName(){
@@ -553,7 +572,6 @@
 		}
 
 		if (getBlindEditModeStatus() == false){
-			editScene(sceneId);
 			startScene(sceneId);
 		} else {
 			editScene(sceneId);
@@ -733,10 +751,11 @@
 				event.channels.forEach(function(channel){
 					var fixtureName = channel.fixture;
 					var channelName = channel.channel;
+					var channelIdSafe = channelName.replace(/\s+/g, '_');
 					var value = channel.value; 
 		
-					var valueLabel = document.getElementById(`valueLabel_${fixtureName}_${channelName}`);
-					var slider = document.getElementById(`slider_${fixtureName}_${channelName}`);
+					var valueLabel = document.getElementById(`valueLabel_${fixtureName}_${channelIdSafe}`);
+					var slider = document.getElementById(`slider_${fixtureName}_${channelIdSafe}`);
 		
 					valueLabel.textContent = value;
 					slider.value = value;
@@ -748,10 +767,11 @@
 				event.channels.forEach(function(channel){
 					var fixtureName = channel.fixture;
 					var channelName = channel.channel;
+					var channelIdSafe = channelName.replace(/\s+/g, '_');
 					var value = channel.value; 
 		
-					var valueLabel = document.getElementById(`valueLabel_${fixtureName}_${channelName}`);
-					var slider = document.getElementById(`slider_${fixtureName}_${channelName}`);
+					var valueLabel = document.getElementById(`valueLabel_${fixtureName}_${channelIdSafe}`);
+					var slider = document.getElementById(`slider_${fixtureName}_${channelIdSafe}`);
 		
 					valueLabel.textContent = value;
 					slider.value = value;
@@ -765,7 +785,7 @@
 
 		$("#fixtures-container").find(".fixtureChannel").each(function(){
 			var fixtureName = $(this).attr("id").split("_")[1];
-			var channelName = $(this).attr("id").split("_")[2];
+			var channelName = $(this).attr("id").split("_").slice(2).join("_").replace(/_/g, ' ');
 			var value = $(this).find(".valueLabel").text();
 
 			DMXValueData.push({
@@ -799,11 +819,16 @@
             success: function (response) {
 				clearInterval(sceneTimeLeftCountdownInterval);
 				$("#"+ sceneId +"_SceneBtn").removeClass("active");
-				$("#" + sceneId + "_Visibleduration").text(formatDMXSceneDuration(("#" + sceneId + "_duration").text()));
+				$("#"+ sceneId +"_SceneBtn").removeClass("selected");
+
+				var visibleDuration = $("#" + sceneId + "_Visibleduration");
+				var duration = $("#" + sceneId + "_duration");
+
+				visibleDuration.text(formatDMXSceneDuration(duration.text()));
 
                 $("#fixtures-container").find(".fixtureChannel").each(function(){
                     var valueLabel = $(this).find(".valueLabel");
-                    var slider = $(this).find(".fixtureSlider");
+                    var slider = $(this).find(".slider");
                     
                     valueLabel.text("0");
                     slider.val(0);
@@ -816,5 +841,23 @@
             }
         });
     }
+
+	function setThisSongAsKeybind(){
+		var activeScene = $("#dmxScene.active");
+		var sceneId = activeScene.attr("id").split("_")[1];
+		var songName = $("#currentPlayingSongForTrigger").text();
+
+		$.ajax({
+			url: "/api/dmx/setSceneSongTrigger",
+			type: "POST",
+			data: { 
+				sceneId: sceneId, 
+				songName: songName 
+			},
+			success: function (response) {
+				$("#currentPlayingSongForTriggerValue").text(songName);
+			}
+		});
+	}
 </script> 
 </html>

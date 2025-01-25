@@ -20,22 +20,22 @@ class context:
         self.DMXSceneEventChannel = None
         
         self.fixtureProfiles = {
-                "Dimmer": {
+                "dimmer": {
                     "Dimmer": list(range(0, 255)),
                 },
-                "Colorspot575XT": {
+                "colorspot575xt": {
                     "Pan": list(range(0, 255)),
                     "Tilt": list(range(0, 255)),
-                    "Pan Fine": list(range(0, 255)),
-                    "Tilt Fine": list(range(0, 255)),
-                    "PanTilt Speed": {},
-                    "FanLamp Control": {},
-                    "Colour 1": {
+                    "Pan_Fine": list(range(0, 255)),
+                    "Tilt_Fine": list(range(0, 255)),
+                    "PanTilt_Speed": {},
+                    "FanLamp_Control": {},
+                    "Colour_1": {
                     "White": 0,
-                    "Light blue": 13,
+                    "Light_blue": 13,
                     "Red": 26,
                     "Blue": 38,
-                    "Light green": 51,
+                    "Light_green": 51,
                     "Yellow": 64,
                     "Magenta": 77,
                     "Cyan": 90,
@@ -43,16 +43,16 @@ class context:
                     "Orange": 115,
                     "Rainbow": list(range(128, 255)),
                     },
-                    "Colour 2": {
+                    "Colour_2": {
                     "White": 0,
-                    "Deep Red": 12,
-                    "Deep Blue": 24,
+                    "Deep_Red": 12,
+                    "Deep_Blue": 24,
                     "Pink": 36,
                     "Cyan": 48,
                     "Magenta": 60,
                     "Yellow": 72,
-                    "5600K Filter": 84,
-                    "3200K Filter": 96,
+                    "5600K_Filter": 84,
+                    "3200K_Filter": 96,
                     "UV": 108
                     },
                     "Prism": {
@@ -71,18 +71,18 @@ class context:
                     "7": list(range(56, 63)), 
                     "8": list(range(64, 71)), 
                     "9": list(range(72, 79)), 
-                    "1 Shaking": list(range(80, 95)), 
-                    "2 Shaking": list(range(96, 111)), 
-                    "3 Shaking": list(range(112, 127)), 
-                    "4 Shaking": list(range(128, 143)), 
-                    "5 Shaking": list(range(144, 159)), 
-                    "6 Shaking": list(range(160, 175)), 
-                    "7 Shaking": list(range(176, 191)), 
-                    "8 Shaking": list(range(192, 207)), 
-                    "9 Shaking": list(range(208, 223)), 
-                    "Rotation Slow Fast": list(range(224, 255)), 
+                    "1_Shaking": list(range(80, 95)), 
+                    "2_Shaking": list(range(96, 111)), 
+                    "3_Shaking": list(range(112, 127)), 
+                    "4_Shaking": list(range(128, 143)), 
+                    "5_Shaking": list(range(144, 159)), 
+                    "6_Shaking": list(range(160, 175)), 
+                    "7_Shaking": list(range(176, 191)), 
+                    "8_Shaking": list(range(192, 207)), 
+                    "9_Shaking": list(range(208, 223)), 
+                    "Rotation_Slow_Fast": list(range(224, 255)), 
                     },
-                    "Rotating Gobos": {    
+                    "Rotating_Gobos": {    
                     "Open": list(range(0, 31)),
                     "1": list(range(32, 63)), 
                     "2": list(range(64, 95)), 
@@ -90,9 +90,9 @@ class context:
                     "4": list(range(128, 159)), 
                     "5": list(range(160, 191)), 
                     "6": list(range(192, 223)), 
-                    "Rotation Slow Fast": list(range(224, 255)), 
+                    "Rotation_Slow_Fast": list(range(224, 255)), 
                     },
-                    "Rotation Speed": {
+                    "Rotation_Speed": {
                     "Indexing": list(range(0, 127)),    
                     "Rotation": list(range(128, 255)),    
                     },
@@ -100,36 +100,36 @@ class context:
                     "Open": 0,
                     "MaxToMin": list(range(1, 179)),   
                     "Closed": list(range(180, 191)),   
-                    "Pulse Close Slow Fast": list(range(192, 223)),   
-                    "Pulse Open Fast Slow": list(range(224, 225)),   
+                    "Pulse_Close_Slow_Fast": list(range(192, 223)),   
+                    "Pulse_Open_Fast_Slow": list(range(224, 225)),   
                     },
                     "Focus": list(range(0, 255)),
-                    "Strobe / Shutter": {
+                    "Strobe_Shutter": {
                     "Closed": list(range(0, 32)),   
                     "Open": list(range(32, 63)),   
-                    "Strobe Slow Fast": list(range(64, 95)),   
-                    "Pulse Slow Fast": list(range(128, 159)),   
-                    "Random Slow Fast": list(range(192, 223)),   
+                    "Strobe_Slow_Fast": list(range(64, 95)),   
+                    "Pulse_Slow_Fast": list(range(128, 159)),   
+                    "Random_Slow_Fast": list(range(192, 223)),   
                     },
                     "Dimmer": list(range(0, 255)),
                 },
-                "Colorspot250AT": {
+                "colorspot250at": {
                     "Pan": list(range(0, 255)),
-                    "Pan Fine": list(range(0, 255)),
+                    "Pan_Fine": list(range(0, 255)),
                     "Tilt": list(range(0, 255)),
-                    "Tilt Fine": list(range(0, 255)),
-                    "Pan Tilt Speed": {
+                    "Tilt_Fine": list(range(0, 255)),
+                    "Pan_Tilt_Speed": {
                     "Max": 0,
                     "Speed": list(range(1, 255)),
                     },
-                    "Special Functions": {},
-                    "Pan Tilt Macros": {},
-                    "Pan Tilt Macros Speed": {},
-                    "Colour 1": {
+                    "Special_Functions": {},
+                    "Pan_Tilt_Macros": {},
+                    "Pan_Tilt_Macros_Speed": {},
+                    "Colour_1": {
                     "White": 0,
-                    "Dark green": 11,
+                    "Dark_Green": 11,
                     "Red": 23,
-                    "Light azure": 34,
+                    "Light_Azure": 34,
                     "Magenta": 46,
                     "UV filter": 58,
                     "Yellow": 70,
@@ -139,9 +139,9 @@ class context:
                     "Deep red": 117,
                     "Rotation": list(range(190, 243)),
                     "Audio": list(range(224, 249)),
-                    "Random Fast Slow": list(range(250, 255)),
+                    "Random_Fast_Slow": list(range(250, 255)),
                     },
-                    "Colour Fine Position": list(range(0, 255)),
+                    "Colour_Fine_Position": list(range(0, 255)),
                     "Gobos": {
                     "Open": list(range(0, 3)),
                     "1": list(range(4, 7)),   
@@ -151,124 +151,127 @@ class context:
                     "5": list(range(20, 23)),   
                     "6": list(range(24, 27)),   
                     "7": list(range(28, 31)),   
-                    "1 Rotating": list(range(32, 35)),
-                    "2 Rotating": list(range(36, 39)),
-                    "3 Rotating": list(range(40, 43)),
-                    "4 Rotating": list(range(44, 47)),
-                    "5 Rotating": list(range(48, 51)),
-                    "6 Rotating": list(range(52, 55)),
-                    "7 Rotating": list(range(56, 59)),
-                    "1 Shaking Slow Fast": list(range(60, 69)),
-                    "2 Shaking Slow Fast": list(range(70, 79)),
-                    "3 Shaking Slow Fast": list(range(80, 89)),
-                    "4 Shaking Slow Fast": list(range(90, 99)),
-                    "5 Shaking Slow Fast": list(range(100, 109)),
-                    "6 Shaking Slow Fast": list(range(110, 119)),
-                    "7 Shaking Slow Fast": list(range(120, 139)),
-                    "1 Shaking Fast Slow": list(range(130, 139)),
-                    "2 Shaking Fast Slow": list(range(140, 149)),
-                    "3 Shaking Fast Slow": list(range(150, 159)),
-                    "4 Shaking Fast Slow": list(range(160, 169)),
-                    "5 Shaking Fast Slow": list(range(170, 179)),
-                    "6 Shaking Fast Slow": list(range(180, 189)),
-                    "7 Shaking Fast Slow": list(range(190, 199)),
+                    "1_Rotating": list(range(32, 35)),
+                    "2_Rotating": list(range(36, 39)),
+                    "3_Rotating": list(range(40, 43)),
+                    "4_Rotating": list(range(44, 47)),
+                    "5_Rotating": list(range(48, 51)),
+                    "6_Rotating": list(range(52, 55)),
+                    "7_Rotating": list(range(56, 59)),
+                    "1_Shaking_Slow_Fast": list(range(60, 69)),
+                    "2_Shaking_Slow_Fast": list(range(70, 79)),
+                    "3_Shaking_Slow_Fast": list(range(80, 89)),
+                    "4_Shaking_Slow_Fast": list(range(90, 99)),
+                    "5_Shaking_Slow_Fast": list(range(100, 109)),
+                    "6_Shaking_Slow_Fast": list(range(110, 119)),
+                    "7_Shaking_Slow_Fast": list(range(120, 139)),
+                    "1_Shaking_Fast_Slow": list(range(130, 139)),
+                    "2_Shaking_Fast_Slow": list(range(140, 149)),
+                    "3_Shaking_Fast_Slow": list(range(150, 159)),
+                    "4_Shaking_Fast_Slow": list(range(160, 169)),
+                    "5_Shaking_Fast_Slow": list(range(170, 179)),
+                    "6_Shaking_Fast_Slow": list(range(180, 189)),
+                    "7_Shaking_Fast_Slow": list(range(190, 199)),
                     "Rotation": list(range(202, 243)),
                     "Audio": list(range(244, 249)),
-                    "Random Fast Slow": list(range(250, 255)),
+                    "Random_Fast_Slow": list(range(250, 255)),
                     },
-                    "Gobo Rotation Speed": {
-                    "No Rotation": 0,
+                    "Gobo_Rotation_Speed": {
+                    "No_Rotation": 0,
                     "Rotation": list(range(1, 255)),  
                     },
-                    "Gobo Fine Position": list(range(0, 255)),
+                    "Gobo_Fine_Position": list(range(0, 255)),
                     "Prism": {
-                    "Open position (hole)": list(range(0, 19)),
-                    "3-facet": list(range(20, 159)),
-                    "Macro 1": list(range(160, 167)),
-                    "Macro 2": list(range(168, 175)),
-                    "Macro 3": list(range(176, 183)),
-                    "Macro 4": list(range(184, 191)),
-                    "Macro 5": list(range(192, 199)),
-                    "Macro 6": list(range(200, 207)),
-                    "Macro 7": list(range(208, 215)),
-                    "Macro 8": list(range(216, 223)),
-                    "Macro 9": list(range(224, 231)),
-                    "Macro 10": list(range(232, 239)),
-                    "Macro 11": list(range(240, 247)),
-                    "Macro 12": list(range(248, 255)),
+                    "Open_Position_Hole": list(range(0, 19)),
+                    "3_Facet": list(range(20, 159)),
+                    "Macro_1": list(range(160, 167)),
+                    "Macro_2": list(range(168, 175)),
+                    "Macro_3": list(range(176, 183)),
+                    "Macro_4": list(range(184, 191)),
+                    "Macro_5": list(range(192, 199)),
+                    "Macro_6": list(range(200, 207)),
+                    "Macro_7": list(range(208, 215)),
+                    "Macro_8": list(range(216, 223)),
+                    "Macro_9": list(range(224, 231)),
+                    "Macro_10": list(range(232, 239)),
+                    "Macro_11": list(range(240, 247)),
+                    "Macro_12": list(range(248, 255)),
                     },
-                    "Prism Rotation": {
-                    "No Rotation": 0,
+                    "Prism_Rotation": {
+                    "No_Rotation": 0,
                     "Rotation": list(range(1, 255)), 
                     },
                     "Focus": list(range(1, 255)),
-                    "Focus Fine": list(range(1, 255)),
+                    "Focus_Fine": list(range(1, 255)),
                     "Shutter": {
                     "Closed": list(range(0, 31)),
                     "Open": list(range(32, 63)),
-                    "Strobe Slow Fast": list(range(64, 95)),
-                    "Pulse Slow Fast": list(range(128, 143)),
-                    "Pulse Fast Slow": list(range(144, 159)),
-                    "Random Slow Fast": list(range(192, 223)),
+                    "Strobe_Slow_Fast": list(range(64, 95)),
+                    "Pulse_Slow_Fast": list(range(128, 143)),
+                    "Pulse_Fast_Slow": list(range(144, 159)),
+                    "Random_Slow_Fast": list(range(192, 223)),
                     },
                     "Dimmer": list(range(0, 255)),
-                    "Dimmer Fine": list(range(0, 255)),
+                    "Dimmer_Fine": list(range(0, 255)),
                 },
-                "Colorwash250AT": {
+                "colorwash250at": {
                     "Pan": list(range(0, 255)),
-                    "Pan Fine": list(range(0, 255)),
+                    "Pan_Fine": list(range(0, 255)),
                     "Tilt": list(range(0, 255)),
-                    "Tilt Fine": list(range(0, 255)),
-                    "Pan Tilt Speed": {
+                    "Tilt_Fine": list(range(0, 255)),
+                    "Pan_Tilt_Speed": {
                     "Max": 0,
                     "Speed": list(range(1, 255)),
                     },
-                    "Special Functions": {},
-                    "Pan Tilt Macros": {},
-                    "Pan Tilt Macros Speed": {},
-                    "Colour 1": {
+                    "Special_Functions": {},
+                    "Pan_Tilt_Macros": {},
+                    "Pan_Tilt_Macros_Speed": {},
+                    "Colour_1": {
                     "White": 0,
                     "Red": 18,
                     "Blue": 36,
                     "Green": 54,
-                    "3200K Filter": 72,
-                    "6000K Filter": 90,
+                    "3200K_Filter": 72,
+                    "6000K_Filter": 90,
                     "UV": list(range(190, 243)),
                     "Audio": list(range(244, 249)),
-                    "Random Fast Slow": list(range(250, 255)),
+                    "Random_Fast_Slow": list(range(250, 255)),
                     },
-                    "Colour Fine Position": list(range(0, 255)),
+                    "Colour_Fine_Position": list(range(0, 255)),
                     "Cyan": list(range(0, 255)),
                     "Magenta": list(range(0, 255)),
                     "Yellow": list(range(0, 255)),
-                    "CMY Dimmer Speed": list(range(0, 255)),
-                    "CMY Macros": {
+                    "CMY_Dimmer_Speed": list(range(0, 255)),
+                    "CMY_Macros": {
                     "Open": list(range(0, 7)),
-                    "Rainbow Fast Slow": list(range(240, 243)),
+                    "Rainbow_Fast_Slow": list(range(240, 243)),
                     "Audio": list(range(244, 249)),
-                    "Random Fast Slow": list(range(250, 255)),
+                    "Random_Fast_Slow": list(range(250, 255)),
                     },
-                    "Effect Wheel": {
+                    "Effect_Wheel": {
                     "Open": list(range(0, 70)),  
-                    "Beam Shaper": list(range(71, 179)),  
-                    "Swivelling Slow Fast": list(range(180, 199)),  
+                    "Beam_Shaper": list(range(71, 179)),  
+                    "Swivelling_Slow_Fast": list(range(180, 199)),  
                     "Frost": list(range(200, 255)),  
                     },
                     "Zoom": list(range(0, 255)),
                     "Shutter": {
                     "Closed": list(range(0, 31)),
                     "Open": list(range(32, 63)),
-                    "Strobe Slow Fast": list(range(64, 95)),
-                    "Opening Pulse Slow Fast": list(range(128, 143)),
-                    "Closing Pulse Fast Slow": list(range(144, 159)),
+                    "Strobe_Slow_Fast": list(range(64, 95)),
+                    "Opening_Pulse_Slow_Fast": list(range(128, 143)),
+                    "Closing_Pulse_Fast_Slow": list(range(144, 159)),
                     "Random": list(range(192, 223)),
                     },
                     "Dimmer": list(range(0, 255)),
-                    "Dimmer Fine": list(range(0, 255)),
+                    "Dimmer_Fine": list(range(0, 255)),
                 }
             }
 
         self.__createDatabase(app)
+    
+    def getFixtureProfiles(self):
+        return self.fixtureProfiles
     
     def __createDatabase(self, app):
         self.__createModels()
@@ -322,7 +325,9 @@ class context:
             createDate = self.db.Column(self.db.DateTime, nullable=False)
             repeat = self.db.Column(self.db.Boolean, nullable=False)
             flash = self.db.Column(self.db.Boolean, nullable=False)
-            keybind = self.db.Column(self.db.String(15), nullable=True)
+            keyboardKeybind = self.db.Column(self.db.String(15), nullable=True)
+            songKeybind = self.db.Column(self.db.String(15), nullable=True)
+            gameEventKeybind = self.db.Column(self.db.String(15), nullable=True)
 
             events = self.db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
 
@@ -464,7 +469,7 @@ class context:
                 print(f"Error: {e}")
     
     class DMXSceneDTO:
-        def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keybind, events):
+        def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboardKeybind, songKeybind, gameEventKeybind, events):
             self.id = id
             self.name = name
             self.duration = duration
@@ -472,7 +477,9 @@ class context:
             self.createDate = createDate
             self.repeat = repeat
             self.flash = flash
-            self.keybind = keybind  
+            self.keyboardKeybind = keyboardKeybind
+            self.songKeybind = songKeybind
+            self.gameEventKeybind = gameEventKeybind
             self.events = events
         
         def to_dict(self):
@@ -484,7 +491,9 @@ class context:
                 "createDate": self.createDate.isoformat() if self.createDate else None,
                 "repeat": self.repeat,
                 "flash": self.flash,
-                "keybind": self.keybind,
+                "keyboardKeybind": self.keyboardKeybind,
+                "songKeybind": self.songKeybind,
+                "gameEventKeybind": self.gameEventKeybind,
                 "events": [event.to_dict() for event in self.events]
             }
             

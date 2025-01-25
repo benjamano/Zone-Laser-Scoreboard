@@ -65,6 +65,9 @@ class WebApp:
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
+        with self.app.app_context():
+            self._context = context(self.app)
+        
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
         self.openFiles()
@@ -72,9 +75,6 @@ class WebApp:
         self.setupRoutes()
         
         self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
-
-        with self.app.app_context():
-            self._context = context(self.app)
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -223,20 +223,20 @@ class WebApp:
             try:
                 format.message("Registering ColorWash 250 AT", type="info")
                 
-                self.ColorWash250 = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "Colorwash250AT", 43)
+                self.ColorWash250 = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "colorwash250at", 43)
                 self._dmx.addFixtureToGroup(self.ColorWash250, "Moving Heads")
                 
             except Exception as e:
                 format.message(f"Error registering ColorWash 250 AT: {e}", type="error")
                 
             try:
-                format.message("Registering ColorWash 250 AT 1", type="info")
+                format.message("Registering ColorSpot 250 AT ", type="info")
                 
-                self.ColorWash250_1 = self._dmx.registerFixtureUsingType("ColorWash 250 AT 1", "Colorwash250AT_1", 43)
-                self._dmx.addFixtureToGroup(self.ColorWash250_1, "Moving Heads")
+                self.ColorSpot250 = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", "colorspot250at", 10)
+                self._dmx.addFixtureToGroup(self.ColorSpot250, "Moving Heads")
                 
             except Exception as e:
-                format.message(f"Error registering ColorWash 250 AT 1: {e}", type="error")
+                format.message(f"Error registering ColorSpot 250 AT: {e}", type="error")
         
             self.DMXConnected = True
             
@@ -302,7 +302,11 @@ class WebApp:
         
         @self.app.route("/schedule")
         def scehdule():
-            return render_template('schedule.html')
+            return render_template("schedule.html")
+        
+        @self.app.route("/settings")
+        def settings():
+            return render_template("settings.html")
         
         @self.app.route("/editScene")
         def editScene():
@@ -560,6 +564,15 @@ class WebApp:
             except Exception as e:
                 format.message(f"Failed to save scene event: {e}", type="error")
                 return jsonify({"error": f"Failed to save scene event: {e}"}), 500
+            
+        @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
+        def setSceneSongTrigger():
+            sceneId = request.form.get("sceneId")
+            songName = request.form.get("songName")
+
+            self._dmx.setSceneSongTrigger(sceneId, songName)
+
+            return jsonify({"success": "Scene song trigger set"})
 
         @self.app.route('/end')
         def terminateServer():
