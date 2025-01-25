@@ -1092,7 +1092,7 @@ class WebApp:
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             #format.message(f"Response: {response.text}")
         else:
-            self.gameStatus = "running"
+            self.gameStarted()
             if self.OBSConnected == True:
                 self.endOfDay = False
                 self.obs.set_current_program_scene("Laser Scores")
