@@ -153,6 +153,14 @@
 
 	</main>
 
+	<div id="contextMenu" class="contextMenu">
+		<ul id="contextMenuList">
+			<li>Red</li>
+			<li>Green</li>
+			<li>Blue</li>
+		</ul>
+	</div>
+
 </body>
 
 <script>
@@ -174,6 +182,29 @@
             (milliseconds < 100 ? (milliseconds < 10 ? "00" + milliseconds : "0" + milliseconds) : milliseconds)
         );
     }
+
+	function openContextMenu(channel, e) {
+		var contextMenu = $("#contextMenuList");
+
+		contextMenu.empty();
+
+		var fixtureId = channel.fixtureID;
+		var channelName = channel.name;
+
+		channel.channelValues.forEach(channelValue => {
+			var contextMenuItem = $("<li>").text(channelValue.name);
+			contextMenuItem.on("click", function () {
+				updateDMXValue(channelName, fixtureId, channelValue.value);
+			});
+			contextMenu.append(contextMenuItem);
+		});
+
+		contextMenu.css({
+			display: "block",
+			top: e.pageY,
+			left: e.pageX,
+		  });
+	}
 
 	async function fetchFixtures() {
         const response = await fetch(`/api/availableFixtures`);
@@ -197,7 +228,10 @@
 			fixtureDiv.appendChild(fixtureTitle);
 		
 			fixture.fixture.channels.forEach(channel => {
-				const fixtureChannel = document.createElement('div');
+				const fixtureChannel = $(document.createElement('div')).on('contextmenu', function(e) {
+					e.preventDefault();
+					openContextMenu(channel, e);
+				})[0];
 				fixtureChannel.className = 'fixtureChannel';
 				fixtureChannel.id = `fixtureChannel_${fixture.name}_${channel.name}`;
 

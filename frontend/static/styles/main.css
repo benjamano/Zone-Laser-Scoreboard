@@ -14,6 +14,7 @@
     --TSBBGLight: var(--light-gray);
     --TBSBGExtraLight: #9ea5ba1a;
     --TBSBGDark: #10101273;
+    --contextMenu: #5e6473;
 }
 
 html{
@@ -704,9 +705,7 @@ main.collapsed {
 }
 
 .sceneTimeline{
-    height: 40vh;
-    padding: 1rem;
-    border-top: solid 2px var(--TBSBGExtraLight);
+    height: 41vh;
 }
 
 .gunScoreTable {
@@ -726,6 +725,37 @@ main.collapsed {
     background-color: var(--TBSBGSecondary);
     padding: 0.5rem;
 }
+
+.contextMenu{
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--contextMenu);
+    color: white;
+    z-index: 999;
+    opacity: 1;
+}
+
+.contextMenu ul{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.contextMenu li{
+    list-style: none;
+    padding: 1.5rem;
+    cursor: pointer;
+    width: 50px;
+    height: 50px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    border: solid 1px black;
+}
+
 
 .sceneEventTable {
     width: 100%;
