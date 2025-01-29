@@ -1080,14 +1080,12 @@ class WebApp:
         format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
         if packetData[1] == "@015":
-            self.gameStatus = "running"
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             #format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
-            self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
@@ -1101,13 +1099,12 @@ class WebApp:
         format.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
-            self.gameStatus = "stopped"
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             #format.message(f"Response: {response.text}")
         else:
-            self.gameStatus = "running"
+            self.gameStarted()
             if self.OBSConnected == True:
                 self.endOfDay = False
                 self.obs.set_current_program_scene("Laser Scores")

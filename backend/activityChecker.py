@@ -16,12 +16,12 @@ except Exception as e:
     
 print("Web App Status Checker Started, hiding console")
 ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+
+tries = 0
     
 while True:
     try:
         try:
-            #print("Finding local IP")
-            # Create a dummy socket connection to find the local IP address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
             s.connect(("8.8.8.8", 80))
             ip = s.getsockname()[0]
@@ -34,32 +34,23 @@ while True:
         print(f"Checking server status at {ip} with directory {dir}")
         
         try:
-            #print("Pinging server")
             response = requests.get(fr"http://{ip}:8080/ping").status_code
         except Exception as e:
             print(f"Failed to ping server: {e}")
             response = 500
-            
-        print(f"Server response: {response}")
-
-        if response == 200:
-            #print("Server is running, no action needed")
+        
+        if response != 500:
+            tries = 0
             pass
         else:
-            #ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
-            
-            # print("\n\n\n\n\n")
-            # print("\033[91mWARNING: SERVER IS NOT RUNNING\033[0m")
-            # print("\n\n")
-            # print("\033[91mSTARTING SERVER\033[0m")
-            
-            subprocess.Popen(["python", fr"{dir}\ScoreBoard.py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
-            
-            # time.sleep(10)
-            
-            # ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+            tries += 1
+            if tries == 5:
+                subprocess.Popen(["python", fr"{dir}\ScoreBoard.py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
+            elif tries > 8:
+                os.system("shutdown /r /t 1")
+                tries = 0
 
-        time.sleep(60)
+        time.sleep(30)
     except Exception as e:
         print(f"Failed to check server status: {e}")
         time.sleep(60)
