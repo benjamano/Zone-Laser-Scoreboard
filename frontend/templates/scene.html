@@ -79,7 +79,12 @@
 
 						</div>
 
-						<button onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" role="button" class="controlButton col-3 fas fa-eye mb-2" id="blindEditModeIcon"></button>
+						<div class="buttonControlsContainer">
+
+							<button onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" role="button" class="controlButton col-3 fas fa-eye mb-2" id="blindEditModeIcon"></button>
+							<!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
+
+						</div>
 
 						<div class="songTriggerSelector">
 
@@ -87,7 +92,7 @@
 							<div class="input-group">
 								<input type="text" id="currentPlayingSongForTrigger" class="pe-none col-7 songPlayingTriggerInput hideSelectEffect" readonly>
 								<button onclick="setThisSongAsKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
-								<label class="input-group-text songPlayingTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
+								<label class="songTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
 							</div>
 
 						</div>
@@ -98,8 +103,25 @@
 							<div class="input-group">
 								<input type="text" id="triggerKeybindClick" class="col-7 cursor-pointer songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
 								<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+								<label class="songTriggerLabel hideSelectEffect">Current Set Keybind: <span id="currentPlayingKeybindForTriggerValue"></span></label>
 							</div>
 
+						</div>
+
+						<div class="actionCheckBoxContainer">
+
+							<label class="actionCheckBoxLabel"><i class="fas fa-repeat me-2"></i> Loop</label>
+
+							<input type="checkbox" id="loopCheckbox" role="switch" onclick="toggleSceneLoop()" class="actionCheckBox">
+
+						</div>
+
+						<div class="actionCheckBoxContainer">
+
+							<label class="actionCheckBoxLabel"><i class="fas fa-bolt me-2"></i> Flash Mode</label>
+
+							<input type="checkbox" id="flashModeCheckbox" role="switch" onclick="toggleSceneFlashMode()" class="actionCheckBox">
+							
 						</div>
 
 					</div>
@@ -113,6 +135,7 @@
 									<td>#</td>
 									<td>Start Time</td>
 									<td>Duration</td>
+									<td onclick="addNewSceneEvent()">+</td>
 								</tr>
 								<!-- <tr id="sceneEvent_1">
 									<td>01</td>
@@ -247,6 +270,8 @@
 			const container = document.getElementById('fixtures-container');
 
 			var fixtureId = fixture.id;
+
+			console.log("Channel range for " + fixture.name + ": " + fixture.channels);
 		
 			const fixtureDiv = document.createElement('div');
 			fixtureDiv.className = `fixture`;
@@ -341,8 +366,9 @@
 						.addClass("sceneTitleText hideSelectEffect")
 						.attr("type", "text")
 						.val(scene.name)
+						.attr("id", name + "_sceneName")
 						.on("change", function () {
-							updateSceneName();
+							updateSceneName(name, $(this).val());
 						});
 	
 					var sceneDuration = $("<p>")
@@ -457,12 +483,12 @@
 		console.log("Client connected!");
 	});
 
-	function updateSceneName(){
+	function updateSceneName(sceneId, newName){
         $.ajax({
             url: "/api/dmx/editSceneName",
             type: "POST",
-            data: { sceneId: $("#editingSceneId").text(),
-                    newName: $("#sceneName").val() },
+            data: { sceneId: sceneId,
+                    newName: newName },
             success: function (response) {
                 console.log("Scene Name Changed:", response);
             },
@@ -500,69 +526,11 @@
             url: "/api/dmx/createScene",
             type: "POST",
             success: function (response) {
-                $("#editingSceneId").text(response);
-                $("#sceneName").val("New Scene");
+				getDMXScenes();
 
-                id = response;
+                editScene(response.sceneId);
             },
-            error: function (xhr) {
-                handleError(xhr);
-            }
         });
-
-        var sceneEventContainer = $("#sceneEventContainer");
-
-        sceneEventContainer.empty()
-                        
-        sceneEventContainer.append(
-            $("<div>")
-                .addClass("dmxSceneEvent dmxAddScene cursor-pointer user-select-none")
-                .attr("role", "button")
-                .text("+")
-                .on("click", function () {
-                    addNewSceneEvent();
-                })
-        );
-
-        var DMXScenecontainer = $("#sceneContainer");
-        var name = id;
-        var totalDuration = 0;
-
-        var sceneDiv = $(document.createElement("div"))
-            .addClass("dmxScene user-select-none")
-            .attr("id", name + "_SceneBtn")
-            .attr("role", "button")
-            .on("click", function () {
-                startOrEditScene(name);
-            });
-
-        var sceneText = $(document.createElement("p"))
-            .addClass("title")
-            .text(scene.name);
-
-        var sceneDuration = $(document.createElement("p"))
-            .addClass("duration")
-            .attr("id", name + "_Visibleduration")
-            .text(formatDMXSceneDuration(totalDuration));
-
-        var sceneDurationHidden = $(document.createElement("p"))
-            .addClass("duration")
-            .attr("id", name  + "_duration")
-            .attr("style", "display: none;")
-            .text(totalDuration);
-
-        var sceneInfoContainer = $(document.createElement("div"))
-            .addClass("sceneInfoContainer");
-
-        var sceneSettingContainer = $(document.createElement("div"))
-            .addClass("sceneSettingContainer");
-
-        sceneInfoContainer.append(sceneText);
-        sceneInfoContainer.append(sceneDuration);
-        sceneInfoContainer.append(sceneDurationHidden);
-        sceneDiv.append(sceneInfoContainer);
-        sceneDiv.append(sceneSettingContainer);
-        DMXScenecontainer.append(sceneDiv);
     }
 
 	function startOrEditScene(sceneId){
@@ -680,6 +648,9 @@
 
 					var sceneContainer = $("#sceneEventsContainer");
 					sceneContainer.find("tr").not("#header").remove();
+
+					$("#currentPlayingSongForTriggerValue").text(scene.songKeybind);
+					$("#triggerKeybindClick").text(scene.keyboardKeybind);
                 
                     scene.events.forEach(function (event) {
                         const duration = event.duration || 0; 
@@ -856,6 +827,31 @@
 			},
 			success: function (response) {
 				$("#currentPlayingSongForTriggerValue").text(songName);
+			}
+		});
+	}
+
+	function addNewSceneEvent(){
+		var activeScene = $(".dmxScene.selected");
+
+		if (activeScene.length == 0){
+			return;
+		}
+
+		var sceneId = activeScene.attr("id").split("_")[0];
+
+		if (sceneId == null || sceneId == ""){
+			return;
+		}
+
+		$.ajax({
+			url: "/api/dmx/createSceneEvent",
+			type: "POST",
+			data: { 
+				sceneId: sceneId
+			},
+			success: function (response) {
+				editScene(sceneId);
 			}
 		});
 	}

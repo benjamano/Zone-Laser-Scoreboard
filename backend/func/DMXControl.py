@@ -223,6 +223,18 @@ class dmx:
         self._context.db.session.commit()
         
         return scene
+    
+    def createNewSceneEvent(self, sceneId):
+        newSceneEvent = self._context.DMXSceneEvent(
+            name="New Event", 
+            duration=0, 
+            updateDate=datetime.datetime.now(), 
+            sceneID=sceneId)
+        
+        self._context.db.session.add(newSceneEvent)
+        self._context.db.session.commit()
+        
+        return newSceneEvent
 
     # Getters
         
@@ -239,9 +251,11 @@ class dmx:
                     fixtures = self._context.Fixture.query.filter_by(name=str(registeredFixture[1]["type"])).all()
 
                     for fixture in fixtures:
+                        DMXFixture = self.getFixturesByName(registeredFixture[0])[0]
+                        
                         fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture[1]["id"])
                         fixtureDict = fixtureDTO[0].to_dict()
-                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture[0], "id": registeredFixture[1]["id"]})
+                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture[0], "id": registeredFixture[1]["id"], "channels": DMXFixture.channel_usage})
         except Exception as e:
             format.message(f"Error getting fixtures: {e}", "error")
             return []

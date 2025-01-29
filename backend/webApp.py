@@ -574,6 +574,18 @@ class WebApp:
 
             return jsonify({"success": "Scene song trigger set"})
 
+        @self.app.route("/api/dmx/createSceneEvent", methods=["POST"])
+        def createSceneEvent():
+            sceneId = request.form.get("sceneId")
+
+            try:
+                self._dmx.createNewSceneEvent(sceneId)
+                
+                return jsonify({"success": "Scene event created"})
+            except Exception as e:
+                format.message(f"Failed to create scene event: {e}", type="error")
+                return jsonify({"error": f"Failed to create scene event: {e}"}), 500
+
         @self.app.route('/end')
         def terminateServer():
             logging.shutdown()

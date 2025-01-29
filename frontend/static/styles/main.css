@@ -412,8 +412,8 @@ overflow: scroll;
 }
 
 .controls{
-    padding: 1rem;    
-    height: 23vh;
+    padding: 0.8rem;    
+    height: 31vh;
 }
 
 .buttonControlsContainer{
@@ -718,7 +718,7 @@ main.collapsed {
 }
 
 .sceneTimeline{
-    height: 39vh;
+    height: 31vh;
 }
 
 .gunScoreTable {
@@ -837,4 +837,25 @@ main.collapsed {
 
 .sceneEvent {
     flex-grow: 1;
+}
+
+.actionCheckBoxContainer{
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: black solid 1px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
+label{
+    opacity: 0.7;
+}
+
+.songTriggerSelector{
+    border-bottom: black solid 1px;
+    padding-bottom: 1rem;
+    padding-top: 0.3rem;
 }
