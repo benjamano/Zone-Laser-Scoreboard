@@ -329,9 +329,9 @@ class dmx:
                 createDate=scene.createDate,
                 flash=scene.flash,
                 repeat=scene.repeat,
-                keyboardKeybind=scene.keyboardKeybind,
-                songKeybind=scene.songKeybind,
-                gameEventKeybind=scene.gameEventKeybind,
+                keyboard_keybind=scene.keyboard_keybind,
+                song_keybind=scene.song_keybind,
+                game_event_keybind=scene.game_event_keybind,
                 events=[
                     self._context.DMXSceneEventDTO(
                         id=event.id,
@@ -437,9 +437,9 @@ class dmx:
                     createDate=scene.createDate,
                     repeat=scene.repeat,
                     flash=scene.flash,
-                    keyboardKeybind = scene.keyboardKeybind,
-                    songKeybind = scene.songKeybind,
-                    gameEventKeybind = scene.gameEventKeybind,
+                    keyboard_keybind = scene.keyboard_keybind,
+                    song_keybind = scene.song_keybind,
+                    game_event_keybind = scene.game_event_keybind,
                     events=[
                         self._context.DMXSceneEventDTO(
                             id=event.id,
