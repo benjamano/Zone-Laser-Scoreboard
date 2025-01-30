@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-import os
+import os, datetime
 
 from func.format import message
 
@@ -295,13 +295,13 @@ class context:
             
         class Game(self.db.Model):
             id = self.db.Column(self.db.Integer, primary_key=True)
-            name = self.db.Column(self.db.String(60), unique=True, nullable=False)
+            name = self.db.Column(self.db.String(60), unique=True, nullable=True)
             startTime = self.db.Column(self.db.DateTime, nullable=False)
-            endTime = self.db.Column(self.db.DateTime, nullable=False)
-            winningPlayer = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
+            endTime = self.db.Column(self.db.DateTime, nullable=True)
+            winningPlayerRed = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
+            winningPlayerGreen = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
             winningTeam = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
-            loser = self.db.Column(self.db.String(60), nullable=True)
-            
+
         class Team(self.db.Model):
             id = self.db.Column(self.db.Integer, primary_key=True)
             name = self.db.Column(self.db.String(60), unique=True, nullable=False)
@@ -467,7 +467,32 @@ class context:
                 message(f"Error committing changes: {e}", type="error")
                 self.db.session.rollback()
                 print(f"Error: {e}")
+                
+    def createNewGame(self):
+        try:
+            with self.app.app_context():
+                newGame = self._context.Game(
+                    name=f"Game_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}", 
+                    startTime=datetime.datetime.now(),
+                )
+                self._context.db.session.add(newGame)
+                self._context.db.session.commit()
+                
+                format.message(f"Created new game with ID: {newGame.id}", type="success")
+                return newGame.id
+                
+        except Exception as e:
+            format.message(f"Error creating new game: {e}", type="error")
+            return None            
     
+    def updateGame(self, gameId, **kwargs):
+        with self.app.app_context():
+            game = self.Game.query.get(gameId)
+            for key, value in kwargs.items():
+                setattr(game, key, value)
+            self.db.session.commit()
+            
+            return game
     class DMXSceneDTO:
         def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboardKeybind, songKeybind, gameEventKeybind, events):
             self.id = id

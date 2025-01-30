@@ -60,6 +60,7 @@ class WebApp:
         self.gameStatus = "stopped" #Either running or stopped
         self.endOfDay = False
         self.SysName = "TBS"
+        self.currentGameId = 0
         
         pyautogui.FAILSAFE = False
 
@@ -1156,13 +1157,9 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            #self.setFixtureBrightness(255)
-            
-            #self._RedBulkHeadLights.dim(255, 5000)
-            
-            pass
+            self.currentGameId = self._context.createNewGame()
         except Exception as e:
-            format.message(f"Error dimming red lights: {e}", type="error")
+            format.message(f"Error creating new game: {e}", type="error")
         
     def gameEnded(self):
         format.message("Game ended")
@@ -1178,12 +1175,12 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            #self.setFixtureBrightness(0)
+            self.currentGameId = 0
             
-            pass
+            self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now())
             
         except Exception as e:
-            format.message(f"Error dimming red lights: {e}", type="error")
+            format.message(f"Error ending game: {e}", type="error")
 
     # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
     
