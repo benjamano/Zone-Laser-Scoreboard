@@ -413,7 +413,7 @@ overflow: scroll;
 
 .controls{
     padding: 0.8rem;    
-    height: 31vh;
+    height: 100%;
 }
 
 .buttonControlsContainer{
@@ -551,7 +551,7 @@ main.collapsed {
 }
 
 .songTriggerLabel{
-    font-size: 0.8rem;
+    font-size: 0.65vw;
     opacity: 0.7;
     margin-bottom: 0.2rem;
 }
@@ -599,7 +599,7 @@ main.collapsed {
 }
 
 .sidebar.collapsed {
-    width: 3vw;
+    width: 4vw;
 }
 
 .sidebarText{
@@ -718,7 +718,7 @@ main.collapsed {
 }
 
 .sceneTimeline{
-    height: 31vh;
+    height: 100%;
 }
 
 .gunScoreTable {
@@ -790,6 +790,7 @@ main.collapsed {
 
 .sceneEventTable tr.header td {
     background-color: var(--TBSBGSecondary);
+    font-size: 0.65vw;
 }
 
 .sceneEventTable .active td{
@@ -852,10 +853,15 @@ main.collapsed {
 
 label{
     opacity: 0.7;
+    font-size: 0.75vw;
 }
 
 .songTriggerSelector{
     border-bottom: black solid 1px;
     padding-bottom: 1rem;
     padding-top: 0.3rem;
+}
+
+.sceneControlsCard{
+    height: 75vh;
 }

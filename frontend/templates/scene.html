@@ -49,7 +49,7 @@
 
 		<div class="row">
 
-			<div class="col-10">
+			<div class="col-8">
 
 				<div class="card">
 
@@ -65,94 +65,91 @@
 
 			</div>
 
-			<div class="col-2">
+			<div class="col-4">
 
-				<div class="card">
+				<div class="card sceneControlsCard">
 
-					<div class="controls">
+					<div class="row h-100">
 
-						<div class="buttonControlsContainer">
+						<div class="col-7">
 
-							<button class="fas fa-play col-3 controlButton"></button>
-							<button class="fas fa-pause col-3 controlButton"></button>
-							<button class="fas fa-stop col-3 controlButton"></button>
+							<div class="controls">
 
-						</div>
+								<div class="buttonControlsContainer">
 
-						<div class="buttonControlsContainer">
+									<button class="fas fa-play col-3 controlButton"></button>
+									<button class="fas fa-pause col-3 controlButton"></button>
+									<button class="fas fa-stop col-3 controlButton"></button>
 
-							<button onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" role="button" class="controlButton col-3 fas fa-eye mb-2" id="blindEditModeIcon"></button>
-							<!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
+								</div>
 
-						</div>
+								<div class="buttonControlsContainer">
 
-						<div class="songTriggerSelector">
+									<button onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" role="button" class="controlButton col-3 fas fa-eye mb-2" id="blindEditModeIcon"></button>
+									<!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
 
-							<label class="songTriggerLabel">Trigger on Song</label>
-							<div class="input-group">
-								<input type="text" id="currentPlayingSongForTrigger" class="pe-none col-7 songPlayingTriggerInput hideSelectEffect" readonly>
-								<button onclick="setThisSongAsKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
-								<label class="songTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
+								</div>
+
+								<div class="songTriggerSelector">
+
+									<label class="songTriggerLabel">Trigger on Song</label>
+									<div class="input-group">
+										<input type="text" id="currentPlayingSongForTrigger" class="pe-none col-7 songPlayingTriggerInput hideSelectEffect" readonly>
+										<button onclick="setThisSongAsKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+									</div>
+									<label class="songTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
+
+								</div>
+
+								<div class="songTriggerSelector">
+
+									<label class="songTriggerLabel">Trigger on Keybind</label>
+									<div class="input-group">
+										<input type="text" id="triggerKeybindClick" class="col-7 cursor-pointer songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
+										<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+									</div>
+									<label class="songTriggerLabel hideSelectEffect">Current Set Keybind: <span id="currentPlayingKeybindForTriggerValue"></span></label>
+
+								</div>
+
+								<div class="actionCheckBoxContainer">
+
+									<label class="actionCheckBoxLabel"><i class="fas fa-repeat me-2"></i> Loop</label>
+
+									<input type="checkbox" id="loopCheckbox" role="switch" onclick="toggleSceneLoop()" class="actionCheckBox">
+
+								</div>
+
+								<div class="actionCheckBoxContainer">
+
+									<label class="actionCheckBoxLabel"><i class="fas fa-bolt me-2"></i> Flash Mode</label>
+
+									<input type="checkbox" id="flashModeCheckbox" role="switch" onclick="toggleSceneFlashMode()" class="actionCheckBox">
+									
+								</div>
+
 							</div>
 
 						</div>
 
-						<div class="songTriggerSelector">
+						<div class="col-5">
 
-							<label class="songTriggerLabel">Trigger on Keybind</label>
-							<div class="input-group">
-								<input type="text" id="triggerKeybindClick" class="col-7 cursor-pointer songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
-								<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
-								<label class="songTriggerLabel hideSelectEffect">Current Set Keybind: <span id="currentPlayingKeybindForTriggerValue"></span></label>
+							<div class="sceneTimeline">
+
+								<div class="sceneEventsContainer">
+
+									<table id="sceneEventsContainer" class="sceneEventTable">
+										<tr class="header" id="header">
+											<td>#</td>
+											<td>Start Time</td>
+											<td>Duration</td>
+											<td onclick="addNewSceneEvent()">+</td>
+										</tr>
+									</table>
+
+								</div>
+
 							</div>
-
-						</div>
-
-						<div class="actionCheckBoxContainer">
-
-							<label class="actionCheckBoxLabel"><i class="fas fa-repeat me-2"></i> Loop</label>
-
-							<input type="checkbox" id="loopCheckbox" role="switch" onclick="toggleSceneLoop()" class="actionCheckBox">
-
-						</div>
-
-						<div class="actionCheckBoxContainer">
-
-							<label class="actionCheckBoxLabel"><i class="fas fa-bolt me-2"></i> Flash Mode</label>
-
-							<input type="checkbox" id="flashModeCheckbox" role="switch" onclick="toggleSceneFlashMode()" class="actionCheckBox">
-							
-						</div>
-
-					</div>
-
-					<div class="sceneTimeline">
-
-						<div class="sceneEventsContainer">
-
-							<table id="sceneEventsContainer" class="sceneEventTable">
-								<tr class="header" id="header">
-									<td>#</td>
-									<td>Start Time</td>
-									<td>Duration</td>
-									<td onclick="addNewSceneEvent()">+</td>
-								</tr>
-								<!-- <tr id="sceneEvent_1">
-									<td>01</td>
-									<td>00:00:00</td>
-									<td>00:00:01</td>
-								</tr>
-								<tr id="sceneEvent_2">
-									<td>02</td>
-									<td>00:01:00</td>
-									<td>00:00:01</td>
-								</tr>
-								<tr id="sceneEvent_3">
-									<td>03</td>
-									<td>00:02:00</td>
-									<td>00:00:01</td>
-								</tr> -->
-							</table>
 
 						</div>
 
