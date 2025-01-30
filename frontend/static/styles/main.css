@@ -329,8 +329,8 @@ overflow: scroll;
 
 .slider {
     -webkit-appearance: none;
-    width: 18vh;
-    height: 6px;
+    width: 15vh;
+    height: 0.35vw;
     background: #d3d3d3;
     outline: none;
     -webkit-transform: rotate(-90deg);
@@ -372,7 +372,7 @@ overflow: scroll;
 
 .attributeIcon{
     scale: 0.7;
-    max-height: 5vh;
+    max-height: 4.5vh;
 }
 
 .buttonControlsContainer{
@@ -394,7 +394,7 @@ overflow: scroll;
 }
 
 .valueLabel{
-    margin-top: 30px;
+    margin-top: 1.5vh;
     font-size: 1.7vw;
 }
 
@@ -431,11 +431,6 @@ overflow: scroll;
     /* align-items: center; */
     padding: 0.5rem;
     background-color: var(--dark-gray);
-}
-
-.valueLabel{
-    margin-top: 40px;
-    font-size: 1.5rem;
 }
 
 .invert{
@@ -550,7 +545,7 @@ main.collapsed {
 }
 
 .songTriggerLabel{
-    font-size: 0.65vw;
+    font-size: 0.9vw;
     opacity: 0.7;
     margin-bottom: 0.2rem;
 }
@@ -686,12 +681,6 @@ main.collapsed {
     padding: 0.5rem;
 }
 
-.songTriggerLabel{
-    font-size: 0.8rem;
-    opacity: 0.7;
-    margin-bottom: 0.2rem;
-}
-
 .songPlayingTriggerAddButton{
     color: #45b452;
     background-color: var(--TBSBGSecondary);
@@ -789,7 +778,7 @@ main.collapsed {
 
 .sceneEventTable tr.header td {
     background-color: var(--TBSBGSecondary);
-    font-size: 0.65vw;
+    font-size: 0.7vw;
 }
 
 .sceneEventTable .active td{
@@ -852,7 +841,7 @@ main.collapsed {
 
 label{
     opacity: 0.7;
-    font-size: 0.75vw;
+    font-size: 1vw;
 }
 
 .songTriggerSelector{
@@ -862,5 +851,5 @@ label{
 }
 
 .sceneControlsCard{
-    height: 75vh;
+    height: 55vh;
 }
