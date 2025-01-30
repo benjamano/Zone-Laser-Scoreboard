@@ -270,14 +270,13 @@ overflow: scroll;
     font-size: 0.8rem;
     overflow-x: auto;
     white-space: nowrap; 
-    padding-bottom: 10px;
-    max-width: 60rem;
+    max-width: unset;
 }
 
 
 #fixtures-container .fixture .title {
     color: white;
-    font-size: 1rem;
+    font-size: 1.2vw;
     text-align: center;
     text-decoration: underline;
     margin-bottom: 6rem;
@@ -295,7 +294,7 @@ overflow: scroll;
 }
 
 .fixture {
-    padding: 10px;
+    padding-right: 1vw;
     text-align: center;
     border: none;
     display: flex;
@@ -313,7 +312,7 @@ overflow: scroll;
     display: flex;
     flex-direction: row;
     align-content: center;
-    justify-content: flex-start;
+    justify-content: center;
     align-items: center;
     width: auto;
 }
@@ -325,12 +324,12 @@ overflow: scroll;
     align-content: center;
     justify-content: center;
     align-items: center;
-    width: 80px;
+    width: 4.5vw;
 }
 
 .slider {
     -webkit-appearance: none;
-    width: 215%;
+    width: 18vh;
     height: 6px;
     background: #d3d3d3;
     outline: none;
@@ -395,8 +394,8 @@ overflow: scroll;
 }
 
 .valueLabel{
-    margin-top: 40px;
-    font-size: 1.5rem;
+    margin-top: 30px;
+    font-size: 1.7vw;
 }
 
 .invert{
