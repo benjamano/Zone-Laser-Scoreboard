@@ -325,9 +325,9 @@ class context:
             createDate = self.db.Column(self.db.DateTime, nullable=False)
             repeat = self.db.Column(self.db.Boolean, nullable=False)
             flash = self.db.Column(self.db.Boolean, nullable=False)
-            keyboardKeybind = self.db.Column(self.db.String(15), nullable=True)
-            songKeybind = self.db.Column(self.db.String(15), nullable=True)
-            gameEventKeybind = self.db.Column(self.db.String(15), nullable=True)
+            keyboard_keybind = self.db.Column(self.db.String(15), nullable=True)
+            song_keybind = self.db.Column(self.db.String(15), nullable=True)
+            game_event_keybind = self.db.Column(self.db.String(15), nullable=True)
 
             events = self.db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
 
