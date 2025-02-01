@@ -478,11 +478,11 @@ class context:
                 self._context.db.session.add(newGame)
                 self._context.db.session.commit()
                 
-                format.message(f"Created new game with ID: {newGame.id}", type="success")
+                message(f"Created new game with ID: {newGame.id}", type="success")
                 return newGame.id
                 
         except Exception as e:
-            format.message(f"Error creating new game: {e}", type="error")
+            message(f"Error creating new game: {e}", type="error")
             return None            
     
     def updateGame(self, gameId, **kwargs):
