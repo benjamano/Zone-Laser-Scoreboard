@@ -488,11 +488,16 @@ class context:
     def updateGame(self, gameId, **kwargs):
         with self.app.app_context():
             game = self.Game.query.get(gameId)
-            for key, value in kwargs.items():
-                setattr(game, key, value)
-            self.db.session.commit()
             
-            return game
+            if game:
+                for key, value in kwargs.items():
+                    setattr(game, key, value)
+                self.db.session.commit()
+                
+                return game
+            else:
+                message(f"Game with ID {gameId} not found", type="error")
+                return None
     class DMXSceneDTO:
         def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboard_keybind, song_keybind, game_event_keybind, events):
             self.id = id

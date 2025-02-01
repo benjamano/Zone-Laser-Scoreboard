@@ -1175,9 +1175,10 @@ class WebApp:
             format.message(f"Error handling music: {e}", type="error")
             
         try:
-            self.currentGameId = 0
+            if self.currentGameId != 0:
+                self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now())
             
-            self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now())
+            self.currentGameId = 0
             
         except Exception as e:
             format.message(f"Error ending game: {e}", type="error")
