@@ -1,6 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 import os, datetime
-from dataclasses import dataclass, asdict
+
 from func.format import message
 
 class context:
@@ -274,49 +274,122 @@ class context:
         return self.fixtureProfiles
     
     def __createDatabase(self, app):
-        @dataclass    
-        class Gun(self, self.db.Model):   
-            id: int = self.db.Column(self.db.Integer, primary_key=True)
-            name: str = self.db.Column(self.db.String(100), unique=True, nullable=False)
-            defaultColor: str = self.db.Column(self.db.String(100), nullable=False)
-
-        @dataclass
+        self.__createModels()
+        self.__seedDBData()
+        
+    def __createModels(self):
+        col = self.db.Column
+        
+        class Gun(self.db.Model):
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            name = self.db.Column(self.db.String(100), unique=True, nullable=False)
+            defaultColor = self.db.Column(self.db.String(100), unique=False, nullable=False)
+            
         class Player(self.db.Model):
-            id: int = self.db.Column(self.db.Integer, primary_key=True)
-            name: str = self.db.Column(self.db.String(60), unique=True, nullable=False)
-            kills: int = self.db.Column(self.db.Integer, nullable=False, default=0)
-            deaths: int = self.db.Column(self.db.Integer, nullable=False, default=0)
-            gamesWon: int = self.db.Column(self.db.Integer, nullable=False, default=0)
-            gamesLost: int = self.db.Column(self.db.Integer, nullable=False, default=0)
-
-        @dataclass
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            name = self.db.Column(self.db.String(60), unique=True, nullable=False)
+            kills = self.db.Column(self.db.Integer, nullable=False)
+            deaths = self.db.Column(self.db.Integer, nullable=False)
+            gamesWon = self.db.Column(self.db.Integer, nullable=False)
+            gamesLost = self.db.Column(self.db.Integer, nullable=False)
+            
         class Game(self.db.Model):
-            id: int = self.db.Column(self.db.Integer, primary_key=True)
-            name: str = self.db.Column(self.db.String(60), unique=True, nullable=True)
-            startTime: datetime.datetime = self.db.Column(self.db.DateTime, nullable=False, default=datetime.datetime.utcnow)
-            endTime: datetime.datetime = self.db.Column(self.db.DateTime, nullable=True)
-            winningPlayerRed: int = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
-            winningPlayerGreen: int = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
-            winningPlayer: int = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
-            winningTeam: int = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            name = self.db.Column(self.db.String(60), unique=True, nullable=True)
+            startTime = self.db.Column(self.db.DateTime, nullable=False)
+            endTime = self.db.Column(self.db.DateTime, nullable=True)
+            winningPlayerRed = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
+            winningPlayerGreen = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
+            winningPlayer = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
+            winningTeam = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
 
-        @dataclass
         class Team(self.db.Model):
-            id: int = self.db.Column(self.db.Integer, primary_key=True)
-            name: str = self.db.Column(self.db.String(60), unique=True, nullable=False)
-            teamColour: str = self.db.Column(self.db.String(10), nullable=False)
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            name = self.db.Column(self.db.String(60), unique=True, nullable=False)
+            teamColour = self.db.Column(self.db.String(10), nullable=False)
             gamePlayers = self.db.relationship("GamePlayers", backref="team_ref", lazy=True)
 
-        @dataclass
         class GamePlayers(self.db.Model):
-            id: int = self.db.Column(self.db.Integer, primary_key=True)
-            gameID: int = self.db.Column(self.db.Integer, self.db.ForeignKey("game.id"), nullable=False)
-            gunID: int = self.db.Column(self.db.Integer, self.db.ForeignKey("gun.id"), nullable=False)
-            playerID: int = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=False)
-            playerWon: bool = self.db.Column(self.db.Boolean, nullable=False)
-            team: int = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            gameID = self.db.Column(self.db.Integer, self.db.ForeignKey("game.id"), nullable=False)
+            gunID = self.db.Column(self.db.Integer, self.db.ForeignKey("gun.id"), nullable=False)
+            playerID = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=False)
+            playerWon = self.db.Column(self.db.Boolean, nullable=False)
+            team = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
             
-        self.__seedDBData()
+        class DMXScene(self.db.Model):
+            __tablename__ = 'dmxscene'
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            name = self.db.Column(self.db.String(60), nullable=False)
+            duration = self.db.Column(self.db.Integer, nullable=False)
+            updateDate = self.db.Column(self.db.DateTime, nullable=True)
+            createDate = self.db.Column(self.db.DateTime, nullable=False)
+            repeat = self.db.Column(self.db.Boolean, nullable=False)
+            flash = self.db.Column(self.db.Boolean, nullable=False)
+            keyboard_keybind = self.db.Column(self.db.String(15), nullable=True)
+            song_keybind = self.db.Column(self.db.String(15), nullable=True)
+            game_event_keybind = self.db.Column(self.db.String(15), nullable=True)
+
+            events = self.db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
+
+        class DMXSceneEvent(self.db.Model):
+            __tablename__ = 'dmxsceneevent'
+            id = self.db.Column(self.db.Integer, primary_key=True)
+            sceneID = self.db.Column(self.db.Integer, self.db.ForeignKey("dmxscene.id"), nullable=False)
+            name = self.db.Column(self.db.String(60), nullable=False)
+            duration = self.db.Column(self.db.Integer, nullable=False)
+            updateDate = self.db.Column(self.db.DateTime, nullable=True)
+
+            scene = self.db.relationship("DMXScene", back_populates="events")
+
+        class DMXSceneEventChannel(self.db.Model):
+            id = col(self.db.Integer, primary_key=True)
+            eventID = col(self.db.Integer, self.db.ForeignKey("dmxsceneevent.id"), nullable=False)
+            fixture = col(self.db.String(100), nullable=False)
+            channel = col(self.db.String(100), nullable=False)
+            value = col(self.db.Integer, nullable=False)
+            
+        class Fixture(self.db.Model):
+            id = col(self.db.Integer, primary_key=True)
+            name = col(self.db.String(100), nullable=False)
+            noOfchannels = col(self.db.Integer, nullable=False)
+            mode = col(self.db.String(100), nullable=True)
+            notes = col(self.db.String(100), nullable=True)
+            icon = col(self.db.String(100), nullable=True)
+            #fixtureType = col(self.db.String(100), nullable=True)
+            
+        class FixtureChannel(self.db.Model):
+            __tablename__ = 'fixturechannel'
+            id = col(self.db.Integer, primary_key=True)
+            fixtureID = col(self.db.Integer, self.db.ForeignKey("fixture.id"), nullable=False)
+            channelNo = col(self.db.Integer, nullable=False)
+            name = col(self.db.String(100), nullable=False)
+            description = col(self.db.String(100), nullable=True)
+            icon = col(self.db.String(100), nullable=True)
+            
+        class FixtureChannelValue(self.db.Model):
+            __tablename__ = 'fixturechannelvalue'
+            id = col(self.db.Integer, primary_key=True)
+            channelID = col(self.db.Integer, self.db.ForeignKey("fixturechannel.id"), nullable=False)
+            value = col(self.db.Integer, nullable=False)
+            name = col(self.db.String(100), nullable=False)
+            icon = col(self.db.String(100), nullable=True)
+            
+        self.Gun = Gun
+        self.Player = Player
+        self.Game = Game
+        self.Team = Team
+        self.GamePlayers = GamePlayers
+        self.DMXScene = DMXScene
+        self.DMXSceneEvent = DMXSceneEvent
+        self.DMXSceneEventChannel = DMXSceneEventChannel
+        self.Fixture = Fixture
+        self.FixtureChannel = FixtureChannel
+        self.FixtureChannelValue = FixtureChannelValue
+        
+        self.db.Model.metadata.create_all(bind=self.db.engine)
+        
+        self.db.create_all()
 
     def __seedDBData(self):
         if not self.Gun.query.first() and not self.Player.query.first():
@@ -347,28 +420,28 @@ class context:
             with self.app.app_context():
                 for fixture_name, channels in self.fixtureProfiles.items():
                     fixture = self.Fixture(name=fixture_name, noOfchannels=len(channels))
-                    self.self.db.session.add(fixture)
-                    self.self.db.session.flush()  
+                    self.db.session.add(fixture)
+                    self.db.session.flush()  
 
                     for index, (channelName, values) in enumerate(channels.items()):
                         channel = self.FixtureChannel(fixtureID=fixture.id, channelNo=index + 1, name=channelName)
-                        self.self.db.session.add(channel)
-                        self.self.db.session.flush() 
+                        self.db.session.add(channel)
+                        self.db.session.flush() 
 
                         if isinstance(values, dict):
                             for valueName, valueRange in values.items():
                                 if isinstance(valueRange, list):
                                     for val in valueRange:
                                         value_entry = self.FixtureChannelValue(channelID=channel.id, value=val, name=valueName)
-                                        self.self.db.session.add(value_entry)
+                                        self.db.session.add(value_entry)
                                 else:
                                     value_entry = self.FixtureChannelValue(channelID=channel.id, value=valueRange, name=valueName)
-                                    self.self.db.session.add(value_entry)
+                                    self.db.session.add(value_entry)
                         elif isinstance(values, list):
                             for val in values:
                                 value_entry = self.FixtureChannelValue(channelID=channel.id, value=val, name=str(val))
-                                self.self.db.session.add(value_entry)
-                    self.self.db.session.commit()  
+                                self.db.session.add(value_entry)
+                    self.db.session.commit()  
 
             self.SaveChanges()
             
@@ -378,22 +451,22 @@ class context:
     
     def Insert(self, object):
         with self.app.app_context():
-            self.self.db.session.add(object)
-            self.self.db.session.commit()
+            self.db.session.add(object)
+            self.db.session.commit()
         
     def InsertMany(self, objects):
         with self.app.app_context():
-            self.self.db.session.add_all(objects) 
+            self.db.session.add_all(objects) 
             self.SaveChanges()
 
     def SaveChanges(self):
         with self.app.app_context():
             try:
-                self.self.db.session.commit()
+                self.db.session.commit()
                 message("Changes committed.", type="success")
             except Exception as e:
                 message(f"Error committing changes: {e}", type="error")
-                self.self.db.session.rollback()
+                self.db.session.rollback()
                 print(f"Error: {e}")
                 
     def createNewGame(self):
@@ -403,8 +476,8 @@ class context:
                     name=f"Game_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}", 
                     startTime=datetime.datetime.now(),
                 )
-                self.self.db.session.add(newGame)
-                self.self.db.session.commit()
+                self.db.session.add(newGame)
+                self.db.session.commit()
                 
                 message(f"Created new game with ID: {newGame.id}", type="success")
                 return newGame.id
@@ -420,100 +493,97 @@ class context:
             if game:
                 for key, value in kwargs.items():
                     setattr(game, key, value)
-                self.self.db.session.commit()
+                self.db.session.commit()
                 
                 return game
             else:
                 message(f"Game with ID {gameId} not found", type="error")
                 return None
             
-    # class DMXSceneDTO:
-    #     def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboard_keybind, song_keybind, game_event_keybind, events):
-    #         self.id = id
-    #         self.name = name
-    #         self.duration = duration
-    #         self.updateDate = updateDate    
-    #         self.createDate = createDate
-    #         self.repeat = repeat
-    #         self.flash = flash
-    #         self.keyboard_keybind = keyboard_keybind
-    #         self.song_keybind = song_keybind
-    #         self.game_event_keybind = game_event_keybind
-    #         self.events = events
+    class DMXSceneDTO:
+        def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboard_keybind, song_keybind, game_event_keybind, events):
+            self.id = id
+            self.name = name
+            self.duration = duration
+            self.updateDate = updateDate    
+            self.createDate = createDate
+            self.repeat = repeat
+            self.flash = flash
+            self.keyboard_keybind = keyboard_keybind
+            self.song_keybind = song_keybind
+            self.game_event_keybind = game_event_keybind
+            self.events = events
         
-    #     def to_dict(self):
-    #         return {
-    #             "id": self.id,
-    #             "name": self.name,
-    #             "duration": self.duration,
-    #             "updateDate": self.updateDate.isoformat() if self.updateDate else None,
-    #             "createDate": self.createDate.isoformat() if self.createDate else None,
-    #             "repeat": self.repeat,
-    #             "flash": self.flash,
-    #             "keyboard_keybind": self.keyboard_keybind,
-    #             "song_keybind": self.song_keybind,
-    #             "game_event_keybind": self.game_event_keybind,
-    #             "events": [event.to_dict() for event in self.events]
-    #         }
+        def to_dict(self):
+            return {
+                "id": self.id,
+                "name": self.name,
+                "duration": self.duration,
+                "updateDate": self.updateDate.isoformat() if self.updateDate else None,
+                "createDate": self.createDate.isoformat() if self.createDate else None,
+                "repeat": self.repeat,
+                "flash": self.flash,
+                "keyboard_keybind": self.keyboard_keybind,
+                "song_keybind": self.song_keybind,
+                "game_event_keybind": self.game_event_keybind,
+                "events": [event.to_dict() for event in self.events]
+            }
             
-    # class DMXSceneEventDTO:
-    #     def __init__(self, id, name, duration, updateDate, channels):
-    #         self.id = id
-    #         self.name = name
-    #         self.duration = duration
-    #         self.updateDate = updateDate
-    #         self.channels = channels
+    class DMXSceneEventDTO:
+        def __init__(self, id, name, duration, updateDate, channels):
+            self.id = id
+            self.name = name
+            self.duration = duration
+            self.updateDate = updateDate
+            self.channels = channels
         
-    #     def to_dict(self):
-    #         return {
-    #             "id": self.id,
-    #             "name": self.name,
-    #             "duration": self.duration,
-    #             "updateDate": self.updateDate.isoformat() if self.updateDate else None,
-    #             "channels": self.channels
-    #         }
+        def to_dict(self):
+            return {
+                "id": self.id,
+                "name": self.name,
+                "duration": self.duration,
+                "updateDate": self.updateDate.isoformat() if self.updateDate else None,
+                "channels": self.channels
+            }
     
-    # class FixtureDTO:
-    #     def __init__(self, id, name, noOfchannels, mode, notes, icon, channels):
-    #         self.id = id
-    #         self.name = name
-    #         self.noOfchannels = noOfchannels
-    #         self.mode = mode
-    #         self.notes = notes
-    #         self.icon = icon
-    #         self.channels = channels
+    class FixtureDTO:
+        def __init__(self, id, name, noOfchannels, mode, notes, icon, channels):
+            self.id = id
+            self.name = name
+            self.noOfchannels = noOfchannels
+            self.mode = mode
+            self.notes = notes
+            self.icon = icon
+            self.channels = channels
         
-    #     def to_dict(self):
-    #         return {
-    #             "id": self.id,
-    #             "name": self.name,
-    #             "noOfchannels": self.noOfchannels,
-    #             "mode": self.mode,
-    #             "notes": self.notes,
-    #             "icon": self.icon,
-    #             "channels": [channel.to_dict() for channel in self.channels]
-    #         }
+        def to_dict(self):
+            return {
+                "id": self.id,
+                "name": self.name,
+                "noOfchannels": self.noOfchannels,
+                "mode": self.mode,
+                "notes": self.notes,
+                "icon": self.icon,
+                "channels": [channel.to_dict() for channel in self.channels]
+            }
     
-    # class FixtureChannelDTO:
-    #     def __init__(self, id, fixtureID, channelNo, name, description, icon, channelValues):
-    #         self.id = id
-    #         self.fixtureID = fixtureID
-    #         self.channelNo = channelNo
-    #         self.name = name
-    #         self.description = description
-    #         self.icon = icon
-    #         self.channelValues = channelValues
+    class FixtureChannelDTO:
+        def __init__(self, id, fixtureID, channelNo, name, description, icon, channelValues):
+            self.id = id
+            self.fixtureID = fixtureID
+            self.channelNo = channelNo
+            self.name = name
+            self.description = description
+            self.icon = icon
+            self.channelValues = channelValues
         
-    #     def to_dict(self):
-    #         return {
-    #             "id": self.id,
-    #             "fixtureID": self.fixtureID,
-    #             "channelNo": self.channelNo,
-    #             "name": self.name,
-    #             "description": self.description,
-    #             "icon": self.icon,
-    #             "channelValues": self.channelValues #[channelValue.to_dict() for channelValue in self.channelValues]
-    #         }
-            
-    def to_dict(instance):
-        return asdict(instance) if instance else None
+        def to_dict(self):
+            return {
+                "id": self.id,
+                "fixtureID": self.fixtureID,
+                "channelNo": self.channelNo,
+                "name": self.name,
+                "description": self.description,
+                "icon": self.icon,
+                "channelValues": self.channelValues #[channelValue.to_dict() for channelValue in self.channelValues]
+            }

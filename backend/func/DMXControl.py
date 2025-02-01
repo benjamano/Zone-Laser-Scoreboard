@@ -9,7 +9,6 @@ import time
 import requests
 import socket
 import datetime
-import dataclasses
             
 class dmx:
     def __init__(self, context, app, devmode):
@@ -304,65 +303,123 @@ class dmx:
             return ""
     def getSceneEventById(self, eventId):
         event = self._context.DMXSceneEvent.query.get(eventId)
-        if event:
-            event_dict = self.to_dict(event)
-            event_dict['channels'] = [
-                self.to_dict(channel)
+        return self._context.DMXSceneEventDTO(
+            id=event.id,
+            name=event.name, 
+            duration=event.duration,
+            updateDate=event.updateDate,
+            channels=[
+                {
+                    "fixture": channel.fixture,
+                    "channel": channel.channel,
+                    "value": channel.value
+                }
                 for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
             ]
-            return event_dict
-        return None
-    
+        )
     # Processing
     
     def __mapToDMXSceneDTO(self, scene):
-        scene_dict = self.to_dict(scene)
-        scene_dict['events'] = [
-            {
-                **self.to_dict(event),
-                'channels': [
-                    self.to_dict(channel)
-                    for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+        DMXScene = [
+            self._context.DMXSceneDTO(
+                id=scene.id,
+                name=scene.name,
+                duration=scene.duration,
+                updateDate=scene.updateDate,
+                createDate=scene.createDate,
+                flash=scene.flash,
+                repeat=scene.repeat,
+                keyboard_keybind=scene.keyboard_keybind,
+                song_keybind=scene.song_keybind,
+                game_event_keybind=scene.game_event_keybind,
+                events=[
+                    self._context.DMXSceneEventDTO(
+                        id=event.id,
+                        name=event.name,
+                        duration=event.duration,
+                        updateDate=event.updateDate,
+                        channels=[
+                            {
+                                "fixture": channel.fixture,
+                                "channel": channel.channel,
+                                "value": channel.value
+                            }
+                            for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                        ]
+                    )
+                    for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
                 ]
-            }
-            for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+            )
         ]
-        return scene_dict
+        
+        return DMXScene
     
-    def __mapToFixtureDTO(self, fixture, fixtureId=None):
-        fixture_dict = self.to_dict(fixture)
-        if fixtureId:
-            fixture_dict['id'] = fixtureId
-        fixture_dict['channels'] = [
-            {
-                **self.to_dict(channel),
-                'channelValues': [
-                    self.to_dict(value)
-                    for value in self._context.FixtureChannelValue.query.filter_by(channelID=channel.id).all()
+    def __mapToFixtureDTO(self, fixture, fixtureId = None):
+        return [
+            self._context.FixtureDTO(
+                id=fixtureId,
+                name=fixture.name,
+                mode=fixture.mode,
+                notes=fixture.notes,
+                icon=fixture.icon,
+                noOfchannels=fixture.noOfchannels,
+                channels=[
+                    self._context.FixtureChannelDTO(
+                        id=channel.id,
+                        fixtureID=channel.fixtureID,
+                        channelNo=channel.channelNo,
+                        name=channel.name,
+                        description=channel.description,
+                        icon=channel.icon,
+                        channelValues = [
+                            {
+                                "value": value.value,
+                                "name": value.name,
+                                "icon": value.icon
+                            }
+                            for value in self._context.FixtureChannelValue.query.filter_by(channelID=channel.id).all()
+                        ]
+                    )
+                    for channel in self._context.FixtureChannel.query.filter_by(fixtureID=fixture.id).all()
                 ]
-            }
-            for channel in self._context.FixtureChannel.query.filter_by(fixtureID=fixture.id).all()
+            )
         ]
-        return fixture_dict
     
     def __findScene(self, sceneName):
         with self.app.app_context():
             scene = self._context.DMXScene.query.filter_by(name=sceneName).first()
-            if scene:
-                scene_dict = self.to_dict(scene)
-                scene_dict['events'] = [
-                    {
-                        **self.to_dict(event),
-                        'channels': [
-                            self.to_dict(channel)
+            
+            # Map the results to DMXSceneDTO objects
+            DMXScene = self._context.DMXSceneDTO(
+                id=scene.id,
+                name=scene.name,
+                duration=scene.duration,
+                updateDate=scene.updateDate,
+                createDate=scene.createDate,
+                repeat = scene.repeat,
+                flash = scene.flash,
+                keybind = scene.keybind,
+                events=[
+                    self._context.DMXSceneEventDTO(
+                        id=event.id,
+                        name=event.name,
+                        duration=event.duration,
+                        updateDate=event.updateDate,
+                        channels=[
+                            {
+                                "fixture": channel.fixture,
+                                "channel": channel.channel,
+                                "value": channel.value
+                            }
                             for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
                         ]
-                    }
+                    )
                     for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
                 ]
-                return scene_dict
-            return None
-    
+            )
+            
+
+        return DMXScene
     
     def __findSceneWithId(self, sceneId, return_dto=True):
         with self.app.app_context():
@@ -373,12 +430,28 @@ class dmx:
 
             if return_dto:
                 return self._context.DMXSceneDTO(
-                    **dataclasses.asdict(scene),
+                    id=scene.id,
+                    name=scene.name,
+                    duration=scene.duration,
+                    updateDate=scene.updateDate,
+                    createDate=scene.createDate,
+                    repeat=scene.repeat,
+                    flash=scene.flash,
+                    keyboard_keybind = scene.keyboard_keybind,
+                    song_keybind = scene.song_keybind,
+                    game_event_keybind = scene.game_event_keybind,
                     events=[
                         self._context.DMXSceneEventDTO(
-                            **dataclasses.asdict(event),
+                            id=event.id,
+                            name=event.name,
+                            duration=event.duration,
+                            updateDate=event.updateDate,
                             channels=[
-                                dataclasses.asdict(channel) 
+                                {
+                                    "fixture": channel.fixture,
+                                    "channel": channel.channel,
+                                    "value": channel.value
+                                }
                                 for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
                             ]
                         )
@@ -386,7 +459,7 @@ class dmx:
                     ]
                 )
 
-        return scene
+            return scene
     
     def __getValueForChannelSetting(self, fixtureType, channelName, settingName):
         try:
