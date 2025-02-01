@@ -18,10 +18,10 @@ class OBS:
                 format.message("Successfully Connected to OBS", type="success")
             else:
                 self.OBSConnected = False
-                return ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
+                raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
 
         except Exception as e:
-            return ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
+            raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
 
     def switchScene(self, sceneName:str) -> bool:
         """
