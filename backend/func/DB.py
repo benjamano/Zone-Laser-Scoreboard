@@ -471,12 +471,12 @@ class context:
     def createNewGame(self):
         try:
             with self.app.app_context():
-                newGame = self._context.Game(
+                newGame = self.Game(
                     name=f"Game_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}", 
                     startTime=datetime.datetime.now(),
                 )
-                self._context.db.session.add(newGame)
-                self._context.db.session.commit()
+                self.db.session.add(newGame)
+                self.db.session.commit()
                 
                 message(f"Created new game with ID: {newGame.id}", type="success")
                 return newGame.id
