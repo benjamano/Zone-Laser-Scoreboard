@@ -9,7 +9,7 @@ class OBS:
         try:
             format.message("Attempting to connect to OBS")
             
-            self.obs = obs.ReqClient(host=self.OBSSERVERIP, port=self.OBSSERVERPORT, password=self.OBSSERVERPASSWORD, timeout=3)
+            self.obs = obs.ReqClient(host=OBSSERVERIP, port=OBSSERVERPORT, password=OBSSERVERPASSWORD, timeout=3)
             
             self._dir = dir
             
