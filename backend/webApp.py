@@ -1,31 +1,16 @@
-import threading
-import time
 from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit
-import os
-import signal
-import ctypes
-import datetime
-import pyautogui
-import obsws_python as obs
+import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
-import requests
-import psutil
-import socket
-import webbrowser
-import asyncio
-import random
-import logging
-import json
 
 try:
     import winrt.windows.media.control as wmc
-except ImportError:
-    print("Failed to import winrt.windows.media.control")
+except Exception as e:
+    print("Failed to import winrt.windows.media.control ", e)
+    input("Press any key to exit...")
 
 try:
     from func import format
-    print("Imported functions") 
 except Exception as e:
     print(f"An error occurred: {e}")
     input("Press any key to exit...")
@@ -35,6 +20,8 @@ from func.BPM import MediaBPMFetcher
 from func.DMXControl import dmx
 
 from func.DB import context
+
+from func.OBS import OBS
 
 class WebApp:
     def __init__(self):
@@ -61,7 +48,10 @@ class WebApp:
         self.endOfDay = False
         self.SysName = "TBS"
         self.currentGameId = 0
+        self.GunScores = {}
         
+        self._obs = None
+                
         pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
@@ -146,12 +136,9 @@ class WebApp:
             webbrowser.open(f"http://{self._localIp}:8080")
             
         try:
-            if self.OBSSERVERIP == "" or self.OBSSERVERPASSWORD == "" or self.OBSSERVERPORT == "" or self.devMode == True:
-                format.message(f"Development Mode or Missing Values, skipping OBS Connection ('{self.OBSSERVERIP}', '{self.OBSSERVERPASSWORD}', '{self.OBSSERVERPORT}')", type="warning")
-            else:
-                self.obs_thread = threading.Thread(target=self.obs_connect)
-                self.obs_thread.daemon = True
-                self.obs_thread.start()
+            self.obs_thread = threading.Thread(target=self.connectToOBS)
+            self.obs_thread.daemon = True
+            self.obs_thread.start()
                 
         except Exception as e:
             format.message(f"Error starting OBS Connection: {e}", type="error")
@@ -248,6 +235,15 @@ class WebApp:
         except Exception as e:
             format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "dmxStatus"})
+
+    def connectToOBS(self):
+        if self.devMode == False or self.OBSSERVERIP == "" or self.OBSSERVERPASSWORD == "" or self.OBSSERVERPORT == "":
+            try:
+                self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir)
+            except Exception as e:
+                format.message(f"Error setting up OBS connection: {e}", type="error")
+        else:
+            format.message("Development Mode or missing OBS details, skipping OBS Connection", type="warning")
 
     def openFiles(self):
         try:
@@ -637,12 +633,14 @@ class WebApp:
             
         @self.socketio.on('playBriefing')
         def playBriefing():
-            try:
-                format.message("Playing briefing")
-                if self.OBSConnected == True:
-                    self.obs.set_current_program_scene("Video")
-            except Exception as e:
-                format.message(f"Error playing briefing: {e}", type="error")
+            if self._obs != None:
+                try:
+                    format.message("Playing briefing")
+                    self._obs.switchScene("Video")
+                except Exception as e:
+                    format.message(f"Error playing briefing: {e}", type="error")
+            else:
+                format.message("OBS not connected", type="error")
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
@@ -658,24 +656,6 @@ class WebApp:
                 self.socketio.emit(f"{type_}", {"message": message}) 
                                 
             return 'Message sent!'
-
-    def obs_connect(self):
-        if self.devMode == False:
-            try:
-                format.message("Attempting to connect to OBS")
-                
-                self.obs = obs.ReqClient(host=self.OBSSERVERIP, port=self.OBSSERVERPORT, password=self.OBSSERVERPASSWORD, timeout=3)
-                
-                self.OBSConnected = True
-                format.message("Successfully Connected to OBS", type="success")
-                
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "obsStatus"})
-
-            except Exception as e:
-                format.message(f"Failed to connect to OBS: {e}", type="error")
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "obsStatus"})
-        else:
-            format.message("Development Mode, skipping OBS Connection", type="warning")
     
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             
@@ -808,34 +788,28 @@ class WebApp:
                                 self.obs_connect()
                             else:
                                 format.message(f"Process {processName} not recognized for auto-start", type="error")
-                            # if self.DMXConnected == False:
-                            #     format.message(f"DMX Connection lost, restarting DMX Network")
-                            #     self.setUpDMX()
+                            if self.DMXConnected == False:
+                                format.message(f"DMX Connection lost, restarting DMX Network")
+                                self.setUpDMX()
                             if self.OBSConnected == False:
                                 format.message(f"OBS Connection lost, restarting OBS")
                                 self.obs_connect()
                                 
                         except Exception as e:
                             format.message(f"Error starting process {processName}: {e}", type="error")
-                            
-                # if self.RestartRequested == True and self.gameStatus == "stopped":
-                #     format.message(f"Restart requested, restarting PC in 1 minute")
-                #     self.AppRestartThread = threading.Thread(target=self.restartApp("Restart Requested"))
-                #     self.AppRestartThread.daemon = True
-                #     self.AppRestartThread.start()
                     
-                if self.gameStatus == "stopped" and self.OBSConnected == True:
+                if self.gameStatus == "stopped" and self._obs != None:
                     if self.endOfDay == True:
                         format.message(f"EOD, setting OBS output to Test Mode")
                         
                         try:
-                            with open(fr"{self._dir}\data\OBSText.txt", "w") as f:
-                                f.write("EndOfDay: Waiting for next game ")
+                            with open(fr"{self._dir}\data\display\OBSText.txt", "w") as f:
+                                f.write("             Play2Day Ipswich Laser Tag System Sleeping.... ")
                                 
                         except Exception as e:
                             format.message(f"Error opening OBSText.txt: {e}", type="error")
                         
-                        self.obs.set_current_program_scene("Test Mode")
+                        self._obs.switchScene("Test Mode")
                     else:
                         self.endOfDay = True
                 
@@ -1074,9 +1048,9 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        if self.OBSConnected == True:
+        if self._obs != None:
             self.endOfDay = False
-            self.obs.set_current_program_scene("Laser Scores")
+            self._obs.switchScene("Laser Scores")
         
         format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
@@ -1106,9 +1080,9 @@ class WebApp:
             #format.message(f"Response: {response.text}")
         else:
             self.gameStarted()
-            if self.OBSConnected == True:
-                self.endOfDay = False
-                self.obs.set_current_program_scene("Laser Scores")
+            self.endOfDay = False
+            if self._obs != None:
+                self._obs.switchScene("Laser Scores")
             format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
@@ -1132,6 +1106,11 @@ class WebApp:
         if gunName == None:
             gunName = "id: "+gunId
             
+        try:
+            self.GunScores[gunId] = finalScore
+        except Exception as e:
+            format.message(f"Error updating Gun Scores: {e}", type="error")
+            
         format.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
         
         data = f"{gunId},{finalScore},{accuracy}"
@@ -1139,6 +1118,7 @@ class WebApp:
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
         
     def shotConfirmedPacket(self, packetData):
+        format.message(f"Shot Confirmed Packet: {packetData}")
         pass
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
@@ -1160,6 +1140,11 @@ class WebApp:
             self.currentGameId = self._context.createNewGame()
         except Exception as e:
             format.message(f"Error creating new game: {e}", type="error")
+            
+        try:
+            self.GunScores = {}
+        except Exception as e:
+            format.message(f"Error initializing Gun Scores: {e}", type="error")
         
     def gameEnded(self):
         format.message("Game ended")
@@ -1176,7 +1161,19 @@ class WebApp:
             
         try:
             if self.currentGameId != 0:
-                self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now())
+                winningPlayer = None    
+                
+                try:
+                    winningPlayer = max(self.GunScores.items(), key=lambda x: x[1])[0]
+                except Exception as e:
+                    format.message(f"Error getting winning player: {e}", type="error")
+                    
+                if winningPlayer != None:
+                    self._obs.showWinningPlayer(winningPlayer)
+                
+                self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer)
+                
+                format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
             
             self.currentGameId = 0
             

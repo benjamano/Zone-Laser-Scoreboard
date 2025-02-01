@@ -300,6 +300,7 @@ class context:
             endTime = self.db.Column(self.db.DateTime, nullable=True)
             winningPlayerRed = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
             winningPlayerGreen = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
+            winningPlayer = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
             winningTeam = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
 
         class Team(self.db.Model):
@@ -498,6 +499,7 @@ class context:
             else:
                 message(f"Game with ID {gameId} not found", type="error")
                 return None
+            
     class DMXSceneDTO:
         def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboard_keybind, song_keybind, game_event_keybind, events):
             self.id = id
