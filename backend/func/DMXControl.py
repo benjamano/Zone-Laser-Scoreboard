@@ -421,6 +421,7 @@ class dmx:
 
         return DMXScene
     
+    
     def __findSceneWithId(self, sceneId, return_dto=True):
         with self.app.app_context():
             scene = self._context.db.session.query(self._context.DMXScene).filter_by(id=sceneId).first()
