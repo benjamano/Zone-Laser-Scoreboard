@@ -494,7 +494,7 @@ class context:
             
             return game
     class DMXSceneDTO:
-        def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboardKeybind, songKeybind, gameEventKeybind, events):
+        def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboard_keybind, song_keybind, game_event_keybind, events):
             self.id = id
             self.name = name
             self.duration = duration
@@ -502,9 +502,9 @@ class context:
             self.createDate = createDate
             self.repeat = repeat
             self.flash = flash
-            self.keyboardKeybind = keyboardKeybind
-            self.songKeybind = songKeybind
-            self.gameEventKeybind = gameEventKeybind
+            self.keyboard_keybind = keyboard_keybind
+            self.song_keybind = song_keybind
+            self.game_event_keybind = game_event_keybind
             self.events = events
         
         def to_dict(self):
@@ -516,9 +516,9 @@ class context:
                 "createDate": self.createDate.isoformat() if self.createDate else None,
                 "repeat": self.repeat,
                 "flash": self.flash,
-                "keyboardKeybind": self.keyboardKeybind,
-                "songKeybind": self.songKeybind,
-                "gameEventKeybind": self.gameEventKeybind,
+                "keyboard_keybind": self.keyboard_keybind,
+                "song_keybind": self.song_keybind,
+                "game_event_keybind": self.game_event_keybind,
                 "events": [event.to_dict() for event in self.events]
             }
             
