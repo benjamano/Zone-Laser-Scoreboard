@@ -1074,6 +1074,7 @@ class WebApp:
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
         
     def teamScorePacket(self, packetData):
+        #0 = red, 2 = green
         format.message(f"Team Score Packet: {packetData}")
 
     def timingPacket(self, packetData):
@@ -1176,8 +1177,8 @@ class WebApp:
                 except Exception as e:
                     format.message(f"Error getting winning player: {e}", type="error")
                     
-                if winningPlayer != None:
-                    self._obs.showWinningPlayer(winningPlayer)
+                if winningPlayer != None and self._obs != None:
+                    self._obs.showWinningPlayer(str(winningPlayer).strip("name: "))
                 
                 self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer)
                 

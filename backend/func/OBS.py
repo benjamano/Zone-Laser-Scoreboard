@@ -42,7 +42,7 @@ class OBS:
         """
         try:
             with open(fr"{self._dir}\data\display\WinningPlayer.txt", "w") as f:
-                f.write(playerName)
+                f.write(f"The Winning Player Is \n{playerName}!")
             
             self.switchScene("Winners")
             
