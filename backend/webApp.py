@@ -1029,6 +1029,10 @@ class WebApp:
                 if decodedData[0] == "1":
                     # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
                     threading.Thread(target=self.timingPacket, args=(decodedData,)).start()
+                    
+                elif decodedData[0] == "2":
+                    # Team Score packet is being transmitted as the Event Type = 32 (Hex) = 2
+                    threading.Thread(target=self.teamScorePacket, args=(decodedData,)).start()
                 
                 elif decodedData[0] == "3":
                     # The game has ended and the final scores packets are arriving, because 33 (Hex) = 3 (Denary)
@@ -1068,6 +1072,9 @@ class WebApp:
             #format.message(f"Response: {response.text}")
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
+        
+    def teamScorePacket(self, packetData):
+        format.message(f"Team Score Packet: {packetData}")
 
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
