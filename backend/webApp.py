@@ -266,9 +266,7 @@ class WebApp:
             
         try:
             f = open(fr"{self._dir}\data\dev.txt", "r")
-        except Exception as e:
-            format.message(f"Error opening dev.txt: {e}", type="error")
-        finally:
+            
             devMode = f.readline().strip()
             
             if devMode.lower() == "true":
@@ -277,7 +275,10 @@ class WebApp:
                 format.message("Development Mode Enabled", type="warning")
             else:
                 self.devMode = False
-            
+                
+        except Exception as e:
+            format.message(f"Error opening dev.txt: {e}", type="error")
+
         format.message("Files opened successfully", type="success")
             
         self.filesOpened = True
@@ -1107,7 +1108,7 @@ class WebApp:
             gunName = "id: "+gunId
             
         try:
-            self.GunScores[gunId] = finalScore
+            self.GunScores[gunName] = finalScore
         except Exception as e:
             format.message(f"Error updating Gun Scores: {e}", type="error")
             

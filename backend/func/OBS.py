@@ -14,10 +14,8 @@ class OBS:
             self._dir = dir
             
             if self.obs != None:
-                self.OBSConnected = True
                 format.message("Successfully Connected to OBS", type="success")
             else:
-                self.OBSConnected = False
                 raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
 
         except Exception as e:
