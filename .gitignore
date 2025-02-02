@@ -178,3 +178,4 @@ backend/data/DMXScenes/local
 Scoreboard.db
 backend/data/DMXScenes/testScene.json
 *.json
+backend/data/display/WinningPlayer.txt
