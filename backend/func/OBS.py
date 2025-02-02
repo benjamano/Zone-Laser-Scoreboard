@@ -36,13 +36,15 @@ class OBS:
             format.message(f"Error switching scene: {e}", type="error")
             return False
         
-    def showWinningPlayer(self, playerName:str) -> bool:
+    def showWinners(self, playerName:str, teamName:str) -> bool:
         """
         Displays the winning player's name on the OBS output.
         """
         try:
             with open(fr"{self._dir}\data\display\WinningPlayer.txt", "w") as f:
-                f.write(f"The Winning Player Is \n{playerName}!")
+                f.write(f"The Winning Team Is {teamName}!")
+                f.write(f"And the Winning Player Is")
+                f.write(f"{playerName}!")
             
             self.switchScene("Winners")
             

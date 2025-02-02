@@ -49,7 +49,8 @@ class WebApp:
         self.SysName = "TBS"
         self.currentGameId = 0
         self.GunScores = {}
-        
+        self.TeamScores = {}    
+           
         self._obs = None
                 
         pyautogui.FAILSAFE = False
@@ -1075,7 +1076,20 @@ class WebApp:
         
     def teamScorePacket(self, packetData):
         #0 = red, 2 = green
-        format.message(f"Team Score Packet: {packetData}")
+        #format.message(f"Team Score Packet: {packetData}")
+        
+        teamId = str(packetData[1])
+        teamScore = str(packetData[2])
+        
+        if teamId == "0":
+            teamId = "Red"
+        else:
+            teamId = "Green"
+
+        try:
+            self.TeamScores[teamId] = teamScore
+        except Exception as e:
+            format.message(f"Error updating Team Scores: {e}", type="error")
 
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
@@ -1116,7 +1130,7 @@ class WebApp:
             gunName = "id: "+gunId
             
         try:
-            self.GunScores[gunName] = finalScore
+            self.GunScores[gunName.strip("name: ")] = finalScore
         except Exception as e:
             format.message(f"Error updating Gun Scores: {e}", type="error")
             
@@ -1152,8 +1166,9 @@ class WebApp:
             
         try:
             self.GunScores = {}
+            self.TeamScores = {}
         except Exception as e:
-            format.message(f"Error initializing Gun Scores: {e}", type="error")
+            format.message(f"Error initializing Gun and Team Scores: {e}", type="error")
         
     def gameEnded(self):
         format.message("Game ended")
@@ -1177,10 +1192,15 @@ class WebApp:
                 except Exception as e:
                     format.message(f"Error getting winning player: {e}", type="error")
                     
+                try:
+                    winningTeam = max(self.TeamScores.items(), key=lambda x: x[1])[0]
+                except Exception as e:
+                    format.message(f"Error getting winning team: {e}", type="error")
+                    
                 if winningPlayer != None and self._obs != None:
-                    self._obs.showWinningPlayer(str(winningPlayer).strip("name: "))
+                    self._obs.showWinners(str(winningPlayer), str(winningTeam))
                 
-                self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer)
+                self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
                 format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
             
