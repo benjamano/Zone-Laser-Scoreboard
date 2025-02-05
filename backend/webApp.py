@@ -1185,7 +1185,8 @@ class WebApp:
             
         try:
             if self.currentGameId != 0:
-                winningPlayer = None    
+                winningPlayer = ""
+                winningTeam = ""
                 
                 try:
                     winningPlayer = max(self.GunScores.items(), key=lambda x: x[1])[0]
@@ -1197,7 +1198,7 @@ class WebApp:
                 except Exception as e:
                     format.message(f"Error getting winning team: {e}", type="error")
                     
-                if winningPlayer != None and self._obs != None:
+                if winningPlayer != "" and winningTeam != "" and self._obs != None:
                     self._obs.showWinners(str(winningPlayer), str(winningTeam))
                 
                 self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
