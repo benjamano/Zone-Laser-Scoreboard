@@ -870,7 +870,7 @@ label{
     justify-content: center;
     align-items: center;
     row-gap: 1rem;
-    width: calc(100%/6);
+    width: calc(100% / 3);
 }
 
 .pcDetailsHeader{
