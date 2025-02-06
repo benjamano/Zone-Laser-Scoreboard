@@ -1,0 +1,94 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="card">
+
+    <div class="card-header collapsed pcDetailsHeader">
+
+        <span><span class="fa fa-chart-line me-2"></span>CPU - 30%</span>
+        <span><span class="fa fa-chart-line me-2"></span>RAM - 4GB (60%)</span>
+        <span><span class="fa fa-clock me-2"></span>Uptime - 3 Days : 21 Hours : 32 Minutes</span>
+        <span><span class="fa fa-bug me-2"></span>Errors Logged - 0 (Past 8 hours)</span>
+
+        <span class="float-end"><span class="fa fa-wrench me-2"></span>Last Updated: 00:20</span>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <div class="card-header">Background Service Status</div>
+
+    <div class="card-body">
+
+        <div class="backgroundServiceStatusContainer">
+
+            <div class="backgroundServiceStatus">
+
+                <div class="backgroundServiceName"><h4>System Status</h4></div>
+
+                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>CONNECTED</div>
+
+                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+
+                <button class="btn btn-danger col-12">Restart Service</button>
+
+            </div>
+
+            <div class="backgroundServiceStatus">
+
+                <div class="backgroundServiceName"><h4>DMX Control</h4></div>
+
+                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+
+                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+
+                <button class="btn btn-danger col-12">Restart DMX Service</button>
+
+            </div>
+
+            <div class="backgroundServiceStatus">
+
+                <div class="backgroundServiceName"><h4>OBS Control</h4></div>
+
+                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+
+                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+
+                <button class="btn btn-danger col-12">Restart OBS Service</button>
+
+            </div>
+
+            <div class="backgroundServiceStatus">
+
+                <div class="backgroundServiceName"><h4>Music Control</h4></div>
+
+                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+
+                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+
+                <button class="btn btn-danger col-12">Restart Service</button>
+
+            </div>
+
+            <div class="backgroundServiceStatus">
+
+                <div class="backgroundServiceName"><h4>DB Connection</h4></div>
+
+                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+
+                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+
+                <button class="btn btn-danger col-12">Restart Service</button>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

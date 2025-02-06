@@ -24,6 +24,7 @@ html{
 .card{
     background-color: var(--medium-dark-gray); 
     color: #ffffff;
+    margin-bottom: 1rem;
 }
 
 .dmxScene{
@@ -482,6 +483,10 @@ overflow: scroll;
     font-size: 0px;
 }
 
+.sidebar.collapse .sidebarIcon{
+    margin-right: 0 !important;
+}
+
 .sidebar ul {
     list-style-type: none;
     padding: 0;
@@ -514,7 +519,7 @@ main {
 }
 
 main.collapsed {
-    margin-left: 3vw;
+    margin-left: 4vw;
 }
 
 .closeSidebarButton{
@@ -642,16 +647,6 @@ main.collapsed {
 .sidebar ul li a {
     color: white;
     text-decoration: none;
-}
-
-main {
-    margin-left: 12vw;
-    padding: 1rem;
-    transition: margin-left 0.3s ease;
-}
-
-main.collapsed {
-    margin-left: 3vw;
 }
 
 .closeSidebarButton{
@@ -852,4 +847,46 @@ label{
 
 .sceneControlsCard{
     height: 55vh;
+}
+
+.backgroundServiceStatusContainer {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    column-gap: 3rem;
+}
+
+.backgroundServiceStatus{
+    padding: 1rem;
+    background-color: var(--bs-dark);
+    border-radius: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: flex-start;
+    justify-content: center;
+    align-items: center;
+    row-gap: 1rem;
+    width: calc(100%/6);
+}
+
+.pcDetailsHeader{
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
+    justify-content: space-around;
+}
+
+@media screen and (max-width: 1300px) {
+    .sidebar {
+        display: none;
+    }
+
+    main{
+        margin-left: 0 !important;
+    }
 }

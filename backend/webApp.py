@@ -331,7 +331,11 @@ class WebApp:
         
         @self.app.route("/text")
         def neonText():
-            return render_template('neonFlicker.html')
+            return render_template("neonFlicker.html")
+        
+        @self.app.route("/status")
+        def status():
+            return render_template("status.html")
 
         @self.app.route("/ping")
         def ping():   
