@@ -1058,10 +1058,6 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        if self._obs != None:
-            self.endOfDay = False
-            self._obs.switchScene("Laser Scores")
-        
         format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
         
         if packetData[1] == "@015":
@@ -1167,6 +1163,14 @@ class WebApp:
             self.currentGameId = self._context.createNewGame()
         except Exception as e:
             format.message(f"Error creating new game: {e}", type="error")
+            
+        try:
+            if self._obs != None:
+                self.endOfDay = False
+                self._obs.switchScene("Laser Scores")
+                
+        except Exception as e:
+            format.message(f"Error switching to Laser Scores scene: {e}", type="error")
             
         try:
             self.GunScores = {}
