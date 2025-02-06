@@ -494,9 +494,9 @@ class dmx:
                                             duration=scene["duration"],
                                             repeat=scene["repeat"],
                                             flash=scene["flash"],
-                                            keyboard_keybind=scene["keyboardKeybind"],
-                                            song_keybind=scene["songKeybind"],
-                                            game_event_keybind=scene["gameEventKeybind"]
+                                            keyboard_keybind=scene["keyboard_Keybind"],
+                                            song_keybind=scene["song_Keybind"],
+                                            game_event_keybind=scene["game_Event_Keybind"]
                                         )
                                         self._context.db.session.add(newDMXScene) 
                                         self._context.db.session.commit()
