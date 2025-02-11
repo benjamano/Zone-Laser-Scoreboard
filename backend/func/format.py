@@ -69,7 +69,7 @@ def message(message, type="Info", date=True, newline=False):
             logger.warning(f"{logtime} | {message}")
             
         try:            
-            if type.title() == "Error" or type.title() == "Warning":
+            if type.title() == "Error":
                 
                 with open(fr"{dir}\..\data\keys.txt") as f:
                     secretKey = f.readline().strip()  

@@ -1,23 +1,33 @@
 from flask_sqlalchemy import SQLAlchemy
 import os, datetime
 
+from data.models import *
+
 from func.format import message
 
+from func.Supervisor import Supervisor
+
 class context:
-    def __init__(self, app):
+    def __init__(self, app, supervisor: Supervisor):
         app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath('Scoreboard.db')}"
         
-        self.db = SQLAlchemy(app)
+        self.db = db
+        self.db.init_app(app)
         self.app = app
+        self._supervisor = supervisor
         
-        self.Gun = None
-        self.Player = None
-        self.Game = None
-        self.Team = None
-        self.GamePlayers = None
-        self.DMXScene = None
-        self.DMXSceneEvent = None
-        self.DMXSceneEventChannel = None
+        self.Gun = Gun
+        self.Player = Player
+        self.Game = Game
+        self.Team = Team
+        self.GamePlayers = GamePlayers
+        self.DMXScene = DMXScene
+        self.DMXSceneEvent = DMXSceneEvent
+        self.DMXSceneEventChannel = DMXSceneEventChannel
+        self.Fixture = Fixture
+        self.FixtureChannel = FixtureChannel
+        self.FixtureChannelValue = FixtureChannelValue
+        self.InternalServerError = InternalServerError
         
         self.fixtureProfiles = {
                 "dimmer": {
@@ -268,125 +278,16 @@ class context:
                 }
             }
 
-        self.__createDatabase(app)
+        self.__createDatabase()
     
     def getFixtureProfiles(self):
         return self.fixtureProfiles
     
-    def __createDatabase(self, app):
+    def __createDatabase(self):
         self.__createModels()
         self.__seedDBData()
         
     def __createModels(self):
-        col = self.db.Column
-        
-        class Gun(self.db.Model):
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            name = self.db.Column(self.db.String(100), unique=True, nullable=False)
-            defaultColor = self.db.Column(self.db.String(100), unique=False, nullable=False)
-            
-        class Player(self.db.Model):
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            name = self.db.Column(self.db.String(60), unique=True, nullable=False)
-            kills = self.db.Column(self.db.Integer, nullable=False)
-            deaths = self.db.Column(self.db.Integer, nullable=False)
-            gamesWon = self.db.Column(self.db.Integer, nullable=False)
-            gamesLost = self.db.Column(self.db.Integer, nullable=False)
-            
-        class Game(self.db.Model):
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            name = self.db.Column(self.db.String(60), unique=True, nullable=True)
-            startTime = self.db.Column(self.db.DateTime, nullable=False)
-            endTime = self.db.Column(self.db.DateTime, nullable=True)
-            winningPlayerRed = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
-            winningPlayerGreen = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
-            winningPlayer = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=True)
-            winningTeam = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
-
-        class Team(self.db.Model):
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            name = self.db.Column(self.db.String(60), unique=True, nullable=False)
-            teamColour = self.db.Column(self.db.String(10), nullable=False)
-            gamePlayers = self.db.relationship("GamePlayers", backref="team_ref", lazy=True)
-
-        class GamePlayers(self.db.Model):
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            gameID = self.db.Column(self.db.Integer, self.db.ForeignKey("game.id"), nullable=False)
-            gunID = self.db.Column(self.db.Integer, self.db.ForeignKey("gun.id"), nullable=False)
-            playerID = self.db.Column(self.db.Integer, self.db.ForeignKey("player.id"), nullable=False)
-            playerWon = self.db.Column(self.db.Boolean, nullable=False)
-            team = self.db.Column(self.db.Integer, self.db.ForeignKey("team.id"), nullable=True)
-            
-        class DMXScene(self.db.Model):
-            __tablename__ = 'dmxscene'
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            name = self.db.Column(self.db.String(60), nullable=False)
-            duration = self.db.Column(self.db.Integer, nullable=False)
-            updateDate = self.db.Column(self.db.DateTime, nullable=True)
-            createDate = self.db.Column(self.db.DateTime, nullable=False)
-            repeat = self.db.Column(self.db.Boolean, nullable=False)
-            flash = self.db.Column(self.db.Boolean, nullable=False)
-            keyboard_keybind = self.db.Column(self.db.String(15), nullable=True)
-            song_keybind = self.db.Column(self.db.String(15), nullable=True)
-            game_event_keybind = self.db.Column(self.db.String(15), nullable=True)
-
-            events = self.db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
-
-        class DMXSceneEvent(self.db.Model):
-            __tablename__ = 'dmxsceneevent'
-            id = self.db.Column(self.db.Integer, primary_key=True)
-            sceneID = self.db.Column(self.db.Integer, self.db.ForeignKey("dmxscene.id"), nullable=False)
-            name = self.db.Column(self.db.String(60), nullable=False)
-            duration = self.db.Column(self.db.Integer, nullable=False)
-            updateDate = self.db.Column(self.db.DateTime, nullable=True)
-
-            scene = self.db.relationship("DMXScene", back_populates="events")
-
-        class DMXSceneEventChannel(self.db.Model):
-            id = col(self.db.Integer, primary_key=True)
-            eventID = col(self.db.Integer, self.db.ForeignKey("dmxsceneevent.id"), nullable=False)
-            fixture = col(self.db.String(100), nullable=False)
-            channel = col(self.db.String(100), nullable=False)
-            value = col(self.db.Integer, nullable=False)
-            
-        class Fixture(self.db.Model):
-            id = col(self.db.Integer, primary_key=True)
-            name = col(self.db.String(100), nullable=False)
-            noOfchannels = col(self.db.Integer, nullable=False)
-            mode = col(self.db.String(100), nullable=True)
-            notes = col(self.db.String(100), nullable=True)
-            icon = col(self.db.String(100), nullable=True)
-            #fixtureType = col(self.db.String(100), nullable=True)
-            
-        class FixtureChannel(self.db.Model):
-            __tablename__ = 'fixturechannel'
-            id = col(self.db.Integer, primary_key=True)
-            fixtureID = col(self.db.Integer, self.db.ForeignKey("fixture.id"), nullable=False)
-            channelNo = col(self.db.Integer, nullable=False)
-            name = col(self.db.String(100), nullable=False)
-            description = col(self.db.String(100), nullable=True)
-            icon = col(self.db.String(100), nullable=True)
-            
-        class FixtureChannelValue(self.db.Model):
-            __tablename__ = 'fixturechannelvalue'
-            id = col(self.db.Integer, primary_key=True)
-            channelID = col(self.db.Integer, self.db.ForeignKey("fixturechannel.id"), nullable=False)
-            value = col(self.db.Integer, nullable=False)
-            name = col(self.db.String(100), nullable=False)
-            icon = col(self.db.String(100), nullable=True)
-            
-        self.Gun = Gun
-        self.Player = Player
-        self.Game = Game
-        self.Team = Team
-        self.GamePlayers = GamePlayers
-        self.DMXScene = DMXScene
-        self.DMXSceneEvent = DMXSceneEvent
-        self.DMXSceneEventChannel = DMXSceneEventChannel
-        self.Fixture = Fixture
-        self.FixtureChannel = FixtureChannel
-        self.FixtureChannelValue = FixtureChannelValue
-        
         self.db.Model.metadata.create_all(bind=self.db.engine)
         
         self.db.create_all()
@@ -465,9 +366,7 @@ class context:
                 self.db.session.commit()
                 message("Changes committed.", type="success")
             except Exception as e:
-                message(f"Error committing changes: {e}", type="error")
                 self.db.session.rollback()
-                print(f"Error: {e}")
                 
     def createNewGame(self):
         try:
@@ -483,22 +382,39 @@ class context:
                 return newGame.id
                 
         except Exception as e:
-            message(f"Error creating new game: {e}", type="error")
+            ise : InternalServerError = InternalServerError()
+            ise.service = "db"
+            ise.exception_message = str(e)
+            ise.process = "Create New Game"
+            ise.severity = 2
+            
+            self._supervisor.logInternalServerError(ise)
             return None            
     
     def updateGame(self, gameId, **kwargs):
-        with self.app.app_context():
-            game = self.Game.query.get(gameId)
-            
-            if game:
-                for key, value in kwargs.items():
-                    setattr(game, key, value)
-                self.db.session.commit()
+        try:
+            with self.app.app_context():
+                game = self.Game.query.get(gameId)
                 
-                return game
-            else:
-                message(f"Game with ID {gameId} not found", type="error")
-                return None
+                if game:
+                    for key, value in kwargs.items():
+                        setattr(game, key, value)
+                    self.db.session.commit()
+                    
+                    return game
+                else:
+                    message(f"Game with ID {gameId} not found", type="error")
+                    return None
+        
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            ise.service = "db"
+            ise.exception_message = str(e)
+            ise.process = "Update Game"
+            ise.severity = 2
+            
+            self._supervisor.logInternalServerError(ise)
+            return None
             
     class DMXSceneDTO:
         def __init__(self, id, name, duration, updateDate, createDate, repeat, flash, keyboard_keybind, song_keybind, game_event_keybind, events):
