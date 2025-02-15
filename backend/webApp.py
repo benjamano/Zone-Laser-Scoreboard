@@ -19,9 +19,11 @@ from func.BPM import MediaBPMFetcher
 
 from func.DMXControl import dmx
 
-from func.DB import context
+from func.DB import *
 
 from func.OBS import OBS
+
+from func.Supervisor import Supervisor
 
 class WebApp:
     def __init__(self):
@@ -44,21 +46,21 @@ class WebApp:
         self._localIp = ""
         self.rateLimit = False
         self.RestartRequested = False
-        self.gameStatus = "stopped" #Either running or stopped
+        self.gameStatus = "stopped" # Either running or stopped
         self.endOfDay = False
         self.SysName = "TBS"
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}    
            
-        self._obs = None
+        self._supervisor : Supervisor = None
+        self._obs : OBS = None
+        self._dmx : dmx = None
+        self._context : context = None
                 
         pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
-        
-        with self.app.app_context():
-            self._context = context(self.app)
         
         self.initLogging()
         self.socketio.init_app(self.app, cors_allowed_origins="*") 
@@ -87,7 +89,18 @@ class WebApp:
             os._exit(1)
         
     def start(self):
-        format.newline()  
+        format.newline() 
+        
+        try:
+            format.message("Starting Supervisor", type="info")
+            self.SupervisorThread = threading.Thread(target=self.startSupervisor, daemon=True).start()
+            
+        except Exception as e:
+            format.message(f"Error starting Supervisor: {e}", type="error")
+            raise Exception("Error starting Supervisor: ", e)
+        
+        with self.app.app_context():
+            self._context = context(self.app, self._supervisor)
         
         def bpmLoop():
             while True:
@@ -172,35 +185,38 @@ class WebApp:
             self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
             self.process_checker_thread.daemon = True
             self.process_checker_thread.start()
+            
+        while self._supervisor == None:
+            time.sleep(1)
         
-        format.message("Attempting to start BPM finder")
-        
-        self.flaskThread.join()
+        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context)
         
         format.newline()    
+        
+        self.flaskThread.join()
 
     def initLogging(self):
         #self.app.logger.disabled = True
         #logging.getLogger('werkzeug').disabled = True
         return
     
+    def startSupervisor(self):
+        self._supervisor = Supervisor(devMode=self.devMode)
+        
+        return
+    
     def setUpDMX(self):
         #Requires USB to DMX with driver version of "libusb-win32"
         
         try:
-            self._dmx = dmx(self._context, self.app, self.devMode)
+            self._dmx = dmx(self._context, self._supervisor, self.app, self.devMode)
             
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
             return
         
-        try:
-            #try:
-                #self._dmx.web_control()
-                
-            #except Exception as e:
-                #format.message(f"Error starting DMX web control: {e}", type="error")
-        
+        if self._dmx != None:
+            
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
                 
@@ -232,11 +248,7 @@ class WebApp:
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "dmxStatus"})
             
             format.message("DMX Connection set up successfully", type="success")
-            
-        except Exception as e:
-            format.message(f"Error occured while setting up DMX connection! ({e})", type="error")
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"DISCONNECTED", 'type': "dmxStatus"})
-
+        
     def connectToOBS(self):
         if self.devMode == False or self.OBSSERVERIP == "" or self.OBSSERVERPASSWORD == "" or self.OBSSERVERPORT == "":
             try:
@@ -358,7 +370,14 @@ class WebApp:
                 return jsonify(serialized_fixtures)
                     
             except Exception as e:
-                format.message(f"Error getting available fixtures: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error Getting available fixtures: {e}")
+                ise.process = "API: Get Available Fixtures"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 
                 return jsonify({"error": f"Error getting available fixtures: {e}"}), 500
             
@@ -410,7 +429,14 @@ class WebApp:
                 return jsonify(fixtureChannels)
             
             except Exception as e:
-                format.message(f"Error getting DMX Channel Values: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error DMX channel values: {e}")
+                ise.process = "API: Get DMX Values"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Error getting DMX Channel Values: {e}"}), 500
             
         @self.app.route("/api/dmx/scenes", methods=["GET"])
@@ -425,7 +451,14 @@ class WebApp:
                 
                 return jsonify(serialized_scenes)
             except Exception as e:
-                format.message(f"Failed to fetch scenes: {str(e)}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to fetch scenes: {e}")
+                ise.process = "API: Get DMX Scenes"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to fetch scenes: {str(e)}"}), 500
                 
         @self.app.route("/api/dmx/getScene", methods=["GET"])
@@ -443,7 +476,14 @@ class WebApp:
 
                 return jsonify(scene.to_dict())
             except Exception as e:
-                format.message(f"Failed to fetch scene: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to fetch scene: {e}")
+                ise.process = "API: DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to fetch scene: {e}"}), 500
             
         @self.app.route("/api/dmx/startScene", methods=["POST"])
@@ -461,7 +501,14 @@ class WebApp:
 
                 return jsonify(200)
             except Exception as e:
-                format.message(f"Failed to start scene: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to start scene: {e}")
+                ise.process = "API: Start DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to start scene: {e}"}), 500
 
         @self.app.route("/api/dmx/stopScene", methods=["POST"])
@@ -479,7 +526,14 @@ class WebApp:
 
                 return jsonify(200)
             except Exception as e:
-                format.message(f"Failed to start scene: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to stop scene: {e}")
+                ise.process = "API: Stop DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to start scene: {e}"}), 500
         
         @self.app.route("/api/dmx/createScene", methods=["POST"])
@@ -500,7 +554,14 @@ class WebApp:
 
                 return jsonify(createdScene.id)
             except Exception as e:
-                format.message(f"Failed to create scene: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to create scene: {e}")
+                ise.process = "API: Create DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to create scene: {e}"}), 500
             
         @self.app.route("/api/dmx/editSceneName", methods=["POST"])
@@ -525,7 +586,14 @@ class WebApp:
 
                 return jsonify({"newName": newName})
             except Exception as e:
-                format.message(f"Failed to edit scene name: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to edit scene name: {e}")
+                ise.process = "API: Edit DMX Scene Name"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to edit scene name: {e}"}), 500
 
         @self.app.route("/api/dmx/getSceneEvent", methods=["GET"])
@@ -540,7 +608,14 @@ class WebApp:
                 
                 return jsonify(event.to_dict())
             except Exception as e:
-                format.message(f"Failed to fetch scene event: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to get scene event: {e}")
+                ise.process = "API: Get DMX Scene Event"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to fetch scene event: {e}"}), 500
 
         @self.app.route("/api/dmx/saveSceneEvent", methods=["POST"])
@@ -565,7 +640,14 @@ class WebApp:
                 return jsonify({"success": "Scene event saved"}), 200
                 
             except Exception as e:
-                format.message(f"Failed to save scene event: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to save scene event: {e}")
+                ise.process = "API: Save DMX Scene Event"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to save scene event: {e}"}), 500
             
         @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
@@ -586,7 +668,14 @@ class WebApp:
                 
                 return jsonify({"success": "Scene event created"})
             except Exception as e:
-                format.message(f"Failed to create scene event: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to create scene event: {e}")
+                ise.process = "API: Create New DMX Scene Event"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to create scene event: {e}"}), 500
 
         @self.app.route('/end')
@@ -635,7 +724,14 @@ class WebApp:
             try:
                 self._dmx.setFixtureChannel(fixture, channelName, value)
             except Exception as e:
-                format.message(f"Error updating DMX Value: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to update DMX Value: {e}")
+                ise.process = "API: Update DMX Value"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
             
         @self.socketio.on('playBriefing')
         def playBriefing():
@@ -644,24 +740,42 @@ class WebApp:
                     format.message("Playing briefing")
                     self._obs.switchScene("Video")
                 except Exception as e:
-                    format.message(f"Error playing briefing: {e}", type="error")
+                    ise : InternalServerError = InternalServerError()
+                
+                    ise.service = "api"
+                    ise.exception_message = str(f"Failed to start OBS Briefing: {e}")
+                    ise.process = "API: Start OBS Briefing"
+                    ise.severity = "1"
+                    
+                    self._supervisor.logInternalServerError(ise)
             else:
                 format.message("OBS not connected", type="error")
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
             try:
-                data = request.json 
-                message = data.get("message")
-                type_ = data.get("type") 
-            except:
-                message = request.form.get("message")
-                type_ = request.form.get("type")
+                try:
+                    data = request.json 
+                    message = data.get("message")
+                    type_ = data.get("type") 
+                except:
+                    message = request.form.get("message")
+                    type_ = request.form.get("type")
+                
+                if type_:
+                    self.socketio.emit(f"{type_}", {"message": message}) 
+                                    
+                return
             
-            if type_:
-                self.socketio.emit(f"{type_}", {"message": message}) 
-                                
-            return 'Message sent!'
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "socket"
+                ise.exception_message = str(f"Failed To Send Socket Message: {e}")
+                ise.process = "Socket: Send Message"
+                ise.severity = "1"
+                
+                self._supervisor.logInternalServerError(ise)
     
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             
@@ -670,12 +784,8 @@ class WebApp:
         try:
             sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
-            try:
-                format.message(f"Error while trying to sniff, falling back to default adaptor", type="error")
-                sniff(prn=self.packetCallback, store=False, iface=r"\Device\NPF_{65FB39AF-8813-4541-AC82-849B6D301CAF}" if self.devMode != "true" else None)
-            except Exception as e:
-                format.message(f"Error while sniffing: {e}", type="error")
-                return
+            format.message(f"Error while sniffing: {e}", type="error")
+            return
             
     async def getPlayingStatus(self):
         sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
@@ -931,7 +1041,7 @@ class WebApp:
                 self.rateLimit = False
                 
         except Exception as e:
-            if "Max Retries, reason: too many 429 error responses" in bpm:
+            if "max retries, reason: too many 429 error responses" in bpm.lower():
                 self.rateLimit = True
                 return
             else:
@@ -1147,49 +1257,32 @@ class WebApp:
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
     def gameStarted(self):
-        format.message("Game started")
-        
         if self.gameStatus == "running":
             return
         
-        try:
-            self.gameStatus = "running"
+        format.message("Game started")
+
+        self.handleMusic(mode="play")
+
+        self.gameStatus = "running"
+        self.GunScores = {}
+        self.TeamScores = {}
+        self.endOfDay = False
+
+        self.currentGameId = self._context.createNewGame()
             
-            self.handleMusic(mode="play")
-        except Exception as e:
-            format.message(f"Error handling music: {e}", type="error")
-            
-        try:
-            self.currentGameId = self._context.createNewGame()
-        except Exception as e:
-            format.message(f"Error creating new game: {e}", type="error")
-            
-        try:
-            if self._obs != None:
-                self.endOfDay = False
-                self._obs.switchScene("Laser Scores")
-                
-        except Exception as e:
-            format.message(f"Error switching to Laser Scores scene: {e}", type="error")
-            
-        try:
-            self.GunScores = {}
-            self.TeamScores = {}
-        except Exception as e:
-            format.message(f"Error initializing Gun and Team Scores: {e}", type="error")
+        if self._obs != None:
+            self._obs.switchScene("Laser Scores")
         
     def gameEnded(self):
-        format.message("Game ended")
-        
         if self.gameStatus == "stopped":
             return
         
-        try:
-            self.gameStatus = "stopped"
-            
-            self.handleMusic(mode="pause")
-        except Exception as e:
-            format.message(f"Error handling music: {e}", type="error")
+        format.message("Game ended")
+
+        self.gameStatus = "stopped"
+        
+        self.handleMusic(mode="pause")
             
         try:
             if self.currentGameId != 0:
@@ -1212,11 +1305,18 @@ class WebApp:
                 self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
                 format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
-            
-            self.currentGameId = 0
+                
+                self.currentGameId = 0
             
         except Exception as e:
-            format.message(f"Error ending game: {e}", type="error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "webapp"
+            ise.exception_message = str(f"Failed To Switch To Winners Screen: {e}")
+            ise.process = "WebApp: Switch To Winners Screen"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
 
     # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
     

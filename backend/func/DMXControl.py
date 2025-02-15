@@ -3,7 +3,11 @@ from os import walk
 from PyDMXControl.controllers import OpenDMXController
 from PyDMXControl.profiles.Generic import Custom, Dimmer
             
+from data.models import *
 from func import format
+from func.DB import context as dbContext
+from func.Supervisor import Supervisor
+
 import threading
 import time
 import requests
@@ -11,21 +15,14 @@ import socket
 import datetime
             
 class dmx:
-    def __init__(self, context, app, devmode):
+    def __init__(self, context : dbContext, supervisor : Supervisor, app, devmode):
         try:
-            self._dmx = OpenDMXController()       
-        except Exception as e:
-            self._dmx = None
-            
-            format.message(f"Error starting DMX controller: {e}", "error")
-            if devmode != True:
-                AttributeError(f"DMX controller not started, {e}")
+            self._dmx : OpenDMXController = OpenDMXController()       
+        except Exception as e:            
+            raise AttributeError(f"DMX controller not started, {e}")
                 
-                return
-            else:
-                format.message("Continuing DMX connection in devmode", "warning")
-                
-        self._context = context
+        self._context : dbContext = context
+        self._supervisor : Supervisor = supervisor
         self.app = app
         
         self._localIp = self.__getLocalIp()
@@ -64,7 +61,15 @@ class dmx:
             
             return fixture
         except Exception as e:
-            format.message(f"Error registering Dimmer fixture: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error registering dimmer: {e}")
+            ise.process = "DMX: Register Dimmer Fixture"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
+            
             return None
     
     def registerCustomFixture(self, fixtureName, fixtureType, channels, startChannel):
@@ -77,7 +82,14 @@ class dmx:
             
             return fixture
         except Exception as e:
-            format.message(f"Error registering Custom fixture: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error registering custom fixture: {e}")
+            ise.process = "DMX: Register custom fixture"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
             return None
         
     def registerFixtureUsingType(self, fixtureName, fixtureType, startChannel):
@@ -94,10 +106,18 @@ class dmx:
                 
                 return fixture
             
-            raise LookupError(f"Fixture type {fixtureType} not found")
+            return None
         
         except Exception as e:
-            format.message(f"Error registering fixture: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error registering fixture using type '{fixtureType}': {e}")
+            ise.process = "DMX: Register Fixture Using Type"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
+            
             return
         
     def registerChannel(self, fixtureName, channelName):
@@ -110,7 +130,14 @@ class dmx:
                 return LookupError(f"Fixture {fixtureName} not found")
             
         except Exception as e:
-            format.message(f"Error registering channel: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error registering channel '{channelName}': {e}")
+            ise.process = "DMX: Register Channel"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
         
     def setFixtureChannel(self, fixtureName, channelName, value):
         try:
@@ -125,7 +152,14 @@ class dmx:
                 return LookupError(f"Fixture {fixtureName} not found")
             
         except Exception as e:
-            format.message(f"Error setting channel: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error setting channel '{fixtureName}-{channelName}' to value '{value}': {e}")
+            ise.process = "DMX: Set Channel Value"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
             
     def startScene(self, sceneId):
         scene = self.getDMXSceneById(sceneId)
@@ -145,7 +179,7 @@ class dmx:
             self.runningScenes[sceneId] = (thread, stopEvent)
             thread.start()
         else:
-            format.message(f"Scene {sceneId} not found", "error")
+            return None
             
     def stopScene(self, sceneId):
         for thread in threading.enumerate():
@@ -158,7 +192,7 @@ class dmx:
                 format.message(f"Scene {sceneId} stopped", "info")
                 return
             
-        format.message(f"Scene {sceneId} not found", "error")
+        return
     
     def createNewScene(self, DMXScene):
         try:
@@ -169,7 +203,14 @@ class dmx:
                 self._context.db.session.refresh(DMXScene)
                 return DMXScene
         except Exception as e:
-            format.message(f"Error creating new scene: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error Creating New Scene '{DMXScene}': {e}")
+            ise.process = "DMX: Create New Scene"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
             return
         
     def updateFixtureChannelEvent(self, sceneEventID, fixture, channel, value):
@@ -192,49 +233,90 @@ class dmx:
                     )
                     self._context.db.session.add(event)
                 
-                try:
-                    self._context.db.session.commit()
-                    return event
-                except Exception as e:
-                    self._context.db.session.rollback()
-                    format.message(f"Error saving event to database: {e}", "error")
-                    return None
+                self._context.db.session.commit()
+                return event
 
         except Exception as e:
-            format.message(f"Error accessing database context: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error updating fixture channel event Id: '{sceneEventID}' Channel: '{fixture}-{channel}' to value '{value}': {e}")
+            ise.process = "DMX: Register Dimmer Fixture"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
             return None
         
     def turnOffAllChannels(self):
-        fixtures = self.getRegisteredFixtures()
-        
-        for fixture in fixtures.items():
-            fixtureName = fixture[0]
-            fixtureType = fixture[1]["type"]
-            fixtureProfile = (self.getFixtureProfiles()).get(fixtureType)
+        try:
+            fixtures = self.getRegisteredFixtures()
             
-            for channel in fixtureProfile.items():
-                self.setFixtureChannel(fixtureName, channel[0], 0)
+            for fixture in fixtures.items():
+                fixtureName = fixture[0]
+                fixtureType = fixture[1]["type"]
+                fixtureProfile = (self.getFixtureProfiles()).get(fixtureType)
                 
-        return
+                for channel in fixtureProfile.items():
+                    self.setFixtureChannel(fixtureName, channel[0], 0)
+                    
+            return
+        
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error turning off all channels: {e}")
+            ise.process = "DMX: Turn Off All Channels"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
+            
+            return
     
     def setSceneSongTrigger(self, sceneId, songName):
-        scene = self.getDMXSceneById(sceneId)
-        scene.songKeybind = songName
-        self._context.db.session.commit()
-        
-        return scene
+        try:
+            scene = self.getDMXSceneById(sceneId)
+            scene.songKeybind = songName
+            self._context.db.session.commit()
+            
+            return scene
+    
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error setting scene song trigger for scene Id: '{sceneId}': {e}")
+            ise.process = "DMX: Set Scene Song Trigger"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
+            
+            return None
     
     def createNewSceneEvent(self, sceneId):
-        newSceneEvent = self._context.DMXSceneEvent(
-            name="New Event", 
-            duration=0, 
-            updateDate=datetime.datetime.now(), 
-            sceneID=sceneId)
+        try:
+            newSceneEvent = self._context.DMXSceneEvent(
+                name="New Event", 
+                duration=0, 
+                updateDate=datetime.datetime.now(), 
+                sceneID=sceneId)
+            
+            self._context.db.session.add(newSceneEvent)
+            self._context.db.session.commit()
+            
+            return newSceneEvent
         
-        self._context.db.session.add(newSceneEvent)
-        self._context.db.session.commit()
-        
-        return newSceneEvent
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error creating new scene event for scene Id: '{sceneId}': {e}")
+            ise.process = "DMX: Create New Scene Event"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
+            
+            return None
 
     # Getters
         
@@ -257,7 +339,14 @@ class dmx:
                         fixtureDict = fixtureDTO[0].to_dict()
                         Fixtures.append({"fixture": fixtureDict, "name": registeredFixture[0], "id": registeredFixture[1]["id"], "channels": DMXFixture.channel_usage})
         except Exception as e:
-            format.message(f"Error getting fixtures: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error getting fixtures: {e}")
+            ise.process = "DMX: Get All Fixtures"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
             return []
         
         return Fixtures
@@ -271,19 +360,28 @@ class dmx:
         fixtures = self._dmx.get_fixtures_by_name(fixtureName)
         return fixtures
     def getDMXScenes(self):
-        self.__processJSONDMXScenes()
-        DMXScenes = []
         try:
+            self.__processJSONDMXScenes()
+            DMXScenes = []
+            
             with self.app.app_context():
                 scenes = self._context.DMXScene.query.all()
 
                 for scene in scenes:
                     DMXScenes += self.__mapToDMXSceneDTO(scene)
+            
+            return DMXScenes
         except Exception as e:
-            format.message(f"Error getting DMX scenes: {e}", "error")
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error getting DMX scenes: {e}")
+            ise.process = "DMX: Get All DMX Scenes"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
+            
             return []
-        
-        return DMXScenes
         
     def getDMXSceneByName(self, sceneName):
         return self.__findScene(sceneName)
@@ -530,42 +628,66 @@ class dmx:
                                         self._context.db.session.commit()
 
                                 except Exception as e:
-                                    format.message(f"Error processing DMX scene {filename}: {e}", "error")
+                                    ise : InternalServerError = InternalServerError()
+                
+                                    ise.service = "dmx"
+                                    ise.exception_message = str(f"Error processing DMX JSON scene '{filename}': {e}")
+                                    ise.process = "DMX: Process JSON DMX Scenes"
+                                    ise.severity = "2"
+                                    
+                                    self._supervisor.logInternalServerError(ise)
                             
                             os.rename(folder + "\\" + filename, f"{folder}\\{filename.strip('.json')}_processed.json")
                             
                         except Exception as e:
-                            format.message(f"Error opening DMX scene {filename}: {e}", "error")
+                            ise : InternalServerError = InternalServerError()
+                
+                            ise.service = "dmx"
+                            ise.exception_message = str(f"Error opening JSON DMX Scene: {e}")
+                            ise.process = "DMX: Process JSON DMX Scenes"
+                            ise.severity = "1"
+                            
+                            self._supervisor.logInternalServerError(ise)
                 
             return scenes
 
-    def __startScene(self, scene, stopEvent):   
-        while not stopEvent.is_set():
-            for event in scene.events:
-                if stopEvent.is_set():
-                    return 200
-                for channel in event.channels:
-                    try:
-                        fixture_id = int(channel["fixture"])
-                        fixture = self._dmx.get_fixture(fixture_id)
-                    except ValueError:
-                        fixture = self.getFixturesByName(channel["fixture"])[0]
+    def __startScene(self, scene, stopEvent):  
+        try: 
+            while not stopEvent.is_set():
+                for event in scene.events:
+                    if stopEvent.is_set():
+                        return 200
+                    for channel in event.channels:
+                        try:
+                            fixture_id = int(channel["fixture"])
+                            fixture = self._dmx.get_fixture(fixture_id)
+                        except ValueError:
+                            fixture = self.getFixturesByName(channel["fixture"])[0]
 
-                    fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
-                    
-                    requests.post(
-                        f'http://{self._localIp}:8080/sendMessage',
-                        json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
-                    )
-
+                        fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
                         
-                if event.duration > 0:
-                    time.sleep(event.duration / 1000)
-            
-            if scene.repeat == True:
-                self.__startScene(scene, stopEvent)
+                        requests.post(
+                            f'http://{self._localIp}:8080/sendMessage',
+                            json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
+                        )
+
+                            
+                    if event.duration > 0:
+                        time.sleep(event.duration / 1000)
                 
-        return 200
+                if scene.repeat == True:
+                    self.__startScene(scene, stopEvent)
+                    
+            return 200
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error starting scene: {e}")
+            ise.process = "DMX: Running Scene"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
             
     # Config
     

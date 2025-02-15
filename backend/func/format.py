@@ -69,7 +69,7 @@ def message(message, type="Info", date=True, newline=False):
             logger.warning(f"{logtime} | {message}")
             
         try:            
-            if type.title() == "Error" or type.title() == "Warning":
+            if type.title() == "Error":
                 
                 with open(fr"{dir}\..\data\keys.txt") as f:
                     secretKey = f.readline().strip()  
@@ -85,6 +85,7 @@ def message(message, type="Info", date=True, newline=False):
                         "secretKey": secretKey
                     }
                     try:
+                        return
                         response = requests.post(url, data=data)
                         response.raise_for_status()
                     except Exception as e:
