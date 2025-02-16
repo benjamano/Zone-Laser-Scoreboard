@@ -574,11 +574,11 @@ class dmx:
         else:
             folder = os.getcwd() + "\\data\\DMXScenes\\"
         
-        format.message(f"Searching for DMX scenes in {folder}", "info")
+        #format.message(f"Searching for DMX scenes in {folder}", "info")
 
         with self.app.app_context():
             for (dirpath, dirnames, filenames) in walk(folder):
-                format.message(f"Processing {len(filenames)} DMX scenes", "info")
+                #format.message(f"Processing {len(filenames)} DMX scenes", "info")
                 
                 for filename in filenames:
                     if filename.endswith(".json") and "_processed" not in filename:
