@@ -6,12 +6,12 @@
 
     <div class="card-header collapsed pcDetailsHeader">
 
-        <span><span class="fa fa-chart-line me-2"></span>CPU - 30%</span>
-        <span><span class="fa fa-chart-line me-2"></span>RAM - 4GB (60%)</span>
-        <span><span class="fa fa-clock me-2"></span>Uptime - 3 Days : 21 Hours : 32 Minutes</span>
-        <span><span class="fa fa-bug me-2"></span>Errors Logged - 0 (Past 8 hours)</span>
+        <span><span class="fa fa-chart-line me-2"></span id="currentCpuUsage">CPU - 30%</span>
+        <span><span class="fa fa-chart-line me-2"></span id="currentRamUsage">RAM - 4GB (60%)</span>
+        <span><span class="fa fa-clock me-2"></span id=uptimeText>Uptime - 3 Days : 21 Hours : 32 Minutes</span>
+        <span><span class="fa fa-bug me-2" id="totalErrorsLoggedText"></span>Errors Logged - 0 (Past 8 hours)</span>
 
-        <span class="float-end"><span class="fa fa-wrench me-2"></span>Last Updated: 00:20</span>
+        <span class="float-end"><span class="fa fa-wrench me-2"></span>Last Updated: <span id="lastUpdatedText">00:20</span></span>
 
     </div>
 
@@ -29,57 +29,57 @@
 
                 <div class="backgroundServiceName"><h4>System Status</h4></div>
 
-                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>CONNECTED</div>
+                <div class="backgroundServiceStatusIcon"><span id="webAppStatusIcon" class="fa fa-circle me-2" style="color: green;"></span id="webAppConnectionText">CONNECTED</div>
 
-                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+                <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
 
                 <button class="btn btn-danger col-12">Restart Service</button>
 
             </div>
 
-            <div class="backgroundServiceStatus">
+            <div class="backgroundServiceStatus" id="dmx">
 
                 <div class="backgroundServiceName"><h4>DMX Control</h4></div>
 
-                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+                <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
 
-                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+                <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
 
                 <button class="btn btn-danger col-12">Restart DMX Service</button>
 
             </div>
 
-            <div class="backgroundServiceStatus">
+            <div class="backgroundServiceStatus" id="obs">
 
                 <div class="backgroundServiceName"><h4>OBS Control</h4></div>
 
-                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+                <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
 
-                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+                <div class="backgroundServiceErrors"><span id="errorsNumber">0</span> errors (Past 8 hours)</div>
 
                 <button class="btn btn-danger col-12">Restart OBS Service</button>
 
             </div>
 
-            <div class="backgroundServiceStatus">
+            <div class="backgroundServiceStatus" id="music">
 
                 <div class="backgroundServiceName"><h4>Music Control</h4></div>
 
-                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+                <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
 
-                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+                <div class="backgroundServiceErrors"><span id="errorsNumber">0</span> errors (Past 8 hours)</div>
 
                 <button class="btn btn-danger col-12">Restart Service</button>
 
             </div>
 
-            <div class="backgroundServiceStatus">
+            <div class="backgroundServiceStatus" id="db">
 
                 <div class="backgroundServiceName"><h4>DB Connection</h4></div>
 
-                <div class="backgroundServiceStatusIcon"><span class="fa fa-circle me-2" style="color: green;"></span>OK</div>
+                <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
 
-                <div class="backgroundServiceErrors">0 errors (Past 8 hours)</div>
+                <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
 
                 <button class="btn btn-danger col-12">Restart Service</button>
 
@@ -90,5 +90,55 @@
     </div>
 
 </div>
+
+<script>
+
+    $(document).ready(function () {
+        function fetchServiceStatus() {
+            $.ajax({
+                url: "/api/serviceStatus",
+                type: "GET",
+                success: function (response) {
+                    var now = new Date();
+                    var hours = now.getHours().toString().padStart(2, "0");
+                    var minutes = now.getMinutes().toString().padStart(2, "0");
+
+                    $("#lastUpdatedText").text(hours + ":" + minutes);
+
+                    response.forEach(function (service) {
+                        var section = $("#" + service.serviceName);
+
+                        var recentErrors = service.numberOfRecentErrors;
+                        var serviceName = service.serviceName;
+                        var serviceStatus = service.status;
+                        
+                        if (section.length > 0) {
+                            var statusContainer = section.find(".backgroundServiceStatusIcon");
+                        
+                            if (statusContainer.length > 0) {
+                                if (serviceStatus == "OK") {
+                                    statusContainer.find("#statusIcon").css("color", "green");
+                                    statusContainer.find("#statusText").text(serviceStatus);
+                                    statusContainer.find("#errorsNumber").text(recentErrors);
+                                }
+                            }
+                        }
+                    });
+                },
+                error: function (xhr, status, error) {
+                    $("#webAppConnectionText").text("DISCONNECTED");
+                    $("#webAppStatusIcon").css("color", "red");
+
+                    console.error("Error fetching Service Status:", error);
+                }
+            });
+        }
+
+        fetchServiceStatus();
+
+        setInterval(fetchServiceStatus, 120000);
+    });
+
+</script>
 
 {% endblock %}
