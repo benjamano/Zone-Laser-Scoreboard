@@ -1,4 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
+from dataclasses import dataclass, asdict
 
 db = SQLAlchemy()
 
@@ -10,6 +11,16 @@ class InternalServerError(db.Model):
     process = db.Column(db.String(255), nullable=True)
     service = db.Column(db.String(255), nullable=True)
     severity = db.Column(db.Integer, nullable=False)
+
+@dataclass
+class ServiceHealthDTO:
+    id: int
+    serviceName: str
+    status: str
+    numberOfRecentErrors: int
+
+    def to_dict(self):
+        return asdict(self)
 
 class Gun(db.Model):
     id = db.Column(db.Integer, primary_key=True)

@@ -25,6 +25,8 @@ from func.OBS import OBS
 
 from func.Supervisor import Supervisor
 
+from data.models import *
+
 class WebApp:
     def __init__(self):
         self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
@@ -189,7 +191,7 @@ class WebApp:
         while self._supervisor == None:
             time.sleep(1)
         
-        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context)
+        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, app = self.app)
         
         format.newline()    
         
@@ -250,9 +252,9 @@ class WebApp:
             format.message("DMX Connection set up successfully", type="success")
         
     def connectToOBS(self):
-        if self.devMode == False or self.OBSSERVERIP == "" or self.OBSSERVERPASSWORD == "" or self.OBSSERVERPORT == "":
+        if self.OBSSERVERIP != "" and self.OBSSERVERPASSWORD != "" and self.OBSSERVERPORT != "":
             try:
-                self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir)
+                self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor)
             except Exception as e:
                 format.message(f"Error setting up OBS connection: {e}", type="error")
         else:
@@ -347,12 +349,39 @@ class WebApp:
         
         @self.app.route("/status")
         def status():
-            return render_template("status.html")
+            return render_template("status.html", sysName=self.SysName, PageTitle="Status")
 
         @self.app.route("/ping")
         def ping():   
             #format.message("|--- I'm still alive! ---|")
             return 'OK'
+        
+        @self.app.route("/api/serviceStatus", methods=["GET"])
+        def serviceStatus():
+            try:
+                services : list[str] = self._supervisor.getServices()
+                
+                serviceHealthList : list[dict] = []
+                
+                for service in services:
+                    serviceHealth : ServiceHealthDTO = self._supervisor.getServiceHealth(service)
+                    
+                    if (serviceHealth != None):
+                        serviceHealthList.append(serviceHealth.to_dict())
+                
+                return jsonify(serviceHealthList)
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error getting service status: {e}")
+                ise.process = "API: Get Service Status"
+                ise.severity = "1"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return jsonify({"error": f"Error getting service status: {e}"}), 500
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
@@ -916,16 +945,7 @@ class WebApp:
                     
                 if self.gameStatus == "stopped" and self._obs != None:
                     if self.endOfDay == True:
-                        format.message(f"EOD, setting OBS output to Test Mode")
-                        
-                        try:
-                            with open(fr"{self._dir}\data\display\OBSText.txt", "w") as f:
-                                f.write("             Play2Day Ipswich Laser Tag System Sleeping.... ")
-                                
-                        except Exception as e:
-                            format.message(f"Error opening OBSText.txt: {e}", type="error")
-                        
-                        self._obs.switchScene("Test Mode")
+                        self._obs.showSleepMode()
                     else:
                         self.endOfDay = True
                 
@@ -1168,7 +1188,7 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[0]}")
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
         if packetData[1] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
@@ -1216,7 +1236,7 @@ class WebApp:
             self.endOfDay = False
             if self._obs != None:
                 self._obs.switchScene("Laser Scores")
-            format.message(f"{timeLeft} seconds remain!", type="success") 
+            #format.message(f"{timeLeft} seconds remain!", type="success") 
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         
@@ -1244,14 +1264,14 @@ class WebApp:
         except Exception as e:
             format.message(f"Error updating Gun Scores: {e}", type="error")
             
-        format.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
+        #format.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
         
         data = f"{gunId},{finalScore},{accuracy}"
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
         
     def shotConfirmedPacket(self, packetData):
-        format.message(f"Shot Confirmed Packet: {packetData}")
+        #format.message(f"Shot Confirmed Packet: {packetData}")
         pass
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
