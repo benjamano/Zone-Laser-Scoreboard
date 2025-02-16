@@ -42,7 +42,15 @@ class OBS:
             if e.code == 600:
                 format.message(f"OBS Scene Not Found With Name: {sceneName}", type="error")
             else:
-                format.message(f"Error switching scene: {e}", type="error")
+                ise : InternalServerError = InternalServerError()
+            
+                ise.service = "obs"
+                ise.exception_message = str(f"Error switching to scene named '{sceneName}': {e}")
+                ise.process = "OBS: Switch to Scene"
+                ise.severity = "1"
+                    
+                self._supervisor.logInternalServerError(ise)
+            
             return False
             
     def showWinners(self, playerName:str, teamName:str) -> bool:
@@ -59,41 +67,59 @@ class OBS:
             
             return True
         except Exception as e:
-            format.message(f"Error writing to file: {e}", type="error")
+            ise : InternalServerError = InternalServerError()
+            
+            ise.service = "obs"
+            ise.exception_message = str(f"Error showing winners screen: {e}")
+            ise.process = "OBS: Show Winners Screen"
+            ise.severity = "3"
+                
+            self._supervisor.logInternalServerError(ise)
+            
             return False
         
     def showSleepMode(self) -> bool:
-        """
-        Displays the sleep mode message on the OBS output.
-        """
         try:
-            with open(fr"{self._dir}\data\display\OBSText.txt", "w") as f:
-                f.write("\t\t\tLaser Tag System Sleeping.... ")
+            """
+            Displays the sleep mode message on the OBS output.
+            """
+            try:
+                with open(fr"{self._dir}\data\display\OBSText.txt", "w") as f:
+                    f.write("\t\t\tLaser Tag System Sleeping.... ")
 
-        except Exception as e:
-            format.message(f"Error writing to file: {e}", type="error")
+            except Exception as e:
+                pass
+                
+            self.switchScene("Test Mode")
             
-        self.switchScene("Test Mode")
-        
-        return True
+            return True
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            
+            ise.service = "obs"
+            ise.exception_message = str(f"Error showing sleep screen: {e}")
+            ise.process = "OBS: Show Sleep Screen"
+            ise.severity = "3"
+                
+            self._supervisor.logInternalServerError(ise)
+            
+            return False
 
     def isConnected(self):
         return self.obs.base_client.ws.connected
     
     def resetConnection(self) -> bool:
         try:
-            format.message(f"Reseting OBS Connection")
+            format.message(f"Reseting OBS Connection", type="warning")
             self.obs = None
             self.obs = self.obs = obs.ReqClient(host=self.IP, port=self.PORT, password=self.PASSWORD, timeout=3)
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             
-            ise.service = "api"
-            ise.exception_message = str(f"Error getting service status: {e}")
-            ise.process = "API: Get Service Status"
+            ise.service = "obs"
+            ise.exception_message = str(f"Error resetting OBS connection: {e}")
+            ise.process = "OBS: Reset Connection"
             ise.severity = "1"
                 
             self._supervisor.logInternalServerError(ise)
-            
-            format.message(f"Error resetting OBS connection: {e}", type="error")
             return False
