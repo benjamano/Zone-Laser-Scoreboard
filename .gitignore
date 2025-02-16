@@ -180,3 +180,4 @@ backend/data/DMXScenes/testScene.json
 *.json
 backend/data/display/WinningPlayer.txt
 backend/data/display/OBSText.txt
+update.bat
