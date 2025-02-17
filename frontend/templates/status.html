@@ -141,9 +141,13 @@
                     $("#webAppConnectionText").text("DISCONNECTED");
                     $("#webAppStatusIcon").css("color", "red");
 
-                    $("#statusText").text("UNKNOWN");
+                    $("#statusText").forEach(function(text){
+                        text.text("Unknown")                        
+                    })
                     $("#errorsNumber").text("0");
-                    $("#statusIcon").css("color", "grey");
+                    $("#statusIcon").forEach(function(icon){
+                        icon.css("color", "grey");
+                    })
 
                     console.error("Error fetching Service Status:", error);
                 }
