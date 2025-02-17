@@ -4,6 +4,7 @@ import time, os
 from data.models import *
 import func.OBS as _obs
 import func.DB as _context
+import func.DMXControl as _dmx
 from flask import Flask
 
 class Supervisor:
@@ -21,7 +22,7 @@ class Supervisor:
     
     def setDependencies(self, obs, dmx, db, app):
         self._obs : _obs.OBS = obs
-        self._dmx = dmx
+        self._dmx : _dmx.dmx = dmx
         self._context : _context.context = db
         self._app : Flask = app
         
@@ -105,18 +106,11 @@ class Supervisor:
     def __resetDatabaseConnection(self):
         self.__closeApp("Database Connection Error")
         
-        message("Restarting App To Reconnect to Database", type="warning")
-        os._exit(1)
-        
     def __resetOBSConnection(self):
-        self.__closeApp("OBS Connection Error")
-        
         message("Restarting OBS Connection", type="warning")
         self._obs = self._obs.ResetConnection()
         
     def __resetDMXConnection(self):
-        self.__closeApp("DMX Connection Error")
-        
         message("Restarting DMX Connection", type="warning")
         self._dmx = self._dmx.ResetConnection()
         
@@ -126,7 +120,7 @@ class Supervisor:
         
     def __closeApp(self, reason: str):
         message(f"Closing App. Reason {reason}", type="error")
-        #os.exit(1)
+        os.exit(1)
         
     def getServiceHealth(self, serviceName: str):
         try:

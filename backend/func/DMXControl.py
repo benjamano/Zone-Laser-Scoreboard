@@ -317,6 +317,16 @@ class dmx:
             self._supervisor.logInternalServerError(ise)
             
             return None
+        
+    def ResetConnection(self) -> None:
+        self._dmx.close()
+        self._dmx = None
+        try:
+            self._dmx : OpenDMXController = OpenDMXController()       
+        except Exception as e:            
+            raise AttributeError(f"DMX controller not started, {e}")
+        
+        return
 
     # Getters
         
