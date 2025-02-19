@@ -890,3 +890,25 @@ label{
         margin-left: 0 !important;
     }
 }
+
+.movableItemsContainer {
+    width: 500px;
+    height: 500px;
+    display: grid;
+    grid-template-columns: repeat(5, 100px);
+    grid-template-rows: repeat(5, 100px);
+    gap: 5px;
+    border: 2px solid black;
+    position: relative;
+}
+.draggableCard {
+    width: 100px;
+    height: 100px;
+    background-color: lightblue;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+}

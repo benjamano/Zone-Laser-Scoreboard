@@ -301,17 +301,22 @@ class WebApp:
     def setupRoutes(self):           
         @self.app.route('/')
         def index():
-            if not self.OBSConnected:
-                OBSConnection = "DISCONNECTED"
-            else:
-                OBSConnection = "CONNECTED"
-            
-            if not self.DMXConnected:
-                DMXConnection = "DISCONNECTED"
-            else:
-                DMXConnection = "CONNECTED"
-            
-            return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
+            try:
+                if not self.OBSConnected:
+                    OBSConnection = "DISCONNECTED"
+                else:
+                    OBSConnection = "CONNECTED"
+                
+                if not self.DMXConnected:
+                    DMXConnection = "DISCONNECTED"
+                else:
+                    DMXConnection = "CONNECTED"
+                
+                return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
+        
+            except Exception as e:
+                format.message(f"Error loading index.html: {e}", type="error")
+                return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
         
         @self.app.route("/schedule")
         def scehdule():
