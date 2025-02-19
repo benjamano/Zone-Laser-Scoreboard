@@ -375,7 +375,7 @@ class WebApp:
                 ise : InternalServerError = InternalServerError()
                 
                 ise.service = "api"
-                ise.exception_message = str(f"Error getting service status: {e}")
+                ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
                 ise.process = "API: Get Service Status"
                 ise.severity = "1"
                 
