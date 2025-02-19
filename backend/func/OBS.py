@@ -40,7 +40,14 @@ class OBS:
             return True
         except Exception as e:
             if getattr(e, "code", None) == 600:
-                format.message(f"OBS Scene Not Found With Name: {sceneName}", type="warning")
+                ise : InternalServerError = InternalServerError()
+            
+                ise.service = "obs"
+                ise.exception_message = str(f"OBS Scene Not Found With Name: {sceneName}: {e}")
+                ise.process = "OBS: Switch to Scene"
+                ise.severity = "2"
+                    
+                self._supervisor.logInternalServerError(ise)
             else:
                 ise : InternalServerError = InternalServerError()
             
