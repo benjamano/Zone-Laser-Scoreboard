@@ -19,7 +19,7 @@ class Supervisor:
         self.expectedProcesses = ["Spotify.exe", "obs64"]
         self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-        message(colourText(f"Supervisor Started at {datetime.datetime.today()}", "cyan"), type="info")
+        message(colourText(f"Supervisor Started!", "cyan"), type="info")
         
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
     
