@@ -33,8 +33,6 @@ class WebApp:
         # self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
-        self.expecteProcesses = ["Spotify.exe", "obs64"]
-        
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
         
         self._dir = os.path.dirname(os.path.realpath(__file__))
@@ -182,11 +180,6 @@ class WebApp:
             
         except Exception as e:
             format.message(f"Error starting packet sniffer: {e}", type="error")
-        
-        if self.devMode != True:
-            self.process_checker_thread = threading.Thread(target=self.runProcessChecker)
-            self.process_checker_thread.daemon = True
-            self.process_checker_thread.start()
             
         while self._supervisor == None:
             time.sleep(1)
@@ -904,56 +897,6 @@ class WebApp:
                     
         else:
             format.message("Spotify control is disabled", type="warning")
-            
-    def checkIfProcessRunning(self, processName):
-        for proc in psutil.process_iter():
-            try:
-                if processName.lower() in proc.name().lower():
-                    return True
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-        return False
-    
-    def runProcessChecker(self):
-        try:
-            while True:
-                time.sleep(600)
-                for processName in self.expecteProcesses:
-                    processFound = self.checkIfProcessRunning(processName)
-                    #format.message(f"Process {processName} running: {processFound}")
-                    
-                    if not processFound:
-                        try:
-                            format.message(f"Process {processName} not found, starting it..", type="warning")
-                            if processName.lower() == "spotify":
-                                os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
-                            elif processName.lower() == "obs64":
-                                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
-                                time.sleep(15)
-                                self.obs_connect()
-                            else:
-                                format.message(f"Process {processName} not recognized for auto-start", type="error")
-                            if self.DMXConnected == False:
-                                format.message(f"DMX Connection lost, restarting DMX Network")
-                                self.setUpDMX()
-                            if self.OBSConnected == False:
-                                format.message(f"OBS Connection lost, restarting OBS")
-                                self.obs_connect()
-                                
-                        except Exception as e:
-                            format.message(f"Error starting process {processName}: {e}", type="error")
-                    
-                if self.gameStatus == "stopped" and self._obs != None:
-                    if self.endOfDay == True:
-                        self._obs.showSleepMode()
-                    else:
-                        self.endOfDay = True
-                
-                elif self.gameStatus == "running":
-                    self.endOfDay = False
-                
-        except Exception as e:
-            format.message(f"Error occured while checking processes: {e}", type="error")
             
     def restartApp(self, reason="unknown"):
         if self.devMode == True:

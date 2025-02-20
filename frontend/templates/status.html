@@ -119,10 +119,17 @@
                             var statusContainer = section.find(".backgroundServiceStatusIcon");
                         
                             if (statusContainer.length > 0) {
+                                statusContainer.find("#statusText").text(serviceStatus);
+                                section.find("#errorsNumber").text(recentErrors);
+
                                 if (serviceStatus == "OK") {
                                     statusContainer.find("#statusIcon").css("color", "green");
-                                    statusContainer.find("#statusText").text(serviceStatus);
-                                    statusContainer.find("#errorsNumber").text(recentErrors);
+                                } else if (serviceStatus == "Critical"){
+                                    statusContainer.find("#statusIcon").css("color", "red");
+                                } else if (serviceStatus == "Warning"){
+                                     statusContainer.find("#statusIcon").css("color", "orange");
+                                } else {
+                                     statusContainer.find("#statusIcon").css("color", "grey");
                                 }
                             }
                         }
