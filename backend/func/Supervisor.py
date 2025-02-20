@@ -143,11 +143,9 @@ class Supervisor:
         self.__closeApp("Database Connection Error")
         
     def __resetOBSConnection(self):
-        message("Restarting OBS Connection", type="warning")
         self._obs = self._obs.resetConnection()
         
     def __resetDMXConnection(self):
-        message("Restarting DMX Connection", type="warning")
         self._dmx = self._dmx.resetConnection()
         
     def __restartPC(self, reason: str):
