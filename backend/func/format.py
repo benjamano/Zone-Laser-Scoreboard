@@ -31,12 +31,21 @@ except Exception as e:
     print(f"An error occured: {e}")
     input("Press any key to exit...")
 
-colors = {
+colours = {
         "Info": "\033[94m",    
         "Warning": "\033[93m", 
         "Error": "\033[91m",  
-        "Success": "\033[92m"  
+        "Success": "\033[92m",
+        "Red": "\033[31m",
+        "Green": "\033[32m",
+        "Yellow": "\033[33m",
+        "Blue": "\033[34m",
+        "Magenta": "\033[35m",
+        "Cyan": "\033[36m", 
+        "Black": "\033[30m"
 }
+
+reset = "\033[0m"
 
 def message(message, type="Info", date=True, newline=False):
     """Possible types: Info, Warning, Error, Success.
@@ -49,10 +58,8 @@ def message(message, type="Info", date=True, newline=False):
         logtime = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         
         messagetosend = ""
-        
-        reset = "\033[0m"
 
-        color = colors.get((type.title()), "\033[94m")
+        color = colours.get((type.title()), "\033[94m")
         
         if newline:
             messagetosend += "\n"
@@ -115,3 +122,9 @@ def newline(withDivider=True, baronly=False):
     
     else:
         print("-" * 111)
+        
+def colourText(text : str, colour : str):
+    """
+    Returns a formatted string with the given colour.
+    """
+    return f"{colours.get(colour.title(), '\033[94m')}{text}{reset}"

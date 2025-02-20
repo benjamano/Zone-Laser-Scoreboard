@@ -39,6 +39,8 @@ class dmx:
         except Exception as e:
             format.message(f"Error processing DMX scenes: {e}", "error")
             
+        self._supervisor.setDependencies(dmx=self)
+            
     # Setters
     
     def __appendToFixtures(self, fixture, fixtureType):

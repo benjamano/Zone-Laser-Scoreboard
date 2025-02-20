@@ -6,7 +6,10 @@
 
     <div class="card-header collapsed pcDetailsHeader">
 
-        <span><span class="fa fa-chart-line me-2"></span id="currentCpuUsage">CPU - 30%</span>
+        <span>
+            <span id="webAppStatusIcon" class="fa fa-circle me-2" style="color: green;"></span>
+            <span id="webAppConnectionText">CONNECTED</span>
+        </span>
         <span><span class="fa fa-chart-line me-2"></span id="currentRamUsage">RAM - 4GB (60%)</span>
         <span><span class="fa fa-clock me-2"></span id=uptimeText>Uptime - 3 Days : 21 Hours : 32 Minutes</span>
         <span><span class="fa fa-bug me-2" id="totalErrorsLoggedText"></span>Errors Logged - 0 (Past 8 hours)</span>
@@ -24,18 +27,6 @@
     <div class="card-body">
 
         <div class="backgroundServiceStatusContainer">
-
-            <div class="backgroundServiceStatus">
-
-                <div class="backgroundServiceName"><h5>System Status</h5></div>
-
-                <div class="backgroundServiceStatusIcon"><span id="webAppStatusIcon" class="fa fa-circle me-2" style="color: green;"></span id="webAppConnectionText">CONNECTED</div>
-
-                <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
-
-                <button class="btn btn-danger col-12">Restart Service</button>
-
-            </div>
 
             <div class="backgroundServiceStatus" id="api">
 
@@ -128,10 +119,17 @@
                             var statusContainer = section.find(".backgroundServiceStatusIcon");
                         
                             if (statusContainer.length > 0) {
+                                statusContainer.find("#statusText").text(serviceStatus);
+                                section.find("#errorsNumber").text(recentErrors);
+
                                 if (serviceStatus == "OK") {
                                     statusContainer.find("#statusIcon").css("color", "green");
-                                    statusContainer.find("#statusText").text(serviceStatus);
-                                    statusContainer.find("#errorsNumber").text(recentErrors);
+                                } else if (serviceStatus == "Critical"){
+                                    statusContainer.find("#statusIcon").css("color", "red");
+                                } else if (serviceStatus == "Warning"){
+                                     statusContainer.find("#statusIcon").css("color", "orange");
+                                } else {
+                                     statusContainer.find("#statusIcon").css("color", "grey");
                                 }
                             }
                         }

@@ -1,4 +1,5 @@
-from func.format import message
+import psutil
+from func.format import message, colourText
 import threading, datetime
 import time, os
 from data.models import *
@@ -15,21 +16,49 @@ class Supervisor:
         self._app = None
         self.devMode = devMode
         self._services = ["db", "obs", "dmx", "api"]
-        
-        message(f"Supervisor Started at {datetime.datetime.today()}", type="success")
+        self.expectedProcesses = ["Spotify.exe", "obs64"]
+        self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
+        message(colourText(f"Supervisor Started!", "cyan"), type="info")
+        
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
     
-    def setDependencies(self, obs, dmx, db, app):
-        self._obs : _obs.OBS = obs
-        self._dmx : _dmx.dmx = dmx
-        self._context : _context.context = db
-        self._app : Flask = app
+    def setDependencies(self, obs=None, dmx=None, db=None, app=None):
+        if obs is not None:
+            self._obs: _obs.OBS = obs
+        if dmx is not None:
+            self._dmx: _dmx.dmx = dmx
+        if db is not None:
+            self._context: _context.context = db
+        if app is not None:
+            self._app: Flask = app
         
     def __checkForErrors(self):
         while True:
             time.sleep(30)
             #time.sleep(5)
+            
+            try:
+                # Check if all expected processes are running
+                for processName in self.expectedProcesses:
+                    try:
+                        processFound : bool = self.__checkIfProcessRunning(processName)
+                        if not processFound:
+                            try:
+                                message(f"Process {processName} not found, starting it..", type="warning")
+                                if processName.lower() == "spotify":
+                                    os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
+                                elif processName.lower() == "obs64":
+                                    os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
+                                    time.sleep(10)
+                                    self.__resetOBSConnection()
+                            except Exception as e:
+                                message(f"Error starting process {processName}: {e}", type="error")
+                    except Exception as e:  
+                        message(f"Error occurred while checking for expected processes: {e}", type="error")
+            except Exception as e:
+                message(f"Error occurred while checking for expected processes: {e}", type="error")
+            
             try:
                 # Check Database Connection
                 if self._context != None and self.hasSevereErrorOccurred("db"):
@@ -53,10 +82,17 @@ class Supervisor:
                     threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
             except Exception as e:
                 message(f"Error occured while checking DMX status: {e}", type="error")
+                
+            try:
+                # Check the time to enter sleep mode
+                if datetime.datetime.now().hour >= 21 or datetime.datetime.now().hour <= 11 and self._obs != None:
+                    self._obs.switchScene("Test Mode")
+            except Exception as e:
+                message(f"Error occurred while checking time for sleep mode: {e}", type="error")
             
     def hasSevereErrorOccurred(self, service: str) -> bool:
         try:
-            if self._context is None and service.lower() == "db":
+            if self._context == None and service.lower() == "db":
                 return True
             
             with self._app.app_context():
@@ -122,44 +158,65 @@ class Supervisor:
         message(f"Closing App. Reason {reason}", type="error")
         os.exit(1)
         
+    def __checkIfProcessRunning(self, processName):
+        for proc in psutil.process_iter():
+            try:
+                if processName.lower() in proc.name().lower():
+                    return True
+            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
+                pass
+        return False
+        
     def getServiceHealth(self, serviceName: str):
         try:
             if self._context != None:
+                notSetup : bool = (serviceName.lower() == "dmx" and self._dmx == None) or (serviceName.lower() == "db" and self._context == None) or (serviceName.lower() == "obs" and self._obs == None)
+                
                 severeErrorOccured : bool = self.hasSevereErrorOccurred(str(serviceName).lower())
                 moderateErrorOccured : bool = self.hasModerateErrorOccurred(str(serviceName).lower())
                 
-                if severeErrorOccured:
+                if severeErrorOccured or notSetup == True:
                     status = "Critical"
                 elif moderateErrorOccured:
                     status = "Warning"
                 else:
                     status = "OK"
                     
-                numberOfRecentErrors = self.getRecentServiceErrors(str(serviceName).lower())
+                recentErrors: list[dict] = [
+                    error.to_dict() for error in self.getRecentServiceErrors(str(serviceName).lower())
+                ]
                 
                 return ServiceHealthDTO(
                     id=0,
                     serviceName=serviceName,
                     status= status,
-                    numberOfRecentErrors=numberOfRecentErrors
+                    numberOfRecentErrors=len(recentErrors),
+                    recentErrorList=recentErrors
+                    
                 )
         except Exception as e:
-            message(f"Error occurred while getting service health: {e}", type="error")
+            message(f"Error occurred while getting service health: {e}", type="warning")
         
         return None
 
     def logInternalServerError(self, ise: InternalServerError):
-        if self._context != None and ise != None:
+        try:
+            if self._context != None and ise != None:
+                
+                if ise.severity == 1:
+                    message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException Message: {ise.exception_message}", type="error")
+                else:
+                    message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
+                
+                ise.timestamp = datetime.datetime.now()
+                
+                with self._app.app_context():
+                    self._context.db.session.add(ise)
+                    self._context.db.session.commit()
             
-            if ise.severity == 1:
-                message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException Message: {ise.exception_message}", type="error")
-            else:
-                message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
+            return
+        
+        except Exception as e:
+            message(f"Error occurred while logging internal server error: {e}", type="error")
             
-            ise.timestamp = datetime.datetime.now()
-
-            self._context.db.session.add(ise)
-            self._context.db.session.commit()
-        
-        return
-        
+            return

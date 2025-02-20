@@ -21,11 +21,20 @@ class OBS:
             
             if self.obs != None:
                 format.message("Successfully Connected to OBS", type="success")
+                
+                self._supervisor.setDependencies(obs=self)
             else:
                 raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
 
         except Exception as e:
             raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}. ERROR: {e}")
+        
+    def getCurrentScene(self) -> str:
+        pass
+    
+        #This appears to be broken.
+        
+        return self.obs.get_current_program_scene()
 
     def switchScene(self, sceneName:str) -> bool:
         """
@@ -34,13 +43,35 @@ class OBS:
         Args:
             sceneName (str): The name of the scene to switch to in OBS
         """
+        # try:
+        #     if ((self.getCurrentScene()).lower() == sceneName.lower()):
+        #         return True
+        # except Exception as e:
+        #     ise : InternalServerError = InternalServerError()
+            
+        #     ise.service = "obs"
+        #     ise.exception_message = str(f"Error checking current scene: {e}")
+        #     ise.process = "OBS: Switch to Scene"
+        #     ise.severity = "1"
+        
+        #     self._supervisor.logInternalServerError(ise)
+            
+        #     return False
+        
         try:
             self.obs.set_current_program_scene(sceneName)
             
             return True
         except Exception as e:
             if getattr(e, "code", None) == 600:
-                format.message(f"OBS Scene Not Found With Name: {sceneName}", type="warning")
+                ise : InternalServerError = InternalServerError()
+            
+                ise.service = "obs"
+                ise.exception_message = str(f"OBS Scene Not Found With Name: {sceneName}: {e}")
+                ise.process = "OBS: Switch to Scene"
+                ise.severity = "2"
+                    
+                self._supervisor.logInternalServerError(ise)
             else:
                 ise : InternalServerError = InternalServerError()
             

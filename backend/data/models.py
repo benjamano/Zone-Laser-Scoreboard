@@ -12,12 +12,23 @@ class InternalServerError(db.Model):
     service = db.Column(db.String(255), nullable=True)
     severity = db.Column(db.Integer, nullable=False)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "exception_message": self.exception_message,
+            "timestamp": self.timestamp.isoformat(),
+            "process": self.process,
+            "service": self.service,
+            "severity": self.severity,
+        }
+
 @dataclass
 class ServiceHealthDTO:
     id: int
     serviceName: str
     status: str
     numberOfRecentErrors: int
+    recentErrorList: list
 
     def to_dict(self):
         return asdict(self)
