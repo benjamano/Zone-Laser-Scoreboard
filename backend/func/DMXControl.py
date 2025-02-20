@@ -657,7 +657,7 @@ class dmx:
                             ise.service = "dmx"
                             ise.exception_message = str(f"Error opening JSON DMX Scene: {e}")
                             ise.process = "DMX: Process JSON DMX Scenes"
-                            ise.severity = "1"
+                            ise.severity = "3"
                             
                             self._supervisor.logInternalServerError(ise)
                 
