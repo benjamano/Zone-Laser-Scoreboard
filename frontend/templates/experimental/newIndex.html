@@ -1,4 +1,40 @@
-<!DOCTYPE html>
+{% extends "layout.html" %}
+
+{% block content %}
+
+<button onclick="addCard()">Add Card</button>
+<div class="movableItemsContainer"></div>
+<script>
+	function addCard() {
+		const container = document.querySelector(".movableItemsContainer");
+		const card = document.createElement("div");
+		card.classList.add("draggableCard");
+		card.textContent = "Drag Me";
+		card.style.left = "0px";
+		card.style.top = "0px";
+		card.draggable = true;
+		container.appendChild(card);
+
+		card.addEventListener("dragstart", (e) => {
+			e.dataTransfer.setData("text/plain", JSON.stringify({
+				offsetX: e.offsetX,
+				offsetY: e.offsetY
+			}));
+			card.classList.add("dragging");
+		});
+
+		card.addEventListener("dragend", (e) => {
+			card.classList.remove("dragging");
+			let containerRect = container.getBoundingClientRect();
+			let x = Math.round((e.pageX - containerRect.left) / 100) * 100;
+			let y = Math.round((e.pageY - containerRect.top) / 100) * 100;
+			card.style.left = `${x}px`;
+			card.style.top = `${y}px`;
+		});
+	}
+</script>
+
+<!-- <!DOCTYPE html>
 <html lang="en" style="overflow-x: hidden;">
 <head>
 	<meta charset="UTF-8">
@@ -22,32 +58,12 @@
 	<div id="warningsContainer" class="warning">
 		<h1 id="warningsText"></h1>
 	</div>
-	<div class="wrap-everything">
-		<section id="column-1">
-			<div class="lcars-frame">
-				<div class="frame-col-1">
-					<div class="frame-col-1-cell-a"></div>
-					<div class="frame-col-1-cell-b"></div>
-					<div class="frame-col-1-cell-c"></div>
-				</div>
-				<div class="frame-col-2"> </div>
-				<div class="frame-col-3 display-vertical">
-					<div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>					
-				</div>
-				<div class="frame-col-4"> </div>
-				<div class="frame-col-5">
-					<div class="frame-col-5-cell-a"></div>
-					<div class="frame-col-5-cell-b"></div>
-					<div class="frame-col-5-cell-c"></div>
-				</div>
-			</div>
 			<div class="lcars-frame-after" id="album-container" style="width: 220px; height: 220px;">
 				<p>Song Playing:</p>
 				<p><span id="musicPlaying"></span></p>
 				<div id="album-cover" style="width: 100%; height: 100%;"></div>
 			</div>
 			
-			<div class="lcars-frame-after" >
 				<span>BPM:	<a id="musicBPM">0</a> </span>
 				<div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
 					<span style="display: flex;">
@@ -57,89 +73,10 @@
 						<div id="flashingDot2" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: var(--bs-form-valid-border-color);"></div>
 					</span>
 				</div>
-			</div>
-			<div class="panel-24 first-needle">
-				<div class="panel-24-col-a">
-					<div class="panel-24-block-1">
-						<div class="panel-24-cube cc-1"> </div>
-						<div class="panel-24-cube cc-2"> </div>
-						<div class="panel-24-cube cc-3"> </div>
-					</div>
-					<div class="panel-24-block-2">
-						<div class="panel-24-block-3">
-							<div class="panel-24-block-4 block-4-color-a"> </div>
-						</div>
-					</div>
-					<div class="panel-24-block-5"> </div>
-				</div>
-				<div class="panel-24-col-b">
-					<div class="panel-24-block-6">
-					</div>
-					<div class="gauge-wrap">
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							100
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							90
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							80
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							70
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							60
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							50
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							40
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							30
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							20
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							10
-						</div>
-						<div class="gauge-1"> </div>
-						<div class="gauge-2">
-							00
-						</div>
-					</div>
-				</div>
-			</div>
-			<div class="panel-base">				
-			</div>
-			<div class="panel-20">
-				20-62
-			</div>
-		</section>
-		<section id="column-3">
-			<div class="top-wrapper">
-				<div class="top-display">
-					<div class="top-display-left">
-						<nav id="primary-nav">
-							<a href="https://www.thelcars.com">TheLCARS.com</a>
+
+
 							<a role="button" onclick="toggleSpotifyControl()">SPOTIFY CONTROL: <span id="spotifyPlaybackStatus">OFF</span></a>
 							<a role="button" onclick="controlPlayback('end')">TERMINATE SERVER</a>
-						</nav>
-						<div class="chunk"> </div>
-						<div class="panel-wrapper">
 							<div class="panel-1"><div class="lcars-access">
                                 <a>Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span></a>
                             </div></div>
@@ -149,23 +86,10 @@
 							<div class="panel-1"><div class="lcars-access">
 								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
                             </div></div>
-						</div>
 
-						<div class="chunk"> </div>
-
-						<div class="panel-wrapper">
-							<div class="panel-1"><div class="lcars-access">
 								<a>TIME REMAINING: <span class="medium-dark-blue" id="timeRemaining">00:00</span></a>
-							</div></div>
-						</div>
-						
-					</div>
-					<div class="top-display-right">
-						<div class="top-display-content">
-							<div class="top-arch-1">
-								<div class="top-arch-2">
-									<div class="top-arch-content">
-										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div> -->
+
+										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div
 
 										<div class="card" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed">
@@ -184,11 +108,7 @@
 
 													</div>
 
-												</div> -->
-
-												{% extends "_DMXSceneControlsPartial.html" %}
-
-												{% block content %}
+												</div> 
 
 												<div class="card mb-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
@@ -224,7 +144,7 @@
 
 												</div>
 
-												<!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
+												<!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> 
 
 												<div class="card mb-2">
 
@@ -449,76 +369,10 @@
 											</div>
 										</div>
 									</div>
-									<div class="top-arch-panel-1">
-									</div>
-									<div class="top-arch-panel-2">				
-									</div>
-								</div>
-							</div>							
-						</div>
-						<div class="arch-bottom">
-							<div class="arch-base"> </div>
-						</div>
-					</div>
-				</div>
-				<div class="top-display-bottom">					
-					<div class="bar-elbow"></div>
-					<div class="bar-1"></div>
-					<div class="bar-2"></div>
-					<div class="bar-3"></div>
-					<div class="bar-4">
-						
-					</div>
-					<div class="bar-5"></div>		
-				</div>
-			</div> <!-- / top-wrapper -->
-			<div class="spacer">
-				<div class="space-sidebar"></div>
-				<div class="space-1"></div>
-				<div class="space-2"></div>
-				<div class="space-3"></div>
-				<div class="space-4"></div>
-			</div>
-			<div class="wrap">
-				<div class="left-frame">
-					<div>
-						<div class="panel-3"><span class="hop"></span></div>
-						<nav id="secondary-nav">
-							<a href=""></a>
-							<a href=""></a>
-							<a href=""></a>
-						</nav>
-					</div>
-				</div>
-				<div class="right-frame">
-					<div class="bar-runner">
-						<div class="bar-6"></div>
-						<div class="bar-7"></div>
-						<div class="bar-8"></div>
-						<div class="bar-9"></div>
-						<div class="bar-10"></div>
-					</div>
-					<main>
-						
 						<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>				
 
-						<footer>
-							<div class="footer-inside">
-								<div class="footer-text">
 
-								</div>
-							</div>
-							<div class="footer-panel"> <span class="hop">22</span>47 </div>
-						</footer>
-					</main>
-				</div>
-			</div>
-		</section>
-	</div>
-	<!-- <script type="text/javascript" src="assets/lcars.js"></script> -->
-</body>
-
-</html>
+-->
 
 <script>
     window.onload = function() {

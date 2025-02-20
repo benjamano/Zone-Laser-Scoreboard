@@ -348,6 +348,10 @@ class WebApp:
         @self.app.route("/status")
         def status():
             return render_template("status.html", sysName=self.SysName, PageTitle="Status")
+        
+        @self.app.route("/experimental")
+        def experimental():
+            return render_template("experimental/newIndex.html", sysName=self.SysName, PageTitle="Experiments")
 
         @self.app.route("/ping")
         def ping():   

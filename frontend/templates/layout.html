@@ -22,6 +22,10 @@
 
 <body>
 
+	<div id="warningsContainer" class="warning">
+		<h1 id="warningsText"></h1>
+	</div>
+
 	<div class="sidebar" id="sidebar">
 		<ul>
 			<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
@@ -38,6 +42,9 @@
 			</li>
             <li class="nav-item" onclick="window.location.href='/status'" role="button">
 				<a class="nav-link"><i class="fas fa-chart-line me-2 sidebarIcon"></i><span class="sidebarText">Status</span></a>
+			</li>
+			<li class="nav-item" onclick="window.location.href='/experimental'" role="button">
+				<a class="nav-link"><i class="fas fa-flask me-2 sidebarIcon"></i><span class="sidebarText">Experimental</span></a>
 			</li>
 			<li class="nav-item" onclick="window.location.href='/settings'" role="button">
 				<a class="nav-link"><i class="fas fa-gear settingsIcon me-2 sidebarIcon"></i><span class="sidebarText">Settings</span></a>
