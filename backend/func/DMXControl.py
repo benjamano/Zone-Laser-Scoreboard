@@ -320,7 +320,7 @@ class dmx:
             
             return None
         
-    def ResetConnection(self) -> None:
+    def resetConnection(self) -> None:
         self._dmx.close()
         self._dmx = None
         try:
