@@ -5,6 +5,7 @@ import time, os
 from data.models import *
 import func.OBS as _obs
 import func.DB as _context
+import webApp as _webApp
 import func.DMXControl as _dmx
 from flask import Flask
 
@@ -14,6 +15,7 @@ class Supervisor:
         self._dmx = None
         self._context = None
         self._app = None
+        self._webApp = None
         self.devMode = devMode
         self._services = ["db", "obs", "dmx", "api"]
         self.expectedProcesses = ["Spotify.exe", "obs64"]
@@ -23,15 +25,17 @@ class Supervisor:
         
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
     
-    def setDependencies(self, obs=None, dmx=None, db=None, app=None):
+    def setDependencies(self, obs :_obs.OBS = None, dmx: _dmx.dmx = None, db : _context.context = None, webApp : _webApp.WebApp = None):
         if obs is not None:
             self._obs: _obs.OBS = obs
         if dmx is not None:
             self._dmx: _dmx.dmx = dmx
         if db is not None:
             self._context: _context.context = db
-        if app is not None:
-            self._app: Flask = app
+        if webApp is not None:
+            self._webApp: _webApp.WebApp = webApp
+        if webApp is not None:
+            self._app: Flask = webApp.app
             
     def setOtherDependencies(self):
         message(colourText(f"Supervisor: Restarted Service, Resetting dependencies...", "Red"), type="info")

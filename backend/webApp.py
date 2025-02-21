@@ -184,7 +184,7 @@ class WebApp:
         while self._supervisor == None:
             time.sleep(1)
         
-        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, app = self.app)
+        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, app = self)
         
         format.newline()    
         
@@ -1141,13 +1141,11 @@ class WebApp:
         #format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
         if packetData[1] == "@015":
-            format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             #format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
-            format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             #format.message(f"Response: {response.text}")
@@ -1230,7 +1228,7 @@ class WebApp:
         if self.gameStatus == "running":
             return
         
-        format.message("Game started")
+        format.message(f"Game Start detected at {datetime.datetime.now()}", type="success")
 
         self.handleMusic(mode="play")
 
@@ -1248,7 +1246,7 @@ class WebApp:
         if self.gameStatus == "stopped":
             return
         
-        format.message("Game ended")
+        format.message(f"Game End detected at {datetime.datetime.now()}", type="success") 
 
         self.gameStatus = "stopped"
         
