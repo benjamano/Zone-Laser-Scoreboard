@@ -42,7 +42,7 @@ class Supervisor:
             self._app: Flask = webApp.app
             
     def setOtherDependencies(self):
-        message(colourText(f"Supervisor: Restarted Service, Resetting dependencies...", "Red"), type="info")
+        message(colourText(f"Supervisor: Restarted Service, Setting dependencies...", "Red"), type="info")
         try:
             pass
         except Exception as e:
