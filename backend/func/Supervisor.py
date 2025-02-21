@@ -1,4 +1,5 @@
 from typing import TYPE_CHECKING
+from subprocess import Popen
 
 import psutil
 from func.format import message, colourText
@@ -50,7 +51,7 @@ class Supervisor:
         
     def __checkForErrors(self):
         while True:
-            time.sleep(30)
+            time.sleep(5)
             #time.sleep(5)
             
             try:
@@ -104,6 +105,13 @@ class Supervisor:
                     self._obs.switchScene("Test Mode")
             except Exception as e:
                 message(f"Error occurred while switching to sleep mode: {e}", type="error")
+                
+            # try:
+            #     p = Popen("/update.bat", cwd=self._dir)
+            #     message(p)
+
+            # except Exception as e:
+            #     message(f"Error occurred while trying to pull changes from github: {e}", type="error")
             
     def hasSevereErrorOccurred(self, service: str) -> bool:
         try:
