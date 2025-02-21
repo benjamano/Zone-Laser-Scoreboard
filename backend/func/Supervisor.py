@@ -1,13 +1,17 @@
+from typing import TYPE_CHECKING
+
 import psutil
 from func.format import message, colourText
 import threading, datetime
 import time, os
 from data.models import *
-import func.OBS as _obs
-import func.DB as _context
-import webApp as _webApp
-import func.DMXControl as _dmx
 from flask import Flask
+
+if TYPE_CHECKING:
+    from func.OBS import OBS as _OBS
+    from func.DMXControl import dmx as _dmx
+    from func.DB import context as _context
+    from webApp import WebApp as _webApp 
 
 class Supervisor:
     def __init__(self, devMode: bool):        
@@ -25,15 +29,15 @@ class Supervisor:
         
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
     
-    def setDependencies(self, obs :_obs.OBS = None, dmx: _dmx.dmx = None, db : _context.context = None, webApp : _webApp.WebApp = None):
+    def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None):
         if obs is not None:
-            self._obs: _obs.OBS = obs
+            self._obs: "_OBS" = obs
         if dmx is not None:
-            self._dmx: _dmx.dmx = dmx
+            self._dmx : "_dmx" = dmx
         if db is not None:
-            self._context: _context.context = db
+            self._context: "_context" = db
         if webApp is not None:
-            self._webApp: _webApp.WebApp = webApp
+            self._webApp: "_webApp" = webApp
         if webApp is not None:
             self._app: Flask = webApp.app
             

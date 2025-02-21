@@ -184,7 +184,7 @@ class WebApp:
         while self._supervisor == None:
             time.sleep(1)
         
-        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, app = self)
+        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
         format.newline()    
         
