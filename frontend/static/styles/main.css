@@ -912,4 +912,44 @@ label{
     cursor: grab;
     position: absolute;
     user-select: none;
+    cursor: grab;
+}
+
+.smallCard{
+    width: 100px;
+    height: 100px;
+    background-color: lightgreen;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+    cursor: grab;
+}
+
+.largeCard{
+    width: 200px;
+    height: 200px;
+    background-color: lightpink;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+    cursor: grab;
+}
+
+.wideCard{
+    width: 300px;
+    height: 200px;
+    background-color: lightblue;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+    cursor: grab;
 }
