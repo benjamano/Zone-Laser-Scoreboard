@@ -338,7 +338,7 @@ class WebApp:
                     return render_template("scene.html", SysName=self.SysName, PageTitle="Advanced DMX Control")
                 
             except Exception as e:
-                format.message(f"Error fetching scene with Id for Advanced Scene view: {e}", type="error")
+                format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
                 return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
         
         @self.app.route("/text")
@@ -347,11 +347,11 @@ class WebApp:
         
         @self.app.route("/status")
         def status():
-            return render_template("status.html", sysName=self.SysName, PageTitle="Status")
+            return render_template("status.html", SysName=self.SysName, PageTitle="Status")
         
         @self.app.route("/experimental")
         def experimental():
-            return render_template("experimental/newIndex.html", sysName=self.SysName, PageTitle="Experiments")
+            return render_template("experimental/newIndex.html", SysName=self.SysName, PageTitle="Experiments")
 
         @self.app.route("/ping")
         def ping():   
@@ -1140,7 +1140,7 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
+        #format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
         if packetData[1] == "@015":
             format.message(f"Game start packet detected at {datetime.datetime.now()}", type="success")
@@ -1176,7 +1176,7 @@ class WebApp:
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
         
-        format.message(f"Time Left: {timeLeft}")
+        #format.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
             format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 

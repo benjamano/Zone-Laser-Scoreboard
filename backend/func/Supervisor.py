@@ -69,7 +69,7 @@ class Supervisor:
                 
             try:
                 # Check OBS Connection
-                if self._obs == None or (self.hasSevereErrorOccurred("obs") or not self._obs.isConnected()):
+                if self._obs != None and (self.hasSevereErrorOccurred("obs") or not self._obs.isConnected()):
                     message("OBS Connection Error", type="error")
                     threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
             except Exception as e:
@@ -77,7 +77,7 @@ class Supervisor:
                 
             try:
                 # Check DMX Connection
-                if self._dmx == None or self.hasSevereErrorOccurred("dmx"):
+                if self._dmx != None and self.hasSevereErrorOccurred("dmx"):
                     message("DMX Connection Error", type="error")
                     threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
             except Exception as e:
@@ -88,7 +88,7 @@ class Supervisor:
                 if (datetime.datetime.now().hour >= 21 or datetime.datetime.now().hour <= 11) and self._obs != None:
                     self._obs.switchScene("Test Mode")
             except Exception as e:
-                message(f"Error occurred while checking time for sleep mode: {e}", type="error")
+                message(f"Error occurred while switching to sleep mode: {e}", type="error")
             
     def hasSevereErrorOccurred(self, service: str) -> bool:
         try:
