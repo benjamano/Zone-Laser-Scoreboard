@@ -716,8 +716,6 @@ class WebApp:
             
         @self.socketio.on('connect')
         def handleConnect():
-            format.message("Sniffer Client connected")
-            
             emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
             
             emit('response', {'message': 'Connected to server'})
@@ -1192,7 +1190,7 @@ class WebApp:
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         
-        format.newline()
+        #format.newline()
     
     def finalScorePacket(self, packetData):
         gunId = packetData[1]

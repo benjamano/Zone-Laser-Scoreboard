@@ -126,5 +126,14 @@ def newline(withDivider=True, baronly=False):
 def colourText(text : str, colour : str):
     """
     Returns a formatted string with the given colour.
+    
+    Colour Options:
+    - Red
+    - Green
+    - Yellow
+    - Blue
+    - Magenta
+    - Cyan 
+    - Black
     """
     return f"{colours.get(colour.title(), '\033[94m')}{text}{reset}"

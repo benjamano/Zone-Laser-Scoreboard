@@ -32,6 +32,13 @@ class Supervisor:
             self._context: _context.context = db
         if app is not None:
             self._app: Flask = app
+            
+    def setOtherDependencies(self):
+        message(colourText(f"Supervisor: Restarted Service, Resetting dependencies...", "Red"), type="info")
+        try:
+            pass
+        except Exception as e:
+            message(f"Error occurred while resetting Web App's dependencies: {e}", type="error")
         
     def __checkForErrors(self):
         while True:
