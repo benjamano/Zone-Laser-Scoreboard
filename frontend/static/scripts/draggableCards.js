@@ -273,6 +273,10 @@ function loadCardConfig() {
     if (!configStr) return;
     const config = JSON.parse(configStr);
 
+    console.log("Loading from autosaved config");
+
+    console.log(config);
+
     clearAllCards();
 
     config.forEach(cardConfig => {

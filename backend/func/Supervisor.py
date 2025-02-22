@@ -107,9 +107,9 @@ class Supervisor:
                                         .order_by(Game.startTime)
                                         .first())
                 if foundGame != None and foundGame.endTime != None:
-                    endTime = datetime.datetime.fromisoformat(foundGame.endTime) if isinstance(foundGame.endTime, str) else foundGame.endTime
+                    startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.endTime, str) else foundGame.startTime
                     timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
-                    if endTime < timeToCheck and self._obs != None:
+                    if startTime < timeToCheck and self._obs != None:
                         self._obs.switchScene("Test Mode")
             except Exception as e:
                 message(f"Error occurred while switching to sleep mode: {e}", type="error")

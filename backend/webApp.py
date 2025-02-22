@@ -85,7 +85,7 @@ class WebApp:
                     self.app.debug = True
                 
         except Exception as e:
-            format.message("Fatal! ", e)
+            format.message(f"Fatal! {e}")
             os._exit(1)
         
     def start(self):
