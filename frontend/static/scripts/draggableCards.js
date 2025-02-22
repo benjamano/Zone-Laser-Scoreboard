@@ -269,19 +269,45 @@ function saveCardConfig() {
 setInterval(saveCardConfig, 2000);
 
 function loadCardConfig() {
-    const configStr = localStorage.getItem("cardConfig");
-    if (!configStr) return;
-    const config = JSON.parse(configStr);
+    var configStr = localStorage.getItem("cardConfig");
 
-    console.log("Loading from autosaved config");
+    if (!configStr || configStr.trim() === "" || configStr === "[]" || configStr === "null") {
+        console.log("No autosaved config found, generating new");
+        configStr = JSON.stringify([
+            {
+                "type": "musicControlsCard",
+                "left": "0px",
+                "top": "500px"
+            },
+            {
+                "type": "scoreBoardCard",
+                "left": "0px",
+                "top": "0px"
+            },
+            {
+                "type": "digitalClockCard",
+                "left": "1000px",
+                "top": "0px"
+            }
+        ]);
+    }
 
-    console.log(config);
+    let config;
+    try {
+        config = JSON.parse(configStr);
+        if (!Array.isArray(config)) throw new Error("Invalid config format");
+    } catch (error) {
+        console.error("Failed to parse config:", error);
+        return;
+    }
+
+    console.log("Loading from autosaved config", config);
 
     clearAllCards();
 
     config.forEach(cardConfig => {
         let card;
-        switch(cardConfig.type) {
+        switch (cardConfig.type) {
             case "smallCard":
                 card = addSmallCard();
                 break;
@@ -310,8 +336,10 @@ function loadCardConfig() {
                 card = addSmallCard();
         }
 
-        card.style.left = cardConfig.left;
-        card.style.top = cardConfig.top;
+        if (card) {
+            card.style.left = cardConfig.left;
+            card.style.top = cardConfig.top;
+        }
     });
 }
 
