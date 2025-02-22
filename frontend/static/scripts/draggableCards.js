@@ -1,185 +1,5 @@
 const container = document.querySelector(".movableItemsContainer");
 
-function addSmallCard() {
-    card = createCard();
-
-    card.textContent = "Drag Me";
-
-    card.classList.add("smallCard");
-
-    container.appendChild(card);
-}
-
-function addLargeCard() {
-    card = createCard();
-
-    card.textContent = "Drag Me";
-
-    card.classList.add("largeCard");
-
-    container.appendChild(card);
-}
-
-function addWideCard() {
-    card = createCard();
-
-    card.textContent = "Drag Me";
-
-    card.classList.add("wideCard");
-
-    container.appendChild(card);
-}
-
-function addScoreBoardCard() {
-    card = createCard();
-
-    card.classList.add("scoreBoardCard");
-
-    card.innerHTML = `
-        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
-            <thead>
-                <tr>
-                    <th class="text-center text-white bg-danger">Red Team</th>
-                    <th class="text-center text-white bg-success">Green Team</th>
-                </tr>
-            </thead>
-            <tbody id="scoresTable">
-                <tr>
-                    <td class="text-center text-white bg-dark p-0">
-                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
-                            <td>Name</td>
-                            <td>Score</td>
-                            <td>Accuracy</td>
-                        </table>
-                    </td>
-                    <td class="text-center text-white bg-dark p-0">
-                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
-                            <td>Name</td>
-                            <td>Score</td>
-                            <td>Accuracy</td>
-                        </table>
-                    </td>
-                </tr>
-                ${Array.from({ length: 11 }, (_, i) => `
-                <tr id="${i + 1}" class="bg-dark">
-                    <td class="text-center text-white bg-dark">
-                        <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
-                            <td id="gun-${i + 1}-score">0</td>
-                            <td id="gun-${i + 1}-accuracy">0%</td>
-                        </table>
-                    </td>
-                    <td class="text-center text-white bg-dark">
-                        <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
-                            <td id="gun-${i + 11}-score">0</td>
-                            <td id="gun-${i + 11}-accuracy">0%</td>
-                        </table>
-                    </td>
-                </tr>`).join('')}
-            </tbody>
-        </table>`;
-
-    container.appendChild(card);
-}
-
-function createRedTeamScoreCard(){
-    card = createCard();
-
-    card.classList.add("halfScoreBoardCard");
-
-    card.innerHTML = `
-        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
-            <thead>
-                <tr>
-                    <th class="text-center text-white bg-danger">Red Team</th>
-                </tr>
-            </thead>
-            <tbody id="scoresTable">
-                <tr>
-                    <td class="text-center text-white bg-dark p-0">
-                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
-                            <td>Name</td>
-                            <td>Score</td>
-                            <td>Accuracy</td>
-                        </table>
-                    </td>
-                </tr>
-                ${Array.from({ length: 11 }, (_, i) => `
-                <tr id="${i + 1}" class="bg-dark">
-                    <td class="text-center text-white bg-dark">
-                        <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
-                            <td id="gun-${i + 1}-score">0</td>
-                            <td id="gun-${i + 1}-accuracy">0%</td>
-                        </table>
-                    </td>
-                </tr>`).join('')}
-            </tbody>
-        </table>`;
-
-    container.appendChild(card);
-}
-
-function createGreenTeamScoreCard() {
-    card = createCard();
-
-    card.classList.add("halfScoreBoardCard");
-
-    card.innerHTML = `
-        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
-            <thead>
-                <tr>
-                    <th class="text-center text-white bg-success">Green Team</th>
-                </tr>
-            </thead>
-            <tbody id="scoresTable">
-                <tr>
-                    <td class="text-center text-white bg-dark p-0">
-                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
-                            <td>Name</td>
-                            <td>Score</td>
-                            <td>Accuracy</td>
-                        </table>
-                    </td>
-                </tr>
-                ${Array.from({ length: 11 }, (_, i) => `
-                <tr id="${i + 1}" class="bg-dark">
-                    <td class="text-center text-white bg-dark">
-                        <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
-                            <td id="gun-${i + 11}-score">0</td>
-                            <td id="gun-${i + 11}-accuracy">0%</td>
-                        </table>
-                    </td>
-                </tr>`).join('')}
-            </tbody>
-        </table>`;
-
-    container.appendChild(card);
-}
-
-function createClockCard() {
-    const card = createCard();
-    card.classList.add("wideCard");
-    card.classList.add("digitalClockCard");
-
-    const clock = document.createElement("div");
-    clock.classList.add("digitalClock");
-    card.appendChild(clock);
-
-    function updateClock() {
-        const now = new Date();
-        const timeString = now.toLocaleTimeString("en-GB", { hour12: false }) + `.${now.getMilliseconds().toString().padStart(3, "0")}`;
-        clock.textContent = timeString;
-    }
-
-    setInterval(updateClock, 10);
-    updateClock();
-
-    container.appendChild(card);
-}
-
 function createCard() {
     const card = document.createElement("div");
     card.classList.add("draggableCard");
@@ -210,6 +30,181 @@ function createCard() {
     return card;
 }
 
+function addSmallCard() {
+    const card = createCard();
+    card.textContent = "Drag Me";
+    card.classList.add("smallCard");
+    card.dataset.type = "smallCard";
+    container.appendChild(card);
+    return card;
+}
+
+function addLargeCard() {
+    const card = createCard();
+    card.textContent = "Drag Me";
+    card.classList.add("largeCard");
+    card.dataset.type = "largeCard";
+    container.appendChild(card);
+    return card;
+}
+
+function addWideCard() {
+    const card = createCard();
+    card.textContent = "Drag Me";
+    card.classList.add("wideCard");
+    card.dataset.type = "wideCard";
+    container.appendChild(card);
+    return card;
+}
+
+function addScoreBoardCard() {
+    const card = createCard();
+    card.classList.add("scoreBoardCard");
+    card.dataset.type = "scoreBoardCard";
+    card.innerHTML = `
+        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
+            <thead>
+                <tr>
+                    <th class="text-center text-white bg-danger">Red Team</th>
+                    <th class="text-center text-white bg-success">Green Team</th>
+                </tr>
+            </thead>
+            <tbody id="scoresTable">
+                <tr>
+                    <td class="text-center text-white bg-dark p-0">
+                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+                            <td>Name</td>
+                            <td>Score</td>
+                            <td>Accuracy</td>
+                        </table>
+                    </td>
+                    <td class="text-center text-white bg-dark p-0">
+                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+                            <td>Name</td>
+                            <td>Score</td>
+                            <td>Accuracy</td>
+                        </table>
+                    </td>
+                </tr>
+                ${Array.from({ length: 11 }, (_, i) => `
+                <tr id="${i + 1}" class="bg-dark">
+                    <td class="text-center text-white bg-dark">
+                        <table class="gunScoreTable" style="width: 100%;">
+                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
+                            <td id="gun-${i + 1}-score">0</td>
+                            <td id="gun-${i + 1}-accuracy">0%</td>
+                        </table>
+                    </td>
+                    <td class="text-center text-white bg-dark">
+                        <table class="gunScoreTable" style="width: 100%;">
+                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
+                            <td id="gun-${i + 11}-score">0</td>
+                            <td id="gun-${i + 11}-accuracy">0%</td>
+                        </table>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+    container.appendChild(card);
+    return card;
+}
+
+function createRedTeamScoreCard(){
+    const card = createCard();
+    card.classList.add("halfScoreBoardCard");
+    card.dataset.type = "halfScoreBoardCard_red";
+    card.innerHTML = `
+        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
+            <thead>
+                <tr>
+                    <th class="text-center text-white bg-danger">Red Team</th>
+                </tr>
+            </thead>
+            <tbody id="scoresTable">
+                <tr>
+                    <td class="text-center text-white bg-dark p-0">
+                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+                            <td>Name</td>
+                            <td>Score</td>
+                            <td>Accuracy</td>
+                        </table>
+                    </td>
+                </tr>
+                ${Array.from({ length: 11 }, (_, i) => `
+                <tr id="${i + 1}" class="bg-dark">
+                    <td class="text-center text-white bg-dark">
+                        <table class="gunScoreTable" style="width: 100%;">
+                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
+                            <td id="gun-${i + 1}-score">0</td>
+                            <td id="gun-${i + 1}-accuracy">0%</td>
+                        </table>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+    container.appendChild(card);
+    return card;
+}
+
+function createGreenTeamScoreCard() {
+    const card = createCard();
+    card.classList.add("halfScoreBoardCard");
+    card.dataset.type = "halfScoreBoardCard_green";
+    card.innerHTML = `
+        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
+            <thead>
+                <tr>
+                    <th class="text-center text-white bg-success">Green Team</th>
+                </tr>
+            </thead>
+            <tbody id="scoresTable">
+                <tr>
+                    <td class="text-center text-white bg-dark p-0">
+                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+                            <td>Name</td>
+                            <td>Score</td>
+                            <td>Accuracy</td>
+                        </table>
+                    </td>
+                </tr>
+                ${Array.from({ length: 11 }, (_, i) => `
+                <tr id="${i + 1}" class="bg-dark">
+                    <td class="text-center text-white bg-dark">
+                        <table class="gunScoreTable" style="width: 100%;">
+                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
+                            <td id="gun-${i + 11}-score">0</td>
+                            <td id="gun-${i + 11}-accuracy">0%</td>
+                        </table>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+    container.appendChild(card);
+    return card;
+}
+
+function createClockCard() {
+    const card = createCard();
+    card.classList.add("wideCard", "digitalClockCard");
+    card.dataset.type = "digitalClockCard";
+
+    const clock = document.createElement("div");
+    clock.classList.add("digitalClock");
+    card.appendChild(clock);
+
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString("en-GB", { hour12: false }) + `.${now.getMilliseconds().toString().padStart(3, "0")}`;
+        clock.textContent = timeString;
+    }
+
+    setInterval(updateClock, 10);
+    updateClock();
+
+    container.appendChild(card);
+    return card;
+}
+
 function deleteCard(card) {
     card.remove();
 }
@@ -234,5 +229,60 @@ container.addEventListener("drop", (e) => {
 });
 
 function clearAllCards(){
-    $(".movableItemsContainer .draggableCard").remove();
+    document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
 }
+
+// Save the configuration of all cards (type and position) into localStorage.
+function saveCardConfig() {
+    const cards = container.querySelectorAll(".draggableCard");
+    const config = Array.from(cards).map(card => ({
+        type: card.dataset.type,
+        left: card.style.left,
+        top: card.style.top
+    }));
+    localStorage.setItem("cardConfig", JSON.stringify(config));
+}
+
+setInterval(saveCardConfig, 2000);
+
+function loadCardConfig() {
+    const configStr = localStorage.getItem("cardConfig");
+    if (!configStr) return;
+    const config = JSON.parse(configStr);
+
+    clearAllCards();
+
+    config.forEach(cardConfig => {
+        let card;
+        switch(cardConfig.type) {
+            case "smallCard":
+                card = addSmallCard();
+                break;
+            case "largeCard":
+                card = addLargeCard();
+                break;
+            case "wideCard":
+                card = addWideCard();
+                break;
+            case "scoreBoardCard":
+                card = addScoreBoardCard();
+                break;
+            case "halfScoreBoardCard_red":
+                card = createRedTeamScoreCard();
+                break;
+            case "halfScoreBoardCard_green":
+                card = createGreenTeamScoreCard();
+                break;
+            case "digitalClockCard":
+                card = createClockCard();
+                break;
+            default:
+                card = addSmallCard();
+        }
+
+        card.style.left = cardConfig.left;
+        card.style.top = cardConfig.top;
+    });
+}
+
+document.addEventListener("DOMContentLoaded", loadCardConfig);
