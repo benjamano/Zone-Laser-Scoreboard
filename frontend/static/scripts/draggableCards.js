@@ -300,7 +300,7 @@ function loadCardConfig() {
                 card = createClockCard();
                 break;
             case "musicControlsCard":
-                card = createMusicControlsCard
+                card = createMusicControlsCard();
                 break;
             default:
                 card = addSmallCard();
