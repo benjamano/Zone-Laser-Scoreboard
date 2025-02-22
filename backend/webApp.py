@@ -1248,7 +1248,7 @@ class WebApp:
         if self.gameStatus == "stopped":
             return
         
-        format.message(f"Game End detected at {datetime.datetime.now()}", type="success") 
+        format.message(f"Game ended at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.gameStatus = "stopped"
         

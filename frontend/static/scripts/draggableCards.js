@@ -1,6 +1,6 @@
-function addSmallCard() {
-    const container = document.querySelector(".movableItemsContainer");
+const container = document.querySelector(".movableItemsContainer");
 
+function addSmallCard() {
     card = createCard();
 
     card.textContent = "Drag Me";
@@ -11,8 +11,6 @@ function addSmallCard() {
 }
 
 function addLargeCard() {
-    const container = document.querySelector(".movableItemsContainer");
-
     card = createCard();
 
     card.textContent = "Drag Me";
@@ -23,8 +21,6 @@ function addLargeCard() {
 }
 
 function addWideCard() {
-    const container = document.querySelector(".movableItemsContainer");
-
     card = createCard();
 
     card.textContent = "Drag Me";
@@ -35,8 +31,6 @@ function addWideCard() {
 }
 
 function addScoreBoardCard() {
-    const container = document.querySelector(".movableItemsContainer");
-
     card = createCard();
 
     card.classList.add("scoreBoardCard");
@@ -90,8 +84,6 @@ function addScoreBoardCard() {
 }
 
 function createRedTeamScoreCard(){
-    const container = document.querySelector(".movableItemsContainer");
-
     card = createCard();
 
     card.classList.add("halfScoreBoardCard");
@@ -130,8 +122,6 @@ function createRedTeamScoreCard(){
 }
 
 function createGreenTeamScoreCard() {
-    const container = document.querySelector(".movableItemsContainer");
-
     card = createCard();
 
     card.classList.add("halfScoreBoardCard");
@@ -170,8 +160,6 @@ function createGreenTeamScoreCard() {
 }
 
 function createClockCard() {
-    const container = document.querySelector(".movableItemsContainer");
-
     const card = createCard();
     card.classList.add("wideCard");
     card.classList.add("digitalClockCard");
@@ -193,40 +181,58 @@ function createClockCard() {
 }
 
 function createCard() {
-    const container = document.querySelector(".movableItemsContainer");
     const card = document.createElement("div");
-
     card.classList.add("draggableCard");
     card.style.left = "0px";
     card.style.top = "0px";
     card.draggable = true;
+    card.dataset.id = Date.now(); // Unique ID
+
+    const deleteBtn = document.createElement("i");
+    deleteBtn.classList.add("fas", "fa-trash", "bg-danger", "trash-icon");
+    deleteBtn.addEventListener("click", () => deleteCard(card));
+
+    card.appendChild(deleteBtn);
 
     card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
             offsetX: e.offsetX,
-            offsetY: e.offsetY
+            offsetY: e.offsetY,
+            cardId: card.dataset.id
         }));
         card.classList.add("dragging");
     });
 
-    container.addEventListener("dragover", (e) => {
-        e.preventDefault(); 
-    });
-
-    container.addEventListener("drop", (e) => {
-        e.preventDefault();
-        let data = e.dataTransfer.getData("text/plain");
-        if (!data) return;
-
-        let { offsetX, offsetY } = JSON.parse(data);
-        let containerRect = container.getBoundingClientRect();
-
-        let x = Math.round((e.pageX - containerRect.left - offsetX) / 100) * 100;
-        let y = Math.round((e.pageY - containerRect.top - offsetY) / 100) * 100;
-
-        card.style.left = `${x}px`;
-        card.style.top = `${y}px`;
+    card.addEventListener("dragend", () => {
+        card.classList.remove("dragging");
     });
 
     return card;
+}
+
+function deleteCard(card) {
+    card.remove();
+}
+
+container.addEventListener("dragover", (e) => e.preventDefault());
+
+container.addEventListener("drop", (e) => {
+    e.preventDefault();
+    let data = e.dataTransfer.getData("text/plain");
+    if (!data) return;
+
+    let { offsetX, offsetY, cardId } = JSON.parse(data);
+    let droppedCard = [...document.querySelectorAll(".draggableCard")].find(c => c.dataset.id === cardId);
+    if (!droppedCard) return;
+
+    let containerRect = container.getBoundingClientRect();
+    let x = Math.round((e.pageX - containerRect.left - offsetX) / 100) * 100;
+    let y = Math.round((e.pageY - containerRect.top - offsetY) / 100) * 100;
+
+    droppedCard.style.left = `${x}px`;
+    droppedCard.style.top = `${y}px`;
+});
+
+function clearAllCards(){
+    $(".movableItemsContainer .draggableCard").remove();
 }
