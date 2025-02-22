@@ -954,6 +954,20 @@ label{
     cursor: grab;
 }
 
+.smallWideCard{
+    width: 500px;
+    height: 100px;
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+    cursor: grab;
+    padding: 1rem;
+}
+
 .scoreBoardCard{
     width: 800px;
     height: 500px;
@@ -991,4 +1005,18 @@ label{
 
 .digitalClockCard{
     background-color: #1a1a29;
+}
+
+.musicControls{
+    display: flex;
+    align-items: center;
+    border-radius: 20px;
+    gap: 10px;
+    font-size: 1.2rem;
+    padding: 0.6rem 1rem 0.6rem 1.2rem;
+    color: white;
+    width: 100%;
+    background-color: var(--TBSBGPrimary);
+    height: 100%;
+    font-size: 1.5rem;
 }
