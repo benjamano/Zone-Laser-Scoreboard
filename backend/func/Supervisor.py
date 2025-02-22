@@ -99,12 +99,17 @@ class Supervisor:
             except Exception as e:
                 message(f"Error occured while checking DMX status: {e}", type="error")
                 
-            # try:
-            #     # Check the time to enter sleep mode
-            #     if (datetime.datetime.now().hour >= 21 or datetime.datetime.now().hour <= 11) and self._obs != None:
-            #         self._obs.switchScene("Test Mode")
-            # except Exception as e:
-            #     message(f"Error occurred while switching to sleep mode: {e}", type="error")
+            try:
+                # Check the time to enter sleep mode
+                with self._app.app_context():
+                    foundGame : Game = (self._context.db.session
+                                        .query(Game)
+                                        .order_by(Game.startTime)
+                                        .first())
+                if foundGame != None and self._obs != None and (foundGame.endTime != None and datetime.datetime(foundGame.endTime).date() > datetime.timedelta(minutes=30)):
+                    self._obs.switchScene("Test Mode")
+            except Exception as e:
+                message(f"Error occurred while switching to sleep mode: {e}", type="error")
                 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)

@@ -378,7 +378,7 @@ class context:
                 self.db.session.add(newGame)
                 self.db.session.commit()
                 
-                message(f"Created new game with ID: {newGame.id}", type="success")
+                #message(f"Created new game with ID: {newGame.id}", type="success")
                 return newGame.id
                 
         except Exception as e:

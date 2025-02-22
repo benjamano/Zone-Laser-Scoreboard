@@ -1175,7 +1175,7 @@ class WebApp:
         #format.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
-            format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+            #format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
             #format.message(f"Response: {response.text}")
@@ -1268,11 +1268,12 @@ class WebApp:
                     format.message(f"Error getting winning team: {e}", type="error")
                     
                 if winningPlayer != "" and winningTeam != "" and self._obs != None:
-                    self._obs.showWinners(str(winningPlayer), str(winningTeam))
+                    #self._obs.showWinners(str(winningPlayer), str(winningTeam))
+                    pass
                 
                 self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
-                format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
+                #format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
                 
                 self.currentGameId = 0
             
