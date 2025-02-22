@@ -1230,7 +1230,7 @@ class WebApp:
         
         format.newline()
         
-        format.message(f"Game Start detected at {datetime.datetime.now()}", type="success")
+        format.message(f"Game started at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.handleMusic(mode="play")
 

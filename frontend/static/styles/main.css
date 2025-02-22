@@ -979,3 +979,16 @@ label{
     user-select: none;
     cursor: grab;
 }
+
+.digitalClock {
+    font-family: 'Courier New', monospace;
+    font-size: 2rem;
+    text-align: center;
+    padding: 10px;
+    font-weight: 900;
+    color: white;
+}
+
+.digitalClockCard{
+    background-color: #1a1a29;
+}

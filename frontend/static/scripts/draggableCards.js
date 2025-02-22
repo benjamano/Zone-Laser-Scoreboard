@@ -3,6 +3,8 @@ function addSmallCard() {
 
     card = createCard();
 
+    card.textContent = "Drag Me";
+
     card.classList.add("smallCard");
 
     container.appendChild(card);
@@ -13,6 +15,8 @@ function addLargeCard() {
 
     card = createCard();
 
+    card.textContent = "Drag Me";
+
     card.classList.add("largeCard");
 
     container.appendChild(card);
@@ -22,6 +26,8 @@ function addWideCard() {
     const container = document.querySelector(".movableItemsContainer");
 
     card = createCard();
+
+    card.textContent = "Drag Me";
 
     card.classList.add("wideCard");
 
@@ -163,12 +169,34 @@ function createGreenTeamScoreCard() {
     container.appendChild(card);
 }
 
+function createClockCard() {
+    const container = document.querySelector(".movableItemsContainer");
+
+    const card = createCard();
+    card.classList.add("wideCard");
+    card.classList.add("digitalClockCard");
+
+    const clock = document.createElement("div");
+    clock.classList.add("digitalClock");
+    card.appendChild(clock);
+
+    function updateClock() {
+        const now = new Date();
+        const timeString = now.toLocaleTimeString("en-GB", { hour12: false }) + `.${now.getMilliseconds().toString().padStart(3, "0")}`;
+        clock.textContent = timeString;
+    }
+
+    setInterval(updateClock, 10);
+    updateClock();
+
+    container.appendChild(card);
+}
+
 function createCard() {
     const container = document.querySelector(".movableItemsContainer");
     const card = document.createElement("div");
 
     card.classList.add("draggableCard");
-    card.textContent = "Drag Me";
     card.style.left = "0px";
     card.style.top = "0px";
     card.draggable = true;
