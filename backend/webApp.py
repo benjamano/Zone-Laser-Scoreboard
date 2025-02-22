@@ -1228,6 +1228,8 @@ class WebApp:
         if self.gameStatus == "running":
             return
         
+        format.newline()
+        
         format.message(f"Game Start detected at {datetime.datetime.now()}", type="success")
 
         self.handleMusic(mode="play")
