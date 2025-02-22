@@ -955,8 +955,8 @@ label{
 }
 
 .scoreBoardCard{
-    width: 500px;
-    height: 800px;
+    width: 800px;
+    height: 500px;
     background-color: lightgreen;
     display: flex;
     justify-content: center;
@@ -965,6 +965,17 @@ label{
     position: absolute;
     user-select: none;
     cursor: grab;
-    width: 700px;
+}
+
+.halfScoreBoardCard{
+    width: 400px;
     height: 500px;
+    background-color: lightgreen;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+    cursor: grab;
 }

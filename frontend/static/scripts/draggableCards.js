@@ -83,6 +83,86 @@ function addScoreBoardCard() {
     container.appendChild(card);
 }
 
+function createRedTeamScoreCard(){
+    const container = document.querySelector(".movableItemsContainer");
+
+    card = createCard();
+
+    card.classList.add("halfScoreBoardCard");
+
+    card.innerHTML = `
+        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
+            <thead>
+                <tr>
+                    <th class="text-center text-white bg-danger">Red Team</th>
+                </tr>
+            </thead>
+            <tbody id="scoresTable">
+                <tr>
+                    <td class="text-center text-white bg-dark p-0">
+                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+                            <td>Name</td>
+                            <td>Score</td>
+                            <td>Accuracy</td>
+                        </table>
+                    </td>
+                </tr>
+                ${Array.from({ length: 11 }, (_, i) => `
+                <tr id="${i + 1}" class="bg-dark">
+                    <td class="text-center text-white bg-dark">
+                        <table class="gunScoreTable" style="width: 100%;">
+                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
+                            <td id="gun-${i + 1}-score">0</td>
+                            <td id="gun-${i + 1}-accuracy">0%</td>
+                        </table>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+
+    container.appendChild(card);
+}
+
+function createGreenTeamScoreCard() {
+    const container = document.querySelector(".movableItemsContainer");
+
+    card = createCard();
+
+    card.classList.add("halfScoreBoardCard");
+
+    card.innerHTML = `
+        <table class="table table-bordered table-hover border-dark h-100" style="font-size: 0.8rem; margin: 0;">
+            <thead>
+                <tr>
+                    <th class="text-center text-white bg-success">Green Team</th>
+                </tr>
+            </thead>
+            <tbody id="scoresTable">
+                <tr>
+                    <td class="text-center text-white bg-dark p-0">
+                        <table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+                            <td>Name</td>
+                            <td>Score</td>
+                            <td>Accuracy</td>
+                        </table>
+                    </td>
+                </tr>
+                ${Array.from({ length: 11 }, (_, i) => `
+                <tr id="${i + 1}" class="bg-dark">
+                    <td class="text-center text-white bg-dark">
+                        <table class="gunScoreTable" style="width: 100%;">
+                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
+                            <td id="gun-${i + 11}-score">0</td>
+                            <td id="gun-${i + 11}-accuracy">0%</td>
+                        </table>
+                    </td>
+                </tr>`).join('')}
+            </tbody>
+        </table>`;
+
+    container.appendChild(card);
+}
+
 function createCard() {
     const container = document.querySelector(".movableItemsContainer");
     const card = document.createElement("div");
