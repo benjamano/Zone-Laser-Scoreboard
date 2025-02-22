@@ -51,7 +51,7 @@ class Supervisor:
         
     def __checkForErrors(self):
         while True:
-            time.sleep(5)
+            time.sleep(30)
             #time.sleep(5)
             
             try:
