@@ -786,18 +786,14 @@ class WebApp:
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
             try:
-                try:
-                    data = request.json 
-                    message = data.get("message")
-                    type_ = data.get("type") 
-                except:
-                    message = request.form.get("message")
-                    type_ = request.form.get("type")
-                
+                data = request.get_json(silent=True) or {}
+                message = data.get("message") or request.form.get("message")
+                type_ = data.get("type") or request.form.get("type")
+
                 if type_:
                     self.socketio.emit(f"{type_}", {"message": message}) 
                                     
-                return
+                return jsonify({"status": "success"}), 200
             
             except Exception as e:
                 ise : InternalServerError = InternalServerError()
@@ -1041,7 +1037,7 @@ class WebApp:
                 try:
                     response = requests.post(
                         f'http://{self._localIp}:8080/sendMessage',
-                        data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"}
+                        json={'message': self.spotifyStatus, 'type': "musicStatus"}
                     )
                     if response.status_code != 200:
                         raise Exception(f"Failed to send status: {response.text}")
