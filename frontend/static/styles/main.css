@@ -914,6 +914,7 @@ label{
     user-select: none;
     cursor: grab;
     flex-direction: column;
+    color: white;
 }
 
 .smallCard{
