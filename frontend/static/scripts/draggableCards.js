@@ -190,6 +190,9 @@ function loadCardConfig() {
             case "albumCoverCard":
                 contentArea = createMusicAlbumCard();
                 break;
+            case "analogueClockCard":
+                contentArea = createAnalogueClockCard();
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -439,6 +442,94 @@ function createMusicAlbumCard(){
     </div>`;
     return contentArea;
 }
+
+function createAnalogueClockCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("analogueClockCard", "mediumSquareCard");
+    card.dataset.type = "analogueClockCard";
+
+    // Create a container for the clock face
+    const clockContainer = document.createElement("div");
+    clockContainer.classList.add("analogueClock");
+    // Basic inline styles; you can also define these in your CSS
+    clockContainer.style.position = "relative";
+    clockContainer.style.width = "100%";
+    clockContainer.style.height = "100%";
+    clockContainer.style.border = "2px solid #333";
+    clockContainer.style.borderRadius = "50%";
+    clockContainer.style.boxSizing = "border-box";
+    clockContainer.style.background = "#fff";
+
+    // Create the hour, minute, and second hands
+    const hourHand = document.createElement("div");
+    hourHand.classList.add("hourHand");
+    const minuteHand = document.createElement("div");
+    minuteHand.classList.add("minuteHand");
+    const secondHand = document.createElement("div");
+    secondHand.classList.add("secondHand");
+
+    // Set up styles for the hour hand
+    hourHand.style.position = "absolute";
+    hourHand.style.width = "4px";
+    hourHand.style.height = "30%";
+    hourHand.style.background = "#333";
+    hourHand.style.top = "20%";
+    hourHand.style.left = "50%";
+    hourHand.style.transformOrigin = "bottom center";
+    // Center the hand horizontally
+    hourHand.style.transform = "translateX(-50%)";
+
+    // Set up styles for the minute hand
+    minuteHand.style.position = "absolute";
+    minuteHand.style.width = "3px";
+    minuteHand.style.height = "40%";
+    minuteHand.style.background = "#666";
+    minuteHand.style.top = "10%";
+    minuteHand.style.left = "50%";
+    minuteHand.style.transformOrigin = "bottom center";
+    minuteHand.style.transform = "translateX(-50%)";
+
+    // Set up styles for the second hand
+    secondHand.style.position = "absolute";
+    secondHand.style.width = "2px";
+    secondHand.style.height = "45%";
+    secondHand.style.background = "red";
+    secondHand.style.top = "5%";
+    secondHand.style.left = "50%";
+    secondHand.style.transformOrigin = "bottom center";
+    secondHand.style.transform = "translateX(-50%)";
+
+    // Append the hands to the clock container
+    clockContainer.appendChild(hourHand);
+    clockContainer.appendChild(minuteHand);
+    clockContainer.appendChild(secondHand);
+
+    // Append the clock container to the content area of the card
+    contentArea.appendChild(clockContainer);
+
+    // Update the clock every second
+    function updateClock() {
+        const now = new Date();
+        const seconds = now.getSeconds();
+        const minutes = now.getMinutes();
+        const hours = now.getHours();
+      
+        // Calculate rotation angles
+        const secondDeg = seconds * 6; // 360° / 60 = 6° per second
+        const minuteDeg = minutes * 6 + seconds * 0.1; // 6° per minute plus smooth transition
+        const hourDeg = (hours % 12) * 30 + minutes * 0.5; // 360° / 12 = 30° per hour
+      
+        secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
+        minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
+        hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
+    }
+    updateClock();
+    setInterval(updateClock, 1000);
+
+    return contentArea;
+}
+
 
 function clearAllCards(){
     document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
