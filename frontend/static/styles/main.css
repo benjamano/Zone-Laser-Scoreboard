@@ -1046,3 +1046,12 @@ label{
 .hourMarker{
     background-color: rgb(219, 219, 219) !important;
 }
+
+.playingSongText{
+    height: 100%;
+    align-content: end;
+    padding: 0.5rem;
+    display: block;
+    font-size: 1rem !important;
+    text-align: left;
+}

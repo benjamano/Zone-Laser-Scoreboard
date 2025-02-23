@@ -450,8 +450,7 @@ function createMusicAlbumCard(){
 
     contentArea.innerHTML = `
     <div class="albumContainer" id="album-container">
-        <p>Song Playing:</p>
-        <p><span id="musicPlaying"></span></p>
+        <span class="playingSongText" id="musicPlaying"></span>
         <div id="album-cover" style="width: 100%; height: 100%;"></div>
     </div>`;
     return contentArea;
@@ -473,21 +472,17 @@ function createAnalogueClockCard(){
     clockContainer.style.boxSizing = "border-box";
     clockContainer.style.background = "#fff";
 
-    // Create hour markers for each hour around the edge.
+    // Create hour markers for each hour.
     for (let i = 0; i < 12; i++) {
         const marker = document.createElement("div");
         marker.classList.add("hourMarker");
         marker.style.position = "absolute";
         marker.style.width = "2px";
-        // Use a fixed height (or percentage) to create a short line.
         marker.style.height = "26%"; 
         marker.style.background = "#333";
-        // Position the marker at the center of the clock.
         marker.style.top = "24%";
         marker.style.left = "50%";
-        // Set the transform origin to the bottom of the marker.
         marker.style.transformOrigin = "center bottom";
-        // Rotate by i * 30° and then translate upward so that the marker's bottom touches the clock's edge.
         marker.style.transform = `rotate(${i * 30}deg) translateY(-90%) translateX(-50%)`;
         clockContainer.appendChild(marker);
     }
