@@ -2,6 +2,12 @@
 
 {% block content %}
 
+<div id="customContextMenu" style="position: absolute; background: #fff; border: 1px solid #ccc; padding: 0.5rem; display: none; z-index: 10000;">
+	<ul class="list-unstyled mb-0" style="padding: 0; margin: 0;">
+	  <li id="deleteCardOption" style="cursor: pointer;">Delete Card</li>
+	</ul>
+  </div>  
+
 <div class="mb-2 pb-2 border-bottom border-dark-subtle">
 	<div class="dropdown d-inline-block">
 	  <button class="btn btn-secondary dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
@@ -46,7 +52,7 @@
 			<li class="dropdown-item">- Add Cards using the "Add Card" dropdown</li>
 			<li class="dropdown-item">- Drag cards by clicking and holding the card</li>
 			<li class="dropdown-item">- Resize the card by dragging the bottom right</li>
-			<li class="dropdown-item">- Delete the card by clicking the red icon</li>
+			<li class="dropdown-item">- Delete the card by right-clicking the card</li>
 			<li class="dropdown-item">- Card positions save, reload the page and see!</li>
 			<li class="dropdown-item">- More Cards coming soon!</li>
 		</ul>

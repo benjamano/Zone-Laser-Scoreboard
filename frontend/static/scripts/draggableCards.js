@@ -34,10 +34,10 @@ function createCard() {
     footer.style.position = "relative"; 
     card.appendChild(footer);
 
-    const deleteBtn = document.createElement("i");
-    deleteBtn.classList.add("fas", "fa-trash", "text-danger", "cursor-pointer");
-    deleteBtn.addEventListener("click", () => deleteCard(card));
-    footer.appendChild(deleteBtn);
+    // const deleteBtn = document.createElement("i");
+    // deleteBtn.classList.add("fas", "fa-trash", "text-danger", "cursor-pointer");
+    // deleteBtn.addEventListener("click", () => deleteCard(card));
+    // footer.appendChild(deleteBtn);
 
     observeResizable(card);
 
@@ -426,4 +426,38 @@ function clearAllCards(){
     document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
 }
 
-document.addEventListener("DOMContentLoaded", loadCardConfig);
+document.addEventListener("DOMContentLoaded", loadCardConfig)
+
+
+
+
+let currentCard = null;
+
+// Listen for right-click events on the container
+container.addEventListener("contextmenu", function(e) {
+    // Check if a draggable card (or a child of one) was right-clicked.
+    const card = e.target.closest(".draggableCard");
+    if (card) {
+        e.preventDefault();
+        currentCard = card;
+        const customMenu = document.getElementById("customContextMenu");
+        // Position the custom menu where the user right-clicked.
+        customMenu.style.left = e.pageX + "px";
+        customMenu.style.top = e.pageY + "px";
+        customMenu.style.display = "block";
+    }
+});
+
+// Hide the custom menu when clicking anywhere else on the page.
+document.addEventListener("click", function(e) {
+    const customMenu = document.getElementById("customContextMenu");
+    customMenu.style.display = "none";
+});
+
+// When the "Delete Card" option is clicked, remove the card.
+document.getElementById("deleteCardOption").addEventListener("click", function() {
+    if (currentCard) {
+        deleteCard(currentCard);
+        document.getElementById("customContextMenu").style.display = "none";
+    }
+});

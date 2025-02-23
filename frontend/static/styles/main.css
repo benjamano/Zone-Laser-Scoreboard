@@ -598,6 +598,10 @@ main.collapsed {
     padding-bottom: 3rem;
 }
 
+.sidebar.collapsed .sidebar-footer{
+    display: none;
+}
+
 .sidebar-footer {
     position: absolute;
     bottom: 0;
@@ -1010,7 +1014,7 @@ label{
     background-color: var(--TBSBGPrimary);
     width: 100%;
     padding: 1rem;
-    height: 50px;
+    height: 15px;
     align-content: center;
     padding: 0.5rem 1rem;
 }
