@@ -2,25 +2,30 @@
 
 {% block content %}
 
-<div class="mb-2">
-
-	<button onclick="addSmallCard()">Add Small Card</button>
-	<button onclick="addLargeCard()">Add Large Card</button>
-	<button onclick="addWideCard()">Add Wide Card</button>
-	<button onclick="addResizableCard()">Add Resizable Card</button>
-	
-	<button onclick="addScoreBoardCard()">Add Scoreboard Card</button>
-	<button onclick="createRedTeamScoreCard()">Add Red Team Score Card</button>
-	<button onclick="createGreenTeamScoreCard()">Add Green Team Score Card</button>
-
-	<button onclick="createMusicControlsCard()">Add Music Controls Card</button>
-	<button onclick="createClockCard()">Add Clock Card</button>
-
-	<button onclick="clearAllCards()">Clear All Cards</button>
-
-	<button onlick="">Reload the page and Test the saving of card positions</button>
-
-</div>
+<div class="mb-2 pb-2 border-bottom border-dark-subtle">
+	<!-- Add Card Dropdown -->
+	<div class="dropdown d-inline-block">
+	  <button class="btn btn-secondary dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+		Add Card
+	  </button>
+	  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="addCardDropdown">
+		<li><a class="dropdown-item" href="#" onclick="addSmallCard()">Add Small Card</a></li>
+		<li><a class="dropdown-item" href="#" onclick="addLargeCard()">Add Large Card</a></li>
+		<li><a class="dropdown-item" href="#" onclick="addWideCard()">Add Wide Card</a></li>
+		<li><a class="dropdown-item" href="#" onclick="addResizableCard()">Add Resizable Card</a></li>
+		<li><hr class="dropdown-divider"></li>
+		<li><a class="dropdown-item" href="#" onclick="addScoreBoardCard()">Add Scoreboard Card</a></li>
+		<li><a class="dropdown-item" href="#" onclick="createRedTeamScoreCard()">Add Red Team Score Card</a></li>
+		<li><a class="dropdown-item" href="#" onclick="createGreenTeamScoreCard()">Add Green Team Score Card</a></li>
+		<li><hr class="dropdown-divider"></li>
+		<li><a class="dropdown-item" href="#" onclick="createMusicControlsCard()">Add Music Controls Card</a></li>
+		<li><a class="dropdown-item" href="#" onclick="createClockCard()">Add Clock Card</a></li>
+	  </ul>
+	</div>
+  
+	<!-- Other actions -->
+	<button class="btn btn-secondary ms-2" onclick="clearAllCards()">Clear All Cards</button>
+  </div>
 
 <div class="movableItemsContainer"></div>
 
