@@ -1,19 +1,23 @@
 const container = document.querySelector(".movableItemsContainer");
+const GRID_SIZE = 100;
 
 function createCard() {
     const card = document.createElement("div");
     card.classList.add("draggableCard");
+    card.classList.add("resizable");
     card.style.left = "0px";
     card.style.top = "0px";
+    card.style.position = "absolute"; // Ensure absolute positioning
     card.draggable = true;
-    card.dataset.id = Date.now(); // Unique ID
+    card.dataset.id = crypto.randomUUID ? crypto.randomUUID() : Date.now().toString() + Math.random().toString(36).substr(2, 9);
 
+    // Add delete button
     const deleteBtn = document.createElement("i");
     deleteBtn.classList.add("fas", "fa-trash", "bg-danger", "trash-icon");
     deleteBtn.addEventListener("click", () => deleteCard(card));
-
     card.appendChild(deleteBtn);
 
+    // Set up dragging
     card.addEventListener("dragstart", (e) => {
         e.dataTransfer.setData("text/plain", JSON.stringify({
             offsetX: e.offsetX,
@@ -27,7 +31,64 @@ function createCard() {
         card.classList.remove("dragging");
     });
 
+    // Observe for the addition of the "resizable" class.
+    observeResizable(card);
+
     return card;
+}
+
+// Use a MutationObserver to watch for when "resizable" is added
+function observeResizable(card) {
+    const observer = new MutationObserver((mutations) => {
+        mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                if (card.classList.contains("resizable") && !card.dataset.resizableAttached) {
+                    makeResizable(card);
+                    card.dataset.resizableAttached = "true"; // prevent duplicate resizers
+                }
+            }
+        });
+    });
+    observer.observe(card, { attributes: true });
+    // In case the card already has "resizable"
+    if (card.classList.contains("resizable") && !card.dataset.resizableAttached) {
+        makeResizable(card);
+        card.dataset.resizableAttached = "true";
+    }
+}
+
+function makeResizable(card) {
+    // Create a resizer element at the bottom-right corner
+    const resizer = document.createElement("div");
+    resizer.classList.add("resizer");
+    resizer.style.width = "10px";
+    resizer.style.height = "10px";
+    resizer.style.background = "gray";
+    resizer.style.position = "absolute";
+    resizer.style.right = "0";
+    resizer.style.bottom = "0";
+    resizer.style.cursor = "se-resize";
+    card.appendChild(resizer);
+
+    resizer.addEventListener("mousedown", (e) => {
+        e.preventDefault();
+        window.addEventListener("mousemove", resize);
+        window.addEventListener("mouseup", stopResize);
+    });
+
+    function resize(e) {
+        let containerRect = container.getBoundingClientRect();
+        // Calculate new dimensions relative to the container
+        let newWidth = Math.round((e.pageX - card.offsetLeft - containerRect.left) / GRID_SIZE) * GRID_SIZE;
+        let newHeight = Math.round((e.pageY - card.offsetTop - containerRect.top) / GRID_SIZE) * GRID_SIZE;
+        card.style.width = `${Math.max(GRID_SIZE, newWidth)}px`;
+        card.style.height = `${Math.max(GRID_SIZE, newHeight)}px`;
+    }
+
+    function stopResize() {
+        window.removeEventListener("mousemove", resize);
+        window.removeEventListener("mouseup", stopResize);
+    }
 }
 
 function addSmallCard() {
@@ -56,6 +117,33 @@ function addWideCard() {
     container.appendChild(card);
     return card;
 }
+
+function addResizableCard() {
+    const card = addSmallCard();
+    card.textContent = "Drag and Resize Me";
+    card.classList.add("resizable");
+    return card;
+}
+
+function deleteCard(card) {
+    card.remove();
+}
+
+container.addEventListener("dragover", (e) => e.preventDefault());
+
+container.addEventListener("drop", (e) => {
+    e.preventDefault();
+    let data = e.dataTransfer.getData("text/plain");
+    if (!data) return;
+    let { offsetX, offsetY, cardId } = JSON.parse(data);
+    let droppedCard = [...document.querySelectorAll(".draggableCard")].find(c => c.dataset.id === cardId);
+    if (!droppedCard) return;
+    let containerRect = container.getBoundingClientRect();
+    let x = Math.round((e.pageX - containerRect.left - offsetX) / GRID_SIZE) * GRID_SIZE;
+    let y = Math.round((e.pageY - containerRect.top - offsetY) / GRID_SIZE) * GRID_SIZE;
+    droppedCard.style.left = `${x}px`;
+    droppedCard.style.top = `${y}px`;
+});
 
 function addScoreBoardCard() {
     const card = createCard();
@@ -227,29 +315,6 @@ function createMusicControlsCard() {
     return card;
 }
 
-
-function deleteCard(card) {
-    card.remove();
-}
-
-container.addEventListener("dragover", (e) => e.preventDefault());
-
-container.addEventListener("drop", (e) => {
-    e.preventDefault();
-    let data = e.dataTransfer.getData("text/plain");
-    if (!data) return;
-
-    let { offsetX, offsetY, cardId } = JSON.parse(data);
-    let droppedCard = [...document.querySelectorAll(".draggableCard")].find(c => c.dataset.id === cardId);
-    if (!droppedCard) return;
-
-    let containerRect = container.getBoundingClientRect();
-    let x = Math.round((e.pageX - containerRect.left - offsetX) / 100) * 100;
-    let y = Math.round((e.pageY - containerRect.top - offsetY) / 100) * 100;
-
-    droppedCard.style.left = `${x}px`;
-    droppedCard.style.top = `${y}px`;
-});
 
 function clearAllCards(){
     document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
