@@ -187,6 +187,9 @@ function loadCardConfig() {
             case "musicControlsCard":
                 contentArea = createMusicControlsCard();
                 break;
+            case "albumCoverCard":
+                contentArea = createMusicAlbumCard();
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -418,6 +421,21 @@ function createMusicControlsCard() {
             <div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
         </div>
         <span id="timeLeft" style="color: #fff;">0:00</span>
+    </div>`;
+    return contentArea;
+}
+
+function createMusicAlbumCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("albumCoverCard", "mediumSquareCard");
+    card.dataset.type = "albumCoverCard";
+
+    contentArea.innerHTML = `
+    <div class="albumContainer" id="album-container">
+        <p>Song Playing:</p>
+        <p><span id="musicPlaying"></span></p>
+        <div id="album-cover" style="width: 100%; height: 100%;"></div>
     </div>`;
     return contentArea;
 }

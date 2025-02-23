@@ -203,6 +203,17 @@ socket.on('timeRemaining', function (msg) {
     catch(err){}
 });
 
+async function getAlbumCover(albumName) {
+    const apiKey = 'ce4aeea69e2f5a8fb184700d5892aa82';
+    const response = await fetch(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${encodeURIComponent(albumName)}&api_key=${apiKey}&format=json`);
+    const data = await response.json();
+    if (data.results.albummatches.album.length > 0) {
+        return data.results.albummatches.album[0].image[3]['#text'];
+    } else {
+        return null;
+    }
+}
+
 socket.on('songAlbum', async function(albumName) {
     try{
         console.log(albumName);
