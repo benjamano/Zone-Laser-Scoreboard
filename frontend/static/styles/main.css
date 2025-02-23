@@ -595,6 +595,17 @@ main.collapsed {
     color: white;
     z-index: 999;
     transition: width 0.3s ease;
+    padding-bottom: 3rem;
+}
+
+.sidebar-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem 0;
+    font-size: 0.8rem;
+    color: white;
 }
 
 .sidebar.collapsed {

@@ -31,6 +31,9 @@ class WebApp:
     def __init__(self):
         self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
         # self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
+        TEMPLATES_AUTO_RELOAD = True
+        self.app.jinja_env.auto_reload = True
+        self.app.config['TEMPLATES_AUTO_RELOAD'] = True
         self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
         
         self.socketio = SocketIO(self.app, cors_allowed_origins="*")
