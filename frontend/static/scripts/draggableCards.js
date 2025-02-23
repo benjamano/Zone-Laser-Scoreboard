@@ -126,23 +126,23 @@ function loadCardConfig() {
             {
                 "type": "musicControlsCard",
                 "left": "0px",
-                "top": "500px",
-                "width": "100px",
+                "top": "600px",
+                "width": "1000px",
                 "height": "100px"
             },
             {
                 "type": "scoreBoardCard",
                 "left": "0px",
                 "top": "0px",
-                "width": "100px",
-                "height": "100px"
+                "width": "1000px",
+                "height": "600px"
             },
             {
                 "type": "digitalClockCard",
                 "left": "1000px",
                 "top": "0px",
-                "width": "100px",
-                "height": "100px"
+                "width": "400px",
+                "height": "200px"
             }
         ]);
     }
