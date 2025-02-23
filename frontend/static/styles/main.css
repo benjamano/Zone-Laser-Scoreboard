@@ -969,8 +969,12 @@ label{
     height: 200px;
     min-height: 100px !important;
     min-width: 100px !important;
-    aspect-ratio: 1 / 1;
+    aspect-ratio: 1;
     background-color: transparent;
+}
+
+.cardContent{
+    aspect-ratio: 1;
 }
 
 .scoreBoardCard{
