@@ -320,13 +320,15 @@ function clearAllCards(){
     document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
 }
 
-// Save the configuration of all cards (type and position) into localStorage.
+// Save the configuration of all cards (type, position, and size) into localStorage.
 function saveCardConfig() {
     const cards = container.querySelectorAll(".draggableCard");
     const config = Array.from(cards).map(card => ({
         type: card.dataset.type,
         left: card.style.left,
-        top: card.style.top
+        top: card.style.top,
+        width: card.style.width,
+        height: card.style.height
     }));
     localStorage.setItem("cardConfig", JSON.stringify(config));
 }
@@ -334,7 +336,7 @@ function saveCardConfig() {
 setInterval(saveCardConfig, 2000);
 
 function loadCardConfig() {
-    var configStr = localStorage.getItem("cardConfig");
+    let configStr = localStorage.getItem("cardConfig");
 
     if (!configStr || configStr.trim() === "" || configStr === "[]" || configStr === "null") {
         console.log("No autosaved config found, generating new");
@@ -342,17 +344,23 @@ function loadCardConfig() {
             {
                 "type": "musicControlsCard",
                 "left": "0px",
-                "top": "500px"
+                "top": "500px",
+                "width": "100px",
+                "height": "100px"
             },
             {
                 "type": "scoreBoardCard",
                 "left": "0px",
-                "top": "0px"
+                "top": "0px",
+                "width": "100px",
+                "height": "100px"
             },
             {
                 "type": "digitalClockCard",
                 "left": "1000px",
-                "top": "0px"
+                "top": "0px",
+                "width": "100px",
+                "height": "100px"
             }
         ]);
     }
@@ -404,6 +412,8 @@ function loadCardConfig() {
         if (card) {
             card.style.left = cardConfig.left;
             card.style.top = cardConfig.top;
+            if (cardConfig.width) card.style.width = cardConfig.width;
+            if (cardConfig.height) card.style.height = cardConfig.height;
         }
     });
 }
