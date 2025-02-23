@@ -138,11 +138,25 @@ function loadCardConfig() {
                 "height": "600px"
             },
             {
-                "type": "digitalClockCard",
+                "type": "albumCoverCard",
                 "left": "1000px",
                 "top": "0px",
-                "width": "400px",
+                "width": "200px",
                 "height": "200px"
+            },
+            {
+                "type": "analogueClockCard",
+                "left": "1200px",
+                "top": "0px",
+                "width": "200px",
+                "height": "200px"
+            },
+            {
+                "type": "digitalClockCard",
+                "left": "1000px",
+                "top": "200px",
+                "width": "400px",
+                "height": "100px"
             }
         ]);
     }
@@ -449,10 +463,8 @@ function createAnalogueClockCard(){
     card.classList.add("analogueClockCard", "mediumSquareCard");
     card.dataset.type = "analogueClockCard";
 
-    // Create a container for the clock face
     const clockContainer = document.createElement("div");
     clockContainer.classList.add("analogueClock");
-    // Basic inline styles; you can also define these in your CSS
     clockContainer.style.position = "relative";
     clockContainer.style.width = "100%";
     clockContainer.style.height = "100%";
@@ -461,7 +473,21 @@ function createAnalogueClockCard(){
     clockContainer.style.boxSizing = "border-box";
     clockContainer.style.background = "#fff";
 
-    // Create the hour, minute, and second hands
+    // Create hour markers for each hour around the edge.
+    for (let i = 0; i < 12; i++) {
+        const marker = document.createElement("div");
+        marker.classList.add("hourMarker");
+        marker.style.position = "absolute";
+        marker.style.width = "2px";
+        marker.style.height = "50%"; 
+        marker.style.background = "#333";
+        marker.style.top = "0%";
+        marker.style.left = "50%";
+        marker.style.transformOrigin = "bottom center";
+        marker.style.transform = `translateX(-50%) rotate(${i * 30}deg)`;
+        clockContainer.appendChild(marker);
+    }
+
     const hourHand = document.createElement("div");
     hourHand.classList.add("hourHand");
     const minuteHand = document.createElement("div");
@@ -469,7 +495,6 @@ function createAnalogueClockCard(){
     const secondHand = document.createElement("div");
     secondHand.classList.add("secondHand");
 
-    // Set up styles for the hour hand
     hourHand.style.position = "absolute";
     hourHand.style.width = "4px";
     hourHand.style.height = "30%";
@@ -477,10 +502,8 @@ function createAnalogueClockCard(){
     hourHand.style.top = "20%";
     hourHand.style.left = "50%";
     hourHand.style.transformOrigin = "bottom center";
-    // Center the hand horizontally
     hourHand.style.transform = "translateX(-50%)";
 
-    // Set up styles for the minute hand
     minuteHand.style.position = "absolute";
     minuteHand.style.width = "3px";
     minuteHand.style.height = "40%";
@@ -490,7 +513,6 @@ function createAnalogueClockCard(){
     minuteHand.style.transformOrigin = "bottom center";
     minuteHand.style.transform = "translateX(-50%)";
 
-    // Set up styles for the second hand
     secondHand.style.position = "absolute";
     secondHand.style.width = "2px";
     secondHand.style.height = "45%";
@@ -500,25 +522,21 @@ function createAnalogueClockCard(){
     secondHand.style.transformOrigin = "bottom center";
     secondHand.style.transform = "translateX(-50%)";
 
-    // Append the hands to the clock container
     clockContainer.appendChild(hourHand);
     clockContainer.appendChild(minuteHand);
     clockContainer.appendChild(secondHand);
 
-    // Append the clock container to the content area of the card
     contentArea.appendChild(clockContainer);
 
-    // Update the clock every second
     function updateClock() {
         const now = new Date();
         const seconds = now.getSeconds();
         const minutes = now.getMinutes();
         const hours = now.getHours();
       
-        // Calculate rotation angles
-        const secondDeg = seconds * 6; // 360° / 60 = 6° per second
-        const minuteDeg = minutes * 6 + seconds * 0.1; // 6° per minute plus smooth transition
-        const hourDeg = (hours % 12) * 30 + minutes * 0.5; // 360° / 12 = 30° per hour
+        const secondDeg = seconds * 6; // 360° / 60 = 6° per second.
+        const minuteDeg = minutes * 6 + seconds * 0.1; // 6° per minute plus a smooth transition.
+        const hourDeg = (hours % 12) * 30 + minutes * 0.5; // 360° / 12 = 30° per hour.
       
         secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
         minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
@@ -529,6 +547,7 @@ function createAnalogueClockCard(){
 
     return contentArea;
 }
+
 
 
 function clearAllCards(){

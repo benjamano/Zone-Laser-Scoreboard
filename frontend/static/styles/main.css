@@ -1040,3 +1040,7 @@ label{
     min-width: 100px;
     min-height: 100px;
 }
+
+.hourMarker{
+    background-color: rgb(231, 233, 235) !important;
+}
