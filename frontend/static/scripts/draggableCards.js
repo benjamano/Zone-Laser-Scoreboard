@@ -479,12 +479,16 @@ function createAnalogueClockCard(){
         marker.classList.add("hourMarker");
         marker.style.position = "absolute";
         marker.style.width = "2px";
-        marker.style.height = "50%"; 
+        // Use a fixed height (or percentage) to create a short line.
+        marker.style.height = "26%"; 
         marker.style.background = "#333";
-        marker.style.top = "0%";
+        // Position the marker at the center of the clock.
+        marker.style.top = "24%";
         marker.style.left = "50%";
-        marker.style.transformOrigin = "bottom center";
-        marker.style.transform = `translateX(-50%) rotate(${i * 30}deg)`;
+        // Set the transform origin to the bottom of the marker.
+        marker.style.transformOrigin = "center bottom";
+        // Rotate by i * 30° and then translate upward so that the marker's bottom touches the clock's edge.
+        marker.style.transform = `rotate(${i * 30}deg) translateY(-90%) translateX(-50%)`;
         clockContainer.appendChild(marker);
     }
 
