@@ -931,27 +931,32 @@ label{
 .wideCard{
     width: 300px;
     height: 200px;
+    min-width: 300px !important;
+    min-height: 200px !important;
     background-color: lightblue;
 }
 
 .smallWideCard{
     width: 500px;
     height: 100px;
+    min-width: 300px !important;
+    min-height: 100px !important;
     background-color: transparent;
-    padding: 1rem;
 }
 
 .scoreBoardCard{
     width: 800px;
     height: 600px;
-    min-width: 400px !important;
+    min-width: 500px !important;
     min-height: 600px !important;
     background-color: lightgreen;
 }
 
 .halfScoreBoardCard{
     width: 400px;
-    height: 500px;
+    height: 600px;
+    min-width: 200px !important;
+    min-height: 600px !important;
     background-color: lightgreen;
 }
 
@@ -971,7 +976,7 @@ label{
 .musicControls{
     display: flex;
     align-items: center;
-    border-radius: 20px 20px 0px 0px;
+    /* border-radius: 20px 20px 0px 0px; */
     gap: 10px;
     font-size: 1.2rem;
     padding: 0.6rem 1rem 0.6rem 1.2rem;
@@ -1000,4 +1005,9 @@ label{
 
 .cursor-pointer{
     cursor: pointer;
+}
+
+.resizable{
+    min-width: 100px;
+    min-height: 100px;
 }
