@@ -164,6 +164,13 @@ function loadCardConfig() {
                 "top": "200px",
                 "width": "400px",
                 "height": "100px"
+            },
+            {
+                "type": "timeRemainingCard",
+                "left": "1000px",
+                "top": "300px",
+                "width": "400px",
+                "height": "200px"
             }
         ]);
     }
