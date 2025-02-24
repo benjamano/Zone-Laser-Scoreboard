@@ -197,7 +197,7 @@ socket.on('timeRemaining', function (msg) {
 
                 const formattedTime = formatTime(currentTimeLeft);
                 $("#timeRemaining").text(formattedTime);
-            }, 1000);
+            }, 100);
         }
     }
     catch(err){}

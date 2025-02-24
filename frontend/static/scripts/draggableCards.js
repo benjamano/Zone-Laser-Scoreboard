@@ -1,6 +1,13 @@
 const container = document.querySelector(".movableItemsContainer");
 const GRID_SIZE = 100;
 
+function formatTime(seconds) {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = Math.floor(seconds % 60);
+    const milliseconds = Math.floor((seconds % 1) * 1000);
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}.${milliseconds.toString().padStart(3, '0')}`;
+}
+
 function createCard() {
     const card = document.createElement("div");
     card.classList.add("draggableCard", "resizable");
@@ -207,6 +214,10 @@ function loadCardConfig() {
             case "analogueClockCard":
                 contentArea = createAnalogueClockCard();
                 break;
+            case "timeRemainingCard":
+                contentArea = createTimeRemainingCard();
+                break;
+            case "teamScoreCard":
             default:
                 contentArea = addSmallCard();
         }
@@ -420,6 +431,16 @@ function createClockCard() {
     setInterval(updateClock, 10);
     updateClock();
 
+    return contentArea;
+}
+
+function createTimeRemainingCard() {
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    contentArea.classList.add("digitalClock");
+    card.dataset.type = "timeRemainingCard";
+    contentArea.innerHTML = `
+        <span>TIME REMAINING: <span id="timeRemaining">00:00</span></span>`;
     return contentArea;
 }
 

@@ -952,7 +952,7 @@ label{
     width: 300px;
     height: 200px;
     min-width: 300px !important;
-    min-height: 200px !important;
+    min-height: 100px !important;
     background-color: lightblue;
 }
 
