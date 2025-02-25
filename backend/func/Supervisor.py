@@ -112,7 +112,8 @@ class Supervisor:
                 #     if startTime < timeToCheck and self._obs != None:
                 #         self._obs.switchScene("Test Mode")
             except Exception as e:
-                message(f"Error occurred while switching to sleep mode: {e}", type="error")
+                pass
+                message(f"Error occurred while switching to sleep mode: {e}", type="warning")
                 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
