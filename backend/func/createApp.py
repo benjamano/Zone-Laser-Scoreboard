@@ -25,6 +25,8 @@ def create_app(supervisor = None):
     staticPath = os.path.abspath('./frontend/static')
     templatePath = os.path.abspath('./frontend/templates')
     
+    print(f"Searching for static files here: {staticPath}\nSearching for templates here: {templatePath}")
+    
     app = Flask(
         __name__,
         template_folder=templatePath,
