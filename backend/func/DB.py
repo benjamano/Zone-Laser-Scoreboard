@@ -298,63 +298,66 @@ class context:
         # self.db.create_all()
 
     def __seedDBData(self):
-        with self.app.app_context():
-            if not self.Gun.query.first() and not self.Player.query.first():
-                message("Empty DB Found! Seeding Data....", type="warning")
-                
-                self.Insert(self.Gun(name="Alpha", defaultColor="Red"))
-                self.Insert(self.Gun(name="Apollo", defaultColor="Red"))
-                self.Insert(self.Gun(name="Chaos", defaultColor="Red"))
-                self.Insert(self.Gun(name="Cipher", defaultColor="Red"))
-                self.Insert(self.Gun(name="Cobra", defaultColor="Red"))
-                self.Insert(self.Gun(name="Comet", defaultColor="Red"))
-                self.Insert(self.Gun(name="Commander", defaultColor="Red"))
-                self.Insert(self.Gun(name="Cyborg", defaultColor="Red"))
-                self.Insert(self.Gun(name="Cyclone", defaultColor="Red"))
-                self.Insert(self.Gun(name="Delta", defaultColor="Red"))
-                self.Insert(self.Gun(name="Dodger", defaultColor="Green"))
-                self.Insert(self.Gun(name="Dragon", defaultColor="Green"))
-                self.Insert(self.Gun(name="Eagle", defaultColor="Green"))
-                self.Insert(self.Gun(name="Eliminator", defaultColor="Green"))
-                self.Insert(self.Gun(name="Elite", defaultColor="Green"))
-                self.Insert(self.Gun(name="Falcon", defaultColor="Green"))
-                self.Insert(self.Gun(name="Ghost", defaultColor="Green"))
-                self.Insert(self.Gun(name="Gladiator", defaultColor="Green"))
-                self.Insert(self.Gun(name="Hawk", defaultColor="Green"))
-                self.Insert(self.Gun(name="Hyper", defaultColor="Green"))
-                self.Insert(self.Gun(name="Inferno", defaultColor="Green"))
-                
-                with self.app.app_context():
-                    for fixture_name, channels in self.fixtureProfiles.items():
-                        fixture = self.Fixture(name=fixture_name, noOfchannels=len(channels))
-                        self.db.session.add(fixture)
-                        self.db.session.flush()  
+        try:
+            with self.app.app_context():
+                if not self.Gun.query.first() and not self.Player.query.first():
+                    message("Empty DB Found! Seeding Data....", type="warning")
+                    
+                    self.Insert(self.Gun(name="Alpha", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Apollo", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Chaos", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Cipher", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Cobra", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Comet", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Commander", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Cyborg", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Cyclone", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Delta", defaultColor="Red"))
+                    self.Insert(self.Gun(name="Dodger", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Dragon", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Eagle", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Eliminator", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Elite", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Falcon", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Ghost", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Gladiator", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Hawk", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Hyper", defaultColor="Green"))
+                    self.Insert(self.Gun(name="Inferno", defaultColor="Green"))
+                    
+                    with self.app.app_context():
+                        for fixture_name, channels in self.fixtureProfiles.items():
+                            fixture = self.Fixture(name=fixture_name, noOfchannels=len(channels))
+                            self.db.session.add(fixture)
+                            self.db.session.flush()  
 
-                        for index, (channelName, values) in enumerate(channels.items()):
-                            channel = self.FixtureChannel(fixtureID=fixture.id, channelNo=index + 1, name=channelName)
-                            self.db.session.add(channel)
-                            self.db.session.flush() 
+                            for index, (channelName, values) in enumerate(channels.items()):
+                                channel = self.FixtureChannel(fixtureID=fixture.id, channelNo=index + 1, name=channelName)
+                                self.db.session.add(channel)
+                                self.db.session.flush() 
 
-                            if isinstance(values, dict):
-                                for valueName, valueRange in values.items():
-                                    if isinstance(valueRange, list):
-                                        for val in valueRange:
-                                            value_entry = self.FixtureChannelValue(channelID=channel.id, value=val, name=valueName)
+                                if isinstance(values, dict):
+                                    for valueName, valueRange in values.items():
+                                        if isinstance(valueRange, list):
+                                            for val in valueRange:
+                                                value_entry = self.FixtureChannelValue(channelID=channel.id, value=val, name=valueName)
+                                                self.db.session.add(value_entry)
+                                        else:
+                                            value_entry = self.FixtureChannelValue(channelID=channel.id, value=valueRange, name=valueName)
                                             self.db.session.add(value_entry)
-                                    else:
-                                        value_entry = self.FixtureChannelValue(channelID=channel.id, value=valueRange, name=valueName)
+                                elif isinstance(values, list):
+                                    for val in values:
+                                        value_entry = self.FixtureChannelValue(channelID=channel.id, value=val, name=str(val))
                                         self.db.session.add(value_entry)
-                            elif isinstance(values, list):
-                                for val in values:
-                                    value_entry = self.FixtureChannelValue(channelID=channel.id, value=val, name=str(val))
-                                    self.db.session.add(value_entry)
-                        self.db.session.commit()  
+                            self.db.session.commit()  
 
-                self.SaveChanges()
-                
-                message("Data seeded successfully", type="success")
-            else:
-                message("Data already exists, skipping seeding.", type="info")
+                    self.SaveChanges()
+                    
+                    message("Data seeded successfully", type="success")
+                else:
+                    message("Data already exists, skipping seeding.", type="info")
+        except Exception as e:
+            pass
     
     def Insert(self, object):
         with self.app.app_context():
