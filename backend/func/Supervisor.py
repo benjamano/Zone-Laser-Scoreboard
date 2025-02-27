@@ -103,9 +103,9 @@ class Supervisor:
                 # Check the time to enter sleep mode
                 with self._app.app_context():
                     foundGame : Game = (self._context.db.session
-                                        .query(Game)
-                                        .order_by(Game.startTime)
-                                        .first())
+                        .query(Game)
+                        .order_by(Game.startTime)
+                        .first())
                 # if foundGame != None and foundGame.endTime != None:
                 #     startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
                 #     timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
