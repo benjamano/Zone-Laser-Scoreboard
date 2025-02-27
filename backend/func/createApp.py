@@ -22,8 +22,8 @@ def create_app(supervisor = None):
     if supervisor == "None":
         return
     
-    staticPath = os.path.abspath('./frontend/static')
-    templatePath = os.path.abspath('./frontend/templates')
+    staticPath = os.path.abspath('../frontend/static')
+    templatePath = os.path.abspath('../frontend/templates')
     
     print(f"Searching for static files here: {staticPath}\nSearching for templates here: {templatePath}")
     
