@@ -18,7 +18,7 @@ python -m flask --app func.createApp db upgrade
 
 """
 
-def create_app(supervisor):
+def create_app(supervisor = None):
     if supervisor == "None":
         return
     
@@ -47,7 +47,7 @@ def create_app(supervisor):
     return app, socketio, db_context
 
 try:
-    app, socketio, dbContext = create_app("None")
+    app, socketio, dbContext = create_app()
 except Exception as e:
     pass
 
