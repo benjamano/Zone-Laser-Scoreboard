@@ -57,7 +57,7 @@ try:
     
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         if s.connect_ex((localIp, 8080)) == 0:
-            print(f"Port 8080 is already in use on {localIp}", type="error")
+            print(f"Port 8080 is already in use on {localIp}")
             raise RuntimeError("Port in use. Exiting application.")
     
     init.start()
