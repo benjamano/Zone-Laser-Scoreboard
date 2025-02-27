@@ -27,17 +27,10 @@ from func.Supervisor import Supervisor
 
 from data.models import *
 
+from func.createApp import *
+
 class WebApp:
     def __init__(self):
-        self.app = Flask(__name__, template_folder='../frontend/templates', static_folder='../frontend/static')
-        # self.app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///Scoreboard.db'
-        TEMPLATES_AUTO_RELOAD = True
-        self.app.jinja_env.auto_reload = True
-        self.app.config['TEMPLATES_AUTO_RELOAD'] = True
-        self.app.secret_key = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
-        
-        self.socketio = SocketIO(self.app, cors_allowed_origins="*")
-        
         self._dir = os.path.dirname(os.path.realpath(__file__))
 
         self.OBSConnected = False
@@ -60,13 +53,15 @@ class WebApp:
         self._obs : OBS = None
         self._dmx : dmx = None
         self._context : context = None
+        self.app : Flask = None
                 
         pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
         self.initLogging()
-        self.socketio.init_app(self.app, cors_allowed_origins="*") 
+        self.app, self.socketio, self._context = create_app(self._supervisor) 
+        
         self.openFiles()
         
         self.setupRoutes()
@@ -102,8 +97,8 @@ class WebApp:
             format.message(f"Error starting Supervisor: {e}", type="error")
             raise Exception("Error starting Supervisor: ", e)
         
-        with self.app.app_context():
-            self._context = context(self.app, self._supervisor)
+        # with self.app.app_context():
+        #     self._context = context(self.app, self._supervisor, self.db)
         
         def bpmLoop():
             while True:
@@ -833,29 +828,19 @@ class WebApp:
     async def getPlayingStatus(self):
         sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
         current_session = sessions.get_current_session()
-
-        if current_session:
-            info = await current_session.try_get_media_properties_async()
-            playback_info = current_session.get_playback_info()
-            timeline_properties = current_session.get_timeline_properties()
-
-            # Get media playback status
-            if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING:
-                status = "playing"
-            elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PAUSED:
-                status = "paused"
-            elif playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.STOPPED:
-                status = "paused"
-            else:
-                status = "paused"
-            
-            currentPosition = timeline_properties.position.total_seconds()
-            totalDuration = timeline_properties.end_time.total_seconds()
-
-            return status, currentPosition, totalDuration
-            
-        else:
+        
+        if not current_session:
             return "paused", 0, 0
+
+        playback_info = current_session.get_playback_info()
+        timeline_properties = current_session.get_timeline_properties()
+
+        status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
+
+        currentPosition = timeline_properties.position.total_seconds()
+        totalDuration = timeline_properties.end_time.total_seconds()
+
+        return status, currentPosition, totalDuration
     
     def handleMusic(self, mode):
         if self.spotifyControl == True:
@@ -1083,7 +1068,7 @@ class WebApp:
                     except Exception as e:
                         format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                     
-                time.sleep(5)
+                time.sleep(3)
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")

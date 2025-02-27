@@ -10,7 +10,7 @@ class start:
         self.install(["flask_socketio"])
         self.install(["threading"])
         self.install(["eventlet"])
-        self.install(["winrt.windows.media.control", "pillow", "eventlet", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "psutil", "socket", "webbrowser", "pyaudio", "sounddevice", "numpy", "spotipy", "winsdk", "asyncio", "obsws_python", "winrt.windows.foundation", "socket", "json"]) 
+        self.install(["winrt.windows.media.control", "pillow", "eventlet", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "psutil", "socket", "webbrowser", "pyaudio", "sounddevice", "numpy", "spotipy", "winsdk", "asyncio", "obsws_python", "winrt.windows.foundation", "socket", "json", "flask_migrate" ]) 
         
         #librosa
         
