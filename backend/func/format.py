@@ -4,6 +4,7 @@ import ctypes
 import os
 import sys
 import requests
+import socket
 
 try:
     dir = os.path.dirname(os.path.realpath(__file__))
@@ -46,6 +47,15 @@ colours = {
 }
 
 reset = "\033[0m"
+
+try:
+    # Create a dummy socket connection to find the local IP address
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    _localIp = s.getsockname()[0]
+    s.close()
+except Exception as e:
+    format.message(f"Error finding local IP: {e}")
 
 def message(message, type="Info", date=True, newline=False):
     """Possible types: Info, Warning, Error, Success.
@@ -103,6 +113,14 @@ def message(message, type="Info", date=True, newline=False):
             #print(f"Failed to send log message to server: {e}")
 
         print(messagetosend)
+        
+        try:
+            response = requests.post(
+                f'http://{_localIp}:8080/sendMessage',
+                json={"message": {"message": message, "logType": type}, "type": "logMessage"}
+            )
+        except:
+            pass
         
     except Exception as e:
         print(f"Error sending log message: {e}, MESSAGE: {message}")

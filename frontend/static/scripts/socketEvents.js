@@ -366,3 +366,22 @@ socket.on('UpdateDMXValue', function(data) {
 socket.on("refreshPage", function() {
     location.reload();
 });
+
+socket.on("logMessage", function(data) {
+    console.log(`Received log message: ${JSON.stringify(data)}`);
+    console.log(`Received log message with content: ${data.message.message}`);
+    console.log(`Received log message with type: ${data.message.logType}`);
+
+    const now = Date.now();
+
+    let logMessages = JSON.parse(localStorage.getItem("logMessages")) || [];
+
+    // Remove messages older than 8 hours
+    logMessages = logMessages.filter(msg => now - msg.receivedDate < 28800000);
+
+    data.receivedDate = now;
+
+    logMessages.push(data);
+
+    localStorage.setItem("logMessages", JSON.stringify(logMessages));
+});

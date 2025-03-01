@@ -1056,3 +1056,21 @@ label{
     font-size: 1rem !important;
     text-align: left;
 }
+
+.logContainer{
+    background-color: black;
+    color: white;
+    max-height: 40vh; 
+    overflow-y: scroll;
+    padding: 1rem;
+}
+
+.logContainer p{
+    text-wrap: none;
+    word-wrap: normal;
+    white-space: nowrap;
+}
+
+.logMessage {
+    margin: 5px 0;
+  }

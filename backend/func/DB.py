@@ -10,8 +10,6 @@ from func.format import message
 from func.Supervisor import Supervisor
 class context:
     def __init__(self, app : Flask, supervisor : Supervisor, db):
-        app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath('Scoreboard.db')}"
-        
         self.app = app
         self._supervisor = supervisor
         self.db = db

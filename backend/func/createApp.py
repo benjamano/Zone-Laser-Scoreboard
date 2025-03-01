@@ -22,21 +22,27 @@ def create_app(supervisor = None):
     if supervisor == "None":
         return
     
-    staticPath = os.path.abspath('../frontend/static')
-    templatePath = os.path.abspath('../frontend/templates')
+    staticPath = os.path.abspath('./frontend/static')
+    templatePath = os.path.abspath('./frontend/templates')
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    databasePath = os.path.join(BASE_DIR, "Scoreboard.db")
+    
+    if "\\backend\\" in databasePath:
+        databasePath = databasePath.replace("backend\\", "") 
     
     print(f"Searching for static files here: {staticPath}\nSearching for templates here: {templatePath}")
+    print(f"Creating Database here: {databasePath}")
     
     app = Flask(
         __name__,
         template_folder=templatePath,
-        static_folder=staticPath
+        static_folder=staticPath,
     )
 
     app.config['SECRET_KEY'] = 'SJ8SU0D2987G887vf76g87whgd87qwgs87G78GF987EWGF87GF897GH8'
     app.config['TEMPLATES_AUTO_RELOAD'] = True
     app.jinja_env.auto_reload = True
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath('Scoreboard.db')}"
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{databasePath}"
     
     db.init_app(app)
     

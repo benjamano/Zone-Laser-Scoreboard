@@ -94,6 +94,18 @@
 
 </div>
 
+<div class="card">
+
+    <div class="card-header collapsed cursor-pointer" onclick="$('#logConsoleCardBody').toggle();">Live console</div>
+
+    <div class="card-body" id="logConsoleCardBody" style="display: none;">
+
+        {% include "_LogConsolePartial.html" %}
+
+    </div>
+
+</div>
+
 <script>
 
     $(document).ready(function () {
@@ -119,8 +131,14 @@
                             var statusContainer = section.find(".backgroundServiceStatusIcon");
                         
                             if (statusContainer.length > 0) {
-                                statusContainer.find("#statusText").text(serviceStatus);
+                                var errorText = statusContainer.find("#statusText");
                                 section.find("#errorsNumber").text(recentErrors);
+
+                                if (serviceStatus == "Critical" && recentErrors == 0){
+                                    errorText.text("DISCONNECTED")
+                                } else {
+                                    errorText.text(serviceStatus)
+                                }
 
                                 if (serviceStatus == "OK") {
                                     statusContainer.find("#statusIcon").css("color", "green");

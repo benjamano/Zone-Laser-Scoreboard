@@ -1,0 +1,55 @@
+
+<div class="logContainer" id="logContainer"></div>
+
+<script>
+    let firstLoad = true;
+
+    // Function to format a timestamp into "YYYY-MM-DD HH:MM:SS"
+    function formatDate(timestamp) {
+        const d = new Date(timestamp);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        const hours = String(d.getHours()).padStart(2, '0');
+        const minutes = String(d.getMinutes()).padStart(2, '0');
+        const seconds = String(d.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    }
+
+    function displayLogs() {
+        let logMessages = JSON.parse(localStorage.getItem("logMessages")) || [];
+        logMessages.sort((a, b) => a.receivedDate - b.receivedDate);
+    
+        const container = document.getElementById("logContainer");
+        
+        const previousScrollHeight = container.scrollHeight;
+        const isAtBottom = Math.abs(container.scrollHeight - container.scrollTop - container.clientHeight) < 5;
+    
+        const fragment = document.createDocumentFragment();
+    
+        logMessages.forEach(msg => {
+            const dateStr = formatDate(msg.receivedDate);
+            const logType = msg.message?.logType || "Info";
+            const logText = msg.message?.message || "";
+            const formattedText = `${dateStr} | ${logType} : ${logText}`;
+    
+            const p = document.createElement("p");
+            p.classList.add("logMessage");
+            p.textContent = formattedText;
+            fragment.appendChild(p);
+        });
+    
+        container.innerHTML = "";
+        container.appendChild(fragment);
+    
+        setTimeout(() => {
+            if (firstLoad || isAtBottom) {
+                container.scrollTop = container.scrollHeight;
+            }
+            firstLoad = false;
+        }, 300);
+    }
+
+    setInterval(displayLogs, 1000);
+    displayLogs();
+</script>
