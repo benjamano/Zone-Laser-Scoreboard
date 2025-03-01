@@ -924,7 +924,7 @@ class WebApp:
         try:
             if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
                 
-                if song == None or bpm  == None or bpm == "Song not found":
+                if song == None or bpm == None or bpm == "Song not found":
                     match song:
                         #This makes me want to die
                         #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
@@ -1010,7 +1010,7 @@ class WebApp:
                 self.rateLimit = False
                 
         except Exception as e:
-            if "max retries, reason: too many 429 error responses" in bpm.lower():
+            if "max retries, reason: too many 429 error responses" in e.lower():
                 self.rateLimit = True
                 return
             else:
