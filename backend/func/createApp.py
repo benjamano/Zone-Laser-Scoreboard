@@ -29,6 +29,10 @@ def create_app(supervisor = None):
     
     if "\\backend\\" in databasePath:
         databasePath = databasePath.replace("backend\\", "") 
+    if "\\backend\\" in templatePath:
+        templatePath = templatePath.replace("backend\\", "") 
+    if "\\backend\\" in staticPath:
+        staticPath = staticPath.replace("backend\\", "") 
     
     print(f"Searching for static files here: {staticPath}\nSearching for templates here: {templatePath}")
     print(f"Creating Database here: {databasePath}")
