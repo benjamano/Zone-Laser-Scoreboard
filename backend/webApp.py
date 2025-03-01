@@ -97,6 +97,35 @@ class WebApp:
             format.message(f"Error starting Supervisor: {e}", type="error")
             raise Exception("Error starting Supervisor: ", e)
         
+        try:
+            # Create a dummy socket connection to find the local IP address
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            self._localIp = s.getsockname()[0]
+            s.close()
+        except Exception as e:
+            format.message(f"Error finding local IP: {e}")
+        
+        format.message("Attempting to start Flask Server")
+        
+        try:
+            self.flaskThread = threading.Thread(target=self.startFlask)
+            self.flaskThread.daemon = True
+            self.flaskThread.start()
+            
+            format.message("Waiting for app to start", type="warning")
+            time.sleep(3)
+            
+        except Exception as e:
+            format.message(f"Error starting Flask Server: {e}", type="error")
+            return SystemExit
+
+        format.message(f"Web App hosted on IP {self._localIp}", type="success")
+        
+        while self.app == None:
+            format.message("Waiting for app to start", type="warning")
+            time.sleep(2)
+        
         # with self.app.app_context():
         #     self._context = context(self.app, self._supervisor, self.db)
         
@@ -111,15 +140,6 @@ class WebApp:
 
         self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
         self.bpm_thread.start()  
-        
-        try:
-            # Create a dummy socket connection to find the local IP address
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            self._localIp = s.getsockname()[0]
-            s.close()
-        except Exception as e:
-            format.message(f"Error finding local IP: {e}")
             
         format.message("Attempting to start Media status checker")
         
@@ -130,19 +150,6 @@ class WebApp:
             
         except Exception as e:
             format.message(f"Error starting Media Status Checker: {e}", type="error")
-            
-        format.message("Attempting to start Flask Server")
-        
-        try:
-            self.flaskThread = threading.Thread(target=self.startFlask)
-            self.flaskThread.daemon = True
-            self.flaskThread.start()
-            
-        except Exception as e:
-            format.message(f"Error starting Flask Server: {e}", type="error")
-            return SystemExit
-
-        format.message(f"Web App hosted on IP {self._localIp}", type="success")
         
         if self.devMode == False:
             webbrowser.open(f"http://{self._localIp}:8080")
