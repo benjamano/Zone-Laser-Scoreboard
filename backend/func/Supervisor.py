@@ -111,6 +111,8 @@ class Supervisor:
                         startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
                         timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
                         if startTime < timeToCheck and self._obs != None:
+                            message(f"Found game with end time: {foundGame.endTime}")
+                            pass
                             self._obs.switchScene("Test Mode")
             except Exception as e:
                 pass
