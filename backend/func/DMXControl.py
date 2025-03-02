@@ -19,7 +19,7 @@ class dmx:
         try:
             self._dmx : OpenDMXController = OpenDMXController()       
         except Exception as e:            
-            raise AttributeError(f"DMX controller not started, {e}")
+            format.message(f"DMX controller not started, {e}", "error")
                 
         self._context : dbContext = context
         self._supervisor : Supervisor = supervisor
