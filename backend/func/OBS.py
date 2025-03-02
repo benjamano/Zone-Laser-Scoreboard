@@ -24,13 +24,13 @@ class OBS:
                 
                 self._supervisor.setDependencies(obs=self)
             else:
-                raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}")
+                format.message("Failed To Connect To OBS", type="error")
 
         except Exception as e:
-            raise ConnectionError(f"Failed To Connect To OBS With Details: {OBSSERVERIP}, {OBSSERVERPORT}, {OBSSERVERPASSWORD}. ERROR: {e}")
+            format.message(f"Error Connecting to OBS: {e}", type="error")
         
     def getCurrentScene(self) -> str:
-        pass
+        return
     
         #This appears to be broken.
         
