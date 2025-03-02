@@ -36,6 +36,21 @@
             const p = document.createElement("p");
             p.classList.add("logMessage");
             p.textContent = formattedText;
+    
+            switch (logType.toLowerCase()) {
+                case "info":
+                    p.style.color = "blue";
+                    break;
+                case "warning":
+                    p.style.color = "orange";
+                    break;
+                case "error":
+                    p.style.color = "red";
+                    break;
+                default:
+                    p.style.color = "white"; 
+            }
+    
             fragment.appendChild(p);
         });
     
@@ -48,7 +63,7 @@
             }
             firstLoad = false;
         }, 300);
-    }
+    }    
 
     setInterval(displayLogs, 1000);
     displayLogs();

@@ -203,7 +203,7 @@ class Supervisor:
     def getServiceHealth(self, serviceName: str):
         try:
             if self._context != None:
-                notSetup : bool = (serviceName.lower() == "dmx" and self._dmx == None) or (serviceName.lower() == "db" and self._context == None) or (serviceName.lower() == "obs" and self._obs == None)
+                notSetup : bool = (serviceName.lower() == "dmx" and self._dmx == None or self._dmx._dmx == None) or (serviceName.lower() == "db" and self._context == None) or (serviceName.lower() == "obs" and self._obs == None)
                 
                 severeErrorOccured : bool = self.hasSevereErrorOccurred(str(serviceName).lower())
                 moderateErrorOccured : bool = self.hasModerateErrorOccurred(str(serviceName).lower())

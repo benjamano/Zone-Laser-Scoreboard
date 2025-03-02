@@ -55,44 +55,46 @@ class dmx:
         return self.fixtureGroups[groupName]
         
     def registerDimmerFixture(self, fixtureName):
-        try:
-            fixture = self._dmx.add_fixture(Dimmer, name=fixtureName)
-            setattr(self, fixtureName, fixture)
-            
-            self.__appendToFixtures(fixture, "dimmer")
-            
-            return fixture
-        except Exception as e:
-            ise : InternalServerError = InternalServerError()
+        if self._dmx != None:
+            try:
+                fixture = self._dmx.add_fixture(Dimmer, name=fixtureName)
+                setattr(self, fixtureName, fixture)
                 
-            ise.service = "dmx"
-            ise.exception_message = str(f"Error registering dimmer: {e}")
-            ise.process = "DMX: Register Dimmer Fixture"
-            ise.severity = "1"
-            
-            self._supervisor.logInternalServerError(ise)
-            
-            return None
+                self.__appendToFixtures(fixture, "dimmer")
+                
+                return fixture
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                    
+                ise.service = "dmx"
+                ise.exception_message = str(f"Error registering dimmer: {e}")
+                ise.process = "DMX: Register Dimmer Fixture"
+                ise.severity = "1"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return None
     
     def registerCustomFixture(self, fixtureName, fixtureType, channels, startChannel):
-        try:
-            fixture = self._dmx.add_fixture(Custom(channels=channels, name=fixtureName, start_channel=startChannel))
-            
-            setattr(self, fixtureName, fixture)
-        
-            self.__appendToFixtures(fixture, fixtureType)
-            
-            return fixture
-        except Exception as e:
-            ise : InternalServerError = InternalServerError()
+        if self._dmx != None:
+            try:
+                fixture = self._dmx.add_fixture(Custom(channels=channels, name=fixtureName, start_channel=startChannel))
                 
-            ise.service = "dmx"
-            ise.exception_message = str(f"Error registering custom fixture: {e}")
-            ise.process = "DMX: Register custom fixture"
-            ise.severity = "1"
+                setattr(self, fixtureName, fixture)
             
-            self._supervisor.logInternalServerError(ise)
-            return None
+                self.__appendToFixtures(fixture, fixtureType)
+                
+                return fixture
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                    
+                ise.service = "dmx"
+                ise.exception_message = str(f"Error registering custom fixture: {e}")
+                ise.process = "DMX: Register custom fixture"
+                ise.severity = "1"
+                
+                self._supervisor.logInternalServerError(ise)
+                return None
         
     def registerFixtureUsingType(self, fixtureName, fixtureType, startChannel):
         try:

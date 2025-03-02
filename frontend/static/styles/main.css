@@ -491,6 +491,12 @@ overflow: scroll;
     margin-right: 0 !important;
 }
 
+.sidebarIcon{
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 0.5rem !important;
+}
+
 .sidebar ul {
     list-style-type: none;
     padding: 0;
@@ -704,6 +710,8 @@ main.collapsed {
 
 .settingsIcon{
     transition: transform 0.5s ease-in-out;
+    /* width: unset !important;
+    height: unset !important; */
 }
 
 .nav-item:hover .settingsIcon {
