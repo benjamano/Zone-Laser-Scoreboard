@@ -16,9 +16,12 @@ import datetime
             
 class dmx:
     def __init__(self, context : dbContext, supervisor : Supervisor, app, devmode):
+        self._dmx = None
+
         try:
             self._dmx : OpenDMXController = OpenDMXController()       
         except Exception as e:            
+
             format.message(f"DMX controller not started, {e}", "error")
                 
         self._context : dbContext = context
