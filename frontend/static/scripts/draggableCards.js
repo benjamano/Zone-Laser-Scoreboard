@@ -5,7 +5,7 @@ function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     const milliseconds = Math.floor((seconds % 1) * 1000);
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}.${milliseconds.toString().padStart(3, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
 }
 
 function createCard() {
