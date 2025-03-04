@@ -367,6 +367,7 @@ overflow: scroll;
     animation: fadeInOut 2s ease-in-out infinite;
     z-index: 99999999;
     padding: 1rem;
+    cursor: not-allowed;
 }
 
 @keyframes fadeInOut {
