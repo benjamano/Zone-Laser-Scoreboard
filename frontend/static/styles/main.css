@@ -9,7 +9,7 @@
     --bs-danger: #dc3545d1;
 
     --TBSHover: var(--primary-gray);
-    --TBSBGPrimary: var(--dark-gray);
+    --TBSBGPrimary: #1f2532;
     --TBSBGSecondary: var(--medium-dark-gray);
     --TSBBGLight: var(--light-gray);
     --TBSBGExtraLight: #9ea5ba1a;
@@ -364,7 +364,15 @@ overflow: scroll;
     z-index: 999;
     width: 100%;
     display: none;
-    animation: fadeInOut 2s ease-in-out 2;
+    animation: fadeInOut 2s ease-in-out infinite;
+    z-index: 99999999;
+    padding: 1rem;
+}
+
+@keyframes fadeInOut {
+    0% { filter: brightness(0.8); }
+    50% { filter: brightness(1.2); }
+    100% { filter: brightness(0.8); }
 }
 
 .warning h1{
@@ -1082,4 +1090,5 @@ label{
 
 .logMessage {
     margin: 5px 0;
-  }
+}
+

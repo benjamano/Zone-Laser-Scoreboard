@@ -96,6 +96,38 @@
 		}
 	}
 
+	function createWarning(contents){
+		if (contents == "Restart"){
+			//$("#warningsText").text(contents);
+	
+			try{
+				if (countdownInterval) {
+					clearInterval(countdownInterval);
+				}
+			}
+			catch{}
+	
+			TimeUntilRestart = 60;
+	
+			RestartCountdownInterval = setInterval(function () {
+				if (TimeUntilRestart <= 0) {
+					clearInterval(RestartCountdownInterval);
+					return;
+				}
+	
+				TimeUntilRestart--;
+	
+				const formattedTime = formatTime(TimeUntilRestart);
+				$("#warningsText").text("warning: System restarting in " + formattedTime + " | MUSIC CONTROL WILL NOT BE AVAILABLE DURING THIS PERIOD");
+			}, 1000);
+		}
+		else{
+			$("#warningsText").text(contents);
+		}
+	
+		$("#warningsContainer").css("display", "unset");
+	}
+
 </script>
 
 </html>

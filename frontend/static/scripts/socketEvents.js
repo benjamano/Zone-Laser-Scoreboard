@@ -247,36 +247,7 @@ socket.on('songName', function (msg) {
 socket.on('createWarning', function (msg) {
     console.log(msg.message);
 
-    if (msg.message == "Restart"){
-        $("#warningsText").text(msg.message);
-
-        try{
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-        }
-        catch{}
-
-        TimeUntilRestart = 60;
-
-        RestartCountdownInterval = setInterval(function () {
-            if (TimeUntilRestart <= 0) {
-                clearInterval(RestartCountdownInterval);
-                return;
-            }
-
-            TimeUntilRestart--;
-
-            const formattedTime = formatTime(TimeUntilRestart);
-            $("#warningsText").text("warning: WebApp restarting in "+formattedTime + " | MUSIC WILL NOT BE AVAILABLE DURING THIS PERIOD");
-        }, 1000);
-    }
-    else{
-        $("#warningsText").text(msg.message);
-    }
-
-    $("#warningsContainer").css("display", "unset");
-
+    createWarnig(msg.message);
 });
 
 socket.on('musicStatus', function (msg) {
