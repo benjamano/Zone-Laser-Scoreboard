@@ -43,7 +43,7 @@ class dmx:
             format.message(f"Error processing DMX scenes: {e}", "error")
             
         self._supervisor.setDependencies(dmx=self)
-            
+
     # Setters
     
     def __appendToFixtures(self, fixture, fixtureType):
@@ -100,50 +100,52 @@ class dmx:
                 return None
         
     def registerFixtureUsingType(self, fixtureName, fixtureType, startChannel):
-        try:
-            if str(fixtureType).lower() in self.fixtureProfiles:
-                fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=fixtureName))
+        if self._dmx != None:
+            try:
+                if str(fixtureType).lower() in self.fixtureProfiles:
+                    fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=fixtureName))
+                    
+                    setattr(self, fixtureName, fixture)
+                    
+                    self.__appendToFixtures(fixture, fixtureType)
+                    
+                    for channel in self.fixtureProfiles[fixtureType.lower()]:
+                        fixture._register_channel(channel)
+                    
+                    return fixture
                 
-                setattr(self, fixtureName, fixture)
-                
-                self.__appendToFixtures(fixture, fixtureType)
-                
-                for channel in self.fixtureProfiles[fixtureType.lower()]:
-                    fixture._register_channel(channel)
-                
-                return fixture
+                return None
             
-            return None
-        
-        except Exception as e:
-            ise : InternalServerError = InternalServerError()
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                    
+                ise.service = "dmx"
+                ise.exception_message = str(f"Error registering fixture using type '{fixtureType}': {e}")
+                ise.process = "DMX: Register Fixture Using Type"
+                ise.severity = "1"
                 
-            ise.service = "dmx"
-            ise.exception_message = str(f"Error registering fixture using type '{fixtureType}': {e}")
-            ise.process = "DMX: Register Fixture Using Type"
-            ise.severity = "1"
-            
-            self._supervisor.logInternalServerError(ise)
-            
-            return
+                self._supervisor.logInternalServerError(ise)
+                
+                return
         
     def registerChannel(self, fixtureName, channelName):
-        try:
-            fixture = self._dmx.get_fixtures_by_name(fixtureName)[0]
-            
-            if fixture != None:
-                fixture._register_channel(channelName)
-            else:
-                return LookupError(f"Fixture {fixtureName} not found")
-            
-        except Exception as e:
-            ise : InternalServerError = InternalServerError()
+        if self._dmx != None:
+            try:
+                fixture = self._dmx.get_fixtures_by_name(fixtureName)[0]
                 
-            ise.service = "dmx"
-            ise.exception_message = str(f"Error registering channel '{channelName}': {e}")
-            ise.process = "DMX: Register Channel"
-            ise.severity = "1"
-            
+                if fixture != None:
+                    fixture._register_channel(channelName)
+                else:
+                    return LookupError(f"Fixture {fixtureName} not found")
+                
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                    
+                ise.service = "dmx"
+                ise.exception_message = str(f"Error registering channel '{channelName}': {e}")
+                ise.process = "DMX: Register Channel"
+                ise.severity = "1"
+                
             self._supervisor.logInternalServerError(ise)
         
     def setFixtureChannel(self, fixtureName, channelName, value):
