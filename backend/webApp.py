@@ -366,6 +366,10 @@ class WebApp:
             @self.app.route("/feedback")
             def feedback():
                 return render_template("feedback.html", SysName=self.SysName, PageTitle="Leaving Feedback")
+            
+            @self.app.route("/statistics")
+            def statistics():
+                return render_template("statistics.html", SysName=self.SysName, PageTitle="View Statistics")
 
             @self.app.route("/ping")
             def ping():   

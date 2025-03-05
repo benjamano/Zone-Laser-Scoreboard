@@ -131,3 +131,15 @@ class DMXPatchedChannel(db.Model):
     channelId = db.Column(db.Integer)
     fixtureChannelID = db.Column(db.Integer, db.ForeignKey("fixturechannel.id"), nullable=False)
     
+class CustomHomeScreenPreset(db.Model):
+    __tablename__ = 'customhomescreenpreset'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False)
+    
+class PresetCard(db.Model):
+    __tablename__ = 'presetcard'
+    id = db.Column(db.Integer, primary_key=True)
+    cardId = db.Column(db.Integer, nullable=False)
+    homeScreenPresetId = db.Column(db.Integer, db.ForeignKey("customhomescreenpreset.id"), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False)
