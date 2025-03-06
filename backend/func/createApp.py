@@ -22,10 +22,14 @@ def create_app(supervisor = None):
     if supervisor == "None":
         return
     
-    staticPath = os.path.abspath('./frontend/static')
-    templatePath = os.path.abspath('./frontend/templates')
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    databasePath = os.path.join(BASE_DIR, "Scoreboard.db")
+    BasePath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    
+    if "\\backend\\" in BasePath:
+        BasePath = BasePath.replace("backend\\", "") 
+    
+    staticPath = os.path.join(BasePath, "frontend\\static")
+    templatePath = os.path.join(BasePath, "frontend\\templates")
+    databasePath = os.path.join(BasePath, "Scoreboard.db")
     
     if "\\backend\\" in databasePath:
         databasePath = databasePath.replace("backend\\", "") 
