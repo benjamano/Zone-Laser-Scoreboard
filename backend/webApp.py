@@ -1209,16 +1209,43 @@ class WebApp:
         finalScore = packetData[3]
         accuracy = packetData[7]
 
-        gunName = None
+        gunName = ""
         
         try:
             with self.app.app_context():
-                gunName = "name: "+ self._context.Gun.query.filter_by(id=gunId).first().name
+                gun : Gun = "name: "+ self._context.Gun.query.filter_by(id=gunId).first()
+                
+                if (gun != None):
+                    gunName = gun.name.strip()
+                    
+                try:
+                    
+                    gamePlayer : GamePlayer = self._context.GamePlayers.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
+                        
+                    if gamePlayer != None:
+                        gamePlayer.score = finalScore
+                        gamePlayer.accuracy = finalScore
+                        self._context.commit()
+                        
+                    else:
+                        gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=finalScore, accuracy=accuracy, gunId=gunId)
+                        self._context.add(gamePlayer)
+                        self._context.commit()
+                        
+                except Exception as e:
+                    ise : InternalServerError = InternalServerError()
+                    
+                    ise.service = "zone"
+                    ise.exception_message = str(f"Failed to update player scores in DB: {e}")
+                    ise.process = "Zone: Update Player Scores"
+                    ise.severity = "3"
+                    
+                    self._supervisor.logInternalServerError(ise)
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
         
-        if gunName == None:
+        if gunName == "":
             gunName = "id: "+gunId
             
         try:
