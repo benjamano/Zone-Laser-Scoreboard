@@ -1228,7 +1228,7 @@ class WebApp:
                         self._context.commit()
                         
                     else:
-                        gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=finalScore, accuracy=accuracy, gunId=gunId)
+                        gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=finalScore, accuracy=accuracy)
                         self._context.add(gamePlayer)
                         self._context.commit()
                         
