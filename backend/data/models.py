@@ -60,7 +60,7 @@ class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
     teamColour = db.Column(db.String(10), nullable=False)
-    gamePlayers = db.relationship("GamePlayers", backref="team_ref", lazy=True)
+    gamePlayers = db.relationship("GamePlayer", backref="team_ref", lazy=True)
 
 class GamePlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)

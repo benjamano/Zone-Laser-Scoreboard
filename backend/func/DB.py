@@ -18,7 +18,7 @@ class context:
         self.Player = Player
         self.Game = Game
         self.Team = Team
-        self.GamePlayers = GamePlayer
+        self.GamePlayer = GamePlayer
         self.DMXScene = DMXScene
         self.DMXSceneEvent = DMXSceneEvent
         self.DMXSceneEventChannel = DMXSceneEventChannel
