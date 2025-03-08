@@ -1213,14 +1213,14 @@ class WebApp:
         
         try:
             with self.app.app_context():
-                gun : Gun = "name: "+ self._context.Gun.query.filter_by(id=gunId).first()
+                gun : Gun = self._context.Gun.query.filter_by(id=gunId).first()
                 
                 if (gun != None):
                     gunName = gun.name.strip()
                     
                 try:
                     
-                    gamePlayer : GamePlayer = self._context.GamePlayers.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
+                    gamePlayer : GamePlayer = self._context.GamePlayer.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
                         
                     if gamePlayer != None:
                         gamePlayer.score = finalScore
