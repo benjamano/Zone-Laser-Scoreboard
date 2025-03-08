@@ -283,6 +283,10 @@ class context:
     def getFixtureProfiles(self):
         return self.fixtureProfiles
     
+    def getAllGames(self) -> list[Game]:
+        with self.app.app_context():
+            return self.Game.query.all()
+    
     def __createDatabase(self):
         self.__createModels()
         self.__seedDBData()

@@ -2,7 +2,7 @@
 
 {% block content %}	
 
-<div class="card" style="display: none;">
+<div class="card">
 
 	<div class="card-header">Lighting / Scenes</div>
 
@@ -10,10 +10,80 @@
 
 		<h3>Export Scene as JSON</h3>
 
+	</div>
+
+</div>
+
+<div class="card">
+
+	<div class="card-header">Developer Tools</div>
+
+	<div class="card-body">
+
 		{% include "_LogConsolePartial.html" %}
 
 	</div>
 
 </div>
+
+<div class="card">
+
+    <div class="card-header">View Database Data</div>
+
+    <div class="card-body">
+
+        <table class="table table-dark table-striped table-hover" id="Gamestbl">
+
+            <thead class="thead-dark">
+                <tr>
+                    <th>Id</th>
+                    <th>Start Time</th>
+                    <th>End Time</th>
+                    <th>Winning Player</th>
+                    <th>Winning Team</th>
+                </tr>
+            </thead>
+
+            <tbody></tbody>
+
+        </table>
+
+    </div>
+
+</div>
+
+<script>
+
+    var Gamestbl = $("#Gamestbl").DataTable({
+        pageLength: 10,
+        ajax: {
+            type: "GET",
+            url: "/api/getAllGames",
+            dataSrc: "",
+            data: {}
+        },
+        columns: [
+            {
+                data: "id",
+            },
+			{
+                data: "startTime",
+				render: DataTable.render.number()
+            },
+			{
+                data: "endTime",
+				render: DataTable.render.number()
+            },
+			{
+                data: "winningPlayer",
+            },
+			{
+                data: "winningTeam",
+            },
+        ],
+        order: [[1, "asc"]],
+    });
+
+</script>
 
 {% endblock %}

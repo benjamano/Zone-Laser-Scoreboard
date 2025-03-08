@@ -376,6 +376,31 @@ class WebApp:
                 #format.message("|--- I'm still alive! ---|")
                 return 'OK'
             
+            @self.app.route("/api/getAllGames", methods=["GET"])
+            def serviceStatus():
+                try:
+                    games : list[Game] = self._context.getAllGames()
+                    
+                    gameList : list[dict] = []
+                    
+                    for game in games:
+                        gameList.append(game.to_dict())
+                        
+                    return jsonify(gameList)
+                
+                except Exception as e:
+                    return
+                    # ise : InternalServerError = InternalServerError()
+                    
+                    # ise.service = "api"
+                    # ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
+                    # ise.process = "API: Get Service Status"
+                    # ise.severity = "1"
+                    
+                    # self._supervisor.logInternalServerError(ise)
+                    
+                    # return jsonify({"error": f"Error getting service status: {e}"}), 500
+            
             @self.app.route("/api/serviceStatus", methods=["GET"])
             def serviceStatus():
                 try:
@@ -1256,7 +1281,7 @@ class WebApp:
             gunName = "id: "+gunId
             
         try:
-            self.GunScores[gunName] = finalScore
+            self.GunScores[gunId] = finalScore
         except Exception as e:
             format.message(f"Error updating Gun Scores: {e}", type="error")
             
@@ -1338,15 +1363,29 @@ class WebApp:
             self._supervisor.logInternalServerError(ise)
             
         try:
-            for player, score in self.GunScores.items():
-                print(player, score)
+            with self.app.app_context():
+                for gunId, score in self.GunScores.items():
+                    gamePlayer : GamePlayer = self._context.GamePlayer.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
+                        
+                    if gamePlayer != None:
+                        gamePlayer.score = score
+                        gamePlayer.accuracy = 0
+                        self._context.commit()
+                        
+                    else:
+                        gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score, accuracy=0)
+                        self._context.add(gamePlayer)
+                        self._context.commit()
+                        
+                    format.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
+                    
         except Exception as e:
             ise : InternalServerError = InternalServerError()
                 
             ise.service = "zone"
-            ise.exception_message = str(f"Failed to show player scores: {e}")
-            ise.process = "Zone: Print Gun Scores"
-            ise.severity = "1"
+            ise.exception_message = str(f"Failed to update player scores in DB: {e}")
+            ise.process = "Zone: Updatee Gun Scores in DB"
+            ise.severity = "3"
             
             self._supervisor.logInternalServerError(ise)
 

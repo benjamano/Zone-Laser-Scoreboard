@@ -56,6 +56,15 @@ class Game(db.Model):
     winningPlayer = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
     winningTeam = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "startTime": self.startTime,
+            "endTime": self.endTime,
+            "winningPlayer": self.winningPlayer,
+            "winningTeam": self.winningTeam,
+        }
+
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
