@@ -1336,6 +1336,19 @@ class WebApp:
             ise.severity = "2"
             
             self._supervisor.logInternalServerError(ise)
+            
+        try:
+            for player in self.GunScores:
+                print(player)
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "zone"
+            ise.exception_message = str(f"Failed to show player scores: {e}")
+            ise.process = "Zone: Print Gun Scores"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
 
     # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
     
