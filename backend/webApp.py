@@ -1152,7 +1152,7 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        #format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
         if packetData[1] == "@015":
             self.gameStarted()
