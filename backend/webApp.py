@@ -1256,7 +1256,7 @@ class WebApp:
             gunName = "id: "+gunId
             
         try:
-            self.GunScores[gunName.strip("name: ")] = finalScore
+            self.GunScores[gunName] = finalScore
         except Exception as e:
             format.message(f"Error updating Gun Scores: {e}", type="error")
             
@@ -1338,8 +1338,8 @@ class WebApp:
             self._supervisor.logInternalServerError(ise)
             
         try:
-            for player in self.GunScores:
-                print(player)
+            for player, score in self.GunScores.items():
+                print(player, score)
         except Exception as e:
             ise : InternalServerError = InternalServerError()
                 
