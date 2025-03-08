@@ -1077,7 +1077,7 @@ class WebApp:
                 try:
                     response = requests.post(
                         f'http://{self._localIp}:8080/sendMessage',
-                        json={'message': self.spotifyStatus, 'type': "musicStatus"}
+                        data={'message': self.spotifyStatus, 'type': "musicStatus"}
                     )
                     if response.status_code != 200:
                         raise Exception(f"Failed to send status: {response.text}")

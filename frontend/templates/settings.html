@@ -65,23 +65,26 @@
         columns: [
             {
                 data: "id",
+				render: renderValue
             },
 			{
                 data: "startTime",
-				render: DataTable.render.number()
+				render: renderDate
             },
 			{
                 data: "endTime",
-				render: DataTable.render.number()
+				render: renderDate
             },
 			{
                 data: "winningPlayer",
+				render: renderValue
             },
 			{
                 data: "winningTeam",
+				render: renderValue
             },
         ],
-        order: [[1, "asc"]],
+        order: [[1, "desc"]],
     });
 
 </script>
