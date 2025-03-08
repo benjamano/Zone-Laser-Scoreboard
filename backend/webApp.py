@@ -1213,37 +1213,44 @@ class WebApp:
         
         try:
             with self.app.app_context():
-                gun : Gun = self._context.Gun.query.filter_by(id=gunId).first()
-                
-                if (gun != None):
-                    gunName = gun.name.strip()
-                    
-                try:
-                    
-                    gamePlayer : GamePlayer = self._context.GamePlayer.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
-                        
-                    if gamePlayer != None:
-                        gamePlayer.score = finalScore
-                        gamePlayer.accuracy = finalScore
-                        self._context.commit()
-                        
-                    else:
-                        gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=finalScore, accuracy=accuracy)
-                        self._context.add(gamePlayer)
-                        self._context.commit()
-                        
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "zone"
-                    ise.exception_message = str(f"Failed to update player scores in DB: {e}")
-                    ise.process = "Zone: Update Player Scores"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
+                gunName : str = self._context.Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
+        
+        # try:
+        #     with self.app.app_context():
+        #         gun : Gun = self._context.Gun.query.filter_by(id=gunId).first()
+                
+        #         if (gun != None):
+        #             gunName = gun.name.strip()
+                    
+        #         try:
+                    
+        #             gamePlayer : GamePlayer = self._context.GamePlayer.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
+                        
+        #             if gamePlayer != None:
+        #                 gamePlayer.score = finalScore
+        #                 gamePlayer.accuracy = finalScore
+        #                 self._context.commit()
+                        
+        #             else:
+        #                 gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=finalScore, accuracy=accuracy)
+        #                 self._context.add(gamePlayer)
+        #                 self._context.commit()
+                        
+        #         except Exception as e:
+        #             ise : InternalServerError = InternalServerError()
+                    
+        #             ise.service = "zone"
+        #             ise.exception_message = str(f"Failed to update player scores in DB: {e}")
+        #             ise.process = "Zone: Update Player Scores"
+        #             ise.severity = "3"
+                    
+        #             self._supervisor.logInternalServerError(ise)
+        
+        # except Exception as e:
+        #     format.message(f"Error getting gun name: {e}", type="error")
         
         if gunName == "":
             gunName = "id: "+gunId
