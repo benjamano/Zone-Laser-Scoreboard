@@ -1384,7 +1384,7 @@ class WebApp:
                 
             ise.service = "zone"
             ise.exception_message = str(f"Failed to update player scores in DB: {e}")
-            ise.process = "Zone: Updatee Gun Scores in DB"
+            ise.process = "Zone: Update Gun Scores in DB"
             ise.severity = "3"
             
             self._supervisor.logInternalServerError(ise)

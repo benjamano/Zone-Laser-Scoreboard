@@ -73,9 +73,9 @@ class Team(db.Model):
 
 class GamePlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
-    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
-    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
+    gameId = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
+    gunId = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
+    playerId = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
     playerWon = db.Column(db.Boolean, nullable=True)
     score = db.Column(db.Integer, nullable=True)
     accuracy = db.Column(db.Integer, nullable=True)
