@@ -377,7 +377,7 @@ class WebApp:
                 return 'OK'
             
             @self.app.route("/api/getAllGames", methods=["GET"])
-            def serviceStatus():
+            def getAllGames():
                 try:
                     games : list[Game] = self._context.getAllGames()
                     
