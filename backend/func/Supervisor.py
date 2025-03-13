@@ -85,7 +85,7 @@ class Supervisor:
                 
             try:
                 # Check OBS Connection
-                if self._obs != None and (self.hasSevereErrorOccurred("obs") or not self._obs.isConnected()):
+                if self._obs != None and (self.hasSevereErrorOccurred("obs") or self._obs.isConnected() == False):
                     message("OBS Connection Error", type="error")
                     threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
             except Exception as e:
