@@ -9,7 +9,7 @@ from func.format import message
 
 from func.Supervisor import Supervisor
 class context:
-    def __init__(self, app : Flask, supervisor : Supervisor, db):
+    def __init__(self, app : Flask, supervisor : Supervisor, db : SQLAlchemy):
         self.app = app
         self._supervisor = supervisor
         self.db = db
@@ -400,7 +400,26 @@ class context:
             ise.severity = 2
             
             self._supervisor.logInternalServerError(ise)
-            return None            
+            return None  
+        
+    def addGamePlayer(self, player : GamePlayer):
+        try:
+            with self.app.app_context():
+                self.db.session.add(player)
+                self.db.session.commit()
+                
+                #message(f"Created new game with ID: {newGame.id}", type="success")
+                return player.id
+                
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            ise.service = "db"
+            ise.exception_message = str(e)
+            ise.process = "Add Game Player"
+            ise.severity = 2
+            
+            self._supervisor.logInternalServerError(ise)
+            return None  
     
     def updateGame(self, gameId, **kwargs):
         try:

@@ -104,7 +104,7 @@ class Supervisor:
                 with self._app.app_context():
                     foundGame : Game = (self._context.db.session
                         .query(Game)
-                        .order_by(Game.startTime)
+                        .order_by(Game.startTime.desc())
                         .first())
                     
                     if foundGame != None and foundGame.endTime != None:

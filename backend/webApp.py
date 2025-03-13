@@ -1318,6 +1318,8 @@ class WebApp:
         self.endOfDay = False
 
         self.currentGameId = self._context.createNewGame()
+        
+        format.message(f"Created new game with Id {self.currentGameId}")
             
         if self._obs != None:
             self._obs.switchScene("Laser Scores")
@@ -1379,8 +1381,7 @@ class WebApp:
                         
                     else:
                         gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score, accuracy=0)
-                        self._context.add(gamePlayer)
-                        self._context.commit()
+                        self._context.addGamePlayer(gamePlayer)
                         
                     format.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
                     
@@ -1403,11 +1404,9 @@ class WebApp:
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
                 format.message(f"Response: {response.text}")
             case "start":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
-                format.message(f"Response: {response.text}")
+                self.gameStarted()
             case "end":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
-                format.message(f"Response: {response.text}")
+                self.gameEnded()
         
     # -----------------| Utlities |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         
