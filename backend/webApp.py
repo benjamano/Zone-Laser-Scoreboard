@@ -807,10 +807,12 @@ class WebApp:
                 
             @self.socketio.on('playBriefing')
             def playBriefing():
-                if self._obs != None:
+                if self._obs != None and self._obs.isConnected() == True:
                     try:
-                        format.message("Playing briefing")
+                        #format.message("Playing briefing")
                         self._obs.switchScene("Video")
+                        
+                        return 200
                     except Exception as e:
                         ise : InternalServerError = InternalServerError()
                     
@@ -820,8 +822,10 @@ class WebApp:
                         ise.severity = "1"
                         
                         self._supervisor.logInternalServerError(ise)
+
                 else:
-                    format.message("OBS not connected", type="error")
+                    #format.message("OBS not connected, cannot play breifing!", type="warning")
+                    return 500
         
             @self.app.route('/sendMessage', methods=['POST'])
             def sendMessage():
@@ -845,6 +849,7 @@ class WebApp:
                     
                     self._supervisor.logInternalServerError(ise)
         except Exception as e:
+            format.message = str(f"Failed to Send Socket Message ({e})", type="error")
             pass
             # ise : InternalServerError = InternalServerError()
             
