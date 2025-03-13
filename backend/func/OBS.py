@@ -137,7 +137,10 @@ class OBS:
             return False
 
     def isConnected(self):
-        return self.obs.base_client.ws.connected
+        if self.obs != None:
+            return self.obs.base_client.ws.connected
+        else:
+            return False
     
     def resetConnection(self) -> bool:
         try:
