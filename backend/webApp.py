@@ -1328,8 +1328,6 @@ class WebApp:
                 self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
                 #format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
-                
-                self.currentGameId = 0
             
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -1349,13 +1347,15 @@ class WebApp:
                     if gamePlayer != None:
                         gamePlayer.score = score
                         gamePlayer.accuracy = 0
-                        self._context.commit()
+                        self._context.SaveChanges()
                         
                     else:
                         gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score, accuracy=0)
                         self._context.addGamePlayer(gamePlayer)
                         
                     format.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
+                    
+                self.currentGameId = 0
                     
         except Exception as e:
             ise : InternalServerError = InternalServerError()
