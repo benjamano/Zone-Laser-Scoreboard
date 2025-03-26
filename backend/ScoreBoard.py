@@ -1,5 +1,5 @@
 try:
-    import __init__ as init
+    import checkDependencies as init
     import os
     import signal
     import threading

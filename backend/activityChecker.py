@@ -44,7 +44,7 @@ while True:
             pass
         else:
             tries += 1
-            if tries == 5:
+            if tries == 3:
                 subprocess.Popen(["python", fr"{dir}\ScoreBoard.py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
             elif tries > 8:
                 os.system("shutdown /r /t 1")

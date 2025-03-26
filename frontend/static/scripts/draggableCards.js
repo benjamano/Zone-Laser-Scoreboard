@@ -225,6 +225,10 @@ function loadCardConfig() {
                 contentArea = createTimeRemainingCard();
                 break;
             case "teamScoreCard":
+                break;
+            case "textAreaCard":
+                contentArea = createTextAreaCard();
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -575,16 +579,23 @@ function createAnalogueClockCard(){
     return contentArea;
 }
 
+function createTextAreaCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("textAreaCard", "wideCard");
+    card.dataset.type = "textAreaCard";
 
+    contentArea.innerHTML = `
+        <textarea style="width: 100%;height: 100%;"></textarea>`;
+
+    return contentArea;
+}
 
 function clearAllCards(){
     document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
 }
 
 document.addEventListener("DOMContentLoaded", loadCardConfig)
-
-
-
 
 let currentCard = null;
 

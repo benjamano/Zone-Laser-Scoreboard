@@ -1221,15 +1221,11 @@ class WebApp:
         if int(timeLeft) <= 0:
             #format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-            #format.message(f"Response: {response.text}")
         else:
             self.gameStarted()
             self.endOfDay = False
             if self._obs != None:
                 self._obs.switchScene("Laser Scores")
-            #format.message(f"{timeLeft} seconds remain!", type="success") 
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         
         #format.newline()
@@ -1247,41 +1243,7 @@ class WebApp:
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
-        
-        # try:
-        #     with self.app.app_context():
-        #         gun : Gun = self._context.Gun.query.filter_by(id=gunId).first()
-                
-        #         if (gun != None):
-        #             gunName = gun.name.strip()
-                    
-        #         try:
-                    
-        #             gamePlayer : GamePlayer = self._context.GamePlayer.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
-                        
-        #             if gamePlayer != None:
-        #                 gamePlayer.score = finalScore
-        #                 gamePlayer.accuracy = finalScore
-        #                 self._context.commit()
-                        
-        #             else:
-        #                 gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=finalScore, accuracy=accuracy)
-        #                 self._context.add(gamePlayer)
-        #                 self._context.commit()
-                        
-        #         except Exception as e:
-        #             ise : InternalServerError = InternalServerError()
-                    
-        #             ise.service = "zone"
-        #             ise.exception_message = str(f"Failed to update player scores in DB: {e}")
-        #             ise.process = "Zone: Update Player Scores"
-        #             ise.severity = "3"
-                    
-        #             self._supervisor.logInternalServerError(ise)
-        
-        # except Exception as e:
-        #     format.message(f"Error getting gun name: {e}", type="error")
-        
+            
         if gunName == "":
             gunName = "id: "+gunId
             
@@ -1294,7 +1256,7 @@ class WebApp:
         
         data = f"{gunId},{finalScore},{accuracy}"
         
-        #response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
         
     def shotConfirmedPacket(self, packetData):
         #format.message(f"Shot Confirmed Packet: {packetData}")
@@ -1308,6 +1270,11 @@ class WebApp:
         
         format.newline()
         
+        try:
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+        except Exception as e:
+            pass
+                    
         format.message(f"Game started at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.handleMusic(mode="play")
@@ -1327,6 +1294,11 @@ class WebApp:
     def gameEnded(self):
         if self.gameStatus == "stopped":
             return
+        
+        try:
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+        except Exception as e:
+            pass
         
         format.message(f"Game ended at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
@@ -1407,6 +1379,13 @@ class WebApp:
                 self.gameStarted()
             case "end":
                 self.gameEnded()
+            case "gunscore":
+                for i in range(120, 110, -2):
+                    self.timingPacket([0, 0, 0, i])
+                    self.finalScorePacket([0, 1, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    self.finalScorePacket([0, 3, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    self.finalScorePacket([0, 7, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    time.sleep(2)
         
     # -----------------| Utlities |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         

@@ -98,6 +98,9 @@ def showInterface():
     def refreshAllPages():
         response = requests.post(f'http://{_localIp}:8080/sendMessage', data={"message": "", "type": "refreshPage"})
         
+    def sendGunScoreTestMessage():
+        threading.Thread(target=web_app.sendTestPacket(type="gunscore")).start()
+        
     creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
     creditsLbl.pack(pady=10)
 
@@ -109,6 +112,9 @@ def showInterface():
     
     EndTestButton = tk.Button(interfaceWindow, text="Send Game End Test Message", command=sendGameEndMessage)
     EndTestButton.pack(pady=10)
+    
+    GunScoreTestButton = tk.Button(interfaceWindow, text="Send Gun Score Test Message", command=sendGunScoreTestMessage)
+    GunScoreTestButton.pack(pady=10)
     
     fileDirButton = tk.Button(interfaceWindow, text="Open file directory", command=openFileDir)
     fileDirButton.pack(pady=10)

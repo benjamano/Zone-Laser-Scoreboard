@@ -21,20 +21,27 @@ class OBS:
             
             if self.obs != None:
                 format.message("Successfully Connected to OBS", type="success")
-                
-                self._supervisor.setDependencies(obs=self)
             else:
                 format.message("Failed To Connect To OBS", type="error")
 
         except Exception as e:
             format.message(f"Error Connecting to OBS: {e}", type="error")
+            
+        self._supervisor.setDependencies(obs=self)
         
     def getCurrentScene(self) -> str:
-        return
-    
         #This appears to be broken.
         
-        return self.obs.get_current_program_scene()
+        a = self.obs.get_current_program_scene()
+        sceneName = a.current_program_scene_name
+        
+        return sceneName
+    
+    def isSceneSelected(self, sceneName : str) -> bool:
+        if self.isConnected() == False:
+            raise Exception("OBS is not connected")
+        
+        return self.getCurrentScene() == sceneName
 
     def switchScene(self, sceneName:str) -> bool:
         """
@@ -43,6 +50,10 @@ class OBS:
         Args:
             sceneName (str): The name of the scene to switch to in OBS
         """
+        
+        if self.isConnected() == False:
+            return False
+        
         # try:
         #     if ((self.getCurrentScene()).lower() == sceneName.lower()):
         #         return True
@@ -136,11 +147,16 @@ class OBS:
             
             return False
 
-    def isConnected(self):
-        if self.obs != None:
-            return self.obs.base_client.ws.connected
-        else:
+    def isConnected(self) -> bool:
+        try:
+            if self.obs != None:
+                return self.obs.base_client.ws.connected
+            else:
+                return False
+        except AttributeError:
             return False
+        except Exception:
+            raise
     
     def resetConnection(self) -> bool:
         try:
