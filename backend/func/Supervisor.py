@@ -103,7 +103,7 @@ class Supervisor:
                 #if self._obs.getCurrentScene() != "Video":
                 # Check the time to enter sleep mode
                 
-                if self._obs.isConnected() == True:
+                if self._obs.isConnected():
                     with self._app.app_context():
                         foundGame : Game = (self._context.db.session
                             .query(Game)

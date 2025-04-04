@@ -158,11 +158,13 @@ class OBS:
         except Exception:
             raise
     
-    def resetConnection(self) -> bool:
+    def resetConnection(self) -> obs:
         try:
             format.message(f"Reseting OBS Connection", type="warning")
             self.obs = None
             self.obs = self.obs = obs.ReqClient(host=self.IP, port=self.PORT, password=self.PASSWORD, timeout=3)
+            
+            return self 
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             
@@ -172,4 +174,4 @@ class OBS:
             ise.severity = "1"
                 
             self._supervisor.logInternalServerError(ise)
-            return False
+            return self
