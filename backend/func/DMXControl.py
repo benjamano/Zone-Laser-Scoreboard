@@ -327,15 +327,17 @@ class dmx:
             
             return None
         
-    def resetConnection(self) -> None:
+    def resetConnection(self) -> bool:
         self._dmx.close()
         self._dmx = None
         try:
             self._dmx : OpenDMXController = OpenDMXController()       
         except Exception as e:            
-            raise AttributeError(f"DMX controller not started, {e}")
+            return False
         
-        return
+        self._supervisor.setDependencies(dmx=self)
+        
+        return True
 
     # Getters
         

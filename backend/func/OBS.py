@@ -30,20 +30,21 @@ class OBS:
         self._supervisor.setDependencies(obs=self)
         
     def getCurrentScene(self) -> str:
-        #This appears to be broken.
-        
         a = self.obs.get_current_program_scene()
-        sceneName = a.current_program_scene_name
+        
+        format.message(vars(a))
+        
+        sceneName = a.scene_name
         
         return sceneName
-    
+
     def isSceneSelected(self, sceneName : str) -> bool:
         if self.isConnected() == False:
             raise Exception("OBS is not connected")
         
         return self.getCurrentScene() == sceneName
 
-    def switchScene(self, sceneName:str) -> bool:
+    def switchScene(self, sceneName : str) -> bool:
         """
         Switches the current OBS scene to the specified scene name.
         
@@ -158,13 +159,15 @@ class OBS:
         except Exception:
             raise
     
-    def resetConnection(self) -> obs:
+    def resetConnection(self) -> bool:
         try:
             format.message(f"Reseting OBS Connection", type="warning")
             self.obs = None
             self.obs = self.obs = obs.ReqClient(host=self.IP, port=self.PORT, password=self.PASSWORD, timeout=3)
             
-            return self 
+            self._supervisor.setDependencies(obs=self)
+            
+            return True
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             
@@ -174,4 +177,5 @@ class OBS:
             ise.severity = "1"
                 
             self._supervisor.logInternalServerError(ise)
-            return self
+            
+            return False

@@ -104,6 +104,8 @@ class Supervisor:
                 # Check the time to enter sleep mode
                 
                 if self._obs.isConnected():
+                    # currentScene = self._obs.getCurrentScene()
+                    
                     with self._app.app_context():
                         foundGame : Game = (self._context.db.session
                             .query(Game)
@@ -182,10 +184,10 @@ class Supervisor:
         self.__closeApp("Database Connection Error")
         
     def __resetOBSConnection(self):
-        self._obs = self._obs.resetConnection()
+        self._obs.resetConnection()
         
     def __resetDMXConnection(self):
-        self._dmx = self._dmx.resetConnection()
+        self._dmx.resetConnection()
         
     def __restartPC(self, reason: str):
         message(f"Restarting PC. Reason {reason}", type="error")
