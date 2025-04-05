@@ -129,17 +129,17 @@ class WebApp:
         # with self.app.app_context():
         #     self._context = context(self.app, self._supervisor, self.db)
         
-        def bpmLoop():
-            while True:
-                try:
-                    self.findBPM()
-                    time.sleep(10)
-                except Exception as e:
-                    format.message(f"Error in BPM loop: {e}", type="error")
-                    break
+        # def bpmLoop():
+        #     while True:
+        #         try:
+        #             self.findBPM()
+        #             time.sleep(10)
+        #         except Exception as e:
+        #             format.message(f"Error in BPM loop: {e}", type="error")
+        #             break
 
-        self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
-        self.bpm_thread.start()  
+        # self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
+        # self.bpm_thread.start()  
             
         format.message("Attempting to start Media status checker")
         
@@ -937,12 +937,12 @@ class WebApp:
                     
             time.sleep(2)
                 
-            try:
-                self.bpm_thread = threading.Thread(target=self.findBPM)
-                self.bpm_thread.daemon = True
-                self.bpm_thread.start()
-            except Exception as e:
-                format.message(f"Error running BPM thread: {e}", type="error")
+            # try:
+            #     self.bpm_thread = threading.Thread(target=self.findBPM)
+            #     self.bpm_thread.daemon = True
+            #     self.bpm_thread.start()
+            # except Exception as e:
+            #     format.message(f"Error running BPM thread: {e}", type="error")
                 
             return result
                     
@@ -1061,37 +1061,36 @@ class WebApp:
             else:
                 format.message(f"Error occured while handling BPM: {e}", type="warning")
         
-    def findBPM(self):
-        try:
-            try:
-                self.fetcher.fetch()
-                song, bpm, album = self.fetcher.get_current_song_and_bpm()
+    # def findBPM(self):
+    #     try:
+    #         try:
+    #             self.fetcher.fetch()
+    #             song, bpm, album = self.fetcher.get_current_song_and_bpm()
                 
-                if type(bpm) == str:
-                    bpm = 0
+    #             if type(bpm) == str:
+    #                 bpm = 0
                 
-                self.handleBPM(song, album, bpm)
-            except Exception as e:
-                format.message(f"Error fetching BPM: {e}", type="error")
+    #             self.handleBPM(song, album, bpm)
+    #         except Exception as e:
+    #             format.message(f"Error fetching BPM: {e}", type="error")
             
-            temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+    #         temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
 
-            if temp_spotifyStatus != self.spotifyStatus:
-                self.spotifyStatus = temp_spotifyStatus
+    #         if temp_spotifyStatus != self.spotifyStatus:
+    #             self.spotifyStatus = temp_spotifyStatus
 
-                try:
-                    response = requests.post(
-                        f'http://{self._localIp}:8080/sendMessage',
-                        data={'message': self.spotifyStatus, 'type': "musicStatus"}
-                    )
-                    if response.status_code != 200:
-                        raise Exception(f"Failed to send status: {response.text}")
-                except Exception as e:
-                    format.message(f"Error sending Spotify status: {e}", type="error")
+    #             try:
+    #                 response = requests.post(
+    #                     f'http://{self._localIp}:8080/sendMessage',
+    #                     data={'message': self.spotifyStatus, 'type': "musicStatus"}
+    #                 )
+    #                 if response.status_code != 200:
+    #                     raise Exception(f"Failed to send status: {response.text}")
+    #             except Exception as e:
+    #                 format.message(f"Error sending Spotify status: {e}", type="error")
 
-        except Exception as e:
-            format.message(f"Failed to find BPM: {e}", type="error")
-
+    #     except Exception as e:
+    #         format.message(f"Failed to find BPM: {e}", type="error")
    
     def mediaStatusChecker(self):
         while True:
