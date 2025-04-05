@@ -250,16 +250,47 @@ socket.on('createWarning', function (msg) {
     createWarnig(msg.message);
 });
 
-socket.on('musicStatus', function (msg) {
-    try{
-        console.log(msg.message);
+// socket.on('musicStatus', function (msg) {
+//     try{
+//         console.log(msg.message);
 
-        if (msg.message == "playing"){
+//         if (msg.message == "playing"){
+//             gamePlayingStatus = "playing";
+//             $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
+//         } else {
+//         gamePlayingStatus = "stopped";
+//             $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+//         }
+//     }
+//     catch(err){}
+// });
+
+socket.on('musicStatusV2', function (msg) {
+    try{
+        msg = msg.message
+
+        if (msg.playbackStatus == "playing"){
             gamePlayingStatus = "playing";
             $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
         } else {
-        gamePlayingStatus = "stopped";
+            gamePlayingStatus = "stopped";
             $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+        }
+
+        if (msg.musicPosition){
+            try{
+                currentTime = msg.musicPosition;
+                updateProgressBar(currentTime, totalDuration);
+            }
+            catch(err){}
+        }
+
+        if (msg.duration){
+            try{
+                totalDuration = msg.duration;
+                updateProgressBar(currentTime, totalDuration); 
+            }
+            catch(err){}
         }
     }
     catch(err){}
@@ -304,21 +335,21 @@ socket.on('songBPM', function (msg) {
     catch(err){}
 });
 
-socket.on('musicDuration', function(duration) {
-    try{
-        totalDuration = duration.message;
-        updateProgressBar(currentTime, totalDuration); 
-    }
-    catch(err){}
-});
+// socket.on('musicDuration', function(duration) {
+//     try{
+//         totalDuration = duration.message;
+//         updateProgressBar(currentTime, totalDuration); 
+//     }
+//     catch(err){}
+// });
 
-socket.on('musicPosition', function(position) {
-    try{
-        currentTime = position.message;
-        updateProgressBar(currentTime, totalDuration);
-    }
-    catch(err){}
-});
+// socket.on('musicPosition', function(position) {
+//     try{
+//         currentTime = position.message;
+//         updateProgressBar(currentTime, totalDuration);
+//     }
+//     catch(err){}
+// });
 
 socket.on('UpdateDMXValue', function(data) {
     console.log("Updating DMX Value: ", data)

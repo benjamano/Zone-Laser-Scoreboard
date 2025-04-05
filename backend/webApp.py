@@ -1095,25 +1095,37 @@ class WebApp:
    
     def mediaStatusChecker(self):
         while True:
+            time.sleep(3)
+            
             try:
                 temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
                 
                 if temp_spotifyStatus != self.spotifyStatus:
                     self.spotifyStatus = temp_spotifyStatus
                     
-                    try:
-                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
-                    except Exception as e:
-                        format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
+                try:
+                    # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
-                if currentPosition and totalDuration:
-                    try:
-                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
-                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
-                    except Exception as e:
-                        format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
+                    response = requests.post(
+                        f"http://{self._localIp}:8080/sendMessage",
+                        json={
+                            "message": {
+                                "playbackStatus": self.spotifyStatus,
+                                "musicPosition": currentPosition,
+                                "duration": totalDuration
+                            },
+                            "type": "musicStatusV2"
+                        }
+                    )
+                except Exception as e:
+                    format.message(f"Error sending music status message: {e}.", type="error")
                     
-                time.sleep(3)
+                # if currentPosition and totalDuration:
+                #     try:
+                #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
+                #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
+                #     except Exception as e:
+                #         format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")

@@ -45,6 +45,7 @@ class Supervisor:
     def setOtherDependencies(self):
         message(colourText(f"Supervisor: Restarted Service, Setting dependencies...", "Red"), type="info")
         try:
+            # TODO: NEED TO SET ALL OTHER DEPENDENCIES TO THE NEW DEPENDENCIES
             pass
         except Exception as e:
             message(f"Error occurred while resetting Web App's dependencies: {e}", type="error")
