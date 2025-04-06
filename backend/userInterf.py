@@ -15,12 +15,12 @@ def startUI():
     global root, progress, startApp, revealUI
 
     def startApp():
-        progress.start()
-        progress["value"] = 0
-        for i in range(5, 0, -1):
-            countdownLbl.config(text=f"Web App Starting in {i} seconds...")
-            root.update()
-            time.sleep(1)
+        # progress.start()
+        # progress["value"] = 0
+        # for i in range(5, 0, -1):
+        #     countdownLbl.config(text=f"Web App Starting in {i} seconds...")
+        #     root.update()
+        #     time.sleep(1)
         root.destroy()
         startWebApp()
 

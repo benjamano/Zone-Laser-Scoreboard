@@ -66,7 +66,7 @@ class WebApp:
         
         self.setupRoutes()
         
-        self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
+        self.fetcher = MediaBPMFetcher()
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -934,8 +934,6 @@ class WebApp:
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
-                    
-            time.sleep(2)
                 
             # try:
             #     self.bpm_thread = threading.Thread(target=self.findBPM)
@@ -1094,7 +1092,15 @@ class WebApp:
    
     def mediaStatusChecker(self):
         while True:
-            time.sleep(3)
+            time.sleep(5)
+            
+            try:
+                song, album, bpm = self.fetcher.get_current_song_and_bpm()
+                
+                self.handleBPM(song)
+            
+            except Exception as e:
+                pass
             
             try:
                 temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())

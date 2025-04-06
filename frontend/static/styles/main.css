@@ -1093,3 +1093,11 @@ label{
     margin: 5px 0;
 }
 
+.musicControlsButton{
+    filter: brightness(0.8)
+}
+
+.musicControlsButton:hover{
+    filter: brightness(1);
+    scale: 1.05;
+}

@@ -266,10 +266,10 @@ socket.on('createWarning', function (msg) {
 // });
 
 socket.on('musicStatusV2', function (msg) {
-    try{
-        msg = msg.message
+    try {
+        msg = msg.message;
 
-        if (msg.playbackStatus == "playing"){
+        if (msg.playbackStatus == "playing") {
             gamePlayingStatus = "playing";
             $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
         } else {
@@ -277,25 +277,19 @@ socket.on('musicStatusV2', function (msg) {
             $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
         }
 
-        if (msg.musicPosition){
-            try{
+        if (msg.duration && msg.duration != totalDuration) {
+            if (msg.musicPosition != undefined) {
                 currentTime = msg.musicPosition;
-                updateProgressBar(currentTime, totalDuration);
             }
-            catch(err){}
-        }
 
-        if (msg.duration){
-            try{
-                totalDuration = msg.duration;
-                updateProgressBar(currentTime, totalDuration); 
-            }
-            catch(err){}
+            totalDuration = msg.duration;
+
+            updateProgressBar(currentTime, totalDuration);
         }
+    } catch (err) {
+        console.error("Error processing music status:", err);
     }
-    catch(err){}
 });
-
 socket.on('songBPM', function (msg) {
     try{
         console.log(msg.message);

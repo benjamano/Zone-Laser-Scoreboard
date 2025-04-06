@@ -463,9 +463,9 @@ function createMusicControlsCard() {
 
     contentArea.innerHTML = `
     <div class="musicControls">
-        <i role="button" onclick="restartSong()" class="fa-solid fa-backward" aria-hidden="true"></i>
-        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play" aria-hidden="true"></i>
-        <i role="button" onclick="nextSong()" class="fa-solid fa-forward" aria-hidden="true"></i>
+        <i role="button" onclick="restartSong()" class="fa-solid fa-backward musicControlsButton" title='Previous'></i>
+        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play musicControlsButton" title='Pause / Unpause'></i>
+        <i role="button" onclick="nextSong()" class="fa-solid fa-forward musicControlsButton" title = 'Next'></i>
         <div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
             <div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
         </div>
