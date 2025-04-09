@@ -1044,11 +1044,7 @@ class WebApp:
             
                 #format.message(f"Current song: {song}, BPM: {bpm}")
             
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
-            
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
-            
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
                 
                 self.rateLimit = False
                 
@@ -1097,7 +1093,11 @@ class WebApp:
             try:
                 song, album, bpm = self.fetcher.get_current_song_and_bpm()
                 
-                self.handleBPM(song)
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
+                
+                # self.handleBPM(song)
             
             except Exception as e:
                 pass

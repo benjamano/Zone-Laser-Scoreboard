@@ -97,7 +97,7 @@ socket.on('end', function(msg) {
 
         var gameStatus = document.getElementById('gameStatus');
 
-        $("#timeRemaining").text("00:00");
+        $("#timeRemaining").text("00:00:00");
 
         $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
         $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());

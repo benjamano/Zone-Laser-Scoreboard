@@ -75,7 +75,7 @@ class OBS:
             
             return True
         except Exception as e:
-            if getattr(e, "code", None) == 600:
+            if getattr(e, "code", 0) == 600:
                 ise : InternalServerError = InternalServerError()
             
                 ise.service = "obs"

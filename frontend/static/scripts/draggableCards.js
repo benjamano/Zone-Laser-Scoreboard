@@ -457,7 +457,7 @@ function createTimeRemainingCard() {
 
 function createMusicControlsCard() {
     const contentArea = createCard();
-    const card = contentArea.parentElement;
+    const card = contentArea.parentElement;``
     card.classList.add("smallWideCard");
     card.dataset.type = "musicControlsCard";
 
