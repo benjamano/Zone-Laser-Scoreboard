@@ -247,7 +247,7 @@ socket.on('songName', function (msg) {
 socket.on('createWarning', function (msg) {
     console.log(msg.message);
 
-    createWarnig(msg.message);
+    createWarning(msg.message);
 });
 
 // socket.on('musicStatus', function (msg) {

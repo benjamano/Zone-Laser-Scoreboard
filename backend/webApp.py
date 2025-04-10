@@ -1143,8 +1143,8 @@ class WebApp:
                 if str(e) != "an integer is required":
         
                     format.message("Requesting app restart", type="warning")
-                    if self.gameStatus != "stopped":
-                        pyautogui.press("playpause")
+                        
+                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                     
                     self.RestartRequested = True
                     
@@ -1396,13 +1396,15 @@ class WebApp:
             
             self._supervisor.logInternalServerError(ise)
 
-    # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
+    # -------------------------------------------------------------------------| Testing |----------------------------------------------------------------------------------------------------------------------------------- #    
     
     def sendTestPacket(self, type="server"):
         format.message(f"Sending {type} packet")
         match type.lower():
             case "server":
                 self.RestartRequested = True
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
+                
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
                 format.message(f"Response: {response.text}")
             case "start":
