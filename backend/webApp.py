@@ -952,11 +952,12 @@ class WebApp:
             format.message("Development mode, skipping restart", type="warning")
             return
         
-        format.message(f"Restarting App in 1 minute due to {reason}", type="warning")
+        format.message(f"Restarting App due to {reason}", type="warning")
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
         
-        time.sleep(60)
+        # Make sure all the end of game processing completes
+        time.sleep(5)
         
         format.message("Restarting App", type="warning")
 
@@ -1146,9 +1147,6 @@ class WebApp:
                         pyautogui.press("playpause")
                     
                     self.RestartRequested = True
-                    
-                    self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested - BPM Issue: {e}"))
-                    self.AppRestartThread.daemon = True
                     
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
                     time.sleep(600)
@@ -1383,6 +1381,20 @@ class WebApp:
             ise.severity = "3"
             
             self._supervisor.logInternalServerError(ise)
+            
+        try:
+            if self.RestartRequested == True:
+                self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested"))
+                self.AppRestartThread.daemon = True
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "webapp"
+            ise.exception_message = str(f"Failed to check for requested restart: {e}")
+            ise.process = "WebApp: Check for requested restarts"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
 
     # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
     
@@ -1390,6 +1402,7 @@ class WebApp:
         format.message(f"Sending {type} packet")
         match type.lower():
             case "server":
+                self.RestartRequested = True
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
                 format.message(f"Response: {response.text}")
             case "start":
