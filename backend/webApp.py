@@ -957,7 +957,7 @@ class WebApp:
         
         format.message(f"Restarting App due to {reason}", type="error")
         
-        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Restarting Web App Now!", 'type': "createWarning"})
         
         # Make sure all the end of game processing completes
         time.sleep(5)
