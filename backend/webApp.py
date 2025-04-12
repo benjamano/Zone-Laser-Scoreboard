@@ -151,8 +151,8 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting Media Status Checker: {e}", type="error")
         
-        if self.devMode == False:
-            webbrowser.open(f"http://{self._localIp}:8080")
+        # if self.devMode == False:
+        #     webbrowser.open(f"http://{self._localIp}:8080")
             
         try:
             self.obs_thread = threading.Thread(target=self.connectToOBS)
