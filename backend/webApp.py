@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect
+from flask import Flask, render_template, request, jsonify, redirect, g
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
@@ -48,7 +48,7 @@ class WebApp:
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}    
-        self.VersionNumber = 1.1    
+        self.VersionNumber = "1.1.2"
            
         self._supervisor : Supervisor = None
         self._obs : OBS = None
@@ -305,6 +305,14 @@ class WebApp:
         # @self.app.errorhandler(404)
         # def not_found():
         #     return render_template("error.html", message="Page not found")
+        
+        @self.app.context_processor
+        def inject_global_vars():
+            return dict(
+                SysName=self.SysName,
+                VersionNo=self.VersionNumber,
+                PageTitle=getattr(g, 'PageTitle', "")
+            )
             
         @self.app.route('/')
         def index():
@@ -319,7 +327,9 @@ class WebApp:
                 else:
                     DMXConnection = "CONNECTED"
                 
-                return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection, SysName=self.SysName, PageTitle="Home")
+                g.PageTitle = "Home"
+                
+                return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
         
             except Exception as e:
                 format.message(f"Error loading index.html: {e}", type="error")
@@ -327,15 +337,20 @@ class WebApp:
     
         @self.app.route("/schedule")
         def scehdule():
+            g.PageTitle = "Schedule"
+            
             return render_template("schedule.html")
         
         @self.app.route("/settings")
         def settings():
+            g.PageTitle = "Settings"
+            
             return render_template("settings.html")
         
         @self.app.route("/editScene")
         def editScene():
             #Accessed by /EditScene?Id=[sceneId]
+            g.PageTitle = "Lighting Control"
             
             sceneId = request.args.get('Id') 
             
@@ -349,7 +364,7 @@ class WebApp:
                     else:
                         return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
                 else:
-                    return render_template("scene.html", SysName=self.SysName, PageTitle="Advanced DMX Control")
+                    return render_template("scene.html")
                 
             except Exception as e:
                 format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
@@ -361,7 +376,9 @@ class WebApp:
         
         @self.app.route("/status")
         def status():
-            return render_template("status.html", SysName=self.SysName, PageTitle="Status")
+            g.PageTitle = "Status"
+            
+            return render_template("status.html")
         
         @self.app.route("/experimental")
         def experimental():
@@ -371,14 +388,20 @@ class WebApp:
         
         @self.app.route("/feedback")
         def feedback():
-            return render_template("feedback.html", SysName=self.SysName, PageTitle="Leaving Feedback")
+            g.PageTitle = "Leave Feedback"
+            
+            return render_template("feedback.html")
         
         @self.app.route("/statistics")
         def statistics():
-            return render_template("statistics.html", SysName=self.SysName, PageTitle="View Statistics")
+            g.PageTitle = "Statistics"
+            
+            return render_template("statistics.html")
 
         @self.app.route("/managerTools")
         def managerTools():
+            g.PageTitle = "Manager Tools"
+            
             return render_template("ManagerTools/managerTools.html")
         
         @self.app.route("/api/ManagerTools/ProcessEmailAddresses", methods=["POST"])
