@@ -171,12 +171,12 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
 
-        format.message("Web App Started, hiding console", type="success")
+        # format.message("Web App Started, hiding console", type="success")
         
-        try:
-            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        except Exception as e:
-            format.message(f"Hiding console: {e}", type="error")
+        # try:
+        #     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        # except Exception as e:
+        #     format.message(f"Hiding console: {e}", type="error")
         
         try:
             self.sniffing_thread = threading.Thread(target=self.startSniffing)
