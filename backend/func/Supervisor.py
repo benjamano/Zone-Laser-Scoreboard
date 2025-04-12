@@ -101,25 +101,22 @@ class Supervisor:
                 message(f"Error occured while checking DMX status: {e}", type="error")
                 
             try:
-                #if self._obs.getCurrentScene() != "Video":
-                # Check the time to enter sleep mode
-                
-                if self._obs.isConnected():
-                    # currentScene = self._obs.getCurrentScene()
-                    
-                    with self._app.app_context():
-                        foundGame : Game = (self._context.db.session
-                            .query(Game)
-                            .order_by(Game.startTime.desc())
-                            .first())
-                        
-                        if foundGame != None and foundGame.endTime != None and not (self._obs.isSceneSelected("Video")):
-                            startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
-                            timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
-                            currentTime = datetime.datetime.now().time()
-                            if startTime < timeToCheck and self._obs != None and (currentTime < datetime.time(11, 0) or currentTime > datetime.time(17, 0)):
-                                message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
-                                self._obs.switchScene("Test Mode")
+                if self._obs.isConnected() == True:
+                    if (self._obs.getCurrentScene()).lower() != "video":
+                        # Check the time to enter sleep mode
+                        with self._app.app_context():
+                            foundGame : Game = (self._context.db.session
+                                .query(Game)
+                                .order_by(Game.startTime.desc())
+                                .first())
+                            
+                            if foundGame != None and foundGame.endTime != None:
+                                startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
+                                timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
+                                currentTime = datetime.datetime.now().time()
+                                if startTime < timeToCheck and self._obs != None and (currentTime < datetime.time(11, 0) or currentTime > datetime.time(17, 0)):
+                                    message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
+                                    self._obs.switchScene("Test Mode")
                                 
             except Exception as e:
                 pass

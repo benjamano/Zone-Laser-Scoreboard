@@ -30,9 +30,12 @@ class OBS:
         self._supervisor.setDependencies(obs=self)
         
     def getCurrentScene(self) -> str:
+        if self.isConnected == False:
+            return ""
+        
         a = self.obs.get_current_program_scene()
         
-        format.message(vars(a))
+        #format.message(vars(a))
         
         sceneName = a.scene_name
         
@@ -42,7 +45,7 @@ class OBS:
         if self.isConnected() == False:
             raise Exception("OBS is not connected")
         
-        return self.getCurrentScene() == sceneName
+        return (self.getCurrentScene()).lower() == sceneName.lower()
 
     def switchScene(self, sceneName : str) -> bool:
         """
@@ -55,20 +58,18 @@ class OBS:
         if self.isConnected() == False:
             return False
         
-        # try:
-        #     if ((self.getCurrentScene()).lower() == sceneName.lower()):
-        #         return True
-        # except Exception as e:
-        #     ise : InternalServerError = InternalServerError()
+        try:
+            if (self.getCurrentScene()).lower() == sceneName.lower():
+                return True
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
             
-        #     ise.service = "obs"
-        #     ise.exception_message = str(f"Error checking current scene: {e}")
-        #     ise.process = "OBS: Switch to Scene"
-        #     ise.severity = "1"
+            ise.service = "obs"
+            ise.exception_message = str(f"Error checking current scene: {e}")
+            ise.process = "OBS: Switch to Scene"
+            ise.severity = "1"
         
-        #     self._supervisor.logInternalServerError(ise)
-            
-        #     return False
+            self._supervisor.logInternalServerError(ise)
         
         try:
             self.obs.set_current_program_scene(sceneName)
