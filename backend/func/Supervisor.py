@@ -15,13 +15,13 @@ if TYPE_CHECKING:
     from webApp import WebApp as _webApp 
 
 class Supervisor:
-    def __init__(self, devMode: bool):        
+    def __init__(self):        
         self._obs = None
         self._dmx = None
         self._context = None
         self._app = None
         self._webApp = None
-        self.devMode = devMode
+        self.devMode = False
         self._services = ["db", "obs", "dmx", "api"]
         self.expectedProcesses = ["Spotify.exe", "obs64"]
         self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -39,6 +39,7 @@ class Supervisor:
             self._context: "_context" = db
         if webApp is not None:
             self._webApp: "_webApp" = webApp
+            self.devMode = webApp.devMode
         if webApp is not None:
             self._app: Flask = webApp.app
             

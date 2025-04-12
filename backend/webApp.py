@@ -48,6 +48,7 @@ class WebApp:
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}    
+        self.VersionNumber = 1.1    
            
         self._supervisor : Supervisor = None
         self._obs : OBS = None
@@ -191,6 +192,8 @@ class WebApp:
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
+        format.sendEmail(f"Web App started at {str(datetime.datetime.now())}", "APP STARTED")
+        
         format.newline()    
         
         self.flaskThread.join()
@@ -201,7 +204,7 @@ class WebApp:
         return
     
     def startSupervisor(self):
-        self._supervisor = Supervisor(devMode=self.devMode)
+        self._supervisor = Supervisor()
         
         return
     
@@ -952,7 +955,7 @@ class WebApp:
             format.message("Development mode, skipping restart", type="warning")
             return
         
-        format.message(f"Restarting App due to {reason}", type="warning")
+        format.message(f"Restarting App due to {reason}", type="error")
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
         
