@@ -1,84 +1,4 @@
-{% extends "layout.html" %}
-
-{% block content %}
-
-<div id="customContextMenu" style="position: absolute; background: #fff; border: 1px solid #ccc; padding: 0.5rem; display: none; z-index: 10000;">
-	<ul class="list-unstyled mb-0" style="padding: 0; margin: 0;">
-	  <li id="deleteCardOption" style="cursor: pointer;">Delete Card</li>
-	</ul>
-  </div>  
-
-<div class="mb-2 pb-2 border-bottom border-dark-subtle">
-	<div class="dropdown d-inline-block">
-	  <button class="btn btn-secondary dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-		Add Card
-	  </button>
-	  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="addCardDropdown">
-		<li><button class="dropdown-item" onclick="createTextAreaCard()">Add Text Entry (Coming Soon)</button></li>
-		<li><hr class="dropdown-divider"></li>
-		<li><button class="dropdown-item" onclick="createTimeRemainingCard()">Add Timeleft</button></li>
-		<li><button class="dropdown-item" onclick="addScoreBoardCard()">Add Scoreboard</button></li>
-		<li><button class="dropdown-item" onclick="createRedTeamScoreCard()">Add Red Team Scores</button></li>
-		<li><button class="dropdown-item" onclick="createGreenTeamScoreCard()">Add Green Team Scores</button></li>
-		<li><button class="dropdown-item" onclick="createWinningPlayerCard()" disabled>Add Winning Player (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createWinningRedPlayerCard()" disabled>Add Winning Red Player (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createWinningGreenPlayerCard()" disabled>Add Winning Green Player (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createWinningTeamCard()" disabled>Add Winning Team (Coming Soon)</button></li>
-		<li><hr class="dropdown-divider"></li>
-		<li><button class="dropdown-item" onclick="createMusicControlsCard()">Add Music Controls</button></li>
-		<li><button class="dropdown-item" onclick="createMusicAlbumCard()">Add Music Album Cover</button></li>
-		<li><button class="dropdown-item" onclick="createMusicNameCard()" disabled>Add Music Name (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createMusicVolumeSliderCard()" disabled>Add Volume Slider (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createClockCard()">Add Digital Clock</button></li>
-		<li><button class="dropdown-item" onclick="createAnalogueClockCard()">Add Analogue Clock</button></li>
-	  </ul>
-	</div>
-
-	<div class="dropdown d-inline-block ms-2">
-		<button class="btn btn-secondary dropdown-toggle" type="button" id="loadPresetDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-		  Load Preset
-		</button>
-		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="loadPresetDropdown">
-		  <li><button class="dropdown-item" href="#" onclick="" disabled>Coming Soon</button></li>
-		</ul>
-	  </div>
-  
-	<button class="btn btn-secondary ms-2" onclick="clearAllCards()">Clear All Cards</button>
-
-	<div class="dropdown d-inline-block ms-2">
-		<button class="btn btn-danger dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-			Help
-		</button>
-		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
-			<li class="dropdown-item">- Add Cards using the "Add Card" dropdown</li>
-			<li class="dropdown-item">- Drag cards by clicking and holding the card</li>
-			<li class="dropdown-item">- Resize the card by dragging the bottom right</li>
-			<li class="dropdown-item">- Delete the card by right-clicking the card</li>
-			<li class="dropdown-item">- Card positions save, reload the page and see!</li>
-			<li class="dropdown-item">- To request a card addition, suggest it in the feedback section</li>
-			<li class="dropdown-item">- More Cards coming soon!</li>
-		</ul>
-	</div>
-
-	<div class="dropdown d-inline-block ms-2">
-		<button class="btn btn-outline-warning dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-			Create Warning
-		</button>
-		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
-			<li class="dropdown-item" onclick="createWarning('Restart')">- Restart Warning</li>
-		</ul>
-	</div>
-
-	<button class="btn btn-outline-primary" onclick="playBriefing();" type="button" id="playBriefingBtn">
-		PLAY BRIEFING VIDEO
-	</button>
-</div>
-
-<div class="movableItemsContainer"></div>
-
-<script src="/static/scripts/draggableCards.js"></script>
-
-<!-- <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" style="overflow-x: hidden;">
 <head>
 	<meta charset="UTF-8">
@@ -102,12 +22,32 @@
 	<div id="warningsContainer" class="warning">
 		<h1 id="warningsText"></h1>
 	</div>
+	<div class="wrap-everything">
+		<section id="column-1">
+			<div class="lcars-frame">
+				<div class="frame-col-1">
+					<div class="frame-col-1-cell-a"></div>
+					<div class="frame-col-1-cell-b"></div>
+					<div class="frame-col-1-cell-c"></div>
+				</div>
+				<div class="frame-col-2"> </div>
+				<div class="frame-col-3 display-vertical">
+					<div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div><div class="line"></div>					
+				</div>
+				<div class="frame-col-4"> </div>
+				<div class="frame-col-5">
+					<div class="frame-col-5-cell-a"></div>
+					<div class="frame-col-5-cell-b"></div>
+					<div class="frame-col-5-cell-c"></div>
+				</div>
+			</div>
 			<div class="lcars-frame-after" id="album-container" style="width: 220px; height: 220px;">
 				<p>Song Playing:</p>
 				<p><span id="musicPlaying"></span></p>
 				<div id="album-cover" style="width: 100%; height: 100%;"></div>
 			</div>
 			
+			<div class="lcars-frame-after" >
 				<span>BPM:	<a id="musicBPM">0</a> </span>
 				<div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
 					<span style="display: flex;">
@@ -117,10 +57,89 @@
 						<div id="flashingDot2" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: var(--bs-form-valid-border-color);"></div>
 					</span>
 				</div>
-
-
+			</div>
+			<div class="panel-24 first-needle">
+				<div class="panel-24-col-a">
+					<div class="panel-24-block-1">
+						<div class="panel-24-cube cc-1"> </div>
+						<div class="panel-24-cube cc-2"> </div>
+						<div class="panel-24-cube cc-3"> </div>
+					</div>
+					<div class="panel-24-block-2">
+						<div class="panel-24-block-3">
+							<div class="panel-24-block-4 block-4-color-a"> </div>
+						</div>
+					</div>
+					<div class="panel-24-block-5"> </div>
+				</div>
+				<div class="panel-24-col-b">
+					<div class="panel-24-block-6">
+					</div>
+					<div class="gauge-wrap">
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							100
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							90
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							80
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							70
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							60
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							50
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							40
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							30
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							20
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							10
+						</div>
+						<div class="gauge-1"> </div>
+						<div class="gauge-2">
+							00
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel-base">				
+			</div>
+			<div class="panel-20">
+				20-62
+			</div>
+		</section>
+		<section id="column-3">
+			<div class="top-wrapper">
+				<div class="top-display">
+					<div class="top-display-left">
+						<nav id="primary-nav">
+							<a href="https://www.thelcars.com">TheLCARS.com</a>
 							<a role="button" onclick="toggleSpotifyControl()">SPOTIFY CONTROL: <span id="spotifyPlaybackStatus">OFF</span></a>
 							<a role="button" onclick="controlPlayback('end')">TERMINATE SERVER</a>
+						</nav>
+						<div class="chunk"> </div>
+						<div class="panel-wrapper">
 							<div class="panel-1"><div class="lcars-access">
                                 <a>Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span></a>
                             </div></div>
@@ -130,10 +149,23 @@
 							<div class="panel-1"><div class="lcars-access">
 								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
                             </div></div>
+						</div>
 
+						<div class="chunk"> </div>
+
+						<div class="panel-wrapper">
+							<div class="panel-1"><div class="lcars-access">
 								<a>TIME REMAINING: <span class="medium-dark-blue" id="timeRemaining">00:00</span></a>
-
-										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div
+							</div></div>
+						</div>
+						
+					</div>
+					<div class="top-display-right">
+						<div class="top-display-content">
+							<div class="top-arch-1">
+								<div class="top-arch-2">
+									<div class="top-arch-content">
+										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div> -->
 
 										<div class="card" style="background-color: var(--dark-gray); color: #ffffff;">
 											<div class="card-header collapsed">
@@ -152,7 +184,11 @@
 
 													</div>
 
-												</div> 
+												</div> -->
+
+												{% extends "_DMXSceneControlsPartial.html" %}
+
+												{% block content %}
 
 												<div class="card mb-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
 
@@ -188,7 +224,7 @@
 
 												</div>
 
-												<!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> 
+												<!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> -->
 
 												<div class="card mb-2">
 
@@ -413,10 +449,76 @@
 											</div>
 										</div>
 									</div>
+									<div class="top-arch-panel-1">
+									</div>
+									<div class="top-arch-panel-2">				
+									</div>
+								</div>
+							</div>							
+						</div>
+						<div class="arch-bottom">
+							<div class="arch-base"> </div>
+						</div>
+					</div>
+				</div>
+				<div class="top-display-bottom">					
+					<div class="bar-elbow"></div>
+					<div class="bar-1"></div>
+					<div class="bar-2"></div>
+					<div class="bar-3"></div>
+					<div class="bar-4">
+						
+					</div>
+					<div class="bar-5"></div>		
+				</div>
+			</div> <!-- / top-wrapper -->
+			<div class="spacer">
+				<div class="space-sidebar"></div>
+				<div class="space-1"></div>
+				<div class="space-2"></div>
+				<div class="space-3"></div>
+				<div class="space-4"></div>
+			</div>
+			<div class="wrap">
+				<div class="left-frame">
+					<div>
+						<div class="panel-3"><span class="hop"></span></div>
+						<nav id="secondary-nav">
+							<a href=""></a>
+							<a href=""></a>
+							<a href=""></a>
+						</nav>
+					</div>
+				</div>
+				<div class="right-frame">
+					<div class="bar-runner">
+						<div class="bar-6"></div>
+						<div class="bar-7"></div>
+						<div class="bar-8"></div>
+						<div class="bar-9"></div>
+						<div class="bar-10"></div>
+					</div>
+					<main>
+						
 						<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>				
 
+						<footer>
+							<div class="footer-inside">
+								<div class="footer-text">
 
--->
+								</div>
+							</div>
+							<div class="footer-panel"> <span class="hop">22</span>47 </div>
+						</footer>
+					</main>
+				</div>
+			</div>
+		</section>
+	</div>
+	<!-- <script type="text/javascript" src="assets/lcars.js"></script> -->
+</body>
+
+</html>
 
 <script>
     window.onload = function() {
@@ -433,17 +535,6 @@
 
         console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
 	};
-
-	async function getAlbumCover(albumName) {
-        const apiKey = 'ce4aeea69e2f5a8fb184700d5892aa82';
-        const response = await fetch(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${encodeURIComponent(albumName)}&api_key=${apiKey}&format=json`);
-        const data = await response.json();
-        if (data.results.albummatches.album.length > 0) {
-            return data.results.albummatches.album[0].image[3]['#text'];
-        } else {
-            return null;
-        }
-    }
 
 	function formatTime(seconds) {
 		const minutes = Math.floor(seconds / 60);

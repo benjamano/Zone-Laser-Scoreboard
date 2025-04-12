@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
@@ -64,6 +64,8 @@ class WebApp:
         self.app, self.socketio, self._context = create_app(self._supervisor) 
         
         self.openFiles()
+        
+        format.message(format.colourText("Setting up routes..." ,"Magenta"))
         
         self.setupRoutes()
         
@@ -300,560 +302,588 @@ class WebApp:
         self.filesOpened = True
 
     def setupRoutes(self):     
-        try:
-            # @self.app.errorhandler(404)
-            # def not_found():
-            #     return render_template("error.html", message="Page not found")
-                
-            @self.app.route('/')
-            def index():
-                try:
-                    if not self.OBSConnected:
-                        OBSConnection = "DISCONNECTED"
-                    else:
-                        OBSConnection = "CONNECTED"
-                    
-                    if not self.DMXConnected:
-                        DMXConnection = "DISCONNECTED"
-                    else:
-                        DMXConnection = "CONNECTED"
-                    
-                    return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
+        # @self.app.errorhandler(404)
+        # def not_found():
+        #     return render_template("error.html", message="Page not found")
             
-                except Exception as e:
-                    format.message(f"Error loading index.html: {e}", type="error")
-                    return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
-        
-            @self.app.route("/schedule")
-            def scehdule():
-                return render_template("schedule.html")
-            
-            @self.app.route("/settings")
-            def settings():
-                return render_template("settings.html")
-            
-            @self.app.route("/editScene")
-            def editScene():
-                #Accessed by /EditScene?Id=[sceneId]
-                
-                sceneId = request.args.get('Id') 
-                
-                try:
-                
-                    if sceneId != None or sceneId == "":
-                        dmxScene = self._dmx.getDMXSceneById(sceneId)
-                        
-                        if dmxScene:
-                            return render_template("scene.html", sceneId=sceneId, scene=dmxScene.to_dict())
-                        else:
-                            return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
-                    else:
-                        return render_template("scene.html", SysName=self.SysName, PageTitle="Advanced DMX Control")
-                    
-                except Exception as e:
-                    format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
-                    return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
-            
-            @self.app.route("/text")
-            def neonText():
-                return render_template("neonFlicker.html")
-            
-            @self.app.route("/status")
-            def status():
-                return render_template("status.html", SysName=self.SysName, PageTitle="Status")
-            
-            @self.app.route("/experimental")
-            def experimental():
-                return render_template("experimental/newIndex.html", SysName=self.SysName, PageTitle="Experiments")
-            
-            @self.app.route("/feedback")
-            def feedback():
-                return render_template("feedback.html", SysName=self.SysName, PageTitle="Leaving Feedback")
-            
-            @self.app.route("/statistics")
-            def statistics():
-                return render_template("statistics.html", SysName=self.SysName, PageTitle="View Statistics")
-
-            @self.app.route("/ping")
-            def ping():   
-                #format.message("|--- I'm still alive! ---|")
-                return 'OK'
-            
-            @self.app.route("/api/getAllGames", methods=["GET"])
-            def getAllGames():
-                try:
-                    games : list[Game] = self._context.getAllGames()
-                    
-                    gameList : list[dict] = []
-                    
-                    for game in games:
-                        gameList.append(game.to_dict())
-                        
-                    return jsonify(gameList)
-                
-                except Exception as e:
-                    return
-                    # ise : InternalServerError = InternalServerError()
-                    
-                    # ise.service = "api"
-                    # ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
-                    # ise.process = "API: Get Service Status"
-                    # ise.severity = "1"
-                    
-                    # self._supervisor.logInternalServerError(ise)
-                    
-                    # return jsonify({"error": f"Error getting service status: {e}"}), 500
-            
-            @self.app.route("/api/serviceStatus", methods=["GET"])
-            def serviceStatus():
-                try:
-                    services : list[str] = self._supervisor.getServices()
-                    
-                    serviceHealthList : list[dict] = []
-                    
-                    for service in services:
-                        serviceHealth : ServiceHealthDTO = self._supervisor.getServiceHealth(service)
-                        
-                        if (serviceHealth != None):
-                            serviceHealthList.append(serviceHealth.to_dict())
-                    
-                    return jsonify(serviceHealthList)
-                
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
-                    ise.process = "API: Get Service Status"
-                    ise.severity = "1"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    
-                    return jsonify({"error": f"Error getting service status: {e}"}), 500
-            
-            @self.app.route("/api/availableFixtures", methods=["GET"])
-            def availableFixtures():
-                if self.DMXConnected == False:
-                    return jsonify({"error": "DMX Connection not available"})
-                
-                temp_fixtures = []
-                
-                try:
-                    
-                    temp_fixtures = self._dmx.getFixtures()
-                    
-                    serialized_fixtures = temp_fixtures
-                    
-                    return jsonify(serialized_fixtures)
-                        
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Error Getting available fixtures: {e}")
-                    ise.process = "API: Get Available Fixtures"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    
-                    return jsonify({"error": f"Error getting available fixtures: {e}"}), 500
-                
-            @self.app.route("/api/dmx/dmxChannelValues", methods=["GET"])
-            def getDMXChannelValues():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                try:
-
-                    fixtures = self._dmx.getRegisteredFixtures()
-                    
-                    fixtureChannels = []
-
-                    for fixture in fixtures.items():
-                        fixtureId = fixture[1]["id"]
-                        fixtureName = fixture[0]
-                        fixtureType = fixture[1]["type"]
-                        fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
-
-                        # Add an index to each attribute
-                        indexed_fixture_profile = {}
-                        for index, (key, value) in enumerate(fixtureProfile.items()):
-                            fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
-                            
-                            if fixture_temp.json_data["type"] == "Generic.Dimmer":
-                                indexed_fixture_profile = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0], "channel": fixture_temp.channels[1]["name"]}
-                            else:
-                                try:
-                                    fixtureChannel_temp = 0
-
-                                    for key_id, channel in fixture_temp.channels.items():
-                                        if channel["name"] == key.lower():
-                                            fixtureChannel_temp = channel["value"][0]
-
-                                    indexed_fixture_profile[key] = {
-                                        "DMXValue": fixtureChannel_temp,
-                                        "channel": key
-                                    }
-                                except Exception as e:
-                                    format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
-
-                        fixtureChannels.append({
-                            "name": fixtureName,
-                            "id": fixtureId,
-                            "attributes": indexed_fixture_profile
-                        })
-                        
-                    return jsonify(fixtureChannels)
-                
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Error DMX channel values: {e}")
-                    ise.process = "API: Get DMX Values"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Error getting DMX Channel Values: {e}"}), 500
-                
-            @self.app.route("/api/dmx/scenes", methods=["GET"])
-            def getDMXScenes():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                try:
-                    scenes = self._dmx.getDMXScenes() 
-
-                    serialized_scenes = [scene.to_dict() for scene in scenes]
-                    
-                    return jsonify(serialized_scenes)
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to fetch scenes: {e}")
-                    ise.process = "API: Get DMX Scenes"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to fetch scenes: {str(e)}"}), 500
-                    
-            @self.app.route("/api/dmx/getScene", methods=["GET"])
-            def getDMXScene():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                sceneId = request.args.get("sceneId") 
-
-                if not sceneId:
-                    return jsonify({"error": "Scene name is required"}), 400
-
-                try:
-                    scene = self._dmx.getDMXSceneById(sceneId)
-
-                    return jsonify(scene.to_dict())
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to fetch scene: {e}")
-                    ise.process = "API: DMX Scene"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to fetch scene: {e}"}), 500
-                
-            @self.app.route("/api/dmx/startScene", methods=["POST"])
-            def startDMXScene():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                sceneId = request.form.get("sceneId") 
-
-                if not sceneId:
-                    return jsonify({"error": "Scene name is required"}), 400
-
-                try:
-                    self._dmx.startScene(sceneId)
-
-                    return jsonify(200)
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to start scene: {e}")
-                    ise.process = "API: Start DMX Scene"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to start scene: {e}"}), 500
-
-            @self.app.route("/api/dmx/stopScene", methods=["POST"])
-            def stopDMXScene():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                sceneId = request.form.get("sceneId") 
-
-                if not sceneId:
-                    return jsonify({"error": "Scene name is required"}), 400
-
-                try:
-                    self._dmx.stopScene(sceneId)
-
-                    return jsonify(200)
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to stop scene: {e}")
-                    ise.process = "API: Stop DMX Scene"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to start scene: {e}"}), 500
-            
-            @self.app.route("/api/dmx/createScene", methods=["POST"])
-            def createDMXScene():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                try:
-                    newDMXScene = self._context.DMXScene(
-                        name="New Scene",
-                        createDate=datetime.datetime.now(),
-                        duration=0,
-                        repeat=False,
-                        flash=False
-                    )
-                    
-                    createdScene = self._dmx.createNewScene(newDMXScene)
-
-                    return jsonify(createdScene.id)
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to create scene: {e}")
-                    ise.process = "API: Create DMX Scene"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to create scene: {e}"}), 500
-                
-            @self.app.route("/api/dmx/editSceneName", methods=["POST"])
-            def editDMXSceneName():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-
-                try:
-                    sceneId = request.form.get("sceneId")
-                    newName = request.form.get("newName")
-
-                    if not sceneId or not newName:
-                        return jsonify({"error": "Invalid input"}), 400
-
-                    with self._context.db.session.begin():
-                        scene = self._context.db.session.query(self._context.DMXScene).filter_by(id=sceneId).first()
-
-                        if not scene:
-                            return jsonify({"error": "Scene not found"}), 404
-
-                        scene.name = newName
-
-                    return jsonify({"newName": newName})
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to edit scene name: {e}")
-                    ise.process = "API: Edit DMX Scene Name"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to edit scene name: {e}"}), 500
-
-            @self.app.route("/api/dmx/getSceneEvent", methods=["GET"])
-            def getSceneEvent():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-                
-                eventId = request.args.get("eventId")
-                
-                try:
-                    event = self._dmx.getSceneEventById(eventId)
-                    
-                    return jsonify(event.to_dict())
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to get scene event: {e}")
-                    ise.process = "API: Get DMX Scene Event"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to fetch scene event: {e}"}), 500
-
-            @self.app.route("/api/dmx/saveSceneEvent", methods=["POST"])
-            def saveSceneEvent():
-                if not self.DMXConnected:
-                    return jsonify({"error": "DMX Connection not available"}), 503
-                
-                try:
-                    sceneEventId = int(request.form.get("sceneEventId"))
-                    DMXValues = request.form.get("DMXValues")
-                    DMXValues = json.loads(DMXValues)
-                    
-                    if not sceneEventId or not DMXValues:
-                        return jsonify({"error": "Invalid input"}), 400
-
-                    for value in DMXValues:
-                        fixture = value["fixture"]
-                        channel = value["channel"]
-                        value = int(value["value"])
-                        self._dmx.updateFixtureChannelEvent(sceneEventId, fixture, channel, value)
-                        
-                    return jsonify({"success": "Scene event saved"}), 200
-                    
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to save scene event: {e}")
-                    ise.process = "API: Save DMX Scene Event"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to save scene event: {e}"}), 500
-                
-            @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
-            def setSceneSongTrigger():
-                sceneId = request.form.get("sceneId")
-                songName = request.form.get("songName")
-
-                self._dmx.setSceneSongTrigger(sceneId, songName)
-
-                return jsonify({"success": "Scene song trigger set"})
-
-            @self.app.route("/api/dmx/createSceneEvent", methods=["POST"])
-            def createSceneEvent():
-                sceneId = request.form.get("sceneId")
-
-                try:
-                    self._dmx.createNewSceneEvent(sceneId)
-                    
-                    return jsonify({"success": "Scene event created"})
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to create scene event: {e}")
-                    ise.process = "API: Create New DMX Scene Event"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                    return jsonify({"error": f"Failed to create scene event: {e}"}), 500
-
-            @self.app.route('/end')
-            def terminateServer():
-                logging.shutdown()
-                os.kill(os.getpid(), signal.SIGTERM)
-                
-            @self.socketio.on('connect')
-            def handleConnect():
-                emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
-                
-                emit('response', {'message': 'Connected to server'})
-                
-            @self.socketio.on('toggleMusic')
-            def togglePlayback():
-                response = self.handleMusic("toggle")
-                
-                emit('musicStatus', {'message': f"{response}"})
-                
-            @self.socketio.on('restartSong')
-            def restartSong():
-                response = self.handleMusic("restart")
-                
-                emit('musicStatus', {'message': f"{response}"})
-                
-            @self.socketio.on('nextSong')
-            def nextSong():
-                response = self.handleMusic("next")
-                
-                emit('musicStatus', {'message': f"{response}"})
-            
-            @self.socketio.on('SpotifyControl')
-            def handleSpotifyControl(json):
-                #format.message(f"Spotify control = {json["data"]}")
-                
-                self.spotifyControl = json["data"]
-                
-            @self.socketio.on('UpdateDMXValue')
-            def UpdateDMXValue(json):
-                fixture = json["fixtureName"]
-                channelName = json["attributeName"]
-                value = json["value"]
-                
-                try:
-                    self._dmx.setFixtureChannel(fixture, channelName, value)
-                except Exception as e:
-                    ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "api"
-                    ise.exception_message = str(f"Failed to update DMX Value: {e}")
-                    ise.process = "API: Update DMX Value"
-                    ise.severity = "3"
-                    
-                    self._supervisor.logInternalServerError(ise)
-                
-            @self.socketio.on('playBriefing')
-            def playBriefing():
-                if self._obs != None and self._obs.isConnected() == True:
-                    try:
-                        #format.message("Playing briefing")
-                        self._obs.switchScene("Video")
-                        
-                        return 200
-                    except Exception as e:
-                        ise : InternalServerError = InternalServerError()
-                    
-                        ise.service = "api"
-                        ise.exception_message = str(f"Failed to start OBS Briefing: {e}")
-                        ise.process = "API: Start OBS Briefing"
-                        ise.severity = "1"
-                        
-                        self._supervisor.logInternalServerError(ise)
-
+        @self.app.route('/')
+        def index():
+            try:
+                if not self.OBSConnected:
+                    OBSConnection = "DISCONNECTED"
                 else:
-                    #format.message("OBS not connected, cannot play breifing!", type="warning")
-                    return 500
-        
-            @self.app.route('/sendMessage', methods=['POST'])
-            def sendMessage():
-                try:
-                    data = request.get_json(silent=True) or {}
-                    message = data.get("message") or request.form.get("message")
-                    type_ = data.get("type") or request.form.get("type")
-
-                    if type_:
-                        self.socketio.emit(f"{type_}", {"message": message}) 
-                                        
-                    return jsonify({"status": "success"}), 200
+                    OBSConnection = "CONNECTED"
                 
+                if not self.DMXConnected:
+                    DMXConnection = "DISCONNECTED"
+                else:
+                    DMXConnection = "CONNECTED"
+                
+                return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection, SysName=self.SysName, PageTitle="Home")
+        
+            except Exception as e:
+                format.message(f"Error loading index.html: {e}", type="error")
+                return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
+    
+        @self.app.route("/schedule")
+        def scehdule():
+            return render_template("schedule.html")
+        
+        @self.app.route("/settings")
+        def settings():
+            return render_template("settings.html")
+        
+        @self.app.route("/editScene")
+        def editScene():
+            #Accessed by /EditScene?Id=[sceneId]
+            
+            sceneId = request.args.get('Id') 
+            
+            try:
+            
+                if sceneId != None or sceneId == "":
+                    dmxScene = self._dmx.getDMXSceneById(sceneId)
+                    
+                    if dmxScene:
+                        return render_template("scene.html", sceneId=sceneId, scene=dmxScene.to_dict())
+                    else:
+                        return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
+                else:
+                    return render_template("scene.html", SysName=self.SysName, PageTitle="Advanced DMX Control")
+                
+            except Exception as e:
+                format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
+                return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
+        
+        @self.app.route("/text")
+        def neonText():
+            return render_template("neonFlicker.html")
+        
+        @self.app.route("/status")
+        def status():
+            return render_template("status.html", SysName=self.SysName, PageTitle="Status")
+        
+        @self.app.route("/experimental")
+        def experimental():
+            return redirect("/")
+            
+            return render_template("experimental/newIndex.html", SysName=self.SysName, PageTitle="Experiments")
+        
+        @self.app.route("/feedback")
+        def feedback():
+            return render_template("feedback.html", SysName=self.SysName, PageTitle="Leaving Feedback")
+        
+        @self.app.route("/statistics")
+        def statistics():
+            return render_template("statistics.html", SysName=self.SysName, PageTitle="View Statistics")
+
+        @self.app.route("/managerTools")
+        def managerTools():
+            return render_template("ManagerTools/managerTools.html")
+        
+        @self.app.route("/api/ManagerTools/ProcessEmailAddresses", methods=["POST"])
+        def processEmailAddresses():
+            try:
+                csvContent = request.form.get('EmailAddresses')
+                
+                if csvContent:
+                    emailAddresses = csvContent.strip().split(',')
+                    processedAddresses = []
+                    
+                    for email in emailAddresses:
+                        cleanedEmail = email.strip().strip('"').strip("'")
+                        if cleanedEmail:
+                            processedAddresses.append(cleanedEmail)
+                    
+                    return jsonify({
+                        "success": True,
+                        "processed": len(processedAddresses),
+                        "emails": processedAddresses
+                    })
+                    
+                return jsonify({"error": "No CSV content provided"}), 400
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+
+        @self.app.route("/ping")
+        def ping():   
+            #format.message("|--- I'm still alive! ---|")
+            return 'OK'
+        
+        @self.app.route("/api/getAllGames", methods=["GET"])
+        def getAllGames():
+            try:
+                games : list[Game] = self._context.getAllGames()
+                
+                gameList : list[dict] = []
+                
+                for game in games:
+                    gameList.append(game.to_dict())
+                    
+                return jsonify(gameList)
+            
+            except Exception as e:
+                return
+                # ise : InternalServerError = InternalServerError()
+                
+                # ise.service = "api"
+                # ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
+                # ise.process = "API: Get Service Status"
+                # ise.severity = "1"
+                
+                # self._supervisor.logInternalServerError(ise)
+                
+                # return jsonify({"error": f"Error getting service status: {e}"}), 500
+        
+        @self.app.route("/api/serviceStatus", methods=["GET"])
+        def serviceStatus():
+            try:
+                services : list[str] = self._supervisor.getServices()
+                
+                serviceHealthList : list[dict] = []
+                
+                for service in services:
+                    serviceHealth : ServiceHealthDTO = self._supervisor.getServiceHealth(service)
+                    
+                    if (serviceHealth != None):
+                        serviceHealthList.append(serviceHealth.to_dict())
+                
+                return jsonify(serviceHealthList)
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
+                ise.process = "API: Get Service Status"
+                ise.severity = "1"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return jsonify({"error": f"Error getting service status: {e}"}), 500
+        
+        @self.app.route("/api/availableFixtures", methods=["GET"])
+        def availableFixtures():
+            if self.DMXConnected == False:
+                return jsonify({"error": "DMX Connection not available"})
+            
+            temp_fixtures = []
+            
+            try:
+                
+                temp_fixtures = self._dmx.getFixtures()
+                
+                serialized_fixtures = temp_fixtures
+                
+                return jsonify(serialized_fixtures)
+                    
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error Getting available fixtures: {e}")
+                ise.process = "API: Get Available Fixtures"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return jsonify({"error": f"Error getting available fixtures: {e}"}), 500
+            
+        @self.app.route("/api/dmx/dmxChannelValues", methods=["GET"])
+        def getDMXChannelValues():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+
+                fixtures = self._dmx.getRegisteredFixtures()
+                
+                fixtureChannels = []
+
+                for fixture in fixtures.items():
+                    fixtureId = fixture[1]["id"]
+                    fixtureName = fixture[0]
+                    fixtureType = fixture[1]["type"]
+                    fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
+
+                    # Add an index to each attribute
+                    indexed_fixture_profile = {}
+                    for index, (key, value) in enumerate(fixtureProfile.items()):
+                        fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
+                        
+                        if fixture_temp.json_data["type"] == "Generic.Dimmer":
+                            indexed_fixture_profile = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0], "channel": fixture_temp.channels[1]["name"]}
+                        else:
+                            try:
+                                fixtureChannel_temp = 0
+
+                                for key_id, channel in fixture_temp.channels.items():
+                                    if channel["name"] == key.lower():
+                                        fixtureChannel_temp = channel["value"][0]
+
+                                indexed_fixture_profile[key] = {
+                                    "DMXValue": fixtureChannel_temp,
+                                    "channel": key
+                                }
+                            except Exception as e:
+                                format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
+
+                    fixtureChannels.append({
+                        "name": fixtureName,
+                        "id": fixtureId,
+                        "attributes": indexed_fixture_profile
+                    })
+                    
+                return jsonify(fixtureChannels)
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error DMX channel values: {e}")
+                ise.process = "API: Get DMX Values"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Error getting DMX Channel Values: {e}"}), 500
+            
+        @self.app.route("/api/dmx/scenes", methods=["GET"])
+        def getDMXScenes():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                scenes = self._dmx.getDMXScenes() 
+
+                serialized_scenes = [scene.to_dict() for scene in scenes]
+                
+                return jsonify(serialized_scenes)
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to fetch scenes: {e}")
+                ise.process = "API: Get DMX Scenes"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to fetch scenes: {str(e)}"}), 500
+                
+        @self.app.route("/api/dmx/getScene", methods=["GET"])
+        def getDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneId = request.args.get("sceneId") 
+
+            if not sceneId:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                scene = self._dmx.getDMXSceneById(sceneId)
+
+                return jsonify(scene.to_dict())
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to fetch scene: {e}")
+                ise.process = "API: DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to fetch scene: {e}"}), 500
+            
+        @self.app.route("/api/dmx/startScene", methods=["POST"])
+        def startDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneId = request.form.get("sceneId") 
+
+            if not sceneId:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                self._dmx.startScene(sceneId)
+
+                return jsonify(200)
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to start scene: {e}")
+                ise.process = "API: Start DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to start scene: {e}"}), 500
+
+        @self.app.route("/api/dmx/stopScene", methods=["POST"])
+        def stopDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            sceneId = request.form.get("sceneId") 
+
+            if not sceneId:
+                return jsonify({"error": "Scene name is required"}), 400
+
+            try:
+                self._dmx.stopScene(sceneId)
+
+                return jsonify(200)
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to stop scene: {e}")
+                ise.process = "API: Stop DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to start scene: {e}"}), 500
+        
+        @self.app.route("/api/dmx/createScene", methods=["POST"])
+        def createDMXScene():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                newDMXScene = self._context.DMXScene(
+                    name="New Scene",
+                    createDate=datetime.datetime.now(),
+                    duration=0,
+                    repeat=False,
+                    flash=False
+                )
+                
+                createdScene = self._dmx.createNewScene(newDMXScene)
+
+                return jsonify(createdScene.id)
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to create scene: {e}")
+                ise.process = "API: Create DMX Scene"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to create scene: {e}"}), 500
+            
+        @self.app.route("/api/dmx/editSceneName", methods=["POST"])
+        def editDMXSceneName():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                sceneId = request.form.get("sceneId")
+                newName = request.form.get("newName")
+
+                if not sceneId or not newName:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                with self._context.db.session.begin():
+                    scene = self._context.db.session.query(self._context.DMXScene).filter_by(id=sceneId).first()
+
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+
+                    scene.name = newName
+
+                return jsonify({"newName": newName})
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to edit scene name: {e}")
+                ise.process = "API: Edit DMX Scene Name"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to edit scene name: {e}"}), 500
+
+        @self.app.route("/api/dmx/getSceneEvent", methods=["GET"])
+        def getSceneEvent():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
+            eventId = request.args.get("eventId")
+            
+            try:
+                event = self._dmx.getSceneEventById(eventId)
+                
+                return jsonify(event.to_dict())
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to get scene event: {e}")
+                ise.process = "API: Get DMX Scene Event"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to fetch scene event: {e}"}), 500
+
+        @self.app.route("/api/dmx/saveSceneEvent", methods=["POST"])
+        def saveSceneEvent():
+            if not self.DMXConnected:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
+            try:
+                sceneEventId = int(request.form.get("sceneEventId"))
+                DMXValues = request.form.get("DMXValues")
+                DMXValues = json.loads(DMXValues)
+                
+                if not sceneEventId or not DMXValues:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                for value in DMXValues:
+                    fixture = value["fixture"]
+                    channel = value["channel"]
+                    value = int(value["value"])
+                    self._dmx.updateFixtureChannelEvent(sceneEventId, fixture, channel, value)
+                    
+                return jsonify({"success": "Scene event saved"}), 200
+                
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to save scene event: {e}")
+                ise.process = "API: Save DMX Scene Event"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to save scene event: {e}"}), 500
+            
+        @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
+        def setSceneSongTrigger():
+            sceneId = request.form.get("sceneId")
+            songName = request.form.get("songName")
+
+            self._dmx.setSceneSongTrigger(sceneId, songName)
+
+            return jsonify({"success": "Scene song trigger set"})
+
+        @self.app.route("/api/dmx/createSceneEvent", methods=["POST"])
+        def createSceneEvent():
+            sceneId = request.form.get("sceneId")
+
+            try:
+                self._dmx.createNewSceneEvent(sceneId)
+                
+                return jsonify({"success": "Scene event created"})
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to create scene event: {e}")
+                ise.process = "API: Create New DMX Scene Event"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to create scene event: {e}"}), 500
+
+        @self.app.route('/end')
+        def terminateServer():
+            logging.shutdown()
+            os.kill(os.getpid(), signal.SIGTERM)
+            
+        @self.socketio.on('connect')
+        def handleConnect():
+            emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
+            
+            emit('response', {'message': 'Connected to server'})
+            
+        @self.socketio.on('toggleMusic')
+        def togglePlayback():
+            response = self.handleMusic("toggle")
+            
+            emit('musicStatus', {'message': f"{response}"})
+            
+        @self.socketio.on('restartSong')
+        def restartSong():
+            response = self.handleMusic("restart")
+            
+            emit('musicStatus', {'message': f"{response}"})
+            
+        @self.socketio.on('nextSong')
+        def nextSong():
+            response = self.handleMusic("next")
+            
+            emit('musicStatus', {'message': f"{response}"})
+        
+        @self.socketio.on('SpotifyControl')
+        def handleSpotifyControl(json):
+            #format.message(f"Spotify control = {json["data"]}")
+            
+            self.spotifyControl = json["data"]
+            
+        @self.socketio.on('UpdateDMXValue')
+        def UpdateDMXValue(json):
+            fixture = json["fixtureName"]
+            channelName = json["attributeName"]
+            value = json["value"]
+            
+            try:
+                self._dmx.setFixtureChannel(fixture, channelName, value)
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to update DMX Value: {e}")
+                ise.process = "API: Update DMX Value"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+            
+        @self.socketio.on('playBriefing')
+        def playBriefing():
+            if self._obs != None and self._obs.isConnected() == True:
+                try:
+                    #format.message("Playing briefing")
+                    self._obs.switchScene("Video")
+                    
+                    return 200
                 except Exception as e:
                     ise : InternalServerError = InternalServerError()
-                    
-                    ise.service = "socket"
-                    ise.exception_message = str(f"Failed To Send Socket Message: {e}")
-                    ise.process = "Socket: Send Message"
+                
+                    ise.service = "api"
+                    ise.exception_message = str(f"Failed to start OBS Briefing: {e}")
+                    ise.process = "API: Start OBS Briefing"
                     ise.severity = "1"
                     
                     self._supervisor.logInternalServerError(ise)
-        except Exception as e:
-            format.message = str(f"Failed to Send Socket Message ({e})", type="error")
-            pass
+
+            else:
+                #format.message("OBS not connected, cannot play breifing!", type="warning")
+                return 500
+    
+        @self.app.route('/sendMessage', methods=['POST'])
+        def sendMessage():
+            try:
+                data = request.get_json(silent=True) or {}
+                message = data.get("message") or request.form.get("message")
+                type_ = data.get("type") or request.form.get("type")
+
+                if type_:
+                    self.socketio.emit(f"{type_}", {"message": message}) 
+                                    
+                return jsonify({"status": "success"}), 200
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "socket"
+                ise.exception_message = str(f"Failed To Send Socket Message: {e}")
+                ise.process = "Socket: Send Message"
+                ise.severity = "1"
+                
+                self._supervisor.logInternalServerError(ise)
+                    
             # ise : InternalServerError = InternalServerError()
             
             # ise.service = "api"

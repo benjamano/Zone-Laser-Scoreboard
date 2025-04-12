@@ -1054,7 +1054,15 @@ label{
 }
 
 .cursor-pointer{
-    cursor: pointer;
+    cursor: pointer !important;
+}
+
+.cursor-no{
+    cursor: not-allowed !important;
+}
+
+.cursor-text{
+    cursor: text !important;
 }
 
 .resizable{
@@ -1100,4 +1108,25 @@ label{
 .musicControlsButton:hover{
     filter: brightness(1);
     scale: 1.05;
+}
+
+.form-group label{
+    margin-bottom: 0.3rem;
+    margin-left: 0.2rem;
+}
+
+.form-group .btn-group .btn{
+    margin-top: 0.3rem !important;
+}
+
+.btn{
+    margin-top: 1rem;
+}
+
+.display-none{
+    display: none !important;
+}
+
+.badge{
+    margin-left: 0.1rem;
 }

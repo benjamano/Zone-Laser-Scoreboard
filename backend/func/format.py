@@ -141,7 +141,7 @@ def sendEmail(content, type):
             secretKey = f.readline().strip()  
             environment = f.readline().strip()
 
-        if "dev" in environment.lower() and False:
+        if "dev" in environment.lower() and True:
             return
         
         url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
