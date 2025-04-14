@@ -208,34 +208,44 @@ class Supervisor:
     def getServiceHealth(self, serviceName: str):
         try:
             if self._context != None:
-                notSetup : bool = (serviceName.lower() == "dmx" and self._dmx == None or self._dmx._dmx == None) or (serviceName.lower() == "db" and self._context == None) or (serviceName.lower() == "obs" and self._obs == None)
+                notSetup = (
+                    (serviceName.lower() == "dmx" and (self._dmx is None or self._dmx.isConnected() is False)) or 
+                    (serviceName.lower() == "db" and self._context is None) or
+                    (serviceName.lower() == "obs" and (self._obs is None or self._obs.isConnected() is False))
+                )
                 
                 severeErrorOccured : bool = self.hasSevereErrorOccurred(str(serviceName).lower())
                 moderateErrorOccured : bool = self.hasModerateErrorOccurred(str(serviceName).lower())
                 
-                if severeErrorOccured or notSetup == True:
-                    status = "Critical"
-                elif moderateErrorOccured:
-                    status = "Warning"
+                if notSetup:
+                    status = "Disconnected"
                 else:
-                    status = "OK"
+                    if severeErrorOccured:
+                        status = "Critical"
+                    elif moderateErrorOccured:
+                        status = "Warning"
+                    else:
+                        status = "OK"
                     
                 recentErrors: list[dict] = [
                     error.to_dict() for error in self.getRecentServiceErrors(str(serviceName).lower())
                 ]
                 
                 return ServiceHealthDTO(
-                    id=0,
                     serviceName=serviceName,
-                    status= status,
+                    status=status,
                     numberOfRecentErrors=len(recentErrors),
                     recentErrorList=recentErrors
-                    
                 )
         except Exception as e:
             message(f"Error occurred while getting service health: {e}", type="warning")
         
-        return None
+        return ServiceHealthDTO(
+            serviceName=serviceName,
+            status="Unknown",
+            numberOfRecentErrors=0,
+            recentErrorList=0
+        )
 
     def logInternalServerError(self, ise: InternalServerError):
         try:

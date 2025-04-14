@@ -24,7 +24,6 @@ class InternalServerError(db.Model):
 
 @dataclass
 class ServiceHealthDTO:
-    id: int
     serviceName: str
     status: str
     numberOfRecentErrors: int

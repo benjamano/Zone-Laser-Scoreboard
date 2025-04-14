@@ -243,7 +243,9 @@
                         }));
                     });
 
-                    $("#emailAddressesList").val(response.emails.join(", "))
+                    $("#emailAddressesList").val(response.emails.join(", "));
+
+                    createNotification("Processed " + response.processed + " email addresses")
                 },
                 error: function(xhr, status, error) {
                     console.error("Error processing email addresses:", error);

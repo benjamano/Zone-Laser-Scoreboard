@@ -419,12 +419,11 @@ class WebApp:
                             processedAddresses.append(cleanedEmail)
                     
                     return jsonify({
-                        "success": True,
                         "processed": len(processedAddresses),
                         "emails": processedAddresses
                     })
                     
-                return jsonify({"error": "No CSV content provided"}), 400
+                return jsonify({"error": "No content provided"}), 400
                     
             except Exception as e:
                 return jsonify({"error": str(e)}), 500

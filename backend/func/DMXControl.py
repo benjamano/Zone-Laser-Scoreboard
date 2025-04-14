@@ -338,6 +338,12 @@ class dmx:
         self._supervisor.setDependencies(dmx=self)
         
         return True
+    
+    def isConnected(self) -> bool:
+        try:
+            return not self._dmx == None
+        except:
+            return False
 
     # Getters
         
