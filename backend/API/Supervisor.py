@@ -233,7 +233,7 @@ class Supervisor:
                 
                 return ServiceHealthDTO(
                     serviceName=serviceName,
-                    status= status,
+                    status=status,
                     numberOfRecentErrors=len(recentErrors),
                     recentErrorList=recentErrors
                 )
