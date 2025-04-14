@@ -33,6 +33,12 @@
 		<h1 id="warningsText"></h1>
 	</div>
 
+	<div id="notificationContainer" class="notifications cursor-pointer" style="opacity: 0;">
+		<div class="p-1">
+			<span id="notificationList"></span>
+		</div>
+	</div>
+
 	<div class="sidebar" id="sidebar">
 		<ul>
 			<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
@@ -139,6 +145,29 @@
 	
 		$("#warningsContainer").css("display", "unset");
 	}
+
+	function showNotifications(){
+		$("#notificationContainer").css("opacity", 100);
+	}
+
+	function hideNotifications(){
+		$("#notificationContainer").css("opacity", 0);
+	}
+
+	function createNotification(text, coolDown = 7000){
+		$("#notificationList").html(text);
+
+		showNotifications();
+
+		setTimeout(function() {
+			hideNotifications();
+		}, coolDown);
+	}
+
+	$("#notificationContainer").on("click", function(){
+		hideNotifications();
+	});
+
 
 </script>
 

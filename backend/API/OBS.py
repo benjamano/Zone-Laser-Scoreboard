@@ -1,6 +1,6 @@
 import obsws_python as obs
-from func import format
-from func import Supervisor
+from API import format
+from API import Supervisor
 from data.models import *
 
 class OBS:

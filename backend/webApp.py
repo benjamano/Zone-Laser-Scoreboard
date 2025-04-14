@@ -10,24 +10,24 @@ except Exception as e:
     input("Press any key to exit...")
 
 try:
-    from func import format
+    from API import format
 except Exception as e:
     print(f"An error occurred: {e}")
     input("Press any key to exit...")
         
-from func.BPM import MediaBPMFetcher
+from API.BPM import MediaBPMFetcher
 
-from func.DMXControl import dmx
+from API.DMXControl import dmx
 
-from func.DB import *
+from API.DB import *
 
-from func.OBS import OBS
+from API.OBS import OBS
 
-from func.Supervisor import Supervisor
+from API.Supervisor import Supervisor
 
 from data.models import *
 
-from func.createApp import *
+from API.createApp import *
 
 class WebApp:
     def __init__(self):

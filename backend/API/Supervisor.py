@@ -2,16 +2,16 @@ from typing import TYPE_CHECKING
 from subprocess import Popen
 
 import psutil
-from func.format import message, colourText
+from API.format import message, colourText
 import threading, datetime
 import time, os
 from data.models import *
 from flask import Flask
 
 if TYPE_CHECKING:
-    from func.OBS import OBS as _OBS
-    from func.DMXControl import dmx as _dmx
-    from func.DB import context as _context
+    from API.OBS import OBS as _OBS
+    from API.DMXControl import dmx as _dmx
+    from API.DB import context as _context
     from webApp import WebApp as _webApp 
 
 class Supervisor:
@@ -208,34 +208,44 @@ class Supervisor:
     def getServiceHealth(self, serviceName: str):
         try:
             if self._context != None:
-                notSetup : bool = (serviceName.lower() == "dmx" and self._dmx == None or self._dmx._dmx == None) or (serviceName.lower() == "db" and self._context == None) or (serviceName.lower() == "obs" and self._obs == None)
+                notSetup = (
+                    (serviceName.lower() == "dmx" and (self._dmx is None or self._dmx.isConnected() is False)) or 
+                    (serviceName.lower() == "db" and self._context is None) or
+                    (serviceName.lower() == "obs" and (self._obs is None or self._obs.isConnected() is False))
+                )
                 
                 severeErrorOccured : bool = self.hasSevereErrorOccurred(str(serviceName).lower())
                 moderateErrorOccured : bool = self.hasModerateErrorOccurred(str(serviceName).lower())
                 
-                if severeErrorOccured or notSetup == True:
-                    status = "Critical"
-                elif moderateErrorOccured:
-                    status = "Warning"
+                if notSetup:
+                    status = "Disconnected"
                 else:
-                    status = "OK"
+                    if severeErrorOccured:
+                        status = "Critical"
+                    elif moderateErrorOccured:
+                        status = "Warning"
+                    else:
+                        status = "OK"
                     
                 recentErrors: list[dict] = [
                     error.to_dict() for error in self.getRecentServiceErrors(str(serviceName).lower())
                 ]
                 
                 return ServiceHealthDTO(
-                    id=0,
                     serviceName=serviceName,
                     status= status,
                     numberOfRecentErrors=len(recentErrors),
                     recentErrorList=recentErrors
-                    
                 )
         except Exception as e:
             message(f"Error occurred while getting service health: {e}", type="warning")
         
-        return None
+        return ServiceHealthDTO(
+            serviceName=serviceName,
+            status="Unknown",
+            numberOfRecentErrors=-1,
+            recentErrorList=-1
+        )
 
     def logInternalServerError(self, ise: InternalServerError):
         try:

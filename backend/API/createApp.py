@@ -7,14 +7,14 @@ from flask_migrate import Migrate
 
 from data.models import db  
 
-from func.DB import context as DBContext
-from func.Supervisor import Supervisor
+from API.DB import context as DBContext
+from API.Supervisor import Supervisor
 
 """
 
-python -m flask --app func.createApp db migrate -m "Initial DB Creation"
+python -m flask --app API.createApp db migrate -m "Initial DB Creation"
 
-python -m flask --app func.createApp db upgrade  
+python -m flask --app API.createApp db upgrade  
 
 """
 

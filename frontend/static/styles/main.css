@@ -6,7 +6,7 @@
     --ghost-gray: #d2d5df54;
     --blue: #37a6d187;
     --pale-orange: #ff977b8c;
-    --bs-danger: #dc3545d1;
+    --bs-danger: #bb313e;
 
     --TBSHover: var(--primary-gray);
     --TBSBGPrimary: #1f2532;
@@ -1129,4 +1129,21 @@ label{
 
 .badge{
     margin-left: 0.1rem;
+}
+
+.notifications{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background-color: var(--bs-danger);
+    z-index: 9999;
+    margin: 1rem;
+    transition: opacity 0.5s ease;
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem;
+    border-radius: 0.2rem;
 }

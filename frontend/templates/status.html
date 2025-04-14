@@ -12,7 +12,7 @@
         </span>
         <span><span class="fa fa-chart-line me-2"></span id="currentRamUsage">RAM - 4GB (60%)</span>
         <span><span class="fa fa-clock me-2"></span id=uptimeText>Uptime - 3 Days : 21 Hours : 32 Minutes</span>
-        <span><span class="fa fa-bug me-2" id="totalErrorsLoggedText"></span>Errors Logged - 0 (Past 8 hours)</span>
+        <span><span class="fa fa-bug me-2"></span>Errors Logged - <span id="totalErrorsLoggedText">0</span> (Past 8 hours)</span>
 
         <span class="float-end"><span class="fa fa-wrench me-2"></span>Last Updated: <span id="lastUpdatedText">00:20</span></span>
 
@@ -117,6 +117,7 @@
                     var now = new Date();
                     var hours = now.getHours().toString().padStart(2, "0");
                     var minutes = now.getMinutes().toString().padStart(2, "0");
+                    var totalErrors = 0;
 
                     $("#lastUpdatedText").text(hours + ":" + minutes);
 
@@ -126,6 +127,7 @@
                         var recentErrors = service.numberOfRecentErrors;
                         var serviceName = service.serviceName;
                         var serviceStatus = service.status;
+                        totalErrors = totalErrors + recentErrors;
                         
                         if (section.length > 0) {
                             var statusContainer = section.find(".backgroundServiceStatusIcon");
@@ -151,6 +153,8 @@
                                 }
                             }
                         }
+
+                        $("#totalErrorsLoggedText").text(totalErrors);
                     });
                 },
                 error: function (xhr, status, error) {

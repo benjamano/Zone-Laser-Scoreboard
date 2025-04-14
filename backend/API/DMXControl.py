@@ -4,9 +4,9 @@ from PyDMXControl.controllers import OpenDMXController
 from PyDMXControl.profiles.Generic import Custom, Dimmer
             
 from data.models import *
-from func import format
-from func.DB import context as dbContext
-from func.Supervisor import Supervisor
+from API import format
+from API.DB import context as dbContext
+from API.Supervisor import Supervisor
 
 import threading
 import time
@@ -338,6 +338,12 @@ class dmx:
         self._supervisor.setDependencies(dmx=self)
         
         return True
+    
+    def isConnected(self) -> bool:
+        try:
+            return not self._dmx == None
+        except:
+            return False
 
     # Getters
         

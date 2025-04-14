@@ -88,7 +88,7 @@
 
         <div class="d-flex justify-content-between">
 
-            <button class="btn btn-success cursor-no" disabled>Send Emails</button>
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#sendEmailModal" onclick="populateSendEmailModal();">Send Emails</button>
 
             <button class="btn btn-outline-warning" onclick="$('#previewContainer').toggleClass('display-none'); $('#rawHtmlPreviewContainer').toggleClass('display-none')">Toggle Raw HTML View</button>
 
@@ -113,6 +113,28 @@
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-success" onclick="addEmailToList();" data-bs-dismiss="modal">Add Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sendEmailModal" tabindex="-1" aria-labelledby="sendEmailModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendEmailModalTitle">Are you sure?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <h5>You will be sending to <span id="numberOfEmailsBeingSent">0</span> email addresses!</h5>
+                    <br>
+                    <h5>Are you sure you are ready to send?</h5>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abort</button>
+                <button type="button" class="btn btn-success" onclick="sendEmails();" data-bs-dismiss="modal">Send Emails</button>
             </div>
         </div>
     </div>
@@ -244,6 +266,8 @@
                     });
 
                     $("#emailAddressesList").val(response.emails.join(", "))
+
+                    createNotification("Processed " + response.processed + " email addresses")
                 },
                 error: function(xhr, status, error) {
                     console.error("Error processing email addresses:", error);
@@ -292,6 +316,33 @@
         $("#emailAddressesList").val($("#emailAddressesList").val() + ", emailToAdd")
 
         selectEmailToEdit();
+    }
+
+    function populateSendEmailModal(){
+        var emails = ($("#emailAddressesList").val()).split(", ");
+        var emailCount = emails.length
+
+        $("#numberOfEmailsBeingSent").text(emailCount);
+    }
+
+    function sendEmails(){
+        var recipients = ($("#emailAddressesList").val()).split(", ");
+        var body = $("#emailBodyPreviewRaw").val();
+
+        $.ajax({
+            url: "/api/ManagerTools/SendEmail",
+            type: "POST",
+            data: {
+                Recipients: recipients
+            },
+            success: function(response) {
+                
+            },
+            error: function(xhr, status, error) {
+                createNotif
+                console.error("Error sending email addresses:", error);
+            }
+        });
     }
 
 </script>

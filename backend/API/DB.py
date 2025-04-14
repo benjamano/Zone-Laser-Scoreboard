@@ -5,9 +5,9 @@ import os, datetime
 
 from data.models import *
 
-from func.format import message
+from API.format import message
 
-from func.Supervisor import Supervisor
+from API.Supervisor import Supervisor
 class context:
     def __init__(self, app : Flask, supervisor : Supervisor, db : SQLAlchemy):
         self.app = app

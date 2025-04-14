@@ -3,14 +3,11 @@ import sys
 
 class start:
     def __init__(self):
-        self.install(["flask"])
-        self.install(["flask_sqlalchemy"])
-        self.install(["waitress"])
-        self.install(["scapy"])
-        self.install(["flask_socketio"])
-        self.install(["threading"])
-        self.install(["eventlet"])
-        self.install(["winrt.windows.media.control", "pillow", "eventlet", "pyshark", "manuf", "pystray", "requests", "pyautogui", "datetime", "psutil", "tkinter", "logging", "datetime", "signal", "time", "pystray", "flask_cors" , "dmx", "serial", "numpy", "PyDMXControl", "psutil", "socket", "webbrowser", "pyaudio", "sounddevice", "numpy", "spotipy", "winsdk", "asyncio", "obsws_python", "winrt.windows.foundation", "socket", "json", "flask_migrate", "flask_socketio", "pythonnet", "musicbrainzngs"]) 
+        self.install(["flask", "flask_sqlalchemy", "waitress", "scapy", "flask_socketio", "threading", "eventlet", 
+                     "winrt.windows.media.control", "pillow", "pyshark", "manuf", "pystray", "requests", "pyautogui",
+                     "datetime", "psutil", "tkinter", "logging", "signal", "time", "flask_cors", "dmx", "serial",
+                     "PyDMXControl", "socket", "webbrowser", "pyaudio", "sounddevice", "numpy", "spotipy", "winsdk",
+                     "asyncio", "obsws_python", "winrt.windows.foundation", "json", "flask_migrate", "pythonnet", "smtplib"])
         
         #librosa
         
