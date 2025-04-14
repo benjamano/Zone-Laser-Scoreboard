@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, jsonify, redirect, g
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
+from dotenv import dotenv_values
 
 try:
     import winrt.windows.media.control as wmc
@@ -32,44 +33,57 @@ from API.createApp import *
 class WebApp:
     def __init__(self):
         self._dir = os.path.dirname(os.path.realpath(__file__))
-
+        
+        secrets = dotenv_values(".env")
+        
+        # LOAD ENVIRONMENT VARIABLES
+        self.ENVIRONMENT = secrets["Environment"]
+        self.IP1 = secrets["IP1"]
+        self.IP2 = secrets["IP2"]
+        self.ETHERNET_INTERFACE = secrets["EthernetInterface"]
+        self.OBSSERVERIP = secrets["ObsServerIp"]
+        self.OBSSERVERPORT = secrets["ObsServerPort"]
+        self.OBSSERVERPASSWORD = secrets["ObsServerPassword"]
+        # END LOAD
+        
+        # LOAD SYSTEM VARIABLES
+        self.SysName = "TBS"
+        self.VersionNumber = "1.1.3"
+        # END LOAD
+        
+        # INIT ALL OTHER VARIABLES
         self.OBSConnected = False
-        self.devMode = False
-        self.filesOpened = False
+        self.devMode = self.ENVIRONMENT == "Development"
         self.spotifyControl = True
-        self.DMXConnected = False
         self.spotifyStatus = "paused"
         self._localIp = ""
-        self.rateLimit = False
         self.RestartRequested = False
         self.gameStatus = "stopped" # Either running or stopped
         self.endOfDay = False
-        self.SysName = "TBS"
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}    
-        self.VersionNumber = "1.1.2"
+        # END INIT
            
+        # INIT DEPENDANCIES
         self._supervisor : Supervisor = None
         self._obs : OBS = None
         self._dmx : dmx = None
         self._context : context = None
         self.app : Flask = None
+        # END INIT
                 
         pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
         self.initLogging()
+        
         self.app, self.socketio, self._context = create_app(self._supervisor) 
         
-        self.openFiles()
-        
-        format.message(format.colourText("Setting up routes..." ,"Magenta"))
+        format.message(format.colourText("Setting up routes..." ,"Blue"))
         
         self.setupRoutes()
-        
-        self.fetcher = MediaBPMFetcher()
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -191,6 +205,11 @@ class WebApp:
             
         while self._supervisor == None:
             time.sleep(1)
+            
+        try:
+            self.fetcher = MediaBPMFetcher()
+        except Exception as e:
+            format.message(f"Error starting music info fetcher: {e}", type="error")
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
@@ -262,44 +281,6 @@ class WebApp:
                 format.message(f"Error setting up OBS connection: {e}", type="error")
         else:
             format.message("Development Mode or missing OBS details, skipping OBS Connection", type="warning")
-
-    def openFiles(self):
-        try:
-            f = open(fr"{self._dir}\data\keys.txt", "r")
-            
-            blank = f.readline()
-            blank = f.readline()
-            self.IP1 = str(f.readline().strip())
-            self.IP2 = str(f.readline().strip())
-            self.ETHERNET_INTERFACE = str(f.readline().strip())
-            self.OBSSERVERIP = str(f.readline().strip())
-            self.OBSSERVERPORT = int(f.readline().strip() or 0)
-            self.OBSSERVERPASSWORD = str(f.readline().strip())
-            self.DMXADAPTOR = str(f.readline().strip())
-            self.SPOTIPY_CLIENT_ID = str(f.readline().strip() or "null")
-            self.SPOTIPY_CLIENT_SECRET = str(f.readline().strip() or "null")
-            
-        except Exception as e:
-            format.message(f"Error opening keys.txt: {e}", type="error")
-            
-        try:
-            f = open(fr"{self._dir}\data\dev.txt", "r")
-            
-            devMode = f.readline().strip()
-            
-            if devMode.lower() == "true":
-                self.devMode = True
-                
-                format.message("Development Mode Enabled", type="warning")
-            else:
-                self.devMode = False
-                
-        except Exception as e:
-            format.message(f"Error opening dev.txt: {e}", type="error")
-
-        format.message("Files opened successfully", type="success")
-            
-        self.filesOpened = True
 
     def setupRoutes(self):     
         # @self.app.errorhandler(404)
