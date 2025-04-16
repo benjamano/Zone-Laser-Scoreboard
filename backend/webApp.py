@@ -29,7 +29,7 @@ class WebApp:
         
         self._dir = os.path.dirname(os.path.realpath(__file__))
         
-        secrets = dotenv_values(".env")
+        secrets = dotenv_values(self._dir.replace(r"\backend", "") + r"\.env")
         
         print(secrets)
         
