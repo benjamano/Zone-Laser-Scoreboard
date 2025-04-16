@@ -31,6 +31,8 @@ class WebApp:
         
         secrets = dotenv_values(".env")
         
+        print(secrets)
+        
         # LOAD ENVIRONMENT VARIABLES
         self.ENVIRONMENT = secrets["Environment"]
         self.IP1 = secrets["IP1"]
