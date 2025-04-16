@@ -31,7 +31,9 @@ class WebApp:
         
         secrets = dotenv_values(self._dir.replace(r"\backend", "") + r"\.env")
         
-        print(secrets)
+        # print(secrets)
+        
+        format.message(format.colourText("Loading Environment Variables", "Cyan"), type="info")
         
         # LOAD ENVIRONMENT VARIABLES
         self.ENVIRONMENT = secrets["Environment"]
@@ -277,13 +279,10 @@ class WebApp:
             format.message("DMX Connection set up successfully", type="success")
         
     def connectToOBS(self):
-        if self.OBSSERVERIP != "" and self.OBSSERVERPASSWORD != "" and self.OBSSERVERPORT != "":
-            try:
-                self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor)
-            except Exception as e:
-                format.message(f"Error setting up OBS connection: {e}", type="error")
-        else:
-            format.message("Development Mode or missing OBS details, skipping OBS Connection", type="warning")
+        try:
+            self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor)
+        except Exception as e:
+            format.message(f"Error setting up OBS connection: {e}", type="error")
 
     def setupRoutes(self):     
         # @self.app.errorhandler(404)
