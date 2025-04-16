@@ -1,9 +1,11 @@
 import smtplib
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.utils import formataddr
 
 class EmailsAPIController:
-    def __init__(self, gmailUserEmail: str, appPassword: str):
+    def __init__(self, appPassword: str, gmailUserEmail: str, senderName : str):
+        self.senderName = senderName
         self.gmailUser = gmailUserEmail
         self.appPassword = appPassword
 
@@ -12,14 +14,15 @@ class EmailsAPIController:
         - Send An Email to a Specified Email Address.
         - Sets the Email Subject to the passed `subject` field.
         - The `body` field is interpreted as HTML code.
-        
         """
         
         msg = MIMEMultipart()
-        msg["From"] = self.gmailUser
-        msg["To"] = toEmailAddress
-        msg["Subject"] = subject
+        msg["From"] = formataddr((self.senderName, self.gmailUser))
+        msg["To"] = toEmailAddress.strip().strip("\n")
+        msg["Subject"] = subject.strip().strip("\n")
         msg.attach(MIMEText(body, "html"))
+        # msg.attach(MIMEText(body, 'plain'))
+        # msg.add_header('X-Priority', '1')
 
         try:
             server = smtplib.SMTP("smtp.gmail.com", 587)
@@ -29,5 +32,5 @@ class EmailsAPIController:
             server.quit()
             
             return True
-        except Exception as e:
-            return False
+        except Exception:
+            raise

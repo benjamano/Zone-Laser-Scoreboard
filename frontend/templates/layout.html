@@ -100,6 +100,10 @@
 
 <script>
 
+	$(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
+		createNotification(thrownError + " - " + xhr.responseJSON.error, 30000)
+	});
+
 	function toggleSidebar(){
 		if ($("#sidebar").hasClass("collapsed")){
 			$("#sidebar").removeClass("collapsed");
@@ -168,10 +172,14 @@
 		hideNotifications();
 	});
 
-<<<<<<< HEAD
+	function showUnauthorisedBanner(){
+		$("#unauthorisedBlocker").show();
+	}
 
-=======
->>>>>>> main
+	function hideUnauthorisedBanner(){
+		$("#unauthorisedBlocker").hide();
+	}
+
 </script>
 
 </html>

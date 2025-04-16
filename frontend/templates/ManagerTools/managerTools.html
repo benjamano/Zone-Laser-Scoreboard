@@ -2,6 +2,23 @@
 
 {% block content %}
 
+<div style="display: none;" id="unauthorisedBlocker" class="unauthorisedBlocker">
+
+    <div>
+
+        <h1>You are not authorised to view this page!</h1>
+
+        <h3>Enter the Manager password below:</h3>
+
+        <div class="input-group">
+            <input data-bs-theme="light" class="col-6 form-control" type="password" id="managerToolsPasswordInput">
+            <span title="Proceed3thruGotavtBy-XzEaNhz-JwL7g4" class="input-group-text" role="button" onclick="requestAuthorisation();"><i class="fas fa-circle-arrow-right"></i></span>
+        </div>
+
+    </div>
+
+</div>
+
 <div class="card">
 
     <div class="card-header cursor-pointer user-select-none" id="batchEmailsHeader" onclick="$('#batchEmailsBody').toggle(); $('#batchEmailsHeader').toggleClass('collapsed')">Batch Email Sending <span class="badge bg-secondary">WIP</span></div>
@@ -41,8 +58,16 @@
 
         <hr>
 
-        <label>Email Contents</label>
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Email Subject</label>
+                <input type="text" class="form-control" id="emailSubject" placeholder="Email Subject">
+            </div>
+        </div>
+
         <div class="form-group">
+            <label>Email Contents</label>
+            <br>
             <div class="btn-group rounded-bottom-0" role="group" aria-label="Formatting tools">
                 <button type="button" onclick="insertMarkdown('**bold**')" class="btn btn-secondary rounded-bottom-0">Bold</button>
                 <button type="button" onclick="insertMarkdown('_italics_')" class="btn btn-secondary rounded-bottom-0">Italics</button>
@@ -70,9 +95,9 @@
                         
                 </div>
 
-                <div class="col-6" id="previewContainer">
+                <div class="col-6" id="previewContainer" data-bs-theme="light">
 
-                    <div id="emailBodyPreview" class="readonly user-select-none cursor-no w-100 h-100 form-control"></div>
+                    <div id="emailBodyPreview" class="readonly user-select-none w-100 h-100 form-control"></div>
     
                 </div>
 
@@ -147,10 +172,12 @@
     })
 
     $(document).ready(function(){
-        var contentPreview = `**Start Writing Text** on the _left_ and a preview will show on the __right__\n\n[Visit our Website!](https://play2day.biz)\n\n[Hello World!]{color:red}\n\n---\nPlay2Day Ipswich`;
+        var contentPreview = `**Start Writing Text** on the _left_ and a preview will show on the __right__\n\n[Visit our Website!](https://play2day.biz)\n\n[Hello World!]{color:red}\n\n---\n**Play2Day Ipswich**\n[Play2DayIpswich@gmail.com](mailto:play2dayipswich@gmail.com)\n[Play2Day.biz](https://play2day.biz)\n<img src="https://play2day.biz/wp-content/uploads/2018/07/Play2Day-Leisure-Group-logo-Small2.png" alt="Play2Day Ipswich" width=150pt>`;
 
         $("#emailAddressContents").val(contentPreview);
         refreshEmailBodyPreview();
+
+        amIAuthorisedToAccessManagerTools();
     });
 
     function insertMarkdown(syntax) {
@@ -320,30 +347,72 @@
 
     function populateSendEmailModal(){
         var emails = ($("#emailAddressesList").val()).split(", ");
-        var emailCount = emails.length
+        var emailCount = emails.length - 1
 
         $("#numberOfEmailsBeingSent").text(emailCount);
     }
 
     function sendEmails(){
         var recipients = ($("#emailAddressesList").val()).split(", ");
-        var body = $("#emailBodyPreviewRaw").val();
+        var body = $("#emailBodyPreviewRaw").val().replace("\n", "");
+        var subject = $("#emailSubject").val();
 
         $.ajax({
-            url: "/api/ManagerTools/SendEmail",
+            url: "/api/managerTools/sendEmail",
             type: "POST",
             data: {
-                Recipients: recipients
+                recipients: recipients,
+                emailBody: body,
+                emailSubject: subject,
+                authCookie: getManagerAuthCookie()
             },
             success: function(response) {
-                
+                if (response.errorList.length != 0){
+                    createNotification(response.errorList.join(", "), 20000)
+                }
+                else{
+                    createNotification(response.message, 20000)
+                }
             },
-            error: function(xhr, status, error) {
-                createNotif
-                console.error("Error sending email addresses:", error);
-            }
         });
     }
+
+    function requestAuthorisation(){
+		$.ajax({
+            url: "/api/managerTools/requestAuthorisation",
+            type: "POST",
+            data: {
+                password: $("#managerToolsPasswordInput").val(),
+            },
+            success: function(response) {
+                localStorage.setItem("ManagerToolsAuthExpiry", response.cookie)
+
+                amIAuthorisedToAccessManagerTools();
+            },
+        });
+	}
+
+	function getManagerAuthCookie(){
+		return localStorage.getItem("ManagerToolsAuthExpiry")
+	}
+
+	function amIAuthorisedToAccessManagerTools(){
+		$.ajax({
+            url: "/api/managerTools/amIAuthorised",
+            type: "GET",
+            data: {
+                cookie: getManagerAuthCookie()
+            },
+            success: function(response) {
+                if (response.response == false){
+                    showUnauthorisedBanner();
+                }
+                else{
+                    hideUnauthorisedBanner();
+                }
+            },
+        });
+	}
 
 </script>
 

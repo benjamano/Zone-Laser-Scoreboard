@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, redirect, g
+from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
@@ -10,21 +10,14 @@ except Exception as e:
     print("Failed to import winrt.windows.media.control ", e)
     input("Press any key to exit...")
 
-try:
-    from API import format
-except Exception as e:
-    print(f"An error occurred: {e}")
-    input("Press any key to exit...")
-        
+from API import format
 from API.BPM import MediaBPMFetcher
-
 from API.DMXControl import dmx
-
 from API.DB import *
-
 from API.OBS import OBS
-
 from API.Supervisor import Supervisor
+from API.Emails import EmailsAPIController
+
 
 from data.models import *
 
@@ -32,6 +25,8 @@ from API.createApp import *
 
 class WebApp:
     def __init__(self):
+        global secrets
+        
         self._dir = os.path.dirname(os.path.realpath(__file__))
         
         secrets = dotenv_values(".env")
@@ -71,6 +66,7 @@ class WebApp:
         self._dmx : dmx = None
         self._context : context = None
         self.app : Flask = None
+        self._emailsApi : EmailsAPIController = None
         # END INIT
                 
         pyautogui.FAILSAFE = False
@@ -131,7 +127,7 @@ class WebApp:
             self.flaskThread.start()
             
             format.message("Waiting for app to start", type="warning")
-            time.sleep(3)
+            time.sleep(2)
             
         except Exception as e:
             format.message(f"Error starting Flask Server: {e}", type="error")
@@ -203,13 +199,18 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting packet sniffer: {e}", type="error")
             
-        while self._supervisor == None:
-            time.sleep(1)
-            
         try:
             self.fetcher = MediaBPMFetcher()
         except Exception as e:
             format.message(f"Error starting music info fetcher: {e}", type="error")
+            
+        try:
+            self._emailsApi = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"], secrets["GmailSenderEmail"], secrets["GmailSenderDisplayName"])
+        except Exception as e:
+            format.message(f"Error starting email api: {e}", type="error")
+            
+        while self._supervisor == None:
+            time.sleep(1)
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
@@ -239,7 +240,7 @@ class WebApp:
             format.message(f"Error starting DMX Connection: {e}", type="error")
             return
         
-        if self._dmx != None:
+        if self._dmx.isConnected() == True:
             
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
@@ -297,20 +298,10 @@ class WebApp:
             
         @self.app.route('/')
         def index():
-            try:
-                if not self.OBSConnected:
-                    OBSConnection = "DISCONNECTED"
-                else:
-                    OBSConnection = "CONNECTED"
-                
-                if not self.DMXConnected:
-                    DMXConnection = "DISCONNECTED"
-                else:
-                    DMXConnection = "CONNECTED"
-                
+            try:                
                 g.PageTitle = "Home"
                 
-                return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
+                return render_template('index.html')
         
             except Exception as e:
                 format.message(f"Error loading index.html: {e}", type="error")
@@ -385,13 +376,112 @@ class WebApp:
             
             return render_template("ManagerTools/managerTools.html")
         
+        def managerTools_VerifyAuthCookie(cookie: str) -> bool:
+            try:
+                if cookie is None or cookie == "":
+                    return False
+                
+                cookieDate = datetime.datetime.fromisoformat(cookie)
+                if cookieDate < datetime.datetime.now():
+                    return True
+                else:
+                    return False
+                
+            except Exception:
+                return False
+        
+        @self.app.route("/api/managerTools/requestAuthorisation", methods=["POST"])
+        def managerTools_RequestAuth():
+            try:
+                # if (request.remote_addr):
+                    
+                
+                password : str = request.form.get("password", "")
+            except Exception as e:
+                return jsonify({
+                    "error": f"Error parsing request data: {str(e)}"
+                }), 400
+                
+            if (password == secrets["ManagerLoginCredentials"]):
+                # AUTHORISE THIS USER FOR 7 DAYS
+                newCookie : datetime.datetime = datetime.datetime.now() + datetime.timedelta(days=7)
+                
+                return jsonify({
+                    "cookie": newCookie.isoformat()
+                }), 200
+            else:
+                return jsonify({
+                    "error": f"Incorrect password!"
+                }), 401
+        
+        @self.app.route("/api/managerTools/amIAuthorised")
+        def managerTools_amIAuthorised():
+            cookie: str = request.args.get("cookie")
+            
+            try:
+                if managerTools_VerifyAuthCookie(cookie) == False:
+                    return jsonify({"response": False}), 200
+                    
+                return jsonify({"response": True}), 200
+                
+            except Exception:
+                return jsonify({"response": False}), 200
+        
+        @self.app.route("/api/managerTools/sendEmail", methods=["POST"])
+        def sendEmail():
+            try:
+                cookie: str = request.form.get("authCookie", None)
+                if managerTools_VerifyAuthCookie(cookie) == False:
+                    return jsonify({
+                    "error": f"Your authorisation cookie has expired. Please re-enter your authorisation credentials."
+                }), 401
+                
+                recipients = request.form.get("recipients", [])
+                if isinstance(recipients, str):
+                    recipients = [recipients]
+                    
+                body = request.form.get("emailBody", "")
+                
+                subject = request.form.get("emailSubject", "")
+                
+            except Exception as e:
+                return jsonify({
+                    "error": f"Error parsing request data: {str(e)}"
+                }), 400
+            
+            if not subject or len(subject) < 5:
+                return jsonify({
+                    "error": "The subject must be at least 5 characters long"
+                }), 400
+                
+            if not body:
+                return jsonify({
+                    "error": "The email body cannot be empty"
+                }), 400
+            
+            errorList : list = []
+            
+            if secrets["Environment"] == "Development":
+                recipients = [secrets["DevelopmentEmailAddress"]]
+            
+            for recipient in recipients:
+                try:
+                    self._emailsApi.sendEmail(recipient, subject, body)
+                except Exception as e:
+                    errorList.append(f"Error sending to {recipient}: {e}")
+            
+            return jsonify({
+                "message": "Emails Sent!",
+                "errorList": errorList
+            }), 200
+        
         @self.app.route("/api/ManagerTools/ProcessEmailAddresses", methods=["POST"])
         def processEmailAddresses():
             try:
-                csvContent = request.form.get('EmailAddresses')
+                csvContent = request.form.get("EmailAddresses")
                 
                 if csvContent:
-                    emailAddresses = csvContent.strip().split(',')
+                    emailAddresses = csvContent.strip().split(",")
                     processedAddresses = []
                     
                     for email in emailAddresses:
