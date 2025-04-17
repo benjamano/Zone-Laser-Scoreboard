@@ -1160,3 +1160,12 @@ label{
     justify-content: center;
     align-items: center;
 }
+
+.hover:not(:hover) .fas{
+    filter: brightness(0.8);
+}
+
+.hover:hover .fas{
+    filter: brightness(1);
+    scale: 1.1;
+}

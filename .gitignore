@@ -182,3 +182,4 @@ backend/data/display/WinningPlayer.txt
 backend/data/display/OBSText.txt
 update.bat
 *.wfp
+backend/data/messages.txt

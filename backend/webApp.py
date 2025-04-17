@@ -476,7 +476,7 @@ class WebApp:
                 "errorList": errorList
             }), 200
         
-        @self.app.route("/api/ManagerTools/ProcessEmailAddresses", methods=["POST"])
+        @self.app.route("/api/managerTools/ProcessEmailAddresses", methods=["POST"])
         def processEmailAddresses():
             try:
                 csvContent = request.form.get("EmailAddresses")
@@ -496,6 +496,32 @@ class WebApp:
                     })
                     
                 return jsonify({"error": "No content provided"}), 400
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+            
+        @self.app.route("/api/settings/sendMessage", methods=["POST"])
+        def settings_sendMessage():
+            try:
+                message = request.form.get("message")
+                
+                with open(self._dir + "/data/messages.txt", "a") as f:
+                    f.write(message + "\n")
+                    
+                return jsonify({
+                    "message": "Message Sent"
+                })
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+            
+        @self.app.route("/api/settings/getMessages", methods=["GET"])
+        def settings_getMessages():
+            try:
+                with open(self._dir + "/data/messages.txt", "r") as f:
+                    messages = f.read()
+                    
+                return jsonify(messages)
                     
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
