@@ -65,7 +65,8 @@
 			Create Warning
 		</button>
 		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
-			<li class="dropdown-item" onclick="createWarning('Restart')">- Restart Warning</li>
+			<li class="dropdown-item" role="button" onclick="createWarning('Restart')">- Restart Warning</li>
+			<li class="dropdown-item" role="button" onclick="createSkippedSongsWarning()">- Skipped Songs</li>
 		</ul>
 	</div>
 
@@ -581,6 +582,9 @@
 	}
 
 	function nextSong(){
+		var songsSkipped = localStorage.getItem("SkippedSongsCount");
+		localStorage.setItem("SkippedSongsCount", `${(parseInt(songsSkipped) + 1).toString()}`);
+
 		socket.emit('nextSong');
 	}
 

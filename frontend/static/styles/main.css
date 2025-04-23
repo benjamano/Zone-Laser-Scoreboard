@@ -1145,8 +1145,9 @@ label{
     display: flex;
     justify-content: center;
     align-items: center;
-    padding: 1rem;
     border-radius: 0.2rem;
+    flex-direction: column;
+    z-index: 99999999;
 }
 
 .unauthorisedBlocker{

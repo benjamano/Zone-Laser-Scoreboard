@@ -34,8 +34,11 @@
 	</div>
 
 	<div id="notificationContainer" class="notifications cursor-pointer" style="opacity: 0;">
-		<div class="p-1">
+		<div class="p-1 m-4">
 			<span id="notificationList"></span>
+		</div>
+		<div class="progress w-100" style="border-radius: 0px;">
+			<div id="warningProgressBar" role="progressbar" style="width: 100%" class="progress-bar bg-danger"></div>
 		</div>
 	</div>
 
@@ -100,6 +103,43 @@
 
 <script>
 
+	$(document).ready(function(){
+		localStorage.setItem("SkippedSongsCount", "0");
+		localStorage.setItem("NotifiedAboutSkippedSongs", "0");
+
+		setTimeout(function() {
+			checkForValidPopUps();
+		}, 120000);
+	})
+
+	function checkForValidPopUps(){
+		if (parseInt(localStorage.getItem("SkippedSongsCount")) > 6) {
+			createSkippedSongsWarning();
+
+			return;
+		}
+
+		const randomNumber = Math.floor(Math.random() * 3);
+
+		if (randomNumber === 0) {
+			createNotification("Did you know you can request new songs to be added? <br> Go to the <a href='feedback'>Feedback page</a> to request a new song addition.", 60000);
+		} else if (randomNumber === 1) {
+			createNotification("Having issues? <br> Report bugs on the <a href='feedback'>Feedback page</a>.", 60000);
+		} else {
+			createNotification("Want to suggest improvements? <br> Share your ideas on the <a href='feedback'>Feedback page</a>.", 60000);
+		}
+	}
+
+	function createSkippedSongsWarning(){
+		var skippedSongs = parseInt(localStorage.getItem("SkippedSongsCount"));
+
+		createNotification("You have skipped " + skippedSongs + " songs. <br> Did you know you can request new songs to be added? <br> Go to the <a href='feedback'>Feedback page</a> to request a new song additon.", 120000);
+
+		localStorage.setItem("SkippedSongsCount", "0");
+
+		return;
+	}
+
 	$(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
 		createNotification(thrownError + " - " + xhr.responseJSON.error, 30000)
 	});
@@ -160,11 +200,17 @@
 
 	function createNotification(text, coolDown = 7000){
 		$("#notificationList").html(text);
-
+		$("#warningProgressBar").css("width", "100%");
+		
 		showNotifications();
+
+		$("#warningProgressBar").css("transition", `width ${coolDown}ms linear`);
+		$("#warningProgressBar").css("width", "0%");
 
 		setTimeout(function() {
 			hideNotifications();
+			$("#warningProgressBar").css("transition", "none");
+			$("#warningProgressBar").css("width", "100%");
 		}, coolDown);
 	}
 
