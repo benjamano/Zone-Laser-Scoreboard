@@ -360,7 +360,7 @@ socket.on('UpdateDMXValue', function(data) {
 });
 
 socket.on("refreshPage", function() {
-    location.reload();
+    location.reload(true);
 });
 
 socket.on("logMessage", function(data) {
