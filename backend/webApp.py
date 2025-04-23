@@ -1,3 +1,4 @@
+import string
 from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
@@ -62,6 +63,8 @@ class WebApp:
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}    
+        self.DevToolsOTP = ""
+        self.DevToolsRefreshCount = 5
         # END INIT
            
         # INIT DEPENDANCIES
@@ -299,7 +302,9 @@ class WebApp:
             
         @self.app.route('/')
         def index():
-            try:                
+            try:    
+                self.DevToolsOTP = ""
+                            
                 g.PageTitle = "Home"
                 
                 return render_template('index.html')
@@ -310,19 +315,54 @@ class WebApp:
     
         @self.app.route("/schedule")
         def scehdule():
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Schedule"
             
             return render_template("schedule.html")
         
         @self.app.route("/settings")
         def settings():
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Settings"
             
-            return render_template("settings.html")
+            return render_template("settings/settings.html")
+        
+        @self.app.route("/settings/devtools/")
+        def settings_devtools():
+            otp = request.args.get("code")
+            
+            if (otp == None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0):
+                self.DevToolsOTP = ""
+                return render_template("error.html", message="Access Denied")
+            
+            self.DevToolsRefreshCount -= 1
+            
+            g.PageTitle = "Dev Tools"
+            
+            variables = {}
+            
+            for k,v in vars(self).items():
+                if not k.startswith('__'):
+                    variables[k] = v
+                    
+                    if hasattr(v, '__dict__'):
+                        try:
+                            obj_vars = vars(v)
+                            for ok, ov in obj_vars.items():
+                                if not ok.startswith('__'):
+                                    variables[f"{k}.{ok}"] = ov
+                        except:
+                            pass
+            
+            return render_template("settings/devtools.html", variables=variables)
         
         @self.app.route("/editScene")
         def editScene():
             #Accessed by /EditScene?Id=[sceneId]
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Lighting Control"
             
             sceneId = request.args.get('Id') 
@@ -345,34 +385,46 @@ class WebApp:
         
         @self.app.route("/text")
         def neonText():
+            self.DevToolsOTP = ""
+            
             return render_template("neonFlicker.html")
         
         @self.app.route("/status")
         def status():
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Status"
             
             return render_template("status.html")
         
         @self.app.route("/experimental")
         def experimental():
+            self.DevToolsOTP = ""
+            
             return redirect("/")
             
             return render_template("experimental/newIndex.html", SysName=self.SysName, PageTitle="Experiments")
         
         @self.app.route("/feedback")
         def feedback():
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Leave Feedback"
             
             return render_template("feedback.html")
         
         @self.app.route("/statistics")
         def statistics():
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Statistics"
             
             return render_template("statistics.html")
 
         @self.app.route("/managerTools")
         def managerTools():
+            self.DevToolsOTP = ""
+            
             g.PageTitle = "Manager Tools"
             
             return render_template("ManagerTools/managerTools.html")
@@ -522,6 +574,21 @@ class WebApp:
                     messages = f.read()
                     
                 return jsonify(messages)
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+            
+        @self.app.route("/api/settings/devtools/requestAccess", methods=["POST"])
+        def settings_devtools_requestAccess():
+            try:
+                password = request.form.get("password")
+                
+                if str(password) == str(secrets["DevToolsPassword"]):
+                    self.DevToolsOTP = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+                    self.DevToolsRefreshCount = 5
+                    return jsonify(self.DevToolsOTP)
+                
+                return jsonify({"error": "Invalid password"}), 401
                     
             except Exception as e:
                 return jsonify({"error": str(e)}), 500

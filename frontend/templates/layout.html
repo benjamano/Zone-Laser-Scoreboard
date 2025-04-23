@@ -85,7 +85,7 @@
 			</li>
 		</ul>
 		<div class="sidebar-footer">
-			Maintained by Ben Mercer
+			Maintained by <a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben Mercer</a>
 			<br>
 			<small>V {{VersionNo}}</small>
 		</div>
@@ -217,6 +217,29 @@
 	$("#notificationContainer").on("click", function(){
 		hideNotifications();
 	});
+
+	function openDevToolsPage(){
+		var password = prompt("Enter Dev Tools Password:");
+		if (password) {
+			$.ajax({
+				url: "/api/settings/devtools/requestAccess", 
+				type: "POST",
+				data: {
+					password: password
+				},
+				success: function(response) {
+					if (response){
+						window.location.href = "/settings/devtools?code=" + encodeURIComponent(response);
+					} else {
+						alert("Incorrect Password");
+					}
+				},
+				error: function(xhr, status, error) {
+					createNotification("Error: " + error, 30000);
+				}
+			});
+		}
+	}
 </script>
 
 </html>
