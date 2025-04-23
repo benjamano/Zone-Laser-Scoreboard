@@ -28,16 +28,28 @@
 
 <div class="card">
 
-    <div class="card-header cursor-pointer user-select-none" id="communicationHeader" onclick="$('#communicationBody').toggle(); $('#communicationHeader').toggleClass('collapsed')">Communication <span class="badge bg-secondary">WIP</span></div>
+    <div class="card-header cursor-pointer user-select-none" id="communicationHeader" onclick="$('#communicationBody').toggle(); $('#communicationHeader').toggleClass('collapsed')">Communication</div>
 
     <div class="card-body" id="communicationBody">
 
-        <textarea id="communicationChatBox" class="readonly form-control col-12" rows="20"></textarea>
+        <textarea id="communicationChatBox" class="readonly form-control col-12" rows="20" readonly></textarea>
 
         <div class="input-group">
             <input type="text" id="sendMessageTextBox" placeholder="Send Message" class="col-8 form-control">
             <input type="text" id="sendMessageAsAlias" class="form-control col-3" style="width: 5vw !important;" placeholder="Send As">
             <span role="button" class="input-group-text hover" onclick="sendMessage();" title="Send Message"><i class="fas fa-circle-arrow-right"></i></span>
+        </div>
+
+        <div class="card">
+    
+            <div class="card-header cursor-pointer user-select-none" id="globaleMessageHeader" onclick="$('#globalMessageBody').toggle(); $('#globaleMessageHeader').toggleClass('collapsed')">Set Global Message <span class="badge bg-secondary">WIP</span></div>
+
+            <div class="card-body" id="globalMessageBody">
+        6
+                
+            
+            </div>
+
         </div>
     
     </div>

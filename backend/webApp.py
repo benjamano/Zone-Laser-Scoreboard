@@ -383,7 +383,7 @@ class WebApp:
                     return False
                 
                 cookieDate = datetime.datetime.fromisoformat(cookie)
-                if cookieDate < datetime.datetime.now():
+                if cookieDate > datetime.datetime.now():
                     return True
                 else:
                     return False
