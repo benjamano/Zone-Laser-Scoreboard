@@ -19,7 +19,6 @@ from API.OBS import OBS
 from API.Supervisor import Supervisor
 from API.Emails import EmailsAPIController
 
-
 from data.models import *
 
 from API.createApp import *
@@ -48,7 +47,7 @@ class WebApp:
         
         # LOAD SYSTEM VARIABLES
         self.SysName = "TBS"
-        self.VersionNumber = "1.1.5"
+        self.VersionNumber = "1.1.6"
         # END LOAD
         
         # INIT ALL OTHER VARIABLES
@@ -283,7 +282,7 @@ class WebApp:
         
     def connectToOBS(self):
         try:
-            self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor)
+            self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor, secrets)
         except Exception as e:
             format.message(f"Error setting up OBS connection: {e}", type="error")
 
@@ -333,7 +332,7 @@ class WebApp:
         def settings_devtools():
             otp = request.args.get("code")
             
-            if (otp == None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0):
+            if ((otp == None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0) and self.devMode == False):
                 self.DevToolsOTP = ""
                 return render_template("error.html", message="Access Denied")
             
@@ -583,12 +582,12 @@ class WebApp:
             try:
                 password = request.form.get("password")
                 
-                if str(password) == str(secrets["DevToolsPassword"]):
-                    self.DevToolsOTP = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-                    self.DevToolsRefreshCount = 5
-                    return jsonify(self.DevToolsOTP)
+                if (str(password) != str(secrets["DevToolsPassword"]) and self.devMode == False):
+                    return jsonify({"error": "Invalid password"}), 401
                 
-                return jsonify({"error": "Invalid password"}), 401
+                self.DevToolsOTP = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+                self.DevToolsRefreshCount = 5
+                return jsonify(self.DevToolsOTP)
                     
             except Exception as e:
                 return jsonify({"error": str(e)}), 500

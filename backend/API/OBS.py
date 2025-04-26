@@ -1,4 +1,5 @@
 import obsws_python as obs
+import pygetwindow as gw
 from API import format
 from API import Supervisor
 from data.models import *
@@ -7,11 +8,13 @@ class OBS:
     """
     OBS class for controlling the OBS output.
     """
-    def __init__(self, OBSSERVERIP:str, OBSSERVERPORT:int, OBSSERVERPASSWORD:str, dir:str, supervisor: Supervisor):
+    def __init__(self, OBSSERVERIP:str, OBSSERVERPORT:int, OBSSERVERPASSWORD:str, dir:str, supervisor: Supervisor, secrets : dict):
         try:
             self.IP = OBSSERVERIP
             self.PORT = OBSSERVERPORT
             self.PASSWORD = OBSSERVERPASSWORD
+            self.AvailableMonitor = ""
+            self.Secrets = secrets
             
             self._supervisor : Supervisor.Supervisor = supervisor
             
@@ -121,6 +124,53 @@ class OBS:
             self._supervisor.logInternalServerError(ise)
             
             return False
+        
+    def openProjector(self) -> bool:
+        """
+            Displays the projector screen on the OBS output.
+        """
+        
+        try:
+            if self.isPreviewOpen() == True:
+                return True
+                
+            self.getMonitorsToProjectTo()
+            
+            self.obs.open_video_mix_projector("OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW", monitor_index=self.AvailableMonitor["monitorIndex"])
+            
+            return True
+        
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            
+            ise.service = "obs"
+            ise.exception_message = str(f"Error showing projector screen: {e}")
+            ise.process = "OBS: Show Projector Screen"
+            ise.severity = "2"
+                
+            self._supervisor.logInternalServerError(ise)
+            
+            return False
+        
+    def isPreviewOpen(self) -> bool:
+        windows = gw.getAllTitles()
+        for title in windows:
+            if "(Preview)" in title:
+                return True
+            elif "Full-Screen Projector" in title:
+                return True
+        return False
+        
+    def getMonitorsToProjectTo(self) -> list:
+        monitors = self.obs.get_monitor_list().monitors
+        
+        acceptedMonitors : list[str] = str(self.Secrets["MonitorsToProjectTo"]).split("/")
+        
+        monitorToProjectTo = next((monitor for monitor in monitors if monitor['monitorName'] in acceptedMonitors), monitors[0])
+        
+        self.AvailableMonitor = monitorToProjectTo
+        
+        return monitors
         
     def showSleepMode(self) -> bool:
         try:

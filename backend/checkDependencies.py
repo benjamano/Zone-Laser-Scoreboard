@@ -7,7 +7,7 @@ class start:
                      "winrt.windows.media.control", "pillow", "pyshark", "manuf", "pystray", "requests", "pyautogui",
                      "datetime", "psutil", "tkinter", "logging", "signal", "time", "flask_cors", "dmx", "serial",
                      "PyDMXControl", "socket", "webbrowser", "pyaudio", "sounddevice", "numpy", "spotipy", "winsdk",
-                     "asyncio", "obsws_python", "winrt.windows.foundation", "json", "flask_migrate", "pythonnet", "smtplib", "python-dotenv"])
+                     "asyncio", "obsws_python", "winrt.windows.foundation", "json", "flask_migrate", "pythonnet", "smtplib", "python-dotenv", "pygetwindow"])
         
         #librosa
         

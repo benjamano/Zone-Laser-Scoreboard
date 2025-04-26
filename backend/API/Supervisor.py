@@ -53,9 +53,8 @@ class Supervisor:
         
     def __checkForErrors(self):
         while True:
-            time.sleep(30)
-            #time.sleep(5)
-            
+            time.sleep(3)
+
             try:
                 # Check if all expected processes are running
                 for processName in self.expectedProcesses:
@@ -68,7 +67,7 @@ class Supervisor:
                                     os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                                 elif processName.lower() == "obs64":
                                     os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
-                                    time.sleep(10)
+                                    time.sleep(30)
                                     self.__resetOBSConnection()
                             except Exception as e:
                                 message(f"Error starting process {processName}: {e}", type="error")
@@ -103,6 +102,8 @@ class Supervisor:
                 
             try:
                 if self._obs.isConnected() == True:
+                    self._obs.openProjector()
+                    
                     if (self._obs.getCurrentScene()).lower() != "video":
                         # Check the time to enter sleep mode
                         with self._app.app_context():
