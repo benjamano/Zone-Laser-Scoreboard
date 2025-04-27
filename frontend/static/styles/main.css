@@ -1073,4 +1073,73 @@ label{
 
 .logMessage {
     margin: 5px 0;
-  }
+}
+
+.musicControlsButton{
+    filter: brightness(0.8)
+}
+
+.musicControlsButton:hover{
+    filter: brightness(1);
+    scale: 1.05;
+}
+
+.form-group .btn-group .btn{
+    margin-top: 0.3rem !important;
+}
+
+/* .btn{
+    margin-top: 1rem;
+    margin-bottom: 1rem;
+} */
+
+.display-none{
+    display: none !important;
+}
+
+.badge{
+    margin-left: 0.1rem;
+}
+
+.notifications{
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    background-color: var(--bs-danger);
+    z-index: 9999;
+    margin: 1rem;
+    transition: opacity 0.5s ease;
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.2rem;
+    flex-direction: column;
+    z-index: 99999999;
+}
+
+.unauthorisedBlocker{
+    position: fixed;
+    z-index: 99999999;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bs-danger);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.hover:not(:hover) .fas{
+    filter: brightness(0.8);
+}
+
+.hover:hover .fas{
+    filter: brightness(1);
+    scale: 1.1;
+}
+
+.form-group{
+    margin-bottom: 1rem;
+}

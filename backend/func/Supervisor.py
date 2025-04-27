@@ -52,8 +52,7 @@ class Supervisor:
     def __checkForErrors(self):
         while True:
             time.sleep(30)
-            #time.sleep(5)
-            
+
             try:
                 # Check if all expected processes are running
                 for processName in self.expectedProcesses:

@@ -9,21 +9,15 @@ except Exception as e:
     print("Failed to import winrt.windows.media.control ", e)
     input("Press any key to exit...")
 
-try:
-    from func import format
-except Exception as e:
-    print(f"An error occurred: {e}")
-    input("Press any key to exit...")
-        
-from func.BPM import MediaBPMFetcher
+from API import format
+from API.BPM import MediaBPMFetcher
+from API.DMXControl import dmx
+from API.DB import *
+from API.OBS import OBS
+from API.Supervisor import Supervisor
+from API.Emails import EmailsAPIController
 
-from func.DMXControl import dmx
-
-from func.DB import *
-
-from func.OBS import OBS
-
-from func.Supervisor import Supervisor
+from API.Feedback.feedback import *
 
 from data.models import *
 
@@ -297,71 +291,345 @@ class WebApp:
         self.filesOpened = True
 
     def setupRoutes(self):     
-        try:
-            # @self.app.errorhandler(404)
-            # def not_found():
-            #     return render_template("error.html", message="Page not found")
-                
-            @self.app.route('/')
-            def index():
-                try:
-                    if not self.OBSConnected:
-                        OBSConnection = "DISCONNECTED"
-                    else:
-                        OBSConnection = "CONNECTED"
-                    
-                    if not self.DMXConnected:
-                        DMXConnection = "DISCONNECTED"
-                    else:
-                        DMXConnection = "CONNECTED"
-                    
-                    return render_template('index.html', OBSConnected=OBSConnection, DMXConnected=DMXConnection)
-            
-                except Exception as e:
-                    format.message(f"Error loading index.html: {e}", type="error")
-                    return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
+        # @self.app.errorhandler(404)
+        # def not_found():
+        #     return render_template("error.html", message="Page not found")
         
-            @self.app.route("/schedule")
-            def scehdule():
-                return render_template("schedule.html")
+        @self.app.context_processor
+        def inject_global_vars():
+            return dict(
+                SysName=self.SysName,
+                VersionNo=self.VersionNumber,
+                PageTitle=getattr(g, 'PageTitle', "")
+            )
             
-            @self.app.route("/settings")
-            def settings():
-                return render_template("settings.html")
+        @self.app.route('/')
+        def index():
+            try:    
+                self.DevToolsOTP = ""
+                            
+                g.PageTitle = "Home"
+                
+                return render_template('index.html')
+        
+            except Exception as e:
+                format.message(f"Error loading index.html: {e}", type="error")
+                return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
+    
+        @self.app.route("/schedule")
+        def scehdule():
+            self.DevToolsOTP = ""
             
-            @self.app.route("/editScene")
-            def editScene():
-                #Accessed by /EditScene?Id=[sceneId]
-                
-                sceneId = request.args.get('Id') 
-                
-                try:
-                
-                    if sceneId != None or sceneId == "":
-                        dmxScene = self._dmx.getDMXSceneById(sceneId)
-                        
-                        if dmxScene:
-                            return render_template("scene.html", sceneId=sceneId, scene=dmxScene.to_dict())
-                        else:
-                            return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
-                    else:
-                        return render_template("scene.html", SysName=self.SysName, PageTitle="Advanced DMX Control")
+            g.PageTitle = "Schedule"
+            
+            return render_template("schedule.html")
+        
+        @self.app.route("/settings")
+        def settings():
+            self.DevToolsOTP = ""
+            
+            g.PageTitle = "Settings"
+            
+            return render_template("settings/settings.html")
+        
+        @self.app.route("/settings/devtools/")
+        def settings_devtools():
+            otp = request.args.get("code")
+            
+            if ((otp == None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0) and self.devMode == False):
+                self.DevToolsOTP = ""
+                return render_template("error.html", message="Access Denied")
+            
+            self.DevToolsRefreshCount -= 1
+            
+            g.PageTitle = "Dev Tools"
+            
+            variables = {}
+            
+            for k,v in vars(self).items():
+                if not k.startswith('__'):
+                    variables[k] = v
                     
+                    if hasattr(v, '__dict__'):
+                        try:
+                            obj_vars = vars(v)
+                            for ok, ov in obj_vars.items():
+                                if not ok.startswith('__'):
+                                    variables[f"{k}.{ok}"] = ov
+                        except:
+                            pass
+            
+            return render_template("settings/devtools.html", variables=variables)
+        
+        @self.app.route("/editScene")
+        def editScene():
+            #Accessed by /EditScene?Id=[sceneId]
+            self.DevToolsOTP = ""
+            
+            g.PageTitle = "Lighting Control"
+            
+            sceneId = request.args.get('Id') 
+            
+            try:
+            
+                if sceneId != None or sceneId == "":
+                    dmxScene = self._dmx.getDMXSceneById(sceneId)
+                    
+                    if dmxScene:
+                        return render_template("scene.html", sceneId=sceneId, scene=dmxScene.to_dict())
+                    else:
+                        return render_template("error.html", message=f"Scene with Id '{sceneId}' not found")
+                else:
+                    return render_template("scene.html")
+                
+            except Exception as e:
+                format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
+                return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
+        
+        @self.app.route("/text")
+        def neonText():
+            self.DevToolsOTP = ""
+            
+            return render_template("neonFlicker.html")
+        
+        @self.app.route("/status")
+        def status():
+            self.DevToolsOTP = ""
+            
+            g.PageTitle = "Status"
+            
+            return render_template("status.html")
+        
+        @self.app.route("/experimental")
+        def experimental():
+            self.DevToolsOTP = ""
+            
+            return redirect("/")
+            
+            return render_template("experimental/newIndex.html", SysName=self.SysName, PageTitle="Experiments")
+        
+        @self.app.route("/feedback")
+        def feedback():
+            self.DevToolsOTP = ""
+            
+            g.PageTitle = "Leave Feedback"
+            
+            return render_template("feedback/leaveFeedback.html")
+        
+        @self.app.route("/api/feedback/submitForm", methods=["POST"])
+        def feedback_submitForm():
+            data = request.get_json()
+
+            requestId = ""
+
+            type = data.get("Type", "")
+            submitter = data.get("SubmitterName", "")
+            
+            if type == "NewFeature":
+                featureDescription = data.get("FeatureDescription", "")
+                featureUseCase = data.get("FeatureUseCase", "")
+                featureExpected = data.get("FeatureExpected", "")
+                featureDetails = data.get("FeatureDetails", "")
+                
+                requestId = processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
+            elif type == "Bug":
+                bugDescription = data.get("BugDescription", "")
+                whenItOccurs = data.get("WhenItOccurs", "")
+                expectedBehavior = data.get("ExpectedBehavior", "")
+                stepsToReproduce = data.get("StepsToReproduce", "")
+                
+                requestId = processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
+            elif type == "SongAddition":
+                songName = data.get("SongName", "")
+                naughtyWords = data.get("NaughtyWords", "")
+                
+                requestId = processSongRequest(songName, naughtyWords, submitter)
+            else:
+                return {"error": "Unknown Type"}, 400
+            
+            format.sendEmail(f"{type.title()} Feedback submitted by {submitter} with request ID {requestId}", f"{type.title()} Feedback Submitted")
+
+            return {"id": requestId}, 200
+        
+        @self.app.route("/statistics")
+        def statistics():
+            self.DevToolsOTP = ""
+            
+            g.PageTitle = "Statistics"
+            
+            return render_template("statistics.html")
+
+        @self.app.route("/managerTools")
+        def managerTools():
+            self.DevToolsOTP = ""
+            
+            g.PageTitle = "Manager Tools"
+            
+            return render_template("ManagerTools/managerTools.html")
+        
+        def managerTools_VerifyAuthCookie(cookie: str) -> bool:
+            try:
+                if cookie is None or cookie == "":
+                    return False
+                
+                cookieDate = datetime.datetime.fromisoformat(cookie)
+                if cookieDate > datetime.datetime.now():
+                    return True
+                else:
+                    return False
+                
+            except Exception:
+                return False
+        
+        @self.app.route("/api/managerTools/requestAuthorisation", methods=["POST"])
+        def managerTools_RequestAuth():
+            try:
+                # if (request.remote_addr):
+                    
+                
+                password : str = request.form.get("password", "")
+            except Exception as e:
+                return jsonify({
+                    "error": f"Error parsing request data: {str(e)}"
+                }), 400
+                
+            if (password == secrets["ManagerLoginCredentials"]):
+                # AUTHORISE THIS USER FOR 7 DAYS
+                newCookie : datetime.datetime = datetime.datetime.now() + datetime.timedelta(days=7)
+                
+                return jsonify({
+                    "cookie": newCookie.isoformat()
+                }), 200
+            else:
+                return jsonify({
+                    "error": f"Incorrect password!"
+                }), 401
+        
+        @self.app.route("/api/managerTools/amIAuthorised")
+        def managerTools_amIAuthorised():
+            cookie: str = request.args.get("cookie")
+            
+            try:
+                if managerTools_VerifyAuthCookie(cookie) == False:
+                    return jsonify({"response": False}), 200
+                    
+                return jsonify({"response": True}), 200
+                
+            except Exception:
+                return jsonify({"response": False}), 200
+        
+        @self.app.route("/api/managerTools/sendEmail", methods=["POST"])
+        def sendEmail():
+            try:
+                cookie: str = request.form.get("authCookie", None)
+                if managerTools_VerifyAuthCookie(cookie) == False:
+                    return jsonify({
+                    "error": f"Your authorisation cookie has expired. Please re-enter your authorisation credentials."
+                }), 401
+                
+                recipients = request.form.get("recipients", [])
+                if isinstance(recipients, str):
+                    recipients = [recipients]
+                    
+                body = request.form.get("emailBody", "")
+                
+                subject = request.form.get("emailSubject", "")
+                
+            except Exception as e:
+                return jsonify({
+                    "error": f"Error parsing request data: {str(e)}"
+                }), 400
+            
+            if not subject or len(subject) < 5:
+                return jsonify({
+                    "error": "The subject must be at least 5 characters long"
+                }), 400
+                
+            if not body:
+                return jsonify({
+                    "error": "The email body cannot be empty"
+                }), 400
+            
+            errorList : list = []
+            
+            if secrets["Environment"] == "Development":
+                recipients = [secrets["DevelopmentEmailAddress"]]
+            
+            for recipient in recipients:
+                try:
+                    self._emailsApi.sendEmail(recipient, subject, body)
                 except Exception as e:
-                    format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
-                    return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
+                    errorList.append(f"Error sending to {recipient}: {e}")
             
-            @self.app.route("/text")
-            def neonText():
-                return render_template("neonFlicker.html")
+            return jsonify({
+                "message": "Emails Sent!",
+                "errorList": errorList
+            }), 200
+        
+        @self.app.route("/api/managerTools/ProcessEmailAddresses", methods=["POST"])
+        def processEmailAddresses():
+            try:
+                csvContent = request.form.get("EmailAddresses")
+                
+                if csvContent:
+                    emailAddresses = csvContent.strip().split(",")
+                    processedAddresses = []
+                    
+                    for email in emailAddresses:
+                        cleanedEmail = email.strip().strip('"').strip("'")
+                        if cleanedEmail:
+                            processedAddresses.append(cleanedEmail)
+                    
+                    return jsonify({
+                        "processed": len(processedAddresses),
+                        "emails": processedAddresses
+                    })
+                    
+                return jsonify({"error": "No content provided"}), 400
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
             
-            @self.app.route("/status")
-            def status():
-                return render_template("status.html", SysName=self.SysName, PageTitle="Status")
+        @self.app.route("/api/settings/sendMessage", methods=["POST"])
+        def settings_sendMessage():
+            try:
+                message = request.form.get("message")
+                
+                with open(self._dir + "/data/messages.txt", "a") as f:
+                    f.write(message + "\n")
+                    
+                return jsonify({
+                    "message": "Message Sent"
+                })
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
             
-            @self.app.route("/experimental")
-            def experimental():
-                return render_template("experimental/newIndex.html", SysName=self.SysName, PageTitle="Experiments")
+        @self.app.route("/api/settings/getMessages", methods=["GET"])
+        def settings_getMessages():
+            try:
+                with open(self._dir + "/data/messages.txt", "r") as f:
+                    messages = f.read()
+                    
+                return jsonify(messages)
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
+            
+        @self.app.route("/api/settings/devtools/requestAccess", methods=["POST"])
+        def settings_devtools_requestAccess():
+            try:
+                password = request.form.get("password")
+                
+                if (str(password) != str(secrets["DevToolsPassword"]) and self.devMode == False):
+                    return jsonify({"error": "Invalid password"}), 401
+                
+                self.DevToolsOTP = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
+                self.DevToolsRefreshCount = 5
+                return jsonify(self.DevToolsOTP)
+                    
+            except Exception as e:
+                return jsonify({"error": str(e)}), 500
 
             @self.app.route("/ping")
             def ping():   

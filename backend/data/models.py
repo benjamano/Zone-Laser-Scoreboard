@@ -124,3 +124,53 @@ class FixtureChannelValue(db.Model):
     value = db.Column(db.Integer, nullable=False)
     name = db.Column(db.String(100), nullable=False)
     icon = db.Column(db.String(100), nullable=True)
+    
+class DMXPatchedChannel(db.Model):
+    __tablename__ = 'dmxpatchedchannel'
+    id = db.Column(db.Integer, primary_key=True)
+    channelId = db.Column(db.Integer)
+    fixtureChannelID = db.Column(db.Integer, db.ForeignKey("fixturechannel.id"), nullable=False)
+    
+class CustomHomeScreenPreset(db.Model):
+    __tablename__ = 'customhomescreenpreset'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False)
+    
+class PresetCard(db.Model):
+    __tablename__ = 'presetcard'
+    id = db.Column(db.Integer, primary_key=True)
+    cardId = db.Column(db.Integer, nullable=False)
+    homeScreenPresetId = db.Column(db.Integer, db.ForeignKey("customhomescreenpreset.id"), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False)
+    
+class NewFeatureRequest(db.Model):
+    __tablename__ = 'NewFeatureRequests'
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(255), nullable=False)
+    use_case = db.Column(db.String(255), nullable=False)
+    expected = db.Column(db.String(255), nullable=False)
+    details = db.Column(db.String(255), nullable=False)
+    request_id = db.Column(db.String(50), unique=True, nullable=False)
+    submitter_name = db.Column(db.String(100), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+class BugReport(db.Model):
+    __tablename__ = 'BugReports'
+    id = db.Column(db.Integer, primary_key=True)
+    description = db.Column(db.String(255), nullable=False)
+    when_occurs = db.Column(db.String(255), nullable=False)
+    expected_behavior = db.Column(db.String(255), nullable=False)
+    steps_to_reproduce = db.Column(db.String(255), nullable=False)
+    request_id = db.Column(db.String(50), unique=True, nullable=False)
+    submitter_name = db.Column(db.String(100), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+class SongRequest(db.Model):
+    __tablename__ = 'SongRequests'
+    id = db.Column(db.Integer, primary_key=True)
+    song_name = db.Column(db.String(255), nullable=False)
+    naughty_words = db.Column(db.Boolean, nullable=False)
+    request_id = db.Column(db.String(50), unique=True, nullable=False)
+    submitter_name = db.Column(db.String(100), nullable=True)
+    created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
