@@ -1,0 +1,257 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="card mb-3">
+
+    <div class="card-header" data-bs-toggle="collapse" href="#newFeatureOrBugCollapse" role="button" aria-expanded="true" aria-controls="newFeatureOrBugCollapse">
+        Leave Feedback or Request a song
+    </div>
+
+    <div class="collapse show" id="newFeatureOrBugCollapse">
+        <form class="needs-validation">
+            <div class="card-body">
+                <div class="row">
+                    <div class="form-group col-3">
+                        <label for="featureOrBugType">Select Type</label>
+
+                        <select class="form-control form-select" id="featureOrBugType" onchange="updateForm()" required>
+                            <option value="">Select Type</option>
+                            <option value="1">Feature</option>
+                            <option value="2">Bug</option>
+                            <option value="3">Song Addition</option>
+                        </select>
+                        <div class="invalid-feedback">
+                            Please select a type
+                        </div>
+                    </div>
+
+                    <div class="form-group col-3">
+
+                        <label for="submitterName">Your Name (Optional)</label>
+                        <input type="text" class="form-control" id="submitterName">
+
+                    </div>
+                </div>
+
+                <div id="songSubmissionFormTemplate" style="display: none;">
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="songName">Song Name *</label>
+                            <input type="text" class="form-control" id="songName" required>
+                            <div class="invalid-feedback">
+                                Please enter a song name
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-4">
+                            <label>Any naughty words? *</label>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsYes" value="yes" required>
+                                <label class="form-check-label" for="naughtyWordsYes">Yes</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsNo" value="no" required>
+                                <label class="form-check-label" for="naughtyWordsNo">No</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsClean" value="clean" required>
+                                <label class="form-check-label" for="naughtyWordsClean">There's a radio edit / clean version</label>
+                                <div class="invalid-feedback">
+                                    Please select an option
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row mt-3">
+                        <div class="form-group col-12">
+                            <label class="fw-bold">BEFORE SUBMITTING</label>
+                            <ul>
+                                <li>By submitting this request, you confirm that the requested song is appropriate for the theme of Laser-Tag.</li>
+                                <li>You also confirm that the song is available on Spotify.</li>
+                                <li>You also confirm that the song requested must be appropriate for children and must not contain themes or language that parents may consider inappropriate.</li>
+                            </ul>
+                            
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="agreeToRules" required>
+                                <label class="form-check-label" for="agreeToRules">
+                                    I agree that the song being requested aligns with the rules stated above. *
+                                </label>
+                                <div class="invalid-feedback">
+                                    You must agree to the rules before submitting
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="featureSubmissionFormTemplate" style="display: none;">
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="featureOrBugDescription">Feature Description *</label>
+                            <textarea class="form-control" rows="3" id="featureOrBugDescription" placeholder="What feature would you like to see added?" required></textarea>
+                            <div class="invalid-feedback">
+                                Please provide a feature description
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="featureUseCase">Use Case *</label>
+                            <textarea class="form-control" rows="2" id="featureUseCase" placeholder="When/how would this feature be used?" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe when this feature would be used
+                            </div>
+                        </div>
+
+                        <div class="form-group col-6">
+                            <label for="featureBenefits">Expected Benefits</label>
+                            <textarea class="form-control" rows="2" id="featureBenefits" placeholder="What benefits would this feature provide?"></textarea>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="featureAdditionalDetails">Additional Details</label>
+                            <textarea class="form-control" rows="3" id="featureAdditionalDetails" placeholder="Any additional details or suggestions"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="bugSubmissionFormTemplate" style="display: none;">
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="featureDescription">Bug Description *</label>
+                            <textarea class="form-control" rows="3" id="featureDescription" placeholder="What happened?" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe the bug
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="featureOrBugWhen">When Does It Occur *</label>
+                            <textarea class="form-control" rows="2" id="featureOrBugWhen" placeholder="When does this occur?" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe when this occurs
+                            </div>
+                        </div>
+
+                        <div class="form-group col-6">
+                            <label for="featureOrBugExpected">Expected Behavior *</label>
+                            <textarea class="form-control" rows="2" id="featureOrBugExpected" placeholder="What do you expect to happen?" required></textarea>
+                            <div class="invalid-feedback">
+                                Please describe the expected behavior
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="form-group col-6">
+                            <label for="featureOrBugSteps">Steps to Reproduce</label>
+                            <textarea class="form-control" rows="3" id="featureOrBugSteps" placeholder="Steps to reproduce (if applicable)"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card-footer">
+                <button type="submit" onclick="submitForm();" class="btn btn-success">Submit</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- <div class="card">
+
+    <div class="card-header" data-bs-toggle="collapse" href="#newSongAdditionCollapse" role="button" aria-expanded="false" aria-controls="newSongAdditionCollapse">Request a song to be added to the Laser Tag playlist</div>
+
+    <div class="card-body collapse" id="newSongAdditionCollapse">
+
+        <input type="text" class="form-control" placeholder="Feature or Bug Title" aria-label="Feature or Bug Title">
+
+    </div>
+
+</div> -->
+
+<script>
+
+    function updateForm(){
+        var selectedValue = $("#featureOrBugType").val();
+
+        $("#bugSubmissionFormTemplate").hide();
+        $("#featureSubmissionFormTemplate").hide();
+        $("#songSubmissionFormTemplate").hide();
+
+        if (selectedValue == 0) {
+            return;
+        }
+
+        if (selectedValue == "1"){
+            $("#featureSubmissionFormTemplate").show();
+        } else if (selectedValue == "2"){
+            $("#bugSubmissionFormTemplate").show();
+        } else if (selectedValue == "3"){
+            $("#songSubmissionFormTemplate").show();
+        }
+    }
+
+    function submitForm() {
+        const type = $("#featureOrBugType").val();
+        if (!type || type == "0") {
+            createNotification("Please select a type!");
+            return;
+        }
+    
+        const typeMap = {
+            "1": "NewFeature",
+            "2": "Bug",
+            "3": "SongAddition"
+        };
+    
+        const data = {
+            Type: typeMap[type],
+            SubmitterName: $("#submitterName").val()
+        };
+
+        if (type == "1") {
+            data.FeatureDescription = $("#featureOrBugDescription").val();
+            data.FeatureUseCase = $("#featureUseCase").val();
+            data.FeatureExpected = $("#featureBenefits").val();
+            data.FeatureDetails = $("#featureAdditionalDetails").val();
+        }
+        else if (type == "2") {
+            data.BugDescription = $("#featureDescription").val();
+            data.WhenItOccurs = $("#featureOrBugWhen").val();
+            data.ExpectedBehavior = $("#featureOrBugExpected").val();
+            data.StepsToReproduce = $("#featureOrBugSteps").val();
+        }
+        else if (type == "3") {
+            data.SongName = $("#songName").val();
+            data.NaughtyWords = $("input[name=\"naughtyWords\"]:checked").val();
+            data.AgreeToRules = $("#agreeToRules").is("checked");
+        }
+    
+        $.ajax({
+            url: "/api/feedback/submitForm",
+            type: "POST",
+            data: JSON.stringify(data),
+            contentType: "application/json",
+            success(response) {
+                createNotification(`Thank You!<br>Submitted with the ID: ${response.id}`, 30000);
+            },
+            error(xhr, status, error) {
+                createNotification(`Error: ${error}`, 30000);
+            }
+        });
+    }    
+
+</script>
+
+{% endblock %}
