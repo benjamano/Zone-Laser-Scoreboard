@@ -412,7 +412,42 @@ class WebApp:
             
             g.PageTitle = "Leave Feedback"
             
-            return render_template("feedback.html")
+            return render_template("feedback/leaveFeedback.html")
+        
+        @self.app.route("/api/feedback/submitForm", methods=["POST"])
+        def feedback_submitForm():
+            data = request.get_json()
+
+            requestId = ""
+
+            type = data.get("Type", "")
+            submitter = data.get("SubmitterName", "")
+            
+            if type == "NewFeature":
+                featureDescription = data.get("FeatureDescription", "")
+                featureUseCase = data.get("FeatureUseCase", "")
+                featureExpected = data.get("FeatureExpected", "")
+                featureDetails = data.get("FeatureDetails", "")
+                
+                requestId = processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
+            elif type == "Bug":
+                bugDescription = data.get("BugDescription", "")
+                whenItOccurs = data.get("WhenItOccurs", "")
+                expectedBehavior = data.get("ExpectedBehavior", "")
+                stepsToReproduce = data.get("StepsToReproduce", "")
+                
+                requestId = processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
+            elif type == "SongAddition":
+                songName = data.get("SongName", "")
+                naughtyWords = data.get("NaughtyWords", "")
+                
+                requestId = processSongRequest(songName, naughtyWords, submitter)
+            else:
+                return {"error": "Unknown Type"}, 400
+            
+            format.sendEmail(f"{type.title()} Feedback submitted by {submitter} with request ID {requestId}", f"{type.title()} Feedback Submitted")
+
+            return {"id": requestId}, 200
         
         @self.app.route("/statistics")
         def statistics():
