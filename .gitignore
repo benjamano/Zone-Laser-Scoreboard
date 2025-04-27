@@ -183,3 +183,5 @@ backend/data/display/OBSText.txt
 update.bat
 backend/data/messages.txt
 *.wfp
+*.wfp
+backend/data/messages.txt

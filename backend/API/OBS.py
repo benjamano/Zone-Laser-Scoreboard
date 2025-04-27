@@ -1,17 +1,20 @@
 import obsws_python as obs
-from func import format
-from func import Supervisor
+import pygetwindow as gw
+from API import format
+from API import Supervisor
 from data.models import *
 
 class OBS:
     """
     OBS class for controlling the OBS output.
     """
-    def __init__(self, OBSSERVERIP:str, OBSSERVERPORT:int, OBSSERVERPASSWORD:str, dir:str, supervisor: Supervisor):
+    def __init__(self, OBSSERVERIP:str, OBSSERVERPORT:int, OBSSERVERPASSWORD:str, dir:str, supervisor: Supervisor, secrets : dict):
         try:
             self.IP = OBSSERVERIP
             self.PORT = OBSSERVERPORT
             self.PASSWORD = OBSSERVERPASSWORD
+            self.AvailableMonitor = ""
+            self.Secrets = secrets
             
             self._supervisor : Supervisor.Supervisor = supervisor
             
@@ -21,49 +24,62 @@ class OBS:
             
             if self.obs != None:
                 format.message("Successfully Connected to OBS", type="success")
-                
-                self._supervisor.setDependencies(obs=self)
             else:
                 format.message("Failed To Connect To OBS", type="error")
 
         except Exception as e:
             format.message(f"Error Connecting to OBS: {e}", type="error")
+            
+        self._supervisor.setDependencies(obs=self)
         
     def getCurrentScene(self) -> str:
-        return
-    
-        #This appears to be broken.
+        if self.isConnected == False:
+            return ""
         
-        return self.obs.get_current_program_scene()
+        a = self.obs.get_current_program_scene()
+        
+        #format.message(vars(a))
+        
+        sceneName = a.scene_name
+        
+        return sceneName
 
-    def switchScene(self, sceneName:str) -> bool:
+    def isSceneSelected(self, sceneName : str) -> bool:
+        if self.isConnected() == False:
+            raise Exception("OBS is not connected")
+        
+        return (self.getCurrentScene()).lower() == sceneName.lower()
+
+    def switchScene(self, sceneName : str) -> bool:
         """
         Switches the current OBS scene to the specified scene name.
         
         Args:
             sceneName (str): The name of the scene to switch to in OBS
         """
-        # try:
-        #     if ((self.getCurrentScene()).lower() == sceneName.lower()):
-        #         return True
-        # except Exception as e:
-        #     ise : InternalServerError = InternalServerError()
-            
-        #     ise.service = "obs"
-        #     ise.exception_message = str(f"Error checking current scene: {e}")
-        #     ise.process = "OBS: Switch to Scene"
-        #     ise.severity = "1"
         
-        #     self._supervisor.logInternalServerError(ise)
+        if self.isConnected() == False:
+            return False
+        
+        try:
+            if (self.getCurrentScene()).lower() == sceneName.lower():
+                return True
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
             
-        #     return False
+            ise.service = "obs"
+            ise.exception_message = str(f"Error checking current scene: {e}")
+            ise.process = "OBS: Switch to Scene"
+            ise.severity = "1"
+        
+            self._supervisor.logInternalServerError(ise)
         
         try:
             self.obs.set_current_program_scene(sceneName)
             
             return True
         except Exception as e:
-            if getattr(e, "code", None) == 600:
+            if getattr(e, "code", 0) == 600:
                 ise : InternalServerError = InternalServerError()
             
                 ise.service = "obs"
@@ -109,6 +125,53 @@ class OBS:
             
             return False
         
+    def openProjector(self) -> bool:
+        """
+            Displays the projector screen on the OBS output.
+        """
+        
+        try:
+            if self.isPreviewOpen() == True:
+                return True
+                
+            self.getMonitorsToProjectTo()
+            
+            self.obs.open_video_mix_projector("OBS_WEBSOCKET_VIDEO_MIX_TYPE_PREVIEW", monitor_index=self.AvailableMonitor["monitorIndex"])
+            
+            return True
+        
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            
+            ise.service = "obs"
+            ise.exception_message = str(f"Error showing projector screen: {e}")
+            ise.process = "OBS: Show Projector Screen"
+            ise.severity = "2"
+                
+            self._supervisor.logInternalServerError(ise)
+            
+            return False
+        
+    def isPreviewOpen(self) -> bool:
+        windows = gw.getAllTitles()
+        for title in windows:
+            if "(Preview)" in title:
+                return True
+            elif "Full-Screen Projector" in title:
+                return True
+        return False
+        
+    def getMonitorsToProjectTo(self) -> list:
+        monitors = self.obs.get_monitor_list().monitors
+        
+        acceptedMonitors : list[str] = str(self.Secrets["MonitorsToProjectTo"]).split("/")
+        
+        monitorToProjectTo = next((monitor for monitor in monitors if monitor['monitorName'] in acceptedMonitors), monitors[0])
+        
+        self.AvailableMonitor = monitorToProjectTo
+        
+        return monitors
+        
     def showSleepMode(self) -> bool:
         try:
             """
@@ -136,14 +199,26 @@ class OBS:
             
             return False
 
-    def isConnected(self):
-        return self.obs.base_client.ws.connected
+    def isConnected(self) -> bool:
+        try:
+            if self.obs != None:
+                return self.obs.base_client.ws.connected
+            else:
+                return False
+        except AttributeError:
+            return False
+        except Exception:
+            raise
     
     def resetConnection(self) -> bool:
         try:
             format.message(f"Reseting OBS Connection", type="warning")
             self.obs = None
             self.obs = self.obs = obs.ReqClient(host=self.IP, port=self.PORT, password=self.PASSWORD, timeout=3)
+            
+            self._supervisor.setDependencies(obs=self)
+            
+            return True
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             
@@ -153,4 +228,5 @@ class OBS:
             ise.severity = "1"
                 
             self._supervisor.logInternalServerError(ise)
+            
             return False

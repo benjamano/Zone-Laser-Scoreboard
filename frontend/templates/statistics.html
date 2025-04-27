@@ -1,0 +1,52 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div class="mb-2 pb-2 border-bottom border-dark-subtle">
+	<div class="dropdown d-inline-block">
+	  <button class="btn btn-secondary dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+		Add Card
+	  </button>
+	  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="addCardDropdown">
+		<li><button class="dropdown-item" onclick="createTextAreaCard()">No. Laser Games Today</button></li>
+		<li><button class="dropdown-item" onclick="createTextAreaCard()">Avg. Number of Players</button></li>
+		<li><button class="dropdown-item" onclick="createTextAreaCard()">Min. Number of Players</button></li>
+		<li><button class="dropdown-item" onclick="createTextAreaCard()">Max. Number of Players</button></li>
+		<li><button class="dropdown-item" onclick="createTextAreaCard()">Avg. Game Length</button></li>
+		<li><hr class="dropdown-divider"></li>
+		<li><button class="dropdown-item" onclick="createTimeRemainingCard()">none</button></li>
+	  </ul>
+	</div>
+
+	<div class="dropdown d-inline-block ms-2">
+		<button class="btn btn-secondary dropdown-toggle" type="button" id="loadPresetDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+		  Load Preset
+		</button>
+		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="loadPresetDropdown">
+		  <li><button class="dropdown-item" href="#" onclick="" disabled>Coming Soon</button></li>
+		</ul>
+	  </div>
+  
+	<button class="btn btn-secondary ms-2" onclick="clearAllCards()">Clear All Cards</button>
+
+	<div class="dropdown d-inline-block ms-2">
+		<button class="btn btn-danger dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+			Help
+		</button>
+		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
+			<li class="dropdown-item">- Add Cards using the "Add Card" dropdown</li>
+			<li class="dropdown-item">- Drag cards by clicking and holding the card</li>
+			<li class="dropdown-item">- Resize the card by dragging the bottom right</li>
+			<li class="dropdown-item">- Delete the card by right-clicking the card</li>
+			<li class="dropdown-item">- Card positions save, reload the page and see!</li>
+			<li class="dropdown-item">- To request a card addition, suggest it in the feedback section</li>
+			<li class="dropdown-item">- More Cards coming soon!</li>
+		</ul>
+	</div>
+</div>
+
+<div class="movableItemsContainer"></div>
+
+<script src="/static/scripts/draggableCards.js"></script>
+
+{% endblock %}

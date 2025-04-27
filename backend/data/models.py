@@ -24,7 +24,6 @@ class InternalServerError(db.Model):
 
 @dataclass
 class ServiceHealthDTO:
-    id: int
     serviceName: str
     status: str
     numberOfRecentErrors: int
@@ -56,18 +55,29 @@ class Game(db.Model):
     winningPlayer = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
     winningTeam = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
 
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "startTime": self.startTime,
+            "endTime": self.endTime,
+            "winningPlayer": self.winningPlayer,
+            "winningTeam": self.winningTeam,
+        }
+
 class Team(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), unique=True, nullable=False)
     teamColour = db.Column(db.String(10), nullable=False)
-    gamePlayers = db.relationship("GamePlayers", backref="team_ref", lazy=True)
+    gamePlayers = db.relationship("GamePlayer", backref="team_ref", lazy=True)
 
-class GamePlayers(db.Model):
+class GamePlayer(db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    gameID = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
-    gunID = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
-    playerID = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=False)
-    playerWon = db.Column(db.Boolean, nullable=False)
+    gameId = db.Column(db.Integer, db.ForeignKey("game.id"), nullable=False)
+    gunId = db.Column(db.Integer, db.ForeignKey("gun.id"), nullable=False)
+    playerId = db.Column(db.Integer, db.ForeignKey("player.id"), nullable=True)
+    playerWon = db.Column(db.Boolean, nullable=True)
+    score = db.Column(db.Integer, nullable=True)
+    accuracy = db.Column(db.Integer, nullable=True)
     team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
 
 class DMXScene(db.Model):

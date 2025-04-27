@@ -79,40 +79,14 @@ def message(message, type="Info", date=True, newline=False):
             
         else:
             messagetosend += f"{logtime} | {color}{type.title()}{reset} : {message}"
+            
+        print(messagetosend)
 
         if type.title() == "Error":
             logger.error(f"{logtime} | {message}")
+            sendEmail(message, type)
         elif type.title() == "Warning":
             logger.warning(f"{logtime} | {message}")
-            
-        try:            
-            if type.title() == "Error":
-                
-                with open(fr"{dir}\..\data\keys.txt") as f:
-                    secretKey = f.readline().strip()  
-                    environment = f.readline().strip()
-                    
-                if "dev" in environment.lower():
-                    pass
-                else:
-                    url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
-                    data = {
-                        "type": type.title(),
-                        "messegeContent": message + f"<br>Sent by Environment: {environment}",
-                        "secretKey": secretKey
-                    }
-                    try:
-                        response = requests.post(url, data=data)
-                        response.raise_for_status()
-                    except Exception as e:
-                        pass
-                        #print(f"Failed to send log message to server: {e}")
-                    
-        except Exception as e:
-            pass
-            #print(f"Failed to send log message to server: {e}")
-
-        print(messagetosend)
         
         try:
             response = requests.post(
@@ -143,15 +117,41 @@ def newline(withDivider=True, baronly=False):
         
 def colourText(text : str, colour : str):
     """
-    Returns a formatted string with the given colour.
+    Returns a formatted string with the given colour depdending on the mode.
+    
+    Mode Options:
+    - 0 = CMD Text Colours
+    - 1 = HTML Text Colours
     
     Colour Options:
-    - Red
-    - Green
+`    - Red
+`    - Green
     - Yellow
     - Blue
     - Magenta
     - Cyan 
     - Black
     """
+    
     return f"{colours.get(colour.title(), '\033[94m')}{text}{reset}"
+
+def sendEmail(content, type):
+    try:   
+        with open(fr"{dir}\..\data\keys.txt") as f:
+            secretKey = f.readline().strip()  
+            environment = f.readline().strip()
+
+        if "dev" in environment.lower() and True:
+            return
+        
+        url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
+        data = {
+            "type": type.title(),
+            "messegeContent": content + f"<br>Sent by Environment: {environment}",
+            "secretKey": secretKey
+        }
+        
+        response = requests.post(url, data=data)
+                
+    except Exception as e:
+            message(f"Failed to send log message to server: {e}", type="error")

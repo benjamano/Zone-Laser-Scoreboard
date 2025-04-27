@@ -6,10 +6,10 @@
     --ghost-gray: #d2d5df54;
     --blue: #37a6d187;
     --pale-orange: #ff977b8c;
-    --bs-danger: #dc3545d1;
+    --bs-danger: #bb313e;
 
     --TBSHover: var(--primary-gray);
-    --TBSBGPrimary: var(--dark-gray);
+    --TBSBGPrimary: #1f2532;
     --TBSBGSecondary: var(--medium-dark-gray);
     --TSBBGLight: var(--light-gray);
     --TBSBGExtraLight: #9ea5ba1a;
@@ -281,7 +281,7 @@ overflow: scroll;
 
 #fixtures-container .fixture .title {
     color: white;
-    font-size: 1.2vw;
+    font-size: 1.2rem;
     text-align: center;
     text-decoration: underline;
     margin-bottom: 8.5vh;
@@ -364,7 +364,16 @@ overflow: scroll;
     z-index: 999;
     width: 100%;
     display: none;
-    animation: fadeInOut 2s ease-in-out 2;
+    animation: fadeInOut 2s ease-in-out infinite;
+    z-index: 99999999;
+    padding: 1rem;
+    cursor: not-allowed;
+}
+
+@keyframes fadeInOut {
+    0% { filter: brightness(0.8); }
+    50% { filter: brightness(1.2); }
+    100% { filter: brightness(0.8); }
 }
 
 .warning h1{
@@ -400,7 +409,7 @@ overflow: scroll;
 
 .valueLabel{
     margin-top: 1.5vh;
-    font-size: 1.7vw;
+    font-size: 1.7rem;
 }
 
 .invert{
@@ -491,6 +500,12 @@ overflow: scroll;
     margin-right: 0 !important;
 }
 
+.sidebarIcon{
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 0.5rem !important;
+}
+
 .sidebar ul {
     list-style-type: none;
     padding: 0;
@@ -554,7 +569,7 @@ main.collapsed {
 }
 
 .songTriggerLabel{
-    font-size: 0.9vw;
+    font-size: 0.8rem;
     opacity: 0.7;
     margin-bottom: 0.2rem;
 }
@@ -704,6 +719,8 @@ main.collapsed {
 
 .settingsIcon{
     transition: transform 0.5s ease-in-out;
+    /* width: unset !important;
+    height: unset !important; */
 }
 
 .nav-item:hover .settingsIcon {
@@ -792,7 +809,7 @@ main.collapsed {
 
 .sceneEventTable tr.header td {
     background-color: var(--TBSBGSecondary);
-    font-size: 0.7vw;
+    font-size: 0.7rem;
 }
 
 .sceneEventTable .active td{
@@ -855,7 +872,7 @@ main.collapsed {
 
 label{
     opacity: 0.7;
-    font-size: 1vw;
+    font-size: 1rem;
 }
 
 .songTriggerSelector{
@@ -1033,10 +1050,19 @@ label{
     padding: 0.5rem 1rem;
     top: -16px;
     position: relative;
+    z-index: 99999;
 }
 
 .cursor-pointer{
-    cursor: pointer;
+    cursor: pointer !important;
+}
+
+.cursor-no{
+    cursor: not-allowed !important;
+}
+
+.cursor-text{
+    cursor: text !important;
 }
 
 .resizable{
@@ -1084,14 +1110,19 @@ label{
     scale: 1.05;
 }
 
+.form-group label{
+    margin-bottom: 0.3rem;
+    margin-left: 0.2rem;
+    margin-top: 0.5rem;
+}
+
 .form-group .btn-group .btn{
     margin-top: 0.3rem !important;
 }
 
-/* .btn{
+.btn{
     margin-top: 1rem;
-    margin-bottom: 1rem;
-} */
+}
 
 .display-none{
     display: none !important;
@@ -1138,8 +1169,4 @@ label{
 .hover:hover .fas{
     filter: brightness(1);
     scale: 1.1;
-}
-
-.form-group{
-    margin-bottom: 1rem;
 }

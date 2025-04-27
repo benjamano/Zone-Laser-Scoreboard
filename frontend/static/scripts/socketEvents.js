@@ -97,7 +97,7 @@ socket.on('end', function(msg) {
 
         var gameStatus = document.getElementById('gameStatus');
 
-        $("#timeRemaining").text("00:00");
+        $("#timeRemaining").text("00:00:00");
 
         $("#gameStatus").removeClass("go-red go-blue go-green").addClass("go-mars");
         $("#gameStatus").text('Game ended at ' + new Date().toLocaleTimeString());
@@ -197,7 +197,7 @@ socket.on('timeRemaining', function (msg) {
 
                 const formattedTime = formatTime(currentTimeLeft);
                 $("#timeRemaining").text(formattedTime);
-            }, 100);
+            }, 1000);
         }
     }
     catch(err){}
@@ -247,53 +247,49 @@ socket.on('songName', function (msg) {
 socket.on('createWarning', function (msg) {
     console.log(msg.message);
 
-    if (msg.message == "Restart"){
-        $("#warningsText").text(msg.message);
-
-        try{
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-            }
-        }
-        catch{}
-
-        TimeUntilRestart = 60;
-
-        RestartCountdownInterval = setInterval(function () {
-            if (TimeUntilRestart <= 0) {
-                clearInterval(RestartCountdownInterval);
-                return;
-            }
-
-            TimeUntilRestart--;
-
-            const formattedTime = formatTime(TimeUntilRestart);
-            $("#warningsText").text("warning: WebApp restarting in "+formattedTime + " | MUSIC WILL NOT BE AVAILABLE DURING THIS PERIOD");
-        }, 1000);
-    }
-    else{
-        $("#warningsText").text(msg.message);
-    }
-
-    $("#warningsContainer").css("display", "unset");
-
+    createWarning(msg.message);
 });
 
-socket.on('musicStatus', function (msg) {
-    try{
-        console.log(msg.message);
+// socket.on('musicStatus', function (msg) {
+//     try{
+//         console.log(msg.message);
 
-        if (msg.message == "playing"){
+//         if (msg.message == "playing"){
+//             gamePlayingStatus = "playing";
+//             $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
+//         } else {
+//         gamePlayingStatus = "stopped";
+//             $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+//         }
+//     }
+//     catch(err){}
+// });
+
+socket.on('musicStatusV2', function (msg) {
+    try {
+        msg = msg.message;
+
+        if (msg.playbackStatus == "playing") {
             gamePlayingStatus = "playing";
             $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
         } else {
-        gamePlayingStatus = "stopped";
+            gamePlayingStatus = "stopped";
             $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
         }
-    }
-    catch(err){}
-});
 
+        if (msg.duration && msg.duration != totalDuration) {
+            if (msg.musicPosition != undefined) {
+                currentTime = msg.musicPosition;
+            }
+
+            totalDuration = msg.duration;
+
+            updateProgressBar(currentTime, totalDuration);
+        }
+    } catch (err) {
+        console.error("Error processing music status:", err);
+    }
+});
 socket.on('songBPM', function (msg) {
     try{
         console.log(msg.message);
@@ -333,21 +329,21 @@ socket.on('songBPM', function (msg) {
     catch(err){}
 });
 
-socket.on('musicDuration', function(duration) {
-    try{
-        totalDuration = duration.message;
-        updateProgressBar(currentTime, totalDuration); 
-    }
-    catch(err){}
-});
+// socket.on('musicDuration', function(duration) {
+//     try{
+//         totalDuration = duration.message;
+//         updateProgressBar(currentTime, totalDuration); 
+//     }
+//     catch(err){}
+// });
 
-socket.on('musicPosition', function(position) {
-    try{
-        currentTime = position.message;
-        updateProgressBar(currentTime, totalDuration);
-    }
-    catch(err){}
-});
+// socket.on('musicPosition', function(position) {
+//     try{
+//         currentTime = position.message;
+//         updateProgressBar(currentTime, totalDuration);
+//     }
+//     catch(err){}
+// });
 
 socket.on('UpdateDMXValue', function(data) {
     console.log("Updating DMX Value: ", data)
@@ -364,7 +360,7 @@ socket.on('UpdateDMXValue', function(data) {
 });
 
 socket.on("refreshPage", function() {
-    location.reload();
+    location.reload(true);
 });
 
 socket.on("logMessage", function(data) {

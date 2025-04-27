@@ -2,26 +2,26 @@ from typing import TYPE_CHECKING
 from subprocess import Popen
 
 import psutil
-from func.format import message, colourText
+from API.format import message, colourText
 import threading, datetime
 import time, os
 from data.models import *
 from flask import Flask
 
 if TYPE_CHECKING:
-    from func.OBS import OBS as _OBS
-    from func.DMXControl import dmx as _dmx
-    from func.DB import context as _context
+    from API.OBS import OBS as _OBS
+    from API.DMXControl import dmx as _dmx
+    from API.DB import context as _context
     from webApp import WebApp as _webApp 
 
 class Supervisor:
-    def __init__(self, devMode: bool):        
+    def __init__(self):        
         self._obs = None
         self._dmx = None
         self._context = None
         self._app = None
         self._webApp = None
-        self.devMode = devMode
+        self.devMode = False
         self._services = ["db", "obs", "dmx", "api"]
         self.expectedProcesses = ["Spotify.exe", "obs64"]
         self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
@@ -39,19 +39,21 @@ class Supervisor:
             self._context: "_context" = db
         if webApp is not None:
             self._webApp: "_webApp" = webApp
+            self.devMode = webApp.devMode
         if webApp is not None:
             self._app: Flask = webApp.app
             
     def setOtherDependencies(self):
         message(colourText(f"Supervisor: Restarted Service, Setting dependencies...", "Red"), type="info")
         try:
+            # TODO: NEED TO SET ALL OTHER DEPENDENCIES TO THE NEW DEPENDENCIES
             pass
         except Exception as e:
             message(f"Error occurred while resetting Web App's dependencies: {e}", type="error")
         
     def __checkForErrors(self):
         while True:
-            time.sleep(30)
+            time.sleep(3)
 
             try:
                 # Check if all expected processes are running
@@ -65,7 +67,7 @@ class Supervisor:
                                     os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                                 elif processName.lower() == "obs64":
                                     os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
-                                    time.sleep(10)
+                                    time.sleep(30)
                                     self.__resetOBSConnection()
                             except Exception as e:
                                 message(f"Error starting process {processName}: {e}", type="error")
@@ -84,7 +86,7 @@ class Supervisor:
                 
             try:
                 # Check OBS Connection
-                if self._obs != None and (self.hasSevereErrorOccurred("obs") or not self._obs.isConnected()):
+                if self._obs != None and (self.hasSevereErrorOccurred("obs") or self._obs.isConnected() == False):
                     message("OBS Connection Error", type="error")
                     threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
             except Exception as e:
@@ -99,20 +101,25 @@ class Supervisor:
                 message(f"Error occured while checking DMX status: {e}", type="error")
                 
             try:
-                # Check the time to enter sleep mode
-                with self._app.app_context():
-                    foundGame : Game = (self._context.db.session
-                        .query(Game)
-                        .order_by(Game.startTime)
-                        .first())
+                if self._obs.isConnected() == True:
+                    self._obs.openProjector()
                     
-                    if foundGame != None and foundGame.endTime != None:
-                        startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
-                        timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
-                        currentTime = datetime.datetime.now().time()
-                        if startTime < timeToCheck and self._obs != None and (currentTime < datetime.time(11, 0) or currentTime > datetime.time(17, 0)) :
-                            #message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck}")
-                            self._obs.switchScene("Test Mode")
+                    if (self._obs.getCurrentScene()).lower() != "video":
+                        # Check the time to enter sleep mode
+                        with self._app.app_context():
+                            foundGame : Game = (self._context.db.session
+                                .query(Game)
+                                .order_by(Game.startTime.desc())
+                                .first())
+                            
+                            if foundGame != None and foundGame.endTime != None:
+                                startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
+                                timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
+                                currentTime = datetime.datetime.now().time()
+                                if startTime < timeToCheck and self._obs != None and (currentTime < datetime.time(11, 0) or currentTime > datetime.time(17, 0)):
+                                    # message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
+                                    self._obs.switchScene("Test Mode")
+                                
             except Exception as e:
                 pass
                 message(f"Error occurred while switching to sleep mode: {e}", type="warning")
@@ -177,10 +184,10 @@ class Supervisor:
         self.__closeApp("Database Connection Error")
         
     def __resetOBSConnection(self):
-        self._obs = self._obs.resetConnection()
+        self._obs.resetConnection()
         
     def __resetDMXConnection(self):
-        self._dmx = self._dmx.resetConnection()
+        self._dmx.resetConnection()
         
     def __restartPC(self, reason: str):
         message(f"Restarting PC. Reason {reason}", type="error")
@@ -202,34 +209,44 @@ class Supervisor:
     def getServiceHealth(self, serviceName: str):
         try:
             if self._context != None:
-                notSetup : bool = (serviceName.lower() == "dmx" and self._dmx == None) or (serviceName.lower() == "db" and self._context == None) or (serviceName.lower() == "obs" and self._obs == None)
+                notSetup = (
+                    (serviceName.lower() == "dmx" and (self._dmx is None or self._dmx.isConnected() is False)) or 
+                    (serviceName.lower() == "db" and self._context is None) or
+                    (serviceName.lower() == "obs" and (self._obs is None or self._obs.isConnected() is False))
+                )
                 
                 severeErrorOccured : bool = self.hasSevereErrorOccurred(str(serviceName).lower())
                 moderateErrorOccured : bool = self.hasModerateErrorOccurred(str(serviceName).lower())
                 
-                if severeErrorOccured or notSetup == True:
-                    status = "Critical"
-                elif moderateErrorOccured:
-                    status = "Warning"
+                if notSetup:
+                    status = "Disconnected"
                 else:
-                    status = "OK"
+                    if severeErrorOccured:
+                        status = "Critical"
+                    elif moderateErrorOccured:
+                        status = "Warning"
+                    else:
+                        status = "OK"
                     
                 recentErrors: list[dict] = [
                     error.to_dict() for error in self.getRecentServiceErrors(str(serviceName).lower())
                 ]
                 
                 return ServiceHealthDTO(
-                    id=0,
                     serviceName=serviceName,
-                    status= status,
+                    status=status,
                     numberOfRecentErrors=len(recentErrors),
                     recentErrorList=recentErrors
-                    
                 )
         except Exception as e:
             message(f"Error occurred while getting service health: {e}", type="warning")
         
-        return None
+        return ServiceHealthDTO(
+            serviceName=serviceName,
+            status="Unknown",
+            numberOfRecentErrors=-1,
+            recentErrorList=-1
+        )
 
     def logInternalServerError(self, ise: InternalServerError):
         try:

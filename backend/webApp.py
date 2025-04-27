@@ -1,7 +1,9 @@
-from flask import Flask, render_template, request, jsonify
+import string
+from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
+from dotenv import dotenv_values
 
 try:
     import winrt.windows.media.control as wmc
@@ -21,46 +23,71 @@ from API.Feedback.feedback import *
 
 from data.models import *
 
-from func.createApp import *
+from API.createApp import *
 
 class WebApp:
     def __init__(self):
+        global secrets
+        
         self._dir = os.path.dirname(os.path.realpath(__file__))
-
+        
+        secrets = dotenv_values(self._dir.replace(r"\backend", "") + r"\.env")
+        
+        # print(secrets)
+        
+        format.message(format.colourText("Loading Environment Variables", "Cyan"), type="info")
+        
+        # LOAD ENVIRONMENT VARIABLES
+        self.ENVIRONMENT = secrets["Environment"]
+        self.IP1 = secrets["IP1"]
+        self.IP2 = secrets["IP2"]
+        self.ETHERNET_INTERFACE = secrets["EthernetInterface"]
+        self.OBSSERVERIP = secrets["ObsServerIp"]
+        self.OBSSERVERPORT = secrets["ObsServerPort"]
+        self.OBSSERVERPASSWORD = secrets["ObsServerPassword"]
+        # END LOAD
+        
+        # LOAD SYSTEM VARIABLES
+        self.SysName = "TBS"
+        self.VersionNumber = "1.1.6"
+        # END LOAD
+        
+        # INIT ALL OTHER VARIABLES
         self.OBSConnected = False
-        self.devMode = False
-        self.filesOpened = False
+        self.devMode = self.ENVIRONMENT == "Development"
         self.spotifyControl = True
-        self.DMXConnected = False
         self.spotifyStatus = "paused"
         self._localIp = ""
-        self.rateLimit = False
         self.RestartRequested = False
         self.gameStatus = "stopped" # Either running or stopped
         self.endOfDay = False
-        self.SysName = "TBS"
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}    
+        self.DevToolsOTP = ""
+        self.DevToolsRefreshCount = 5
+        # END INIT
            
+        # INIT DEPENDANCIES
         self._supervisor : Supervisor = None
         self._obs : OBS = None
         self._dmx : dmx = None
         self._context : context = None
         self.app : Flask = None
+        self._emailsApi : EmailsAPIController = None
+        # END INIT
                 
         pyautogui.FAILSAFE = False
 
         format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
         
         self.initLogging()
+        
         self.app, self.socketio, self._context = create_app(self._supervisor) 
         
-        self.openFiles()
+        format.message(format.colourText("Setting up routes..." ,"Blue"))
         
         self.setupRoutes()
-        
-        self.fetcher = MediaBPMFetcher(self.SPOTIPY_CLIENT_ID, self.SPOTIPY_CLIENT_SECRET)
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
@@ -108,7 +135,7 @@ class WebApp:
             self.flaskThread.start()
             
             format.message("Waiting for app to start", type="warning")
-            time.sleep(3)
+            time.sleep(2)
             
         except Exception as e:
             format.message(f"Error starting Flask Server: {e}", type="error")
@@ -123,17 +150,17 @@ class WebApp:
         # with self.app.app_context():
         #     self._context = context(self.app, self._supervisor, self.db)
         
-        def bpmLoop():
-            while True:
-                try:
-                    self.findBPM()
-                    time.sleep(10)
-                except Exception as e:
-                    format.message(f"Error in BPM loop: {e}", type="error")
-                    break
+        # def bpmLoop():
+        #     while True:
+        #         try:
+        #             self.findBPM()
+        #             time.sleep(10)
+        #         except Exception as e:
+        #             format.message(f"Error in BPM loop: {e}", type="error")
+        #             break
 
-        self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
-        self.bpm_thread.start()  
+        # self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
+        # self.bpm_thread.start()  
             
         format.message("Attempting to start Media status checker")
         
@@ -145,8 +172,8 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting Media Status Checker: {e}", type="error")
         
-        if self.devMode == False:
-            webbrowser.open(f"http://{self._localIp}:8080")
+        # if self.devMode == False:
+        #     webbrowser.open(f"http://{self._localIp}:8080")
             
         try:
             self.obs_thread = threading.Thread(target=self.connectToOBS)
@@ -165,12 +192,12 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting DMX Connection: {e}", type="error")
 
-        format.message("Web App Started, hiding console", type="success")
+        # format.message("Web App Started, hiding console", type="success")
         
-        try:
-            ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        except Exception as e:
-            format.message(f"Hiding console: {e}", type="error")
+        # try:
+        #     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+        # except Exception as e:
+        #     format.message(f"Hiding console: {e}", type="error")
         
         try:
             self.sniffing_thread = threading.Thread(target=self.startSniffing)
@@ -180,10 +207,22 @@ class WebApp:
         except Exception as e:
             format.message(f"Error starting packet sniffer: {e}", type="error")
             
+        try:
+            self.fetcher = MediaBPMFetcher()
+        except Exception as e:
+            format.message(f"Error starting music info fetcher: {e}", type="error")
+            
+        try:
+            self._emailsApi = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"], secrets["GmailSenderEmail"], secrets["GmailSenderDisplayName"])
+        except Exception as e:
+            format.message(f"Error starting email api: {e}", type="error")
+            
         while self._supervisor == None:
             time.sleep(1)
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
+        
+        format.sendEmail(f"Web App started at {str(datetime.datetime.now())}", "APP STARTED")
         
         format.newline()    
         
@@ -195,7 +234,7 @@ class WebApp:
         return
     
     def startSupervisor(self):
-        self._supervisor = Supervisor(devMode=self.devMode)
+        self._supervisor = Supervisor()
         
         return
     
@@ -209,7 +248,7 @@ class WebApp:
             format.message(f"Error starting DMX Connection: {e}", type="error")
             return
         
-        if self._dmx != None:
+        if self._dmx.isConnected() == True:
             
             try:
                 format.message("Registering Red Bulk-Head Lights", type="info")
@@ -244,51 +283,10 @@ class WebApp:
             format.message("DMX Connection set up successfully", type="success")
         
     def connectToOBS(self):
-        if self.OBSSERVERIP != "" and self.OBSSERVERPASSWORD != "" and self.OBSSERVERPORT != "":
-            try:
-                self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor)
-            except Exception as e:
-                format.message(f"Error setting up OBS connection: {e}", type="error")
-        else:
-            format.message("Development Mode or missing OBS details, skipping OBS Connection", type="warning")
-
-    def openFiles(self):
         try:
-            f = open(fr"{self._dir}\data\keys.txt", "r")
-            
-            blank = f.readline()
-            blank = f.readline()
-            self.IP1 = str(f.readline().strip())
-            self.IP2 = str(f.readline().strip())
-            self.ETHERNET_INTERFACE = str(f.readline().strip())
-            self.OBSSERVERIP = str(f.readline().strip())
-            self.OBSSERVERPORT = int(f.readline().strip() or 0)
-            self.OBSSERVERPASSWORD = str(f.readline().strip())
-            self.DMXADAPTOR = str(f.readline().strip())
-            self.SPOTIPY_CLIENT_ID = str(f.readline().strip() or "null")
-            self.SPOTIPY_CLIENT_SECRET = str(f.readline().strip() or "null")
-            
+            self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor, secrets)
         except Exception as e:
-            format.message(f"Error opening keys.txt: {e}", type="error")
-            
-        try:
-            f = open(fr"{self._dir}\data\dev.txt", "r")
-            
-            devMode = f.readline().strip()
-            
-            if devMode.lower() == "true":
-                self.devMode = True
-                
-                format.message("Development Mode Enabled", type="warning")
-            else:
-                self.devMode = False
-                
-        except Exception as e:
-            format.message(f"Error opening dev.txt: {e}", type="error")
-
-        format.message("Files opened successfully", type="success")
-            
-        self.filesOpened = True
+            format.message(f"Error setting up OBS connection: {e}", type="error")
 
     def setupRoutes(self):     
         # @self.app.errorhandler(404)
@@ -414,42 +412,7 @@ class WebApp:
             
             g.PageTitle = "Leave Feedback"
             
-            return render_template("feedback/leaveFeedback.html")
-        
-        @self.app.route("/api/feedback/submitForm", methods=["POST"])
-        def feedback_submitForm():
-            data = request.get_json()
-
-            requestId = ""
-
-            type = data.get("Type", "")
-            submitter = data.get("SubmitterName", "")
-            
-            if type == "NewFeature":
-                featureDescription = data.get("FeatureDescription", "")
-                featureUseCase = data.get("FeatureUseCase", "")
-                featureExpected = data.get("FeatureExpected", "")
-                featureDetails = data.get("FeatureDetails", "")
-                
-                requestId = processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
-            elif type == "Bug":
-                bugDescription = data.get("BugDescription", "")
-                whenItOccurs = data.get("WhenItOccurs", "")
-                expectedBehavior = data.get("ExpectedBehavior", "")
-                stepsToReproduce = data.get("StepsToReproduce", "")
-                
-                requestId = processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
-            elif type == "SongAddition":
-                songName = data.get("SongName", "")
-                naughtyWords = data.get("NaughtyWords", "")
-                
-                requestId = processSongRequest(songName, naughtyWords, submitter)
-            else:
-                return {"error": "Unknown Type"}, 400
-            
-            format.sendEmail(f"{type.title()} Feedback submitted by {submitter} with request ID {requestId}", f"{type.title()} Feedback Submitted")
-
-            return {"id": requestId}, 200
+            return render_template("feedback.html")
         
         @self.app.route("/statistics")
         def statistics():
@@ -635,6 +598,31 @@ class WebApp:
         def ping():   
             #format.message("|--- I'm still alive! ---|")
             return 'OK'
+        
+        @self.app.route("/api/getAllGames", methods=["GET"])
+        def getAllGames():
+            try:
+                games : list[Game] = self._context.getAllGames()
+                
+                gameList : list[dict] = []
+                
+                for game in games:
+                    gameList.append(game.to_dict())
+                    
+                return jsonify(gameList)
+            
+            except Exception as e:
+                return
+                # ise : InternalServerError = InternalServerError()
+                
+                # ise.service = "api"
+                # ise.exception_message = str(f"Error getting service status: {e}, Traceback: {e.__traceback__}")
+                # ise.process = "API: Get Service Status"
+                # ise.severity = "1"
+                
+                # self._supervisor.logInternalServerError(ise)
+                
+                # return jsonify({"error": f"Error getting service status: {e}"}), 500
         
         @self.app.route("/api/serviceStatus", methods=["GET"])
         def serviceStatus():
@@ -1042,10 +1030,12 @@ class WebApp:
             
         @self.socketio.on('playBriefing')
         def playBriefing():
-            if self._obs != None:
+            if self._obs != None and self._obs.isConnected() == True:
                 try:
-                    format.message("Playing briefing")
+                    #format.message("Playing briefing")
                     self._obs.switchScene("Video")
+                    
+                    return 200
                 except Exception as e:
                     ise : InternalServerError = InternalServerError()
                 
@@ -1055,8 +1045,10 @@ class WebApp:
                     ise.severity = "1"
                     
                     self._supervisor.logInternalServerError(ise)
+
             else:
-                format.message("OBS not connected", type="error")
+                #format.message("OBS not connected, cannot play breifing!", type="warning")
+                return 500
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
@@ -1079,6 +1071,7 @@ class WebApp:
                 ise.severity = "1"
                 
                 self._supervisor.logInternalServerError(ise)
+                    
             # ise : InternalServerError = InternalServerError()
             
             # ise.service = "api"
@@ -1162,15 +1155,13 @@ class WebApp:
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
-                    
-            time.sleep(2)
                 
-            try:
-                self.bpm_thread = threading.Thread(target=self.findBPM)
-                self.bpm_thread.daemon = True
-                self.bpm_thread.start()
-            except Exception as e:
-                format.message(f"Error running BPM thread: {e}", type="error")
+            # try:
+            #     self.bpm_thread = threading.Thread(target=self.findBPM)
+            #     self.bpm_thread.daemon = True
+            #     self.bpm_thread.start()
+            # except Exception as e:
+            #     format.message(f"Error running BPM thread: {e}", type="error")
                 
             return result
                     
@@ -1182,11 +1173,12 @@ class WebApp:
             format.message("Development mode, skipping restart", type="warning")
             return
         
-        format.message(f"Restarting App in 1 minute due to {reason}", type="warning")
+        format.message(f"Restarting App due to {reason}", type="error")
         
-        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Restart", 'type': "createWarning"})
+        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Restarting Web App Now!", 'type': "createWarning"})
         
-        time.sleep(60)
+        # Make sure all the end of game processing completes
+        time.sleep(5)
         
         format.message("Restarting App", type="warning")
 
@@ -1274,11 +1266,7 @@ class WebApp:
             
                 #format.message(f"Current song: {song}, BPM: {bpm}")
             
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
-            
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
-            
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
                 
                 self.rateLimit = False
                 
@@ -1289,59 +1277,82 @@ class WebApp:
             else:
                 format.message(f"Error occured while handling BPM: {e}", type="warning")
         
-    def findBPM(self):
-        try:
-            try:
-                self.fetcher.fetch()
-                song, bpm, album = self.fetcher.get_current_song_and_bpm()
+    # def findBPM(self):
+    #     try:
+    #         try:
+    #             self.fetcher.fetch()
+    #             song, bpm, album = self.fetcher.get_current_song_and_bpm()
                 
-                if type(bpm) == str:
-                    bpm = 0
+    #             if type(bpm) == str:
+    #                 bpm = 0
                 
-                self.handleBPM(song, album, bpm)
-            except Exception as e:
-                format.message(f"Error fetching BPM: {e}", type="error")
+    #             self.handleBPM(song, album, bpm)
+    #         except Exception as e:
+    #             format.message(f"Error fetching BPM: {e}", type="error")
             
-            temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+    #         temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
 
-            if temp_spotifyStatus != self.spotifyStatus:
-                self.spotifyStatus = temp_spotifyStatus
+    #         if temp_spotifyStatus != self.spotifyStatus:
+    #             self.spotifyStatus = temp_spotifyStatus
 
-                try:
-                    response = requests.post(
-                        f'http://{self._localIp}:8080/sendMessage',
-                        json={'message': self.spotifyStatus, 'type': "musicStatus"}
-                    )
-                    if response.status_code != 200:
-                        raise Exception(f"Failed to send status: {response.text}")
-                except Exception as e:
-                    format.message(f"Error sending Spotify status: {e}", type="error")
+    #             try:
+    #                 response = requests.post(
+    #                     f'http://{self._localIp}:8080/sendMessage',
+    #                     data={'message': self.spotifyStatus, 'type': "musicStatus"}
+    #                 )
+    #                 if response.status_code != 200:
+    #                     raise Exception(f"Failed to send status: {response.text}")
+    #             except Exception as e:
+    #                 format.message(f"Error sending Spotify status: {e}", type="error")
 
-        except Exception as e:
-            format.message(f"Failed to find BPM: {e}", type="error")
-
+    #     except Exception as e:
+    #         format.message(f"Failed to find BPM: {e}", type="error")
    
     def mediaStatusChecker(self):
         while True:
+            time.sleep(5)
+            
+            try:
+                song, album, bpm = self.fetcher.get_current_song_and_bpm()
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
+                
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
+                
+                # self.handleBPM(song)
+            
+            except Exception as e:
+                pass
+            
             try:
                 temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
                 
                 if temp_spotifyStatus != self.spotifyStatus:
                     self.spotifyStatus = temp_spotifyStatus
                     
-                    try:
-                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
-                    except Exception as e:
-                        format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
+                try:
+                    # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
-                if currentPosition and totalDuration:
-                    try:
-                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
-                        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
-                    except Exception as e:
-                        format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
+                    response = requests.post(
+                        f"http://{self._localIp}:8080/sendMessage",
+                        json={
+                            "message": {
+                                "playbackStatus": self.spotifyStatus,
+                                "musicPosition": currentPosition,
+                                "duration": totalDuration
+                            },
+                            "type": "musicStatusV2"
+                        }
+                    )
+                except Exception as e:
+                    format.message(f"Error sending music status message: {e}.", type="error")
                     
-                time.sleep(3)
+                # if currentPosition and totalDuration:
+                #     try:
+                #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
+                #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
+                #     except Exception as e:
+                #         format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                 
             except Exception as e:
                 format.message(f"Error occured while checking media status: {e}", type="error")
@@ -1353,13 +1364,10 @@ class WebApp:
                 if str(e) != "an integer is required":
         
                     format.message("Requesting app restart", type="warning")
-                    if self.gameStatus != "stopped":
-                        pyautogui.press("playpause")
+                        
+                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                     
                     self.RestartRequested = True
-                    
-                    self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested - BPM Issue: {e}"))
-                    self.AppRestartThread.daemon = True
                     
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
                     time.sleep(600)
@@ -1410,7 +1418,7 @@ class WebApp:
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        #format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
+        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
         if packetData[1] == "@015":
             self.gameStarted()
@@ -1449,15 +1457,11 @@ class WebApp:
         if int(timeLeft) <= 0:
             #format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
             self.gameEnded()
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
-            #format.message(f"Response: {response.text}")
         else:
             self.gameStarted()
             self.endOfDay = False
             if self._obs != None:
                 self._obs.switchScene("Laser Scores")
-            #format.message(f"{timeLeft} seconds remain!", type="success") 
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
         
         #format.newline()
@@ -1467,20 +1471,20 @@ class WebApp:
         finalScore = packetData[3]
         accuracy = packetData[7]
 
-        gunName = None
+        gunName = ""
         
         try:
             with self.app.app_context():
-                gunName = "name: "+ self._context.Gun.query.filter_by(id=gunId).first().name
+                gunName : str = self._context.Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
             format.message(f"Error getting gun name: {e}", type="error")
-        
-        if gunName == None:
+            
+        if gunName == "":
             gunName = "id: "+gunId
             
         try:
-            self.GunScores[gunName.strip("name: ")] = finalScore
+            self.GunScores[gunId] = finalScore
         except Exception as e:
             format.message(f"Error updating Gun Scores: {e}", type="error")
             
@@ -1502,6 +1506,11 @@ class WebApp:
         
         format.newline()
         
+        try:
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+        except Exception as e:
+            pass
+                    
         format.message(f"Game started at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.handleMusic(mode="play")
@@ -1512,6 +1521,8 @@ class WebApp:
         self.endOfDay = False
 
         self.currentGameId = self._context.createNewGame()
+        
+        format.message(f"Created new game with Id {self.currentGameId}")
             
         if self._obs != None:
             self._obs.switchScene("Laser Scores")
@@ -1519,6 +1530,11 @@ class WebApp:
     def gameEnded(self):
         if self.gameStatus == "stopped":
             return
+        
+        try:
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+        except Exception as e:
+            pass
         
         format.message(f"Game ended at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
@@ -1548,8 +1564,6 @@ class WebApp:
                 self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
                 #format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
-                
-                self.currentGameId = 0
             
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -1560,21 +1574,71 @@ class WebApp:
             ise.severity = "2"
             
             self._supervisor.logInternalServerError(ise)
+            
+        try:
+            with self.app.app_context():
+                for gunId, score in self.GunScores.items():
+                    gamePlayer : GamePlayer = self._context.GamePlayer.query.filter_by(gameId=self.currentGameId).filter_by(gunId=gunId).first()
+                        
+                    if gamePlayer != None:
+                        gamePlayer.score = score
+                        gamePlayer.accuracy = 0
+                        self._context.SaveChanges()
+                        
+                    else:
+                        gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score, accuracy=0)
+                        self._context.addGamePlayer(gamePlayer)
+                        
+                    format.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
+                    
+                self.currentGameId = 0
+                    
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "zone"
+            ise.exception_message = str(f"Failed to update player scores in DB: {e}")
+            ise.process = "Zone: Update Gun Scores in DB"
+            ise.severity = "3"
+            
+            self._supervisor.logInternalServerError(ise)
+            
+        try:
+            if self.RestartRequested == True:
+                self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested"))
+                self.AppRestartThread.daemon = True
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "webapp"
+            ise.exception_message = str(f"Failed to check for requested restart: {e}")
+            ise.process = "WebApp: Check for requested restarts"
+            ise.severity = "2"
+            
+            self._supervisor.logInternalServerError(ise)
 
-    # -----------------| Testing |-------------------------------------------------------------------------------------------------------------------------------------------------------- #    
+    # -------------------------------------------------------------------------| Testing |----------------------------------------------------------------------------------------------------------------------------------- #    
     
     def sendTestPacket(self, type="server"):
         format.message(f"Sending {type} packet")
         match type.lower():
             case "server":
+                self.RestartRequested = True
+                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
+                
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
                 format.message(f"Response: {response.text}")
             case "start":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Start Test Packet sent @ {datetime.datetime.now()}", 'type': "start"})
-                format.message(f"Response: {response.text}")
+                self.gameStarted()
             case "end":
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game End Test Packet sent @ {datetime.datetime.now()}", 'type': "end"})
-                format.message(f"Response: {response.text}")
+                self.gameEnded()
+            case "gunscore":
+                for i in range(120, 110, -2):
+                    self.timingPacket([0, 0, 0, i])
+                    self.finalScorePacket([0, 1, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    self.finalScorePacket([0, 3, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    self.finalScorePacket([0, 7, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    time.sleep(2)
         
     # -----------------| Utlities |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         

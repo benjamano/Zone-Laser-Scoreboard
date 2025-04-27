@@ -1,5 +1,5 @@
 try:
-    import __init__ as init
+    import checkDependencies as init
     import os
     import signal
     import threading
@@ -62,7 +62,7 @@ try:
     
     init.start()
     
-    from func import format
+    from API import format
     
     format.newline()
     

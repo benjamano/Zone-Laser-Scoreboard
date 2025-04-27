@@ -5,7 +5,7 @@ function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     const milliseconds = Math.floor((seconds % 1) * 1000);
-    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}.${milliseconds.toString().padStart(3, '0')}`;
+    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
 }
 
 function createCard() {
@@ -225,6 +225,10 @@ function loadCardConfig() {
                 contentArea = createTimeRemainingCard();
                 break;
             case "teamScoreCard":
+                break;
+            case "textAreaCard":
+                contentArea = createTextAreaCard();
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -453,15 +457,15 @@ function createTimeRemainingCard() {
 
 function createMusicControlsCard() {
     const contentArea = createCard();
-    const card = contentArea.parentElement;
+    const card = contentArea.parentElement;``
     card.classList.add("smallWideCard");
     card.dataset.type = "musicControlsCard";
 
     contentArea.innerHTML = `
     <div class="musicControls">
-        <i role="button" onclick="restartSong()" class="fa-solid fa-backward" aria-hidden="true"></i>
-        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play" aria-hidden="true"></i>
-        <i role="button" onclick="nextSong()" class="fa-solid fa-forward" aria-hidden="true"></i>
+        <i role="button" onclick="restartSong()" class="fa-solid fa-backward musicControlsButton" title='Previous'></i>
+        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play musicControlsButton" title='Pause / Unpause'></i>
+        <i role="button" onclick="nextSong()" class="fa-solid fa-forward musicControlsButton" title = 'Next'></i>
         <div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
             <div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
         </div>
@@ -575,16 +579,23 @@ function createAnalogueClockCard(){
     return contentArea;
 }
 
+function createTextAreaCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("textAreaCard", "wideCard");
+    card.dataset.type = "textAreaCard";
 
+    contentArea.innerHTML = `
+        <textarea style="width: 100%;height: 100%;"></textarea>`;
+
+    return contentArea;
+}
 
 function clearAllCards(){
     document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
 }
 
 document.addEventListener("DOMContentLoaded", loadCardConfig)
-
-
-
 
 let currentCard = null;
 

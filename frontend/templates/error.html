@@ -39,13 +39,15 @@
 
             <div class="card">
 
-                <div class="card-header">Oops!</div>
+                <div class="card-header">Oh Snap! An internal error has occured.</div>
 
                 <div class="card-body">
 
-                    <h5 class="card-title">An Error Occured while serving your request!</h5>
+                    <img style="width: 150px; height: 150px;" src="{{ url_for('static', filename='images/sadCadan.gif') }}"></img>
 
-                    <h6 class="card-subtitle">Details: {{message}}</h6>
+                    <h5 class="card-title">Details:</h5>
+
+                    <h6 class="card-subtitle">{{message}}</h6>
 
                 </div>
 

@@ -5,11 +5,11 @@ import os, datetime
 
 from data.models import *
 
-from func.format import message
+from API.format import message
 
-from func.Supervisor import Supervisor
+from API.Supervisor import Supervisor
 class context:
-    def __init__(self, app : Flask, supervisor : Supervisor, db):
+    def __init__(self, app : Flask, supervisor : Supervisor, db : SQLAlchemy):
         self.app = app
         self._supervisor = supervisor
         self.db = db
@@ -18,7 +18,7 @@ class context:
         self.Player = Player
         self.Game = Game
         self.Team = Team
-        self.GamePlayers = GamePlayers
+        self.GamePlayer = GamePlayer
         self.DMXScene = DMXScene
         self.DMXSceneEvent = DMXSceneEvent
         self.DMXSceneEventChannel = DMXSceneEventChannel
@@ -283,6 +283,10 @@ class context:
     def getFixtureProfiles(self):
         return self.fixtureProfiles
     
+    def getAllGames(self) -> list[Game]:
+        with self.app.app_context():
+            return self.Game.query.all()
+    
     def __createDatabase(self):
         self.__createModels()
         self.__seedDBData()
@@ -396,7 +400,26 @@ class context:
             ise.severity = 2
             
             self._supervisor.logInternalServerError(ise)
-            return None            
+            return None  
+        
+    def addGamePlayer(self, player : GamePlayer):
+        try:
+            with self.app.app_context():
+                self.db.session.add(player)
+                self.db.session.commit()
+                
+                #message(f"Created new game with ID: {newGame.id}", type="success")
+                return player.id
+                
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            ise.service = "db"
+            ise.exception_message = str(e)
+            ise.process = "Add Game Player"
+            ise.severity = 2
+            
+            self._supervisor.logInternalServerError(ise)
+            return None  
     
     def updateGame(self, gameId, **kwargs):
         try:

@@ -1,0 +1,428 @@
+{% extends "layout.html" %}
+
+{% block content %}
+
+<div style="display: none;" id="unauthorisedBlocker" class="unauthorisedBlocker">
+
+    <div>
+
+        <h1>You are not authorised to view this page!</h1>
+
+        <h3>Enter the Manager password below:</h3>
+
+        <div class="input-group">
+            <input data-bs-theme="light" class="col-6 form-control" type="password" id="managerToolsPasswordInput">
+            <span title="Proceed3thruGotavtBy-XzEaNhz-JwL7g4" class="input-group-text" role="button" onclick="requestAuthorisation();"><i class="fas fa-circle-arrow-right"></i></span>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <div class="card-header cursor-pointer user-select-none" id="batchEmailsHeader" onclick="$('#batchEmailsBody').toggle(); $('#batchEmailsHeader').toggleClass('collapsed')">Batch Email Sending <span class="badge bg-secondary">WIP</span></div>
+
+    <div class="card-body" id="batchEmailsBody">
+
+        <div class="row">
+
+            <div class="form-group col-4">
+
+                <label>Upload Email Addresses</label>
+                <div class="input-group">
+                    <input type="file" class="form-control" id="emailAddressUpload">
+                    <button onclick="processEmailAddresses();" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Upload And Process Emails" class="input-group-text fas fa-cloud-arrow-up"></button>
+                </div>
+
+            </div>
+
+            <div class="form-group col-8">
+
+                <label>Email Addresses (Name)</label>
+                <div class="input-group">
+                    <select class="form-control form-select" id="emailAddressesDropdown" onchange="selectEmailToEdit();">
+                        <option disabled selected>Upload Email Addresses Using the File Upload</option>
+                    </select>
+
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Show Text Version" type="button" class="input-group-text" onclick="$('#emailAddressesList').toggle()"><i class="fas fa-magnifying-glass text-success"></i></span>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Add an Email" type="button" class="input-group-text" data-bs-toggle="modal" data-bs-target="#emailTextModal"><i class="fas fa-plus-circle text-success"></i></span>
+                    <span data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Remove This Email" type="button" class="input-group-text" id="deleteEmailButton" style="display: none;" onclick="removeEmailFromList();"><i class="fas fa-trash text-danger"></i></span>
+                </div>
+
+                <input type="text" class="form-control readonly cursor-no" id="emailAddressesList" readonly disabled style="display: none;">
+
+            </div>
+
+        </div>
+
+        <hr>
+
+        <div class="row">
+            <div class="form-group col-6">
+                <label>Email Subject</label>
+                <input type="text" class="form-control" id="emailSubject" placeholder="Email Subject">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>Email Contents</label>
+            <br>
+            <div class="btn-group rounded-bottom-0" role="group" aria-label="Formatting tools">
+                <button type="button" onclick="insertMarkdown('**bold**')" class="btn btn-secondary rounded-bottom-0">Bold</button>
+                <button type="button" onclick="insertMarkdown('_italics_')" class="btn btn-secondary rounded-bottom-0">Italics</button>
+                <button type="button" onclick="insertMarkdown('__underline__')" class="btn btn-secondary rounded-bottom-0">Underline</button>
+                <button type="button" onclick="insertMarkdown('# Heading 1')" class="btn btn-secondary rounded-bottom-0">Heading 1</button>
+                <button type="button" onclick="insertMarkdown('## Heading 2')" class="btn btn-secondary rounded-bottom-0">Heading 2</button>
+                <button type="button" onclick="insertMarkdown('[link](url)')" class="btn btn-secondary rounded-bottom-0">Link</button>
+                <button type="button" onclick="insertMarkdown('---')" class="btn btn-secondary rounded-bottom-0">Separator</button>
+                <button type="button" onclick="insertMarkdown('\n')" class="btn btn-secondary rounded-bottom-0">New Line</button>
+                <button type="button" class="btn btn-secondary dropdown-toggle rounded-bottom-0" data-bs-toggle="dropdown">
+                    Colors
+                </button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item" href="#" onclick="insertMarkdown('[red]{color:red}')">Red</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="insertMarkdown('[blue]{color:blue}')">Blue</a></li>
+                    <li><a class="dropdown-item" href="#" onclick="insertMarkdown('[green]{color:green}')">Green</a></li>
+                </ul>
+            </div>
+
+            <div class="row">
+
+                <div class="col-6">
+
+                    <textarea class="form-control rounded-top-0" id="emailAddressContents" rows="15" onkeyup="refreshEmailBodyPreview();"></textarea>
+                        
+                </div>
+
+                <div class="col-6" id="previewContainer" data-bs-theme="light">
+
+                    <div id="emailBodyPreview" class="readonly user-select-none w-100 h-100 form-control"></div>
+    
+                </div>
+
+                <div class="col-6 display-none" id="rawHtmlPreviewContainer">
+
+                    <textarea id="emailBodyPreviewRaw" readonly disabled class="readonly user-select-none cursor-text w-100 h-100 form-control"></textarea>
+    
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="d-flex justify-content-between">
+
+            <button class="btn btn-success" data-bs-toggle="modal" data-bs-target="#sendEmailModal" onclick="populateSendEmailModal();">Send Emails</button>
+
+            <button class="btn btn-outline-warning" onclick="$('#previewContainer').toggleClass('display-none'); $('#rawHtmlPreviewContainer').toggleClass('display-none')">Toggle Raw HTML View</button>
+
+        </div>
+
+    </div>
+    
+</div>
+
+<div class="modal fade" id="emailTextModal" tabindex="-1" aria-labelledby="emailTextModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="emailTextModalLabel">Add New Email</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <input type="text" id="addNewEmailInput" class="form-control" placeholder="ben.mercer@ukpowernetworks.co.uk">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" onclick="addEmailToList();" data-bs-dismiss="modal">Add Email</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="sendEmailModal" tabindex="-1" aria-labelledby="sendEmailModal" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="sendEmailModalTitle">Are you sure?</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <h5>You will be sending to <span id="numberOfEmailsBeingSent">0</span> email addresses!</h5>
+                    <br>
+                    <h5>Are you sure you are ready to send?</h5>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abort</button>
+                <button type="button" class="btn btn-success" onclick="sendEmails();" data-bs-dismiss="modal">Send Emails</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+    $(document).ready(function(){
+        var contentPreview = `**Start Writing Text** on the _left_ and a preview will show on the __right__\n\n[Visit our Website!](https://play2day.biz)\n\n[Hello World!]{color:red}\n\n---\n**Play2Day Ipswich**\n[Play2DayIpswich@gmail.com](mailto:play2dayipswich@gmail.com)\n[Play2Day.biz](https://play2day.biz)\n<img src="https://play2day.biz/wp-content/uploads/2018/07/Play2Day-Leisure-Group-logo-Small2.png" alt="Play2Day Ipswich" width=150pt>`;
+
+        $("#emailAddressContents").val(contentPreview);
+        refreshEmailBodyPreview();
+
+        amIAuthorisedToAccessManagerTools();
+    });
+
+    function insertMarkdown(syntax) {
+        const $textarea = $("#emailAddressContents");
+        const textarea = $textarea[0];
+        const startPos = textarea.selectionStart;
+        const endPos = textarea.selectionEnd;
+        const selectedText = $textarea.val().substring(startPos, endPos);
+        let newText = syntax;
+
+        if (selectedText) {
+            newText = syntax
+                .replace('**bold**', `**${selectedText}**`)
+                .replace('_italics_', `_${selectedText}_`) 
+                .replace('__underline__', `__${selectedText}__`)
+                .replace('[link](url)', `[${selectedText}](url)`)
+                .replace('[red]', `[${selectedText}]{color:red}`)
+                .replace('[blue]', `[${selectedText}]{color:blue}`)
+                .replace('[green]', `[${selectedText}]{color:green}`);
+        }
+
+        const currentVal = $textarea.val();
+        $textarea.val(currentVal.substring(0, startPos) + newText + currentVal.substring(endPos));
+        
+        const newCursorPos = startPos + newText.length;
+        textarea.setSelectionRange(newCursorPos, newCursorPos);
+        $textarea.focus();
+        
+        refreshEmailBodyPreview();
+    }
+
+    function insertTagIntoEmailBody(tag, styles){
+        var emailBody = $("#emailAddressContents");
+        var selectedText = emailBody[0].value.substring(emailBody[0].selectionStart, emailBody[0].selectionEnd);
+        var originalValue = emailBody.val();
+        var tags = "";
+        
+        if (tag == "br" || tag == "hr"){
+            tags = "<" + tag + ">\n";
+        }
+        else if (tag == "a"){
+            var content = selectedText || "Content Here";
+            tags = "<" + tag + " style='"+ styles + "' href='https://google.com'>" + content + "</" + tag + ">";
+        }
+        else {
+            var content = selectedText || "";
+            tags = "<" + tag + " style='" + styles + "' >" + content + "</" + tag + ">";
+        }
+
+        var cursorPos = emailBody[0].selectionStart;
+        var textBefore = originalValue.substring(0, cursorPos);
+        var textAfter = originalValue.substring(emailBody[0].selectionEnd);
+        emailBody.val(textBefore + tags + textAfter);
+
+        setTimeout(() => {
+            refreshEmailBodyPreview();
+        }, 200);
+    }
+
+    function refreshEmailBodyPreview() {
+        const markdown = $("#emailAddressContents").val();
+        let html = markdown
+            // Bold
+            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+            // Italics
+            .replace(/__([^__]+)__/g, '<u>$1</u>')
+            .replace(/_([^_]+)_/g, '<em>$1</em>')
+            // Underline
+            // Headers
+            .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+            .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+            // Links
+            .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" target="_blank">$1</a>')
+            // Separator
+            .replace(/^---$/gm, '<hr>')
+            // New lines (handle both actual newlines and \n literals)
+            .replace(/(?:\n|\\n)/g, '<br>')
+            // Colors
+            .replace(/\[(.*?)\]\{color:(.*?)\}/g, '<span style="color:$2">$1</span>');
+    
+        $("#emailBodyPreview").html(html);
+        $("#emailBodyPreviewRaw").val(html.replace(/<br>/g, '<br>\n'));
+    }
+
+    function processEmailAddresses() {
+        var fileInput = document.getElementById("emailAddressUpload");
+        
+        var file = fileInput.files[0];
+        var reader = new FileReader();
+        
+        reader.onload = function(e) {
+            var csvContent = e.target.result;
+            
+            $.ajax({
+                url: "/api/ManagerTools/ProcessEmailAddresses",
+                type: "POST",
+                data: {
+                    EmailAddresses: csvContent
+                },
+                success: function(response) {
+                    $("#emailAddressesDropdown").empty();
+                    $("#emailAddressesDropdown").append($('<option>', {
+                        value: "",
+                        text: "Click To View Email Addresses", 
+                        selected: true
+                    }));
+
+                    response.emails.forEach(function(email) {
+                        $("#emailAddressesDropdown").append($('<option>', {
+                            value: email,
+                            text: email,
+                        }));
+                    });
+
+                    $("#emailAddressesList").val(response.emails.join(", "))
+
+                    createNotification("Processed " + response.processed + " email addresses")
+                },
+                error: function(xhr, status, error) {
+                    console.error("Error processing email addresses:", error);
+                }
+            });
+        };
+        
+        reader.readAsText(file);
+    }
+
+    function selectEmailToEdit(){
+        if ($("#emailAddressesDropdown").val() == ""){
+            $("#deleteEmailButton").hide();
+        }
+        else {
+            $("#deleteEmailButton").show();
+        }
+    }
+
+    function removeEmailFromList(){
+        var emailToRemove = $("#emailAddressesDropdown").val();
+        
+        var emailList = $("#emailAddressesList");
+        var emails = emailList.val().split(", ");
+
+        emails = emails.filter(email => email !== emailToRemove);
+
+        emailList.val(emails.join(", "));
+
+        var emailListDropdown = $("#emailAddressesDropdown");
+        emailListDropdown.find(`option[value="${emailToRemove}"]`).remove();
+
+        emailListDropdown.val("");
+        $("#deleteEmailButton").hide();
+    }
+
+    function addEmailToList(){
+        var emailToAdd = $("#addNewEmailInput").val();
+
+        $("#emailAddressesDropdown").append($('<option>', {
+            value: "emailToAdd",
+            text: emailToAdd, 
+            selected: true
+        }));
+
+        $("#emailAddressesList").val($("#emailAddressesList").val() + ", emailToAdd")
+
+        selectEmailToEdit();
+    }
+
+    function populateSendEmailModal(){
+        var emails = ($("#emailAddressesList").val()).split(", ");
+        var emailCount = emails.length - 1
+
+        $("#numberOfEmailsBeingSent").text(emailCount);
+    }
+
+    function sendEmails(){
+        var recipients = ($("#emailAddressesList").val()).split(", ");
+        var body = $("#emailBodyPreviewRaw").val().replace("\n", "");
+        var subject = $("#emailSubject").val();
+
+        $.ajax({
+            url: "/api/managerTools/sendEmail",
+            type: "POST",
+            data: {
+                recipients: recipients,
+                emailBody: body,
+                emailSubject: subject,
+                authCookie: getManagerAuthCookie()
+            },
+            success: function(response) {
+                if (response.errorList.length != 0){
+                    createNotification(response.errorList.join(", "), 20000)
+                }
+                else{
+                    createNotification(response.message, 20000)
+                }
+            },
+        });
+    }
+
+    function requestAuthorisation(){
+		$.ajax({
+            url: "/api/managerTools/requestAuthorisation",
+            type: "POST",
+            data: {
+                password: $("#managerToolsPasswordInput").val(),
+            },
+            success: function(response) {
+                localStorage.setItem("ManagerToolsAuthExpiry", response.cookie)
+
+                amIAuthorisedToAccessManagerTools();
+            },
+        });
+	}
+
+	function getManagerAuthCookie(){
+		return localStorage.getItem("ManagerToolsAuthExpiry")
+	}
+
+	function amIAuthorisedToAccessManagerTools(){
+		$.ajax({
+            url: "/api/managerTools/amIAuthorised",
+            type: "GET",
+            data: {
+                cookie: getManagerAuthCookie()
+            },
+            success: function(response) {
+                if (response.response == false){
+                    showUnauthorisedBanner();
+                }
+                else{
+                    hideUnauthorisedBanner();
+                }
+            },
+        });
+	}
+    
+	function showUnauthorisedBanner(){
+		$("#unauthorisedBlocker").show();
+	}
+
+	function hideUnauthorisedBanner(){
+		$("#unauthorisedBlocker").hide();
+	}
+
+
+</script>
+
+{% endblock %}
