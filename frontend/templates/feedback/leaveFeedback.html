@@ -244,6 +244,8 @@
             data: JSON.stringify(data),
             contentType: "application/json",
             success(response) {
+                clearForm();
+
                 createNotification(`Thank You!<br>Submitted with the ID: ${response.id}`, 30000);
             },
             error(xhr, status, error) {
@@ -251,6 +253,27 @@
             }
         });
     }    
+
+    function clearForm(){
+        $("#featureOrBugType").val("");
+        $("#submitterName").val("");
+
+        $("#featureOrBugDescription").val("");
+        $("#featureUseCase").val("");
+        $("#featureBenefits").val("");
+        $("#featureAdditionalDetails").val("");
+
+        $("#featureDescription").val("");
+        $("#featureOrBugWhen").val("");
+        $("#featureOrBugExpected").val("");
+        $("#featureOrBugSteps").val("");
+
+        $("#songName").val("");
+        $("input[name=\"naughtyWords\"]:checked").prop("checked", false);
+        $("#agreeToRules").prop("checked", false);
+
+        updateForm();
+    }
 
 </script>
 

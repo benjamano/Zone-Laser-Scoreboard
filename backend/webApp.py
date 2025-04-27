@@ -445,7 +445,7 @@ class WebApp:
             else:
                 return {"error": "Unknown Type"}, 400
             
-            format.sendEmail(f"{type.title()} Feedback submitted by {submitter} with request ID {requestId}", f"{type.title()} Feedback Submitted")
+            format.sendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}", f"{type} Feedback Submitted")
 
             return {"id": requestId}, 200
         
