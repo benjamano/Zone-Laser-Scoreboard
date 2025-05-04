@@ -1170,3 +1170,7 @@ label{
     filter: brightness(1);
     scale: 1.1;
 }
+
+.resourceUtilisationChart{
+    max-height: 12vh;
+}

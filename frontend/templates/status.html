@@ -2,10 +2,10 @@
 
 {% block content %}
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.1/chart.min.js"></script>
+
 <div class="card">
-
     <div class="card-header collapsed pcDetailsHeader">
-
         <span>
             <span id="webAppStatusIcon" class="fa fa-circle me-2" style="color: green;"></span>
             <span id="webAppConnectionText">CONNECTED</span>
@@ -15,99 +15,111 @@
         <span><span class="fa fa-bug me-2"></span>Errors Logged - <span id="totalErrorsLoggedText">0</span> (Past 8 hours)</span>
 
         <span class="float-end"><span class="fa fa-wrench me-2"></span>Last Updated: <span id="lastUpdatedText">00:20</span></span>
-
     </div>
-
 </div>
 
 <div class="card">
-
     <div class="card-header">Background Service Status</div>
-
     <div class="card-body">
-
         <div class="backgroundServiceStatusContainer">
-
             <div class="backgroundServiceStatus" id="api">
-
                 <div class="backgroundServiceName"><h5>API</h5></div>
-
                 <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
-
                 <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
-
                 <button class="btn btn-danger col-12">Restart API Service</button>
-
             </div>
 
             <div class="backgroundServiceStatus" id="music">
-
                 <div class="backgroundServiceName"><h5>Music Control</h5></div>
-
                 <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
-
                 <div class="backgroundServiceErrors"><span id="errorsNumber">0</span> errors (Past 8 hours)</div>
-
                 <button class="btn btn-danger col-12">Restart Service</button>
-
             </div>
             
             <div class="backgroundServiceStatus" id="db">
-
                 <div class="backgroundServiceName"><h5>DB Connection</h5></div>
-
                 <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
-
                 <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
-
                 <button class="btn btn-danger col-12">Restart Service</button>
-
             </div>
 
             <div class="backgroundServiceStatus" id="obs">
-
                 <div class="backgroundServiceName"><h5>OBS Control</h5></div>
-
                 <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
-
                 <div class="backgroundServiceErrors"><span id="errorsNumber">0</span> errors (Past 8 hours)</div>
-
                 <button class="btn btn-danger col-12">Restart OBS Service</button>
-
             </div>
 
             <div class="backgroundServiceStatus" id="dmx">
-
                 <div class="backgroundServiceName"><h5>DMX Control</h5></div>
-
                 <div class="backgroundServiceStatusIcon"><span id="statusIcon" class="fa fa-circle me-2" style="color: grey;"></span><span id="statusText">Unknown</span></div>
-
                 <div class="backgroundServiceErrors"><span id="hoursNumber">0</span> errors (Past 8 hours)</div>
-
                 <button class="btn btn-danger col-12">Restart DMX Service</button>
-
             </div>
-
         </div>
-
     </div>
-
 </div>
 
+<!-- <div class="card">
+    <div class="card-header collapsed cursor-pointer" onclick="$('#resourceUtilizationCardBody').toggle();">Resource Utilization</div>
+    <div class="card-body" id="resourceUtilizationCardBody"> -->
+        <div class="row">
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        CPU Usage
+                        <span class="float-end current-value" id="cpu-current">0%</span>
+                    </div>
+                    <div class="card-body">
+                        <canvas class="resourceUtilisationChart" id="cpuChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        RAM Usage
+                        <span class="float-end current-value" id="ram-current">0%</span>
+                    </div>
+                    <div class="card-body">
+                        <canvas class="resourceUtilisationChart" id="ramChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        RAM Value
+                        <span class="float-end current-value" id="ram-value-current">0 GB</span>
+                    </div>
+                    <div class="card-body">
+                        <canvas class="resourceUtilisationChart" id="ramValueChart"></canvas>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6 mb-4">
+                <div class="card h-100">
+                    <div class="card-header">
+                        GPU Usage
+                        <span class="float-end current-value" id="gpu-current">0%</span>
+                    </div>
+                    <div class="card-body">
+                        <canvas class="resourceUtilisationChart" id="gpuChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    <!-- </div>
+</div> -->
+
 <div class="card">
-
     <div class="card-header collapsed cursor-pointer" onclick="$('#logConsoleCardBody').toggle();">Live console</div>
-
     <div class="card-body" id="logConsoleCardBody" style="display: none;">
-
         {% include "_LogConsolePartial.html" %}
-
     </div>
-
 </div>
 
 <script>
-
     $(document).ready(function () {
         function fetchServiceStatus() {
             $.ajax({
@@ -177,8 +189,220 @@
         }
 
         fetchServiceStatus();
-
         setInterval(fetchServiceStatus, 120000);
+    });
+
+    const maxDataPoints = 20;
+    const initialData = Array(maxDataPoints).fill(0);
+    const timestamps = Array(maxDataPoints).fill("");
+    
+    function formatTime() {
+        const now = new Date();
+        return now.getHours().toString().padStart(2, '0') + ':' + 
+                now.getMinutes().toString().padStart(2, '0') + ':' + 
+                now.getSeconds().toString().padStart(2, '0');
+    }
+    
+    for (let i = 0; i < maxDataPoints; i++) {
+        timestamps[maxDataPoints - 1 - i] = '';
+    }
+
+    const chartConfig = (label, color, borderColor) => {
+        return {
+            type: "line",
+            data: {
+                labels: timestamps,
+                datasets: [{
+                    label: label,
+                    data: initialData,
+                    backgroundColor: color,
+                    borderColor: borderColor,
+                    borderWidth: 2,
+                    tension: 0.4,
+                    fill: true,
+                    pointRadius: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: {
+                    duration: 500
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        suggestedMax: 100,
+                        ticks: {
+                            callback: function(value) {
+                                return label.includes("Value") ? value + " GB" : value + "%";
+                            }
+                        }
+                    },
+                    x: {
+                        ticks: {
+                            maxRotation: 0,
+                            autoSkip: true,
+                            maxTicksLimit: 5
+                        }
+                    }
+                },
+                plugins: {
+                    legend: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || "";
+                                if (label) {
+                                    label += ": ";
+                                }
+                                if (label.includes("Value")) {
+                                    return label + context.parsed.y + " GB";
+                                }
+                                return label + context.parsed.y + "%";
+                            }
+                        }
+                    }
+                }
+            }
+        };
+    };
+    
+    const cpuCtx = document.getElementById("cpuChart").getContext("2d");
+    const ramCtx = document.getElementById("ramChart").getContext("2d");
+    const ramValueCtx = document.getElementById("ramValueChart").getContext("2d");
+    const gpuCtx = document.getElementById("gpuChart").getContext("2d");
+
+    let timeLabels = [];
+    let cpuData = [];
+    let ramData = [];
+    let ramValueData = [];
+    let gpuData = [];
+
+    function loadHistory() {
+        const now = Date.now();
+        const range = 86400000; // 24h
+
+        function load(name) {
+            return (JSON.parse(localStorage.getItem(name)) || [])
+                .filter(entry => now - entry.timestamp < range);
+        }
+
+        let cpuHistory = load("cpuHistory");
+        let ramPercentHistory = load("ramPercentHistory");
+        let ramValueHistory = load("ramValueHistory");
+        let gpuHistory = load("gpuHistory");
+
+        let length = Math.min(cpuHistory.length, ramPercentHistory.length, ramValueHistory.length, gpuHistory.length);
+
+        for (let i = 0; i < length; i++) {
+            timeLabels.push(formatTime(cpuHistory[i].timestamp));
+            cpuData.push(cpuHistory[i].value);
+            ramData.push(ramPercentHistory[i].value);
+            ramValueData.push(ramValueHistory[i].value);
+            gpuData.push(gpuHistory[i].value);
+        }
+    }
+
+    function formatTime(ts = Date.now()) {
+        const date = new Date(ts);
+        const h = String(date.getHours()).padStart(2, "0");
+        const m = String(date.getMinutes()).padStart(2, "0");
+        return `${h}:${m}`;
+    }
+
+    loadHistory();
+
+    const cpuChart = new Chart(cpuCtx, chartConfig("CPU Usage", "rgba(54, 162, 235, 0.2)", "rgba(54, 162, 235, 1)"));
+    const ramChart = new Chart(ramCtx, chartConfig("RAM Usage", "rgba(255, 99, 132, 0.2)", "rgba(255, 99, 132, 1)"));
+    const ramValueChart = new Chart(ramValueCtx, chartConfig("RAM Value", "rgba(75, 192, 192, 0.2)", "rgba(75, 192, 192, 1)"));
+    const gpuChart = new Chart(gpuCtx, chartConfig("GPU Usage", "rgba(153, 102, 255, 0.2)", "rgba(153, 102, 255, 1)"));
+
+    cpuChart.data.labels = [...timeLabels];
+    ramChart.data.labels = [...timeLabels];
+    ramValueChart.data.labels = [...timeLabels];
+    gpuChart.data.labels = [...timeLabels];
+
+    cpuChart.data.datasets[0].data = [...cpuData];
+    ramChart.data.datasets[0].data = [...ramData];
+    ramValueChart.data.datasets[0].data = [...ramValueData];
+    gpuChart.data.datasets[0].data = [...gpuData];
+
+    cpuChart.update();
+    ramChart.update();
+    ramValueChart.update();
+    gpuChart.update();
+
+    socket.on("resourceUtilisation", function(data) {
+        const now = Date.now();
+        data = data.message;
+
+        const cpuUsage = data.cpu;
+        const ramValue = data.ramValue;
+        const ramPercentage = data.ramPercentage;
+        const gpuUsage = data.gpu;
+
+        console.log("CPU Usage: " + cpuUsage);
+        console.log("RAM Usage: " + ramValue);
+        console.log("RAM Percentage: " + ramPercentage);
+        console.log("GPU Usage: " + gpuUsage);
+
+        const currentTime = formatTime(now);
+
+        timeLabels.push(currentTime);
+        cpuData.push(cpuUsage);
+        ramData.push(ramPercentage);
+        ramValueData.push(ramValue);
+        gpuData.push(gpuUsage);
+
+        if (timeLabels.length > 100) {
+            timeLabels.shift();
+            cpuData.shift();
+            ramData.shift();
+            ramValueData.shift();
+            gpuData.shift();
+        }
+
+        cpuChart.data.labels = timeLabels;
+        cpuChart.data.datasets[0].data = cpuData;
+        cpuChart.update();
+
+        ramChart.data.labels = timeLabels;
+        ramChart.data.datasets[0].data = ramData;
+        ramChart.update();
+
+        ramValueChart.data.labels = timeLabels;
+        ramValueChart.data.datasets[0].data = ramValueData;
+        ramValueChart.update();
+
+        gpuChart.data.labels = timeLabels;
+        gpuChart.data.datasets[0].data = gpuData;
+        gpuChart.update();
+
+        $("#cpu-current").text(cpuUsage + "%");
+        $("#ram-current").text(ramPercentage + "%");
+        $("#ram-value-current").text(ramValue + " GB");
+        $("#gpu-current").text(gpuUsage + "%");
+
+        $("#currentRamUsage").text("RAM - " + ramValue + "GB (" + ramPercentage + "%)");
+
+        const hours = String(new Date(now).getHours()).padStart(2, "0");
+        const minutes = String(new Date(now).getMinutes()).padStart(2, "0");
+        $("#lastUpdatedText").text(hours + ":" + minutes);
+
+        function updateHistory(key, value) {
+            let hist = JSON.parse(localStorage.getItem(key)) || [];
+            hist = hist.filter(e => now - e.timestamp < 86400000);
+            hist.push({ value: value, timestamp: now });
+            localStorage.setItem(key, JSON.stringify(hist));
+        }
+
+        updateHistory("cpuHistory", cpuUsage);
+        updateHistory("ramPercentHistory", ramPercentage);
+        updateHistory("ramValueHistory", ramValue);
+        updateHistory("gpuHistory", gpuUsage);
     });
 
 </script>

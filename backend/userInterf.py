@@ -67,7 +67,7 @@ def showInterface():
         restartPCThread.start()
         
     def sendGameStartMessage():
-        threading.Thread(target=web_app.sendTestPacket(type="start")).start()
+        threading.Thread(target=lambda: web_app.sendTestPacket(type="start")).start()
     
     def sendGameEndMessage():
         threading.Thread(target=web_app.sendTestPacket(type="end")).start()

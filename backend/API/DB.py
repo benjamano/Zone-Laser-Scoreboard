@@ -383,8 +383,8 @@ class context:
         try:
             with self.app.app_context():
                 newGame = self.Game(
-                    name=f"Game_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}", 
-                    startTime=datetime.datetime.now(),
+                    name=f"Game_{datetime.now().strftime('%Y%m%d_%H%M%S')}", 
+                    startTime=datetime.now(),
                 )
                 self.db.session.add(newGame)
                 self.db.session.commit()
