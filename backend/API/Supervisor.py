@@ -7,6 +7,7 @@ import GPUtil
 from API.format import message, colourText
 import threading, datetime
 from datetime import datetime, timedelta, time
+import time as _time
 import os
 from data.models import *
 from flask import Flask
@@ -86,7 +87,7 @@ class Supervisor:
                         }
                     )
 
-                time.sleep(5)
+                _time.sleep(5)
                 
             except Exception as e:
                 message(f"Error getting resource utilization: {e}", type="error")
@@ -94,7 +95,7 @@ class Supervisor:
         
     def __checkForErrors(self):
         while True:
-            time.sleep(30)
+            _time.sleep(30)
 
             try:
                 # Check if all expected processes are running
@@ -108,7 +109,7 @@ class Supervisor:
                                     os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                                 elif processName.lower() == "obs64":
                                     os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
-                                    time.sleep(30)
+                                    _time.sleep(30)
                                     self.__resetOBSConnection()
                             except Exception as e:
                                 message(f"Error starting process {processName}: {e}", type="error")
