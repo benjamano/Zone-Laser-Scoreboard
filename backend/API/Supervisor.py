@@ -7,7 +7,7 @@ import GPUtil
 from API.format import message, colourText
 import threading, datetime
 from datetime import datetime, timedelta, time
-import time, os
+import os
 from data.models import *
 from flask import Flask
 
