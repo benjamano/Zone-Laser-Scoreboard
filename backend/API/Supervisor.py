@@ -6,7 +6,7 @@ import psutil
 import GPUtil
 from API.format import message, colourText
 import threading, datetime
-from datetime import timedelta, time
+from datetime import datetime, timedelta, time
 import time, os
 from data.models import *
 from flask import Flask
@@ -157,7 +157,7 @@ class Supervisor:
                                 startTime = datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
                                 timeToCheck = datetime.now() + timedelta(minutes=-30)
                                 currentTime = datetime.now().time()
-                                if startTime < timeToCheck and self._obs != None and (currentTime < time.time(11, 0) or currentTime > time.time(17, 0)):
+                                if startTime < timeToCheck and self._obs is not None and (currentTime < time(11, 0) or currentTime > time(17, 0)):
                                     # message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
                                     self._obs.switchScene("Test Mode")
                                 
