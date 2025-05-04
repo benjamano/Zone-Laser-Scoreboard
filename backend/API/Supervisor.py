@@ -1,9 +1,12 @@
 from typing import TYPE_CHECKING
 from subprocess import Popen
 
+import requests
 import psutil
+import GPUtil
 from API.format import message, colourText
 import threading, datetime
+from datetime import timedelta
 import time, os
 from data.models import *
 from flask import Flask
@@ -29,6 +32,7 @@ class Supervisor:
         message(colourText(f"Supervisor Started!", "cyan"), type="info")
         
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
+        threading.Thread(target=self.__processResourceUtilisation, daemon=True).start() 
     
     def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None):
         if obs is not None:
@@ -50,6 +54,43 @@ class Supervisor:
             pass
         except Exception as e:
             message(f"Error occurred while resetting Web App's dependencies: {e}", type="error")
+        
+    def __processResourceUtilisation(self):
+        while True:
+            try:
+                if (self._webApp != None):
+                    cpuUsage = psutil.cpu_percent(interval=1)
+
+                    ram = psutil.virtual_memory()
+                    ramUsagePercent = ram.percent
+                    ramUsageValue = ram.used / (1024 ** 3) 
+                    
+                    gpuUsage = 0
+                    try:
+                        gpus = GPUtil.getGPUs()
+                        if gpus:
+                            gpuUsage = gpus[0].load * 100
+                    except:
+                        pass
+                    
+                    response = requests.post(
+                        f"http://{self._webApp._localIp}:8080/sendMessage",
+                        json={
+                            "message": {
+                                "ramPercentage": ramUsagePercent,
+                                "ramValue": ramUsageValue,
+                                "gpu": gpuUsage,
+                                "cpu": cpuUsage
+                            },
+                            "type": "resourceUtilisation"
+                        }
+                    )
+
+                time.sleep(5)
+                
+            except Exception as e:
+                message(f"Error getting resource utilization: {e}", type="error")
+                return None
         
     def __checkForErrors(self):
         while True:
@@ -113,9 +154,9 @@ class Supervisor:
                                 .first())
                             
                             if foundGame != None and foundGame.endTime != None:
-                                startTime = datetime.datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
-                                timeToCheck = datetime.datetime.now() + datetime.timedelta(minutes=-30)
-                                currentTime = datetime.datetime.now().time()
+                                startTime = datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
+                                timeToCheck = datetime.now() + timedelta(minutes=-30)
+                                currentTime = datetime.now().time()
                                 if startTime < timeToCheck and self._obs != None and (currentTime < datetime.time(11, 0) or currentTime > datetime.time(17, 0)):
                                     # message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
                                     self._obs.switchScene("Test Mode")
@@ -141,7 +182,7 @@ class Supervisor:
                     .query(InternalServerError)
                     .filter(InternalServerError.service == service.lower())
                     .filter(InternalServerError.severity == 1)
-                    .filter(InternalServerError.timestamp >= (datetime.datetime.now() - datetime.timedelta(seconds=30)))
+                    .filter(InternalServerError.timestamp >= (datetime.now() - timedelta(seconds=30)))
                     .all())
 
             if ise and not self.devMode:
@@ -161,7 +202,7 @@ class Supervisor:
                 .query(InternalServerError)
                 .filter(InternalServerError.service == service.lower())
                 .filter(InternalServerError.severity == 2)
-                .filter(InternalServerError.timestamp >= (datetime.datetime.now() - datetime.timedelta(seconds=30)))
+                .filter(InternalServerError.timestamp >= (datetime.now() - timedelta(seconds=30)))
                 .all())
         
         if ise and self.devMode == False:
@@ -173,7 +214,7 @@ class Supervisor:
         return (self._context.db.session
             .query(InternalServerError)
             .filter(InternalServerError.service == serviceName.lower())
-            .filter(InternalServerError.timestamp >= (datetime.datetime.now() - datetime.timedelta(hours=8)))
+            .filter(InternalServerError.timestamp >= (datetime.now() - timedelta(hours=8)))
             .order_by(InternalServerError.timestamp.desc())
             .all())
     
@@ -195,7 +236,28 @@ class Supervisor:
         
     def __closeApp(self, reason: str):
         message(f"Closing App. Reason {reason}", type="error")
-        os.exit(1)
+        os._exit(1)
+        
+    def executePendingRestarts(self) -> None:
+        with self._app.app_context():
+            PendingRestarts : list[RestartRequest] = self._context.db.session.query(RestartRequest).filter_by(complete=False).all()
+            
+            if (len(PendingRestarts) > 0):
+                reasons = "; ".join([r.reason for r in PendingRestarts if r.reason])
+                
+                message("WARNING - Restarting Program due to pending restarts.", type="warning")
+                message(f"Restart Request Messages: {reasons}", type="warning")
+                
+                for PendingRestart in PendingRestarts:
+                    PendingRestart.complete = True
+                    self._context.db.session.commit()
+                
+                if self.devMode:
+                    message("Restarting program in dev mode, please restart manually.", type="warning")
+                else:
+                    self.__closeApp((f"Restarting Program at {datetime.now()} due to: " + reasons))
+        
+        return None
         
     def __checkIfProcessRunning(self, processName):
         for proc in psutil.process_iter():
@@ -204,6 +266,7 @@ class Supervisor:
                     return True
             except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
                 pass
+            
         return False
         
     def getServiceHealth(self, serviceName: str):
@@ -257,7 +320,7 @@ class Supervisor:
                 else:
                     message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
                 
-                ise.timestamp = datetime.datetime.now()
+                ise.timestamp = datetime.now()
                 
                 with self._app.app_context():
                     self._context.db.session.add(ise)

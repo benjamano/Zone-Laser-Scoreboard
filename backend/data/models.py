@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from dataclasses import dataclass, asdict
+from datetime import datetime
 
 db = SQLAlchemy()
 
@@ -184,3 +185,11 @@ class SongRequest(db.Model):
     request_id = db.Column(db.String(50), unique=True, nullable=False)
     submitter_name = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+
+class RestartRequest(db.Model):
+    __tablename__ = 'RestartRequests'
+    id = db.Column(db.Integer, primary_key=True)
+    create_date = db.Column(db.DateTime, default=datetime.utcnow, nullable=False)
+    created_by_service_name = db.Column(db.String(255), nullable=False)
+    complete = db.Column(db.Boolean, default=False, nullable=False)
+    reason = db.Column(db.String(1024), nullable=True)

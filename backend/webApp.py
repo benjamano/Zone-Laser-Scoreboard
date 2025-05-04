@@ -4,6 +4,7 @@ from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
 from scapy.all import sniff, IP
 from dotenv import dotenv_values
+from datetime import timedelta
 
 try:
     import winrt.windows.media.control as wmc
@@ -79,7 +80,7 @@ class WebApp:
                 
         pyautogui.FAILSAFE = False
 
-        format.message(f"Starting Web App at {str(datetime.datetime.now())}", type="warning")
+        format.message(f"Starting Web App at {str(datetime.now())}", type="warning")
         
         self.initLogging()
         
@@ -222,7 +223,7 @@ class WebApp:
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
-        format.sendEmail(f"Web App started at {str(datetime.datetime.now())}", "APP STARTED")
+        format.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         
         format.newline()    
         
@@ -470,8 +471,8 @@ class WebApp:
                 if cookie is None or cookie == "":
                     return False
                 
-                cookieDate = datetime.datetime.fromisoformat(cookie)
-                if cookieDate > datetime.datetime.now():
+                cookieDate = datetime.fromisoformat(cookie)
+                if cookieDate > datetime.now():
                     return True
                 else:
                     return False
@@ -493,7 +494,7 @@ class WebApp:
                 
             if (password == secrets["ManagerLoginCredentials"]):
                 # AUTHORISE THIS USER FOR 7 DAYS
-                newCookie : datetime.datetime = datetime.datetime.now() + datetime.timedelta(days=7)
+                newCookie : datetime = datetime.now() + timedelta(days=7)
                 
                 return jsonify({
                     "cookie": newCookie.isoformat()
@@ -876,7 +877,7 @@ class WebApp:
             try:
                 newDMXScene = self._context.DMXScene(
                     name="New Scene",
-                    createDate=datetime.datetime.now(),
+                    createDate=datetime.now(),
                     duration=0,
                     repeat=False,
                     flash=False
@@ -1404,6 +1405,13 @@ class WebApp:
                     
                     self.RestartRequested = True
                     
+                    self._context.db.session.add(RestartRequest(
+                        created_by_service_name = "WebApp - Media Status Checker",
+                        reason = f"Failed to check for media status: {str(e)}"
+                    ))
+                    
+                    self._context.db.session.commit()
+                    
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
                     time.sleep(600)
                     
@@ -1457,12 +1465,12 @@ class WebApp:
         
         if packetData[1] == "@015":
             self.gameStarted()
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
             #format.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
             self.gameEnded()
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.now())}", 'type': "end"})
             #format.message(f"Response: {response.text}")
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
@@ -1490,7 +1498,7 @@ class WebApp:
         #format.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
-            #format.message(f"Game Ended at {datetime.datetime.now()}", type="success") 
+            #format.message(f"Game Ended at {datetime.now()}", type="success") 
             self.gameEnded()
         else:
             self.gameStarted()
@@ -1542,11 +1550,11 @@ class WebApp:
         format.newline()
         
         try:
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.datetime.now())}", 'type': "start"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
         except Exception as e:
             pass
                     
-        format.message(f"Game started at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
+        format.message(f"Game started at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.handleMusic(mode="play")
 
@@ -1567,11 +1575,11 @@ class WebApp:
             return
         
         try:
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.datetime.now())}", 'type': "end"})
+            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.now())}", 'type': "end"})
         except Exception as e:
             pass
         
-        format.message(f"Game ended at {datetime.datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
+        format.message(f"Game ended at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.gameStatus = "stopped"
         
@@ -1596,9 +1604,9 @@ class WebApp:
                     #self._obs.showWinners(str(winningPlayer), str(winningTeam))
                     pass
                 
-                self._context.updateGame(self.currentGameId, endTime=datetime.datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
+                self._context.updateGame(self.currentGameId, endTime=datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
-                #format.message(f"Set Current Game's End Time to {datetime.datetime.now()}, ID: {self.currentGameId}")
+                #format.message(f"Set Current Game's End Time to {datetime.now()}, ID: {self.currentGameId}")
             
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -1639,16 +1647,15 @@ class WebApp:
             self._supervisor.logInternalServerError(ise)
             
         try:
-            if self.RestartRequested == True:
-                self.AppRestartThread = threading.Thread(target=self.restartApp(f"Restart Requested"))
-                self.AppRestartThread.daemon = True
+            self._supervisor.executePendingRestarts()
+            
         except Exception as e:
             ise : InternalServerError = InternalServerError()
                 
             ise.service = "webapp"
             ise.exception_message = str(f"Failed to check for requested restart: {e}")
             ise.process = "WebApp: Check for requested restarts"
-            ise.severity = "2"
+            ise.severity = "1"
             
             self._supervisor.logInternalServerError(ise)
 
@@ -1658,6 +1665,14 @@ class WebApp:
         format.message(f"Sending {type} packet")
         match type.lower():
             case "server":
+                with self.app.app_context():
+                    self._context.db.session.add(RestartRequest(
+                            created_by_service_name = "WebApp - Test Packet",
+                            reason = f"Test packet generated by server at {str(datetime.now())}."
+                    ))
+                    
+                    self._context.db.session.commit()
+                
                 self.RestartRequested = True
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                 
