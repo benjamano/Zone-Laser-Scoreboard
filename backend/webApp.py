@@ -2,7 +2,7 @@ import string
 from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
-from API.Feedback.feedback import *
+from API.Feedback.feedback import RequestProcessor
 from scapy.all import sniff, IP
 from dotenv import dotenv_values
 from datetime import timedelta
@@ -76,7 +76,8 @@ class WebApp:
         self._dmx : dmx = None
         self._context : context = None
         self.app : Flask = None
-        self._emailsApi : EmailsAPIController = None
+        self._eAPI : EmailsAPIController = None
+        self._fAPI : RequestProcessor = None
         # END INIT
                 
         pyautogui.FAILSAFE = False
@@ -212,9 +213,14 @@ class WebApp:
             format.message(f"Error starting music info fetcher: {e}", type="error")
             
         try:
-            self._emailsApi = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"], secrets["GmailSenderEmail"], secrets["GmailSenderDisplayName"])
+            self._eAPI = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"], secrets["GmailSenderEmail"], secrets["GmailSenderDisplayName"])
         except Exception as e:
             format.message(f"Error starting email api: {e}", type="error")
+            
+        try:
+            self._fAPI = RequestProcessor(self._context.db)
+        except Exception as e:
+            format.message(f"Error starting feedback api: {e}", type="error")
             
         while self._supervisor == None:
             time.sleep(1)
@@ -428,19 +434,19 @@ class WebApp:
                 featureExpected = data.get("FeatureExpected", "")
                 featureDetails = data.get("FeatureDetails", "")
                 
-                requestId = processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
+                requestId = self._fAPI.processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
             elif type == "Bug":
                 bugDescription = data.get("BugDescription", "")
                 whenItOccurs = data.get("WhenItOccurs", "")
                 expectedBehavior = data.get("ExpectedBehavior", "")
                 stepsToReproduce = data.get("StepsToReproduce", "")
                 
-                requestId = processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
+                requestId = self._fAPI.processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
             elif type == "SongAddition":
                 songName = data.get("SongName", "")
                 naughtyWords = data.get("NaughtyWords", "")
                 
-                requestId = processSongRequest(songName, naughtyWords, submitter)
+                requestId = self._fAPI.processSongRequest(songName, naughtyWords, submitter)
             else:
                 return {"error": "Unknown Type"}, 400
             
@@ -554,7 +560,7 @@ class WebApp:
             
             for recipient in recipients:
                 try:
-                    self._emailsApi.sendEmail(recipient, subject, body)
+                    self._eAPI.sendEmail(recipient, subject, body)
                 except Exception as e:
                     errorList.append(f"Error sending to {recipient}: {e}")
             
