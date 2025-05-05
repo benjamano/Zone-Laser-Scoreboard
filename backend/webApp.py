@@ -135,18 +135,15 @@ class WebApp:
             self.flaskThread.daemon = True
             self.flaskThread.start()
             
-            format.message("Waiting for app to start", type="warning")
-            time.sleep(2)
-            
         except Exception as e:
             format.message(f"Error starting Flask Server: {e}", type="error")
-            return SystemExit
-
-        format.message(f"Web App hosted on IP {self._localIp}", type="success")
+            raise
         
         while self.app == None:
             format.message("Waiting for app to start", type="warning")
-            time.sleep(2)
+            time.sleep(0.5)
+            
+        format.message(f"Web App hosted on IP {self._localIp}", type="success")
         
         # with self.app.app_context():
         #     self._context = context(self.app, self._supervisor, self.db)
