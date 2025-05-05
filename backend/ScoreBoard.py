@@ -1,5 +1,5 @@
 try:
-    import checkDependencies as init
+    from checkDependencies import VerifyDependencies
     import os
     import signal
     import threading
@@ -60,7 +60,7 @@ try:
             print(f"Port 8080 is already in use on {localIp}")
             raise RuntimeError("Port in use. Exiting application.")
     
-    init.start()
+    VerifyDependencies()
     
     from API import format
     
