@@ -5,8 +5,9 @@
 This system uses python to sniff the network for packets that are coming from or going to the Zone Laser control box.
 It runs a simple Web App, run by Flask.
 The app is designed for use inside of a Laser-Tag arena, allowing it to control the media on the computer it is running on.
-It also attempts to setup a connection to the OBS Websocket extension, but the connection isn't used as of yet.
-If the system cannot connect to OBS, it will still run.
+It also attempts to setup a connection to the OBS Websocket extension,
+If the system cannot connect to OBS, it will still run. The OBS Connection is used for more bespoke purposes in this software, for example, changing the outside screens to a "Sleep Mode" to reduce the burn in affect on the screens.
+It will also try to connect to a DMX controller for various lighting effects, but it is also not required.
 
 # Pre-Requisites
 
