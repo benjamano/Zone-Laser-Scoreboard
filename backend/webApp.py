@@ -114,6 +114,11 @@ class WebApp:
         format.newline() 
         
         try:
+            ctypes.windll.kernel32.SetConsoleTitleW("Zone Laser Scoreboard")
+        except Exception as e:
+            format.message(f"Error setting console title: {e}", type="error")
+        
+        try:
             format.message("Starting Supervisor", type="info")
             self._supervisor = Supervisor()
         except Exception as e:
@@ -1371,6 +1376,32 @@ class WebApp:
     #     except Exception as e:
     #         format.message(f"Failed to find BPM: {e}", type="error")
    
+    def runAsyncioInSta(self, coro):
+        result_container = {}
+        exc_container = {}
+
+        def runner():
+            asyncio.set_event_loop(asyncio.new_event_loop())
+            loop = asyncio.get_event_loop()
+
+            try:
+                result_container['result'] = loop.run_until_complete(coro)
+            except Exception as e:
+                exc_container['exception'] = e
+            finally:
+                loop.close()
+
+        thread = threading.Thread(target=runner)
+        thread.daemon = True
+        thread.start()
+        thread.join()
+
+        if 'exception' in exc_container:
+            raise exc_container['exception']
+
+        return result_container['result']
+
+   
     def mediaStatusChecker(self):
         while True:
             time.sleep(5)
@@ -1388,7 +1419,7 @@ class WebApp:
                 pass
             
             try:
-                temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
+                temp_spotifyStatus, currentPosition, totalDuration = self.runAsyncioInSta(self.getPlayingStatus())
                 
                 if temp_spotifyStatus != self.spotifyStatus:
                     self.spotifyStatus = temp_spotifyStatus
@@ -1440,7 +1471,7 @@ class WebApp:
                     self._context.db.session.commit()
                     
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
-                    time.sleep(600)
+                    time.sleep(60)
                     
                 else:
                     format.message("Error not fatal, don't care", type="warning")

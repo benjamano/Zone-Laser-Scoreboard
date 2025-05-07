@@ -9,7 +9,7 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/backend/ScoreBoard.py",
-            "console": "integratedTerminal",
+            "console": "externalTerminal",
             "justMyCode": false
         }
     ]

@@ -46,7 +46,13 @@ class VerifyDependencies:
             "python-dotenv": "dotenv",
             "pygetwindow": "pygetwindow",
             "GPUtil": "GPUtil",
-            "setuptools": "setuptools"
+            "setuptools": "setuptools",
+            "pygetwindow": "pygetwindow",
+            "pywin32": "win32gui",
+            "win32gui": "win32gui",
+            "win32con": "win32con",
+            "win32com.client": "win32com.client",
+            "pythoncom": "pythoncom",
         }
         self.installAll()
 

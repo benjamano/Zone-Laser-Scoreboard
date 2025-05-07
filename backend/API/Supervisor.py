@@ -11,6 +11,11 @@ import time as _time
 import os
 from data.models import *
 from flask import Flask
+import pygetwindow as gw
+import win32gui
+import win32con
+import pythoncom
+import win32com.client
 
 if TYPE_CHECKING:
     from API.OBS import OBS as _OBS
@@ -92,9 +97,26 @@ class Supervisor:
             except Exception as e:
                 message(f"Error getting resource utilization: {e}", type="error")
                 return None
+            
+    def __focusWindow(self, title):
+        pythoncom.CoInitialize()
+        shell = win32com.client.Dispatch("WScript.Shell")
+        hwnd = win32gui.FindWindow(None, title)
+
+        if hwnd:
+            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+            shell.SendKeys('%')
+            win32gui.SetForegroundWindow(hwnd)
+        else:
+            pass
         
     def __checkForErrors(self):
         while True:
+            try:
+                self.__focusWindow("Zone Laser Scoreboard")
+            except Exception as e:
+                pass
+            
             _time.sleep(30)
 
             try:
@@ -243,7 +265,7 @@ class Supervisor:
         with self._app.app_context():
             PendingRestarts : list[RestartRequest] = self._context.db.session.query(RestartRequest).filter_by(complete=False).all()
             
-            if (len(PendingRestarts) > 0):
+            if (len(PendingRestarts) >= 2):
                 reasons = "; ".join([r.reason for r in PendingRestarts if r.reason])
                 
                 message("WARNING - Restarting Program due to pending restarts.", type="warning")
