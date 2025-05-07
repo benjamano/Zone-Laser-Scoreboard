@@ -3,6 +3,9 @@ import pygetwindow as gw
 from API import format
 from API import Supervisor
 from data.models import *
+import psutil
+import time
+import os
 
 class OBS:
     """
@@ -18,9 +21,9 @@ class OBS:
             
             self._supervisor : Supervisor.Supervisor = supervisor
             
-            self.obs = obs.ReqClient(host=OBSSERVERIP, port=OBSSERVERPORT, password=OBSSERVERPASSWORD, timeout=3)
+            self._dir = self._supervisor.getDir()
             
-            self._dir = dir
+            self.obs = obs.ReqClient(host=OBSSERVERIP, port=OBSSERVERPORT, password=OBSSERVERPASSWORD, timeout=3)
             
             if self.obs != None:
                 format.message("Successfully Connected to OBS", type="success")
@@ -213,6 +216,23 @@ class OBS:
     def resetConnection(self) -> bool:
         try:
             format.message(f"Reseting OBS Connection", type="warning")
+            
+            for proc in psutil.process_iter(['name']):
+                if proc.info['name'] and 'obs' in proc.info['name'].lower():
+                    try:
+                        proc.terminate()
+                        proc.wait(timeout=5)
+                    except psutil.NoSuchProcess:
+                        pass
+                    except Exception as e:
+                        pass
+                        
+            time.sleep(2)
+            
+            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
+            
+            time.sleep(10)
+            
             self.obs = None
             self.obs = self.obs = obs.ReqClient(host=self.IP, port=self.PORT, password=self.PASSWORD, timeout=3)
             

@@ -9,8 +9,15 @@
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/backend/ScoreBoard.py",
-            "console": "externalTerminal",
-            "justMyCode": false
+            // "console": "externalTerminal",
+            "console": "integratedTerminal",
+            "justMyCode": false,
+            "autoReload": {
+                "enable": true,
+                "reloadOnExternalChanges": true,
+                "reloadOnSourceControlChanges": true,
+                "reloadOnEditorTextChange": true
+            },
         }
     ]
 }

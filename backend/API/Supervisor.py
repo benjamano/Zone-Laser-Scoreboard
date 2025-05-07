@@ -61,6 +61,9 @@ class Supervisor:
         except Exception as e:
             message(f"Error occurred while resetting Web App's dependencies: {e}", type="error")
         
+    def getDir(self) -> str:
+        return self._dir
+        
     def __processResourceUtilisation(self):
         while True:
             try:
@@ -130,8 +133,6 @@ class Supervisor:
                                 if processName.lower() == "spotify":
                                     os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                                 elif processName.lower() == "obs64":
-                                    os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
-                                    _time.sleep(30)
                                     self.__resetOBSConnection()
                             except Exception as e:
                                 message(f"Error starting process {processName}: {e}", type="error")
