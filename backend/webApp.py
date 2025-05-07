@@ -115,8 +115,7 @@ class WebApp:
         
         try:
             format.message("Starting Supervisor", type="info")
-            self.SupervisorThread = threading.Thread(target=self.startSupervisor, daemon=True).start()
-            
+            self._supervisor = Supervisor()
         except Exception as e:
             format.message(f"Error starting Supervisor: {e}", type="error")
             raise Exception("Error starting Supervisor: ", e)
@@ -130,13 +129,11 @@ class WebApp:
         except Exception as e:
             format.message(f"Error finding local IP: {e}")
         
-        format.message("Attempting to start Flask Server")
-        
         try:
+            format.message("Attempting to start Flask Server")
             self.flaskThread = threading.Thread(target=self.startFlask)
             self.flaskThread.daemon = True
             self.flaskThread.start()
-            
         except Exception as e:
             format.message(f"Error starting Flask Server: {e}", type="error")
             raise
@@ -239,7 +236,7 @@ class WebApp:
         return
     
     def startSupervisor(self):
-        self._supervisor = Supervisor()
+        
         
         return
     
@@ -1132,19 +1129,45 @@ class WebApp:
             return
             
     async def getPlayingStatus(self):
-        sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
-        current_session = sessions.get_current_session()
+        try:
+            sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
+        except Exception as e:
+            format.message(f"Error getting session manager: {e}", type="error")
+            raise
+        
+        try:
+            current_session = sessions.get_current_session()
+        except Exception as e:
+            format.message(f"Error getting current session: {e}", type="error")
+            raise
         
         if not current_session:
             return "paused", 0, 0
 
-        playback_info = current_session.get_playback_info()
-        timeline_properties = current_session.get_timeline_properties()
+        try:
+            playback_info = current_session.get_playback_info()
+        except Exception as e:
+            format.message(f"Error getting playback info: {e}", type="error")
+            raise
+        
+        try:
+            timeline_properties = current_session.get_timeline_properties()
+        except Exception as e:
+            format.message(f"Error getting timeline properties: {e}", type="error")
+            raise
 
-        status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
+        try:
+            status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
+        except Exception as e:
+            format.message(f"Error getting playback status: {e}", type="error")
+            raise
 
-        currentPosition = timeline_properties.position.total_seconds()
-        totalDuration = timeline_properties.end_time.total_seconds()
+        try:
+            currentPosition = timeline_properties.position.total_seconds()
+            totalDuration = timeline_properties.end_time.total_seconds()
+        except Exception as e:
+            format.message(f"Error getting timeline properties: {e}", type="error")
+            raise
 
         return status, currentPosition, totalDuration
     
