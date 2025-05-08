@@ -189,6 +189,12 @@ class Supervisor:
                 pass
                 message(f"Error occurred while switching to sleep mode: {e}", type="warning")
                 
+            try:
+                if datetime.now() >= time(0, 0, 0) and datetime.now() <= time(0, 5, 0):
+                    self.__restartPC("Daily Restart")
+            except Exception as e:
+                message(f"Error occurred while executing daily restart: {e}", type="error")                    
+                
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
             #     message(p)
@@ -277,7 +283,7 @@ class Supervisor:
                     self._context.db.session.commit()
                 
                 if self.devMode:
-                    message("Restarting program in dev mode, please restart manually.", type="warning")
+                    message("Won't restart program in dev mode, please restart manually.", type="warning")
                 else:
                     self.__closeApp((f"Restarting Program at {datetime.now()} due to: " + reasons))
         
