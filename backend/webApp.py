@@ -1459,7 +1459,7 @@ class WebApp:
         
                     format.message("Requesting app restart", type="warning")
                         
-                    response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
+                    # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                     
                     self.RestartRequested = True
                     
