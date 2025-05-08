@@ -266,7 +266,7 @@ class Supervisor:
         with self._app.app_context():
             PendingRestarts : list[RestartRequest] = self._context.db.session.query(RestartRequest).filter_by(complete=False).all()
             
-            if (len(PendingRestarts) >= 2):
+            if (len(PendingRestarts) >= 4):
                 reasons = "; ".join([r.reason for r in PendingRestarts if r.reason])
                 
                 message("WARNING - Restarting Program due to pending restarts.", type="warning")
