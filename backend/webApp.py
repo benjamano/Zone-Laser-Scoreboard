@@ -1463,12 +1463,13 @@ class WebApp:
                     
                     self.RestartRequested = True
                     
-                    self._context.db.session.add(RestartRequest(
-                        created_by_service_name = "WebApp - Media Status Checker",
-                        reason = f"Failed to check for media status: {str(e)}"
-                    ))
+                    with self.app.app_context():
+                        self._context.db.session.add(RestartRequest(
+                            created_by_service_name = "WebApp - Media Status Checker",
+                            reason = f"Failed to check for media status: {str(e)}"
+                        ))
                     
-                    self._context.db.session.commit()
+                        self._context.db.session.commit()
                     
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
                     time.sleep(60)
