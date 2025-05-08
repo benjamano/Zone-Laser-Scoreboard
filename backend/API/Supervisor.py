@@ -190,10 +190,11 @@ class Supervisor:
                 message(f"Error occurred while switching to sleep mode: {e}", type="warning")
                 
             try:
-                if datetime.now() >= time(0, 0, 0) and datetime.now() <= time(0, 5, 0):
+                now = datetime.now().time()
+                if time(0, 0, 0) <= now <= time(0, 5, 0):
                     self.__restartPC("Daily Restart")
             except Exception as e:
-                message(f"Error occurred while executing daily restart: {e}", type="error")                    
+                message(f"Error occurred while executing daily restart: {e}", type="error")               
                 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
