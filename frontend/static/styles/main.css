@@ -1174,3 +1174,16 @@ label{
 .resourceUtilisationChart{
     max-height: 12vh;
 }
+
+.customContextMenu{
+    position: absolute;
+    background: var(--contextMenu); 
+    border: 1px solid var(--dark-gray); 
+    padding: 0.5rem; 
+    display: none; 
+    z-index: 10000;
+}
+
+.customContextMenu ul:hover{
+    filter: brightness(1.4);
+}

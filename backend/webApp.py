@@ -51,7 +51,7 @@ class WebApp:
         
         # LOAD SYSTEM VARIABLES
         self.SysName = "TBS"
-        self.VersionNumber = "1.1.6"
+        self.VersionNumber = "1.1.8"
         # END LOAD
         
         # INIT ALL OTHER VARIABLES
@@ -320,6 +320,24 @@ class WebApp:
             except Exception as e:
                 format.message(f"Error loading index.html: {e}", type="error")
                 return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
+            
+        @self.app.route("/api/getReleaseNotes")
+        def getReleaseNotes():
+            try:
+                url = "https://api.github.com/repos/benjamano/Zone-Laser-Scoreboard/commits"
+                headers = {"Authorization": f"token {secrets["GithubAuthToken"]}"}
+                try:
+                    response = requests.get(url, headers=headers)
+                    response.raise_for_status()
+                    commits = response.json()
+                    return commits[:50] 
+                
+                except Exception as e:
+                    return {"error": str(e)}
+                
+            except Exception as e:
+                format.message(f"Error getting release notes: {e}", type="error")
+                return jsonify({"error": str(e)}), 500
     
         @self.app.route("/schedule")
         def scehdule():

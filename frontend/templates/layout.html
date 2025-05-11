@@ -84,10 +84,27 @@
 				<a class="nav-link"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>
 			</li>
 		</ul>
-		<div class="sidebar-footer">
+		<div class="sidebar-footer link-light" role="button">
 			Maintained by <a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben Mercer</a>
 			<br>
-			<small>V {{VersionNo}}</small>
+			<span onclick="showReleaseNotes()"><small class="text-decoration-underline">V {{VersionNo}}</small> | <small class="text-decoration-underline">View Release Notes</small></span>
+		</div>
+	</div>
+
+	<div class="modal fade" id="releaseNotesModal" tabindex="-1" aria-labelledby="releaseNotesModalLabel" aria-hidden="true">
+		<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+			<div class="modal-content">
+				<div class="modal-header">
+					<h5 class="modal-title" id="releaseNotesModalLabel">Release Notes</h5>
+					<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+				</div>
+				<div class="modal-body">
+					<div id="ReleaseNotesTxtBox" style="height: 70vh; width: 100%; resize: none;"></div>
+				</div>
+				<div class="modal-footer">
+					<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				</div>
+			</div>
 		</div>
 	</div>
 
@@ -255,6 +272,34 @@
 				}
 			});
 		}
+	}
+
+	function showReleaseNotes(){
+		//TODO 
+		$.ajax({
+			url: "/api/getReleaseNotes", 
+			type: "GET",
+			success: function(response) {
+				$("#ReleaseNotesTxtBox").val("");
+
+				response.forEach(function(iteratedObject) {
+					const formattedMessage = iteratedObject.commit.message.replace(/\n/g, "<br>");
+					$("#ReleaseNotesTxtBox").append(
+						"<div>" +
+							"<p><strong>Author:</strong> " + iteratedObject.commit.author.name + "</p>" +
+							"<p><strong>Date:</strong> " + new Date(iteratedObject.commit.author.date).toLocaleString() + "</p>" +
+							"<p><strong>Message:</strong> " + formattedMessage + "</p>" +
+							"<hr>" +
+						"</div>"
+					);
+				});
+
+				$("#releaseNotesModal").modal("show");
+			},
+			error: function(xhr, status, error) {
+				createNotification("Error: " + error, 30000);
+			}
+		});
 	}
 </script>
 
