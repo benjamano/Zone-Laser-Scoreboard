@@ -76,6 +76,8 @@ class VerifyDependencies:
             print(f"Import failed: '{name}'")
             return False
 
-    def installPackage(self, pip_name):
-        print(f"Installing '{pip_name}' via pip...")
-        subprocess.check_call([sys.executable, "-m", "pip", "install", pip_name])
+    def installPackage(self, pipName):
+        print(f"Installing '{pipName}' via pip...")
+        subprocess.check_call([sys.executable, "-m", "pip", "install", pipName])
+        if pipName == "pywin32":
+            raise "Please restart your computer to complete the installation of the dependancies.\nINFO: The Library 'Pywin32' requires the PC to be restarted before it's changes come into effect."
