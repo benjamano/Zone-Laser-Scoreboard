@@ -9,12 +9,16 @@
   </div>  
 
 <div class="mb-2 pb-2 border-bottom border-dark-subtle">
+	<button class="btn btn-outline-primary" onclick="playBriefing();" type="button" id="playBriefingBtn">
+		PLAY BRIEFING VIDEO
+	</button>
+
 	<div class="dropdown d-inline-block">
 	  <button class="btn btn-secondary dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
 		Add Card
 	  </button>
 	  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="addCardDropdown">
-		<li><button class="dropdown-item" onclick="createTextAreaCard()">Add Text Entry (Coming Soon)</button></li>
+		<li><button class="dropdown-item" onclick="createTextAreaCard()">Add Text Entry</button></li>
 		<li><hr class="dropdown-divider"></li>
 		<li><button class="dropdown-item" onclick="createTimeRemainingCard()">Add Timeleft</button></li>
 		<li><button class="dropdown-item" onclick="addScoreBoardCard()">Add Scoreboard</button></li>
@@ -29,8 +33,15 @@
 		<li><button class="dropdown-item" onclick="createMusicAlbumCard()">Add Music Album Cover</button></li>
 		<li><button class="dropdown-item" onclick="createMusicNameCard()" disabled>Add Music Name (Coming Soon)</button></li>
 		<li><button class="dropdown-item" onclick="createMusicVolumeSliderCard()" disabled>Add Volume Slider (Coming Soon)</button></li>
+		<li><button class="dropdown-item" onclick="createMusicBPMCard()" disabled>Add BPM Number (Coming Soon)</button></li>
 		<li><button class="dropdown-item" onclick="createClockCard()">Add Digital Clock</button></li>
 		<li><button class="dropdown-item" onclick="createAnalogueClockCard()">Add Analogue Clock</button></li>
+		<li><hr class="dropdown-divider"></li>
+		<li><button class="dropdown-item" onclick="createPlayBriefingCard()" disabled>Play Briefing Button (Coming Soon)</button></li>
+		<li><hr class="dropdown-divider"></li>
+		<li><button class="dropdown-item" onclick="createVirtualLightingDeskCard()" disabled>Add Virtual Lighting Desk (Coming Soon)</button></li>
+		<li><button class="dropdown-item" onclick="createLightingSceneCard()" disabled>Add Lighting Scene Control (Coming Soon)</button></li>
+		<li><button class="dropdown-item" onclick="createLightingBrightnessCard()" disabled>Add Lighting Brightness Slider (Coming Soon)</button></li>
 	  </ul>
 	</div>
 
@@ -60,7 +71,7 @@
 		</ul>
 	</div>
 
-	<div class="dropdown d-inline-block ms-2">
+	<!-- <div class="dropdown d-inline-block ms-2">
 		<button class="btn btn-outline-warning dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
 			Create Warning
 		</button>
@@ -68,11 +79,7 @@
 			<li class="dropdown-item" role="button" onclick="createWarning('Restart')">- Restart Warning</li>
 			<li class="dropdown-item" role="button" onclick="createSkippedSongsWarning()">- Skipped Songs</li>
 		</ul>
-	</div>
-
-	<button class="btn btn-outline-primary" onclick="playBriefing();" type="button" id="playBriefingBtn">
-		PLAY BRIEFING VIDEO
-	</button>
+	</div> -->
 </div>
 
 <div class="movableItemsContainer"></div>
@@ -578,6 +585,8 @@
     }
 
 	function toggleMusic(){
+		$("#pauseplayButton").toggleClass("fa-circle-play fa-circle-pause");
+
 		socket.emit('toggleMusic');
 	}
 

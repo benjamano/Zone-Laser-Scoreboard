@@ -216,18 +216,17 @@ async function getAlbumCover(albumName) {
 
 socket.on('songAlbum', async function(albumName) {
     try{
-        console.log(albumName);
+        if (albumName.message == "None"){
+            $("#playingSongText").text("Music Paused");
 
-    if (albumName == "None"){
-        return;
-    }
+            document.getElementById('album-cover').style.backgroundImage = null;
+            return;
+        }
 
-    console.log(albumName.message);
-    const imageUrl = await getAlbumCover(albumName.message);
-    if (imageUrl) {
-        document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
-    } else {
-            console.log('Album cover not found.');
+        const imageUrl = await getAlbumCover(albumName.message);
+
+        if (imageUrl) {
+            document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
         }
     }
     catch(err){}

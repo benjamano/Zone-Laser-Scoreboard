@@ -117,7 +117,8 @@ function saveCardConfig() {
         left: card.style.left,
         top: card.style.top,
         width: card.style.width,
-        height: card.style.height
+        height: card.style.height,
+        content: card.querySelector("textarea")?.value
     }));
     localStorage.setItem("cardConfig", JSON.stringify(config));
 }
@@ -228,6 +229,13 @@ function loadCardConfig() {
                 break;
             case "textAreaCard":
                 contentArea = createTextAreaCard();
+
+                if (cardConfig.content != "") {
+                    const textArea = contentArea.querySelector("textarea");
+                    if (textArea) {
+                        textArea.value = cardConfig.content ?? "The contents of this card are saved automatically";
+                    }
+                }
                 break;
             default:
                 contentArea = addSmallCard();

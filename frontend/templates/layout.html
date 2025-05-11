@@ -107,6 +107,18 @@
 		localStorage.setItem("SkippedSongsCount", "0");
 		localStorage.setItem("NotifiedAboutSkippedSongs", "0");
 
+		if (localStorage.getItem("sidebarCollapsed") === "true"){
+			$("#sidebar").addClass("collapsed");
+			$("#main").addClass("collapsed");
+			$("#toggleSideBarButton").removeClass("fa-angles-left");
+			$("#toggleSideBarButton").addClass("fa-angles-right");
+		} else {
+			$("#sidebar").removeClass("collapsed");
+			$("#main").removeClass("collapsed");
+			$("#toggleSideBarButton").addClass("fa-angles-left");
+			$("#toggleSideBarButton").removeClass("fa-angles-right");
+		}
+
 		setTimeout(function() {
 			checkForValidPopUps();
 		}, 120000);
@@ -150,11 +162,15 @@
 			$("#main").removeClass("collapsed");
 			$("#toggleSideBarButton").addClass("fa-angles-left");
 			$("#toggleSideBarButton").removeClass("fa-angles-right");
+
+			localStorage.setItem("sidebarCollapsed", "false");
 		} else {
 			$("#sidebar").addClass("collapsed");
 			$("#main").addClass("collapsed");
 			$("#toggleSideBarButton").removeClass("fa-angles-left");
 			$("#toggleSideBarButton").addClass("fa-angles-right");
+
+			localStorage.setItem("sidebarCollapsed", "true");
 		}
 	}
 
