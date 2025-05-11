@@ -533,7 +533,6 @@ overflow: scroll;
 
 main {
     margin-left: 12vw;
-    padding: 1rem;
     transition: margin-left 0.3s ease;
 }
 
@@ -1187,3 +1186,7 @@ label{
 .customContextMenu ul:hover{
     filter: brightness(1.4);
 }
+/* 
+.environmentBanner{
+    font-size: 1rem;
+} */

@@ -305,7 +305,8 @@ class WebApp:
             return dict(
                 SysName=self.SysName,
                 VersionNo=self.VersionNumber,
-                PageTitle=getattr(g, 'PageTitle', "")
+                PageTitle=getattr(g, 'PageTitle', ""),
+                Environment=secrets["Environment"]
             )
             
         @self.app.route('/')
