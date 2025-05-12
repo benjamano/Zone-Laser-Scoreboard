@@ -158,21 +158,23 @@
 			return;
 		}
 
-		const randomNumber = Math.floor(Math.random() * 3);
+		const randomNumber = Math.floor(Math.random() * 4);
 
-		if (randomNumber === 0) {
-			createNotification("Did you know you can request new songs to be added? <br> Go to the <a href='feedback'>Feedback page</a> to request a new song addition.", 60000);
-		} else if (randomNumber === 1) {
-			createNotification("Having issues? <br> Report bugs on the <a href='feedback'>Feedback page</a>.", 60000);
+		if (randomNumber == 0) {
+			createNotification("Did you know you can request new songs to be added? <br> Go to the <a class='link-light' href='feedback'>Feedback page</a> to request a new song addition.", 60000, "info");
+		} else if (randomNumber == 1) {
+			createNotification("Having issues? <br> Report bugs on the <a href='feedback' class='link-light'>Feedback page</a>.", 60000, "info");
+		} else if (randomNumber == 2) {
+			createNotification("Want to suggest improvements? <br> Share your ideas on the <a href='feedback' class='link-light'>Feedback page</a>.", 60000, "info");
 		} else {
-			createNotification("Want to suggest improvements? <br> Share your ideas on the <a href='feedback'>Feedback page</a>.", 60000);
+			createNotification("View recent release notes by clicking <a class='text-decoration-underline link-light' onclick='showReleaseNotes()'>here</a> <br> Or by clicking the version number.", 60000, "info");
 		}
 	}
 
 	function createSkippedSongsWarning(){
 		var skippedSongs = parseInt(localStorage.getItem("SkippedSongsCount"));
 
-		createNotification("You have skipped " + skippedSongs + " songs. <br> Did you know you can request new songs to be added? <br> Go to the <a href='feedback'>Feedback page</a> to request a new song additon.", 120000);
+		createNotification("You have skipped " + skippedSongs + " songs. <br> Did you know you can request new songs to be added? <br> Go to the <a class='link-dark' href='feedback'>Feedback page</a> to request a new song additon.", 120000, "warning");
 
 		localStorage.setItem("SkippedSongsCount", "0");
 
@@ -241,9 +243,34 @@
 		$("#notificationContainer").css("opacity", 0);
 	}
 
-	function createNotification(text, coolDown = 7000){
+	function createNotification(text, coolDown = 7000, type="error"){
 		$("#notificationList").html(text);
 		$("#warningProgressBar").css("width", "100%");
+
+		$("#notificationContainer").removeClass("bg-success");
+		$("#notificationContainer").removeClass("bg-danger");
+		$("#notificationContainer").removeClass("bg-warning");
+		$("#notificationContainer").removeClass("bg-primary");
+		$("#warningProgressBar").removeClass("bg-success");
+		$("#warningProgressBar").removeClass("bg-danger");
+		$("#warningProgressBar").removeClass("bg-warning");
+		$("#warningProgressBar").removeClass("bg-primary");
+		$("#notificationList").css("color", "white");
+
+		if (type == "error"){
+			$("#notificationContainer").addClass("bg-danger");
+			$("#warningProgressBar").addClass("bg-danger");
+		} else if (type == "success"){
+			$("#notificationContainer").addClass("bg-success");
+			$("#warningProgressBar").addClass("bg-success");
+		} else if (type == "warning"){
+			$("#notificationContainer").addClass("bg-warning");
+			$("#warningProgressBar").addClass("bg-warning");
+			$("#notificationList").css("color", "black");
+		} else if (type == "info"){
+			$("#notificationContainer").addClass("bg-primary");
+			$("#warningProgressBar").addClass("bg-primary");
+		}
 		
 		showNotifications();
 

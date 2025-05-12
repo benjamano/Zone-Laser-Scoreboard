@@ -1135,7 +1135,6 @@ label{
     position: fixed;
     bottom: 0;
     right: 0;
-    background-color: var(--bs-danger);
     z-index: 9999;
     margin: 1rem;
     transition: opacity 0.5s ease;
@@ -1186,7 +1185,4 @@ label{
 .customContextMenu ul:hover{
     filter: brightness(1.4);
 }
-/* 
-.environmentBanner{
-    font-size: 1rem;
-} */
+/*  */
