@@ -31,7 +31,7 @@ class Supervisor:
         self._app = None
         self._webApp = None
         self.devMode = False
-        self._services = ["db", "obs", "dmx", "api"]
+        self._services = ["db", "obs", "dmx", "api"] # Should add MUSIC as an option here
         self.expectedProcesses = ["Spotify.exe", "obs64"]
         self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
@@ -122,48 +122,49 @@ class Supervisor:
             
             _time.sleep(30)
 
-            try:
-                # Check if all expected processes are running
-                for processName in self.expectedProcesses:
-                    try:
-                        processFound : bool = self.__checkIfProcessRunning(processName)
-                        if not processFound:
-                            try:
-                                message(f"Process {processName} not found, starting it..", type="warning")
-                                if processName.lower() == "spotify":
-                                    os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
-                                elif processName.lower() == "obs64":
-                                    self.__resetOBSConnection()
-                            except Exception as e:
-                                message(f"Error starting process {processName}: {e}", type="error")
-                    except Exception as e:  
-                        message(f"Error occurred while checking for expected processes: {e}", type="error")
-            except Exception as e:
-                message(f"Error occurred while checking for expected processes: {e}", type="error")
-            
-            try:
-                # Check Database Connection
-                if self._context != None and self.hasSevereErrorOccurred("db"):
-                    message("Database Connection Error", type="error")
-                    threading.Thread(target=self.__resetDatabaseConnection(), daemon=True).start()
-            except Exception as e:
-                message(f"Error occured while checking Database status: {e}", type="error")
+            if self.devMode == False:
+                try:
+                    # Check if all expected processes are running
+                    for processName in self.expectedProcesses:
+                        try:
+                            processFound : bool = self.__checkIfProcessRunning(processName)
+                            if not processFound:
+                                try:
+                                    message(f"Process {processName} not found, starting it..", type="warning")
+                                    if processName.lower() == "spotify":
+                                        os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
+                                    elif processName.lower() == "obs64":
+                                        self.__resetOBSConnection()
+                                except Exception as e:
+                                    message(f"Error starting process {processName}: {e}", type="error")
+                        except Exception as e:  
+                            message(f"Error occurred while checking for expected processes: {e}", type="error")
+                except Exception as e:
+                    message(f"Error occurred while checking for expected processes: {e}", type="error")
                 
-            try:
-                # Check OBS Connection
-                if self._obs != None and (self.hasSevereErrorOccurred("obs") or self._obs.isConnected() == False):
-                    message("OBS Connection Error", type="error")
-                    threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
-            except Exception as e:
-                message(f"Error occured while checking OBS status: {e}", type="error")
-                
-            try:
-                # Check DMX Connection
-                if self._dmx != None and self.hasSevereErrorOccurred("dmx"):
-                    message("DMX Connection Error", type="error")
-                    threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
-            except Exception as e:
-                message(f"Error occured while checking DMX status: {e}", type="error")
+                try:
+                    # Check Database Connection
+                    if self._context != None and self.hasSevereErrorOccurred("db"):
+                        message("Database Connection Error", type="error")
+                        threading.Thread(target=self.__resetDatabaseConnection(), daemon=True).start()
+                except Exception as e:
+                    message(f"Error occured while checking Database status: {e}", type="error")
+                    
+                try:
+                    # Check OBS Connection
+                    if self._obs != None and (self.hasSevereErrorOccurred("obs") or self._obs.isConnected() == False):
+                        message("OBS Connection Error", type="error")
+                        threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
+                except Exception as e:
+                    message(f"Error occured while checking OBS status: {e}", type="error")
+                    
+                try:
+                    # Check DMX Connection
+                    if self._dmx != None and self.hasSevereErrorOccurred("dmx"):
+                        message("DMX Connection Error", type="error")
+                        threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
+                except Exception as e:
+                    message(f"Error occured while checking DMX status: {e}", type="error")
                 
             try:
                 if self._obs.isConnected() == True:

@@ -231,8 +231,6 @@ class WebApp:
         
         format.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         
-        format.newline()    
-        
         self.flaskThread.join()
 
     def initLogging(self):

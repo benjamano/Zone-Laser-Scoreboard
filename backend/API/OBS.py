@@ -229,7 +229,13 @@ class OBS:
                         
             time.sleep(2)
             
-            os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
+            try:
+                os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
+            except Exception as e:
+                if (self._supervisor.devMode == False):
+                    format.message(f"Error starting OBS: {e}", type="error")
+                
+                return False
             
             time.sleep(10)
             
