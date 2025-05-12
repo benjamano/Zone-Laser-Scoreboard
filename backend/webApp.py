@@ -331,7 +331,7 @@ class WebApp:
                     response = requests.get(url, headers=headers)
                     response.raise_for_status()
                     commits = response.json()
-                    return commits[:50] 
+                    return commits[:100] 
                 
                 except Exception as e:
                     return {"error": str(e)}
