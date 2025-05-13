@@ -162,9 +162,19 @@ class NewFeatureRequest(db.Model):
     use_case = db.Column(db.String(255), nullable=False)
     expected = db.Column(db.String(255), nullable=False)
     details = db.Column(db.String(255), nullable=False)
-    request_id = db.Column(db.String(50), unique=True, nullable=False)
     submitter_name = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "description": self.description,
+            "use_case": self.use_case,
+            "expected": self.expected,
+            "details": self.details,
+            "submitter_name": self.submitter_name,
+            "created_at": self.created_at.isoformat(),
+        }
 
 class BugReport(db.Model):
     __tablename__ = 'BugReports'
@@ -173,18 +183,36 @@ class BugReport(db.Model):
     when_occurs = db.Column(db.String(255), nullable=False)
     expected_behavior = db.Column(db.String(255), nullable=False)
     steps_to_reproduce = db.Column(db.String(255), nullable=False)
-    request_id = db.Column(db.String(50), unique=True, nullable=False)
     submitter_name = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "description": self.description,
+            "when_occurs": self.when_occurs,
+            "expected_behavior": self.expected_behavior,
+            "steps_to_reproduce": self.steps_to_reproduce,
+            "submitter_name": self.submitter_name,
+            "created_at": self.created_at.isoformat(),
+        }
 
 class SongRequest(db.Model):
     __tablename__ = 'SongRequests'
     id = db.Column(db.Integer, primary_key=True)
     song_name = db.Column(db.String(255), nullable=False)
-    naughty_words = db.Column(db.Boolean, nullable=False)
-    request_id = db.Column(db.String(50), unique=True, nullable=False)
+    naughty_words = db.Column(db.String(20), nullable=False)
     submitter_name = db.Column(db.String(100), nullable=True)
     created_at = db.Column(db.DateTime, nullable=False, default=db.func.now())
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "song_name": self.song_name,
+            "naughty_words": self.naughty_words,
+            "submitter_name": self.submitter_name,
+            "created_at": self.created_at.isoformat(),
+        }
 
 class RestartRequest(db.Model):
     __tablename__ = 'RestartRequests'

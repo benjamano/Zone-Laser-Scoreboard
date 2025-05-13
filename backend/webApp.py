@@ -438,40 +438,125 @@ class WebApp:
             
             return render_template("feedback/leaveFeedback.html")
         
+        @self.app.route("/api/feedback/getFeatureRequests", methods=["GET"])
+        def feedback_getFeatureRequests():
+            try:
+                featureRequests = self._fAPI.getFeatureRequests()
+                
+                featureRequestList : list[dict] = []
+                
+                for featureRequest in featureRequests:
+                    featureRequestList.append(featureRequest.to_dict())
+                    
+                return jsonify(featureRequestList)
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error getting feature requests: {e}, Traceback: {e.__traceback__}")
+                ise.process = "API: Get Feature Requests"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return jsonify({"error": f"Error getting feature requests: {e}"}), 500
+            
+        @self.app.route("/api/feedback/getBugReports", methods=["GET"])#
+        def feedback_getBugReports():
+            try:
+                bugReports = self._fAPI.getBugReports()
+                
+                bugReportList : list[dict] = []
+                
+                for bugReport in bugReports:
+                    bugReportList.append(bugReport.to_dict())
+                    
+                return jsonify(bugReportList)
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error getting bug reports: {e}, Traceback: {e.__traceback__}")
+                ise.process = "API: Get Bug Reports"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return jsonify({"error": f"Error getting bug reports: {e}"}), 500
+            
+        @self.app.route("/api/feedback/getSongRequests", methods=["GET"])
+        def feedback_getSongRequests():
+            try:
+                songRequests = self._fAPI.getSongRequests()
+                
+                songRequestList : list[dict] = []
+                
+                for songRequest in songRequests:
+                    songRequestList.append(songRequest.to_dict())
+                    
+                return jsonify(songRequestList)
+            
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
+                
+                ise.service = "api"
+                ise.exception_message = str(f"Error getting song requests: {e}, Traceback: {e.__traceback__}")
+                ise.process = "API: Get song requests"
+                ise.severity = "3"
+                
+                self._supervisor.logInternalServerError(ise)
+                
+                return jsonify({"error": f"Error getting song requests: {e}"}), 500
+        
         @self.app.route("/api/feedback/submitForm", methods=["POST"])
         def feedback_submitForm():
-            data = request.get_json()
+            try:
+                data = request.get_json()
 
-            requestId = ""
+                requestId = ""
 
-            type = data.get("Type", "")
-            submitter = data.get("SubmitterName", "")
+                type = data.get("Type", "")
+                submitter = data.get("SubmitterName", "")
+                
+                if type == "NewFeature":
+                    featureDescription = data.get("FeatureDescription", "")
+                    featureUseCase = data.get("FeatureUseCase", "")
+                    featureExpected = data.get("FeatureExpected", "")
+                    featureDetails = data.get("FeatureDetails", "")
+                    
+                    requestId = self._fAPI.processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
+                elif type == "Bug":
+                    bugDescription = data.get("BugDescription", "")
+                    whenItOccurs = data.get("WhenItOccurs", "")
+                    expectedBehavior = data.get("ExpectedBehavior", "")
+                    stepsToReproduce = data.get("StepsToReproduce", "")
+                    
+                    requestId = self._fAPI.processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
+                elif type == "SongAddition":
+                    songName = data.get("SongName", "")
+                    naughtyWords = data.get("NaughtyWords", "")
+                    
+                    requestId = self._fAPI.processSongRequest(songName, naughtyWords, submitter)
+                else:
+                    return {"error": "Unknown Type"}, 400
+                
+                format.sendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}", f"{type} Feedback Submitted")
+
+                return {"id": requestId}, 200
             
-            if type == "NewFeature":
-                featureDescription = data.get("FeatureDescription", "")
-                featureUseCase = data.get("FeatureUseCase", "")
-                featureExpected = data.get("FeatureExpected", "")
-                featureDetails = data.get("FeatureDetails", "")
+            except Exception as e:
+                ise : InternalServerError = InternalServerError()
                 
-                requestId = self._fAPI.processNewFeatureRequest(featureDescription, featureUseCase, featureExpected, featureDetails, submitter)
-            elif type == "Bug":
-                bugDescription = data.get("BugDescription", "")
-                whenItOccurs = data.get("WhenItOccurs", "")
-                expectedBehavior = data.get("ExpectedBehavior", "")
-                stepsToReproduce = data.get("StepsToReproduce", "")
+                ise.service = "api"
+                ise.exception_message = str(f"Error submitting feedback: {e}, Traceback: {e.__traceback__}")
+                ise.process = "API: Submit Feedback"
+                ise.severity = "2"
                 
-                requestId = self._fAPI.processBugReport(bugDescription, whenItOccurs, expectedBehavior, stepsToReproduce, submitter)
-            elif type == "SongAddition":
-                songName = data.get("SongName", "")
-                naughtyWords = data.get("NaughtyWords", "")
+                self._supervisor.logInternalServerError(ise)
                 
-                requestId = self._fAPI.processSongRequest(songName, naughtyWords, submitter)
-            else:
-                return {"error": "Unknown Type"}, 400
-            
-            format.sendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}", f"{type} Feedback Submitted")
-
-            return {"id": requestId}, 200
+                return jsonify({"error": f"Error submitting feedback: {e}"}), 500
         
         @self.app.route("/statistics")
         def statistics():

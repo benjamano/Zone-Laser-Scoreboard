@@ -46,11 +46,11 @@ while True:
             tries += 1
             if tries == 7:
                 subprocess.Popen(["python", fr"{dir}\ScoreBoard.py"], creationflags=subprocess.CREATE_NEW_CONSOLE)
-            elif tries > 13:
+            elif tries > 12:
                 os.system("shutdown /r /t 1")
                 tries = 0
 
-        time.sleep(10)
+        time.sleep(60)
     except Exception as e:
         print(f"Failed to check server status: {e}")
         time.sleep(60)

@@ -1,5 +1,6 @@
 from winsdk.windows.media.control import GlobalSystemMediaTransportControlsSessionManager as MediaManager
 import asyncio
+import datetime
 
 class MediaBPMFetcher:
     def __init__(self):
@@ -16,7 +17,7 @@ class MediaBPMFetcher:
                 info = await current_session.try_get_media_properties_async()
                 return info.artist, info.title, info.album_title
         except Exception as e:
-            print(f"Error fetching media info: {e}")
+            print(f"Error fetching media info at {datetime.datetime.now}: {e}")
         return None, None, None
 
     # def _get_song_bpm(self, artist, title):

@@ -49,15 +49,15 @@
                         <div class="form-group col-4">
                             <label>Any naughty words? *</label>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsYes" value="yes" required>
+                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsYes" value="Bad Words" required>
                                 <label class="form-check-label" for="naughtyWordsYes">Yes</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsNo" value="no" required>
+                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsNo" value="No Bad Words" required>
                                 <label class="form-check-label" for="naughtyWordsNo">No</label>
                             </div>
                             <div class="form-check">
-                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsClean" value="clean" required>
+                                <input class="form-check-input" type="radio" name="naughtyWords" id="naughtyWordsClean" value="Clean Version" required>
                                 <label class="form-check-label" for="naughtyWordsClean">There's a radio edit / clean version</label>
                                 <div class="invalid-feedback">
                                     Please select an option
@@ -170,6 +170,73 @@
 
 <div class="card">
 
+    <div class="card-header">View Submissions</div>
+
+    <div class="card-body">
+
+        <div class="btn-group col-4" role="group" aria-label="Basic example">
+            <button type="button" id="featureRequestViewButton" onclick="openFeatureRequestsViewer()" class="btn btn-secondary col-4">Feature Requests</button>
+            <button type="button" id="bugReportViewButton" onclick="openBugReportsViewer()" class="btn btn-secondary col-4">Bug Reports</button>
+            <button type="button" id="songRequestViewButton" onclick="openSongRequestsViewer()" class="btn btn-secondary col-4">Song Requests</button>
+        </div>
+
+        <div id="FeatureRequestContainer" class="collapse hide">
+            <table id="FeatureRequestTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Request ID</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">Use Case</th>
+                        <th scope="col">Expected Benefits</th>
+                        <th scope="col">Details</th>
+                        <th scope="col">Submitter Name</th>
+                        <th scope="col">Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="BugReportContainer" class="collapse hide">
+            <table id="BugReportTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Request ID</th>
+                        <th scope="col">Description</th>
+                        <th scope="col">When It Occurs</th>
+                        <th scope="col">Expected Behavior</th>
+                        <th scope="col">Steps to Reproduce</th>
+                        <th scope="col">Submitter Name</th>
+                        <th scope="col">Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+        <div id="SongRequestsContainer" class="collapse hide">
+            <table id="SongRequestTable" class="table table-striped">
+                <thead>
+                    <tr>
+                        <th scope="col">Request ID</th>
+                        <th scope="col">Song Name</th>
+                        <th scope="col">Naughty Words</th>
+                        <th scope="col">Submitter Name</th>
+                        <th scope="col">Created At</th>
+                    </tr>
+                </thead>
+                <tbody>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</div>
+
+<div class="card">
+
     <div class="card-body p-0 d-flex justify-content-center">
 
         <canvas id="SnakeCanvas" class="m-1"></canvas>  
@@ -193,6 +260,98 @@
 </div> -->
 
 <script>
+
+    $(document).ready(function() {
+        $("#FeatureRequestTable").DataTable({
+            ajax: {
+                url: "/api/feedback/getFeatureRequests",
+                type: "GET",
+                dataSrc: ''
+            },
+            columns: [
+                { data: "id" },
+                { data: "description" },
+                { data: "use_case" },
+                { data: "expected" },
+                { data: "details" },
+                { data: "submitter_name" },
+                { data: "created_at", render: renderDate }
+            ],
+            responsive: true,
+            order: [[6, "desc"]]
+        });
+    });
+
+    $(document).ready(function() {
+        $("#BugReportTable").DataTable({
+            ajax: {
+                url: "/api/feedback/getBugReports",
+                type: "GET",
+                dataSrc: ''
+            },
+            columns: [
+                { data: "id" },
+                { data: "description" },
+                { data: "when_occurs" },
+                { data: "expected_behavior" },
+                { data: "steps_to_reproduce" },
+                { data: "submitter_name" },
+                { data: "created_at", render: renderDate }
+            ],
+            responsive: true,
+            order: [[6, "desc"]]
+        });
+    });
+
+    $(document).ready(function() {
+        $("#SongRequestTable").DataTable({
+            ajax: {
+                url: "/api/feedback/getSongRequests",
+                type: "GET",
+                dataSrc: ''
+            },
+            columns: [
+                { data: "id" },
+                { data: "song_name" },
+                { data: "naughty_words" },
+                { data: "submitter_name" },
+                { data: "created_at", render: renderDate }
+            ],
+            responsive: true,
+            order: [[4, "desc"]]
+        });
+    });
+
+    function hideAllContainers() {
+        $("#FeatureRequestContainer").collapse("hide");
+        $("#BugReportContainer").collapse("hide");
+        $("#SongRequestsContainer").collapse("hide");
+
+        $("#featureRequestViewButton").removeClass("active");
+        $("#bugReportViewButton").removeClass("active");
+        $("#songRequestViewButton").removeClass("active");
+    }
+
+    function openFeatureRequestsViewer() {
+        hideAllContainers();
+
+        $("#FeatureRequestContainer").collapse("show");
+        $("#featureRequestViewButton").addClass("active");
+    }
+
+    function openBugReportsViewer() {
+        hideAllContainers();
+
+        $("#BugReportContainer").collapse("show");
+        $("#bugReportViewButton").addClass("active");
+    }
+
+    function openSongRequestsViewer() {
+        hideAllContainers();
+
+        $("#SongRequestsContainer").collapse("show");
+        $("#songRequestViewButton").addClass("active");
+    }
 
     function updateForm(){
         var selectedValue = $("#featureOrBugType").val();
@@ -268,7 +427,7 @@
 
     function clearForm(){
         $("#featureOrBugType").val("");
-        $("#submitterName").val("");
+        //$("#submitterName").val("");
 
         $("#featureOrBugDescription").val("");
         $("#featureUseCase").val("");

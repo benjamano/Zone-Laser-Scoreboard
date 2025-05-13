@@ -12,6 +12,8 @@ from API.Supervisor import Supervisor
 
 """
 
+cd backend
+
 python -m flask --app API.createApp db migrate -m "Initial DB Creation"
 
 python -m flask --app API.createApp db upgrade  

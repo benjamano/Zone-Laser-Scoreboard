@@ -1109,18 +1109,12 @@ label{
     scale: 1.05;
 }
 
-.form-group label{
-    margin-bottom: 0.3rem;
-    margin-left: 0.2rem;
-    margin-top: 0.5rem;
-}
-
 .form-group .btn-group .btn{
     margin-top: 0.3rem !important;
 }
 
-.btn{
-    margin-top: 1rem;
+.form-group{
+    margin-bottom: 0.5rem !important;
 }
 
 .display-none{
