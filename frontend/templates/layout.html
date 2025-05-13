@@ -91,6 +91,22 @@
 		</div>
 	</div>
 
+	<script>
+
+		if (localStorage.getItem("sidebarCollapsed") === "true"){
+			$("#sidebar").addClass("collapsed");
+			$("#main").addClass("collapsed");
+			$("#toggleSideBarButton").removeClass("fa-angles-left");
+			$("#toggleSideBarButton").addClass("fa-angles-right");
+		} else {
+			$("#sidebar").removeClass("collapsed");
+			$("#main").removeClass("collapsed");
+			$("#toggleSideBarButton").addClass("fa-angles-left");
+			$("#toggleSideBarButton").removeClass("fa-angles-right");
+		}
+
+	</script>
+
 	<div class="modal fade" id="releaseNotesModal" tabindex="-1" aria-labelledby="releaseNotesModalLabel" aria-hidden="true">
 		<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
 			<div class="modal-content">
@@ -109,6 +125,16 @@
 	</div>
 
 	<main id="main">
+
+		<script>
+
+			if (localStorage.getItem("sidebarCollapsed") === "true"){
+				$("#main").addClass("collapsed");
+			} else {
+				$("#main").removeClass("collapsed");
+			}
+
+		</script>
 
 		{% if "Dev" in Environment %}
 		<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
@@ -133,18 +159,6 @@
 	$(document).ready(function(){
 		localStorage.setItem("SkippedSongsCount", "0");
 		localStorage.setItem("NotifiedAboutSkippedSongs", "0");
-
-		if (localStorage.getItem("sidebarCollapsed") === "true"){
-			$("#sidebar").addClass("collapsed");
-			$("#main").addClass("collapsed");
-			$("#toggleSideBarButton").removeClass("fa-angles-left");
-			$("#toggleSideBarButton").addClass("fa-angles-right");
-		} else {
-			$("#sidebar").removeClass("collapsed");
-			$("#main").removeClass("collapsed");
-			$("#toggleSideBarButton").addClass("fa-angles-left");
-			$("#toggleSideBarButton").removeClass("fa-angles-right");
-		}
 
 		setTimeout(function() {
 			checkForValidPopUps();
