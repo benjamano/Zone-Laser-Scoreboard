@@ -1,4 +1,3 @@
-import time
 import threading
 import tkinter as tk
 from tkinter import ttk
@@ -8,8 +7,6 @@ import subprocess
 import os
 import requests
 import socket
-
-web_app = WebApp()
 
 def startUI():
     global root, progress, startApp, revealUI
@@ -59,18 +56,18 @@ def showInterface():
     interfaceWindow.title("Control Panel")
     
     def sendTestMessage():
-        threading.Thread(target=web_app.sendTestPacket()).start()
+        threading.Thread(target=webApp.sendTestPacket()).start()
     
     def restartPC():
-        restartPCThread = threading.Thread(target=web_app.restartApp("UI Request"))
+        restartPCThread = threading.Thread(target=webApp.restartApp("UI Request"))
         restartPCThread.daemon = True
         restartPCThread.start()
         
     def sendGameStartMessage():
-        threading.Thread(target=lambda: web_app.sendTestPacket(type="start")).start()
+        threading.Thread(target=lambda: webApp.sendTestPacket(type="start")).start()
     
     def sendGameEndMessage():
-        threading.Thread(target=web_app.sendTestPacket(type="end")).start()
+        threading.Thread(target=webApp.sendTestPacket(type="end")).start()
 
     def showOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
@@ -84,13 +81,13 @@ def showInterface():
         subprocess.Popen(rf'explorer /select, "{filedir}"')
         
     def restartDMX():
-        threading.Thread(target=web_app.setUpDMX).start()
+        threading.Thread(target=webApp.setUpDMX).start()
         
     def BrightnessSet50BulkHeads():
-        threading.Thread(target=web_app.setBulkheadsTo50Brightness).start()
+        threading.Thread(target=webApp.setBulkheadsTo50Brightness).start()
         
     def TurnOffBulkHeadLights():
-        threading.Thread(target=web_app.turnBulkHeadLightsOff).start()
+        threading.Thread(target=webApp.turnBulkHeadLightsOff).start()
 
     def RefreshPages():
         threading.Thread(target=refreshAllPages).start()
@@ -99,7 +96,7 @@ def showInterface():
         response = requests.post(f'http://{_localIp}:8080/sendMessage', data={"message": "", "type": "refreshPage"})
         
     def sendGunScoreTestMessage():
-        threading.Thread(target=web_app.sendTestPacket(type="gunscore")).start()
+        threading.Thread(target=webApp.sendTestPacket(type="gunscore")).start()
         
     creditsLbl = tk.Label(interfaceWindow, text="Test Panel")
     creditsLbl.pack(pady=10)
@@ -144,4 +141,8 @@ def showInterface():
     interfaceWindow.mainloop()
 
 def startWebApp():
-    web_app.start()
+    global webApp
+    
+    webApp = WebApp()
+    
+    webApp.start()

@@ -4,7 +4,7 @@ from subprocess import Popen
 import requests
 import psutil
 import GPUtil
-from API.format import message, colourText
+from API.format import Format
 import threading, datetime
 from datetime import datetime, timedelta, time
 import time as _time
@@ -16,6 +16,8 @@ import win32gui
 import win32con
 import pythoncom
 import win32com.client
+
+f = Format("Supervisor")
 
 if TYPE_CHECKING:
     from API.OBS import OBS as _OBS
@@ -35,10 +37,11 @@ class Supervisor:
         self.expectedProcesses = ["Spotify.exe", "obs64"]
         self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
-        message(colourText(f"Supervisor Started!", "cyan"), type="info")
+        f.message(f.colourText(f"Supervisor Started! Starting Background Processes...", "green"), type="info")
         
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
-        threading.Thread(target=self.__processResourceUtilisation, daemon=True).start() 
+        threading.Thread(target=self.__processResourceUtilisation, daemon=True).start()
+        threading.Thread(target=self.setOtherDependencies, daemon=True).start()
     
     def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None):
         if obs is not None:
@@ -54,12 +57,15 @@ class Supervisor:
             self._app: Flask = webApp.app
             
     def setOtherDependencies(self):
-        message(colourText(f"Supervisor: Restarted Service, Setting dependencies...", "Red"), type="info")
+        while self._context == None:
+            _time.sleep(0.5)
+        
+        f.message(f.colourText(f"Supervisor: Setting dependencies...", "Green"), type="info")
         try:
             # TODO: NEED TO SET ALL OTHER DEPENDENCIES TO THE NEW DEPENDENCIES
-            pass
+            self._context.setSupervisor(self)
         except Exception as e:
-            message(f"Error occurred while resetting Web App's dependencies: {e}", type="error")
+            f.message(f"Error occurred while resetting dependencies: {e}", type="error")
         
     def getDir(self) -> str:
         return self._dir
@@ -83,9 +89,9 @@ class Supervisor:
                         pass
                     
                     response = requests.post(
-                        f"http://{self._webApp._localIp}:8080/sendMessage",
+                        f"http://{self._webApp._localIp}:8080/sendf.message",
                         json={
-                            "message": {
+                            "f.message": {
                                 "ramPercentage": ramUsagePercent,
                                 "ramValue": ramUsageValue,
                                 "gpu": gpuUsage,
@@ -98,7 +104,7 @@ class Supervisor:
                 _time.sleep(5)
                 
             except Exception as e:
-                message(f"Error getting resource utilization: {e}", type="error")
+                f.message(f"Error getting resource utilization: {e}", type="error")
                 return None
             
     def __focusWindow(self, title):
@@ -130,41 +136,41 @@ class Supervisor:
                             processFound : bool = self.__checkIfProcessRunning(processName)
                             if not processFound:
                                 try:
-                                    message(f"Process {processName} not found, starting it..", type="warning")
+                                    f.message(f"Process {processName} not found, starting it..", type="warning")
                                     if processName.lower() == "spotify":
                                         os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
                                     elif processName.lower() == "obs64":
                                         self.__resetOBSConnection()
                                 except Exception as e:
-                                    message(f"Error starting process {processName}: {e}", type="error")
+                                    f.message(f"Error starting process {processName}: {e}", type="error")
                         except Exception as e:  
-                            message(f"Error occurred while checking for expected processes: {e}", type="error")
+                            f.message(f"Error occurred while checking for expected processes: {e}", type="error")
                 except Exception as e:
-                    message(f"Error occurred while checking for expected processes: {e}", type="error")
+                    f.message(f"Error occurred while checking for expected processes: {e}", type="error")
                 
                 try:
                     # Check Database Connection
                     if self._context != None and self.hasSevereErrorOccurred("db"):
-                        message("Database Connection Error", type="error")
+                        f.message("Database Connection Error", type="error")
                         threading.Thread(target=self.__resetDatabaseConnection(), daemon=True).start()
                 except Exception as e:
-                    message(f"Error occured while checking Database status: {e}", type="error")
+                    f.message(f"Error occured while checking Database status: {e}", type="error")
                     
                 try:
                     # Check OBS Connection
                     if self._obs != None and (self.hasSevereErrorOccurred("obs") or self._obs.isConnected() == False):
-                        message("OBS Connection Error", type="error")
+                        f.message("OBS Connection Error", type="error")
                         threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
                 except Exception as e:
-                    message(f"Error occured while checking OBS status: {e}", type="error")
+                    f.message(f"Error occured while checking OBS status: {e}", type="error")
                     
                 try:
                     # Check DMX Connection
                     if self._dmx != None and self.hasSevereErrorOccurred("dmx"):
-                        message("DMX Connection Error", type="error")
+                        f.message("DMX Connection Error", type="error")
                         threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
                 except Exception as e:
-                    message(f"Error occured while checking DMX status: {e}", type="error")
+                    f.message(f"Error occured while checking DMX status: {e}", type="error")
                 
             try:
                 if self._obs.isConnected() == True:
@@ -183,26 +189,26 @@ class Supervisor:
                                 timeToCheck = datetime.now() + timedelta(minutes=-30)
                                 currentTime = datetime.now().time()
                                 if startTime < timeToCheck and self._obs is not None and (currentTime < time(11, 0) or currentTime > time(17, 0)):
-                                    # message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
+                                    # f.message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
                                     self._obs.switchScene("Test Mode")
                                 
             except Exception as e:
                 pass
-                message(f"Error occurred while switching to sleep mode: {e}", type="warning")
+                f.message(f"Error occurred while switching to sleep mode: {e}", type="warning")
                 
             try:
                 now = datetime.now().time()
                 if time(0, 0, 0) <= now <= time(0, 5, 0):
                     self.__restartPC("Daily Restart")
             except Exception as e:
-                message(f"Error occurred while executing daily restart: {e}", type="error")               
+                f.message(f"Error occurred while executing daily restart: {e}", type="error")               
                 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
-            #     message(p)
+            #     f.message(p)
 
             # except Exception as e:
-            #     message(f"Error occurred while trying to pull changes from github: {e}", type="error")
+            #     f.message(f"Error occurred while trying to pull changes from github: {e}", type="error")
             
     def hasSevereErrorOccurred(self, service: str) -> bool:
         try:
@@ -222,7 +228,7 @@ class Supervisor:
             else:
                 return False
         except Exception as e:
-            message(f"Error occurred while checking for severe {service} errors: {e}", type="error")
+            f.message(f"Error occurred while checking for severe {service} errors: {e}", type="error")
             return False
 
     def hasModerateErrorOccurred(self, service: str) -> bool:
@@ -263,11 +269,11 @@ class Supervisor:
         self._dmx.resetConnection()
         
     def __restartPC(self, reason: str):
-        message(f"Restarting PC. Reason {reason}", type="error")
+        f.message(f"Restarting PC. Reason {reason}", type="error")
         os.system("shutdown /r /f /t 0")
         
     def __closeApp(self, reason: str):
-        message(f"Closing App. Reason {reason}", type="error")
+        f.message(f"Closing App. Reason {reason}", type="error")
         os._exit(1)
         
     def executePendingRestarts(self) -> None:
@@ -277,15 +283,15 @@ class Supervisor:
             if (len(PendingRestarts) >= 4):
                 reasons = "; ".join([r.reason for r in PendingRestarts if r.reason])
                 
-                message("WARNING - Restarting Program due to pending restarts.", type="warning")
-                message(f"Restart Request Messages: {reasons}", type="warning")
+                f.message("WARNING - Restarting Program due to pending restarts.", type="warning")
+                f.message(f"Restart Request f.messages: {reasons}", type="warning")
                 
                 for PendingRestart in PendingRestarts:
                     PendingRestart.complete = True
                     self._context.db.session.commit()
                 
                 if self.devMode:
-                    message("Won't restart program in dev mode, please restart manually.", type="warning")
+                    f.message("Won't restart program in dev mode, please restart manually.", type="warning")
                 else:
                     self.__closeApp((f"Restarting Program at {datetime.now()} due to: " + reasons))
         
@@ -334,7 +340,7 @@ class Supervisor:
                     recentErrorList=recentErrors
                 )
         except Exception as e:
-            message(f"Error occurred while getting service health: {e}", type="warning")
+            f.message(f"Error occurred while getting service health: {e}", type="warning")
         
         return ServiceHealthDTO(
             serviceName=serviceName,
@@ -348,9 +354,9 @@ class Supervisor:
             if self._context != None and ise != None:
                 
                 if ise.severity == 1:
-                    message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException Message: {ise.exception_message}", type="error")
+                    f.message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException f.message: {ise.exception_message}", type="error")
                 else:
-                    message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
+                    f.message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
                 
                 ise.timestamp = datetime.now()
                 
@@ -361,6 +367,6 @@ class Supervisor:
             return
         
         except Exception as e:
-            message(f"Error occurred while logging internal server error: {e}", type="error")
+            f.message(f"Error occurred while logging internal server error: {e}", type="error")
             
             return

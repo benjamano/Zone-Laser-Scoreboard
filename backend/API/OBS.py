@@ -1,11 +1,13 @@
 import obsws_python as obs
 import pygetwindow as gw
-from API import format
+from API.format import Format
 from API import Supervisor
 from data.models import *
 import psutil
 import time
 import os
+
+format = Format("OBS")
 
 class OBS:
     """

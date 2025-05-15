@@ -4,7 +4,7 @@ from PyDMXControl.controllers import OpenDMXController
 from PyDMXControl.profiles.Generic import Custom, Dimmer
             
 from data.models import *
-from API import format
+from API.format import Format
 from API.DB import context as dbContext
 from API.Supervisor import Supervisor
 
@@ -13,6 +13,8 @@ import time
 import requests
 import socket
 import datetime
+
+format = Format("DMX")
             
 class dmx:
     def __init__(self, context : dbContext, supervisor : Supervisor, app, devmode):

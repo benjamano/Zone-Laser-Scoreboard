@@ -4,14 +4,14 @@ from flask_migrate import Migrate
 import os, datetime
 
 from data.models import *
-
-from API.format import message
-
+from API.format import Format
 from API.Supervisor import Supervisor
+
+f = Format("DBContext")
 class context:
-    def __init__(self, app : Flask, supervisor : Supervisor, db : SQLAlchemy):
+    def __init__(self, app : Flask, db : SQLAlchemy):
         self.app = app
-        self._supervisor = supervisor
+        self._supervisor = None
         self.db = db
         
         self.Gun = Gun
@@ -291,6 +291,9 @@ class context:
         self.__createModels()
         self.__seedDBData()
         
+    def setSupervisor(self, supervisor : Supervisor):
+        self._supervisor = supervisor
+        
     def __createModels(self):
         return
         #migrate = Migrate(self.app, self.db)
@@ -303,7 +306,7 @@ class context:
         try:
             with self.app.app_context():
                 if not self.Gun.query.first() and not self.Player.query.first():
-                    message("Empty DB Found! Seeding Data....", type="warning")
+                    f.message("Empty DB Found! Seeding Data....", type="warning")
                     
                     self.Insert(self.Gun(name="Alpha", defaultColor="Red"))
                     self.Insert(self.Gun(name="Apollo", defaultColor="Red"))
@@ -355,9 +358,9 @@ class context:
 
                     self.SaveChanges()
                     
-                    message("Data seeded successfully", type="success")
+                    f.message("Data seeded successfully", type="success")
                 else:
-                    message("Data already exists, skipping seeding.", type="info")
+                    f.message("Data already exists, skipping seeding.", type="info")
         except Exception as e:
             pass
     
@@ -375,7 +378,7 @@ class context:
         with self.app.app_context():
             try:
                 self.db.session.commit()
-                message("Changes committed.", type="success")
+                f.message("Changes committed.", type="success")
             except Exception as e:
                 self.db.session.rollback()
                 
@@ -389,13 +392,13 @@ class context:
                 self.db.session.add(newGame)
                 self.db.session.commit()
                 
-                #message(f"Created new game with ID: {newGame.id}", type="success")
+                #f.message(f"Created new game with ID: {newGame.id}", type="success")
                 return newGame.id
                 
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             ise.service = "db"
-            ise.exception_message = str(e)
+            ise.exception_f.message = str(e)
             ise.process = "Create New Game"
             ise.severity = 2
             
@@ -408,13 +411,13 @@ class context:
                 self.db.session.add(player)
                 self.db.session.commit()
                 
-                #message(f"Created new game with ID: {newGame.id}", type="success")
+                #f.message(f"Created new game with ID: {newGame.id}", type="success")
                 return player.id
                 
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             ise.service = "db"
-            ise.exception_message = str(e)
+            ise.exception_f.message = str(e)
             ise.process = "Add Game Player"
             ise.severity = 2
             
@@ -433,13 +436,13 @@ class context:
                     
                     return game
                 else:
-                    message(f"Game with ID {gameId} not found", type="error")
+                    f.message(f"Game with ID {gameId} not found", type="error")
                     return None
         
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             ise.service = "db"
-            ise.exception_message = str(e)
+            ise.exception_f.message = str(e)
             ise.process = "Update Game"
             ise.severity = 2
             

@@ -3,6 +3,7 @@ try:
     import os
     import signal
     import threading
+    import traceback
     
 except Exception as e:
     print(f"An error occurred: {e}")
@@ -62,7 +63,9 @@ try:
     
     VerifyDependencies()
     
-    from API import format
+    from API.format import Format
+    
+    format = Format("Scoreboard")
     
     format.newline()
     
@@ -70,12 +73,15 @@ try:
     import userInterf as ui
     
     startIcon()
+    
     format.message("User Interface starting")
     
     threading.Thread(target=ui.startUI).run()
 
 except Exception as e:
-    print(f"An error occurred: {e}")
+    print(f"An error occurred: {e}\nLine No: {e.__traceback__.tb_lineno}\nStack Trace: {e.__traceback__.tb_frame}")
+    
+    traceback.print_exc()
     
     if type(e) == RuntimeError:
         pass

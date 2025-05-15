@@ -13,19 +13,18 @@ except Exception as e:
     print("Failed to import winrt.windows.media.control ", e)
     input("Press any key to exit...")
 
-from API import format
+from API.format import Format
 from API.BPM import MediaBPMFetcher
 from API.DMXControl import dmx
 from API.DB import *
 from API.OBS import OBS
 from API.Supervisor import Supervisor
 from API.Emails import EmailsAPIController
-
 from API.Feedback.feedback import *
-
 from data.models import *
-
 from API.createApp import *
+
+f = Format("Web App")
 
 class WebApp:
     def __init__(self):
@@ -37,7 +36,7 @@ class WebApp:
         
         # print(secrets)
         
-        format.message(format.colourText("Loading Environment Variables", "Cyan"), type="info")
+        f.message(f.colourText("Loading Environment Variables", "Cyan"), type="info")
         
         # LOAD ENVIRONMENT VARIABLES
         self.ENVIRONMENT = secrets["Environment"]
@@ -82,23 +81,13 @@ class WebApp:
                 
         pyautogui.FAILSAFE = False
 
-        format.message(f"Starting Web App at {str(datetime.now())}", type="warning")
-        
-        self.initLogging()
-        
-        self.app, self.socketio, self._context = create_app(self._supervisor) 
-        
-        format.message(format.colourText("Setting up routes..." ,"Blue"))
-        
-        self.setupRoutes()
-
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
     def startFlask(self):
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 if s.connect_ex((self._localIp, 8080)) == 0:
-                    format.message(f"Port 8080 is already in use on {self._localIp}", type="error")
+                    f.message(f"Port 8080 is already in use on {self._localIp}", type="error")
                     raise RuntimeError("Port in use. Exiting application.")
 
                 self.socketio.run(self.app, host=self._localIp, port=8080)
@@ -107,22 +96,32 @@ class WebApp:
                     self.app.debug = True
                 
         except Exception as e:
-            format.message(f"Fatal! {e}")
+            f.message(f"Fatal! {e}")
             os._exit(1)
         
     def start(self):
-        format.newline() 
+        f.message(f"Starting Web App at {str(datetime.now())}", type="warning")
+        
+        self.app, self.socketio, self._context = createApp() 
+        
+        self.initLogging()
+        
+        f.message(f.colourText("Setting up routes..." ,"Blue"))
+        
+        self.setupRoutes()
+        
+        f.message(f.colourText("Starting Up Threads and Services" ,"Green"))
         
         try:
             ctypes.windll.kernel32.SetConsoleTitleW("Zone Laser Scoreboard")
         except Exception as e:
-            format.message(f"Error setting console title: {e}", type="error")
+            f.message(f"Error setting console title: {e}", type="error")
         
         try:
-            format.message("Starting Supervisor", type="info")
+            f.message(f.colourText("Starting Supervisor", "green"), type="info")
             self._supervisor = Supervisor()
         except Exception as e:
-            format.message(f"Error starting Supervisor: {e}", type="error")
+            f.message(f"Error starting Supervisor: {e}", type="error")
             raise Exception("Error starting Supervisor: ", e)
         
         try:
@@ -132,22 +131,22 @@ class WebApp:
             self._localIp = s.getsockname()[0]
             s.close()
         except Exception as e:
-            format.message(f"Error finding local IP: {e}")
+            f.message(f"Error finding local IP: {e}")
         
         try:
-            format.message("Attempting to start Flask Server")
+            f.message("Attempting to start Flask Server")
             self.flaskThread = threading.Thread(target=self.startFlask)
             self.flaskThread.daemon = True
             self.flaskThread.start()
         except Exception as e:
-            format.message(f"Error starting Flask Server: {e}", type="error")
+            f.message(f"Error starting Flask Server: {e}", type="error")
             raise
         
         while self.app == None:
-            format.message("Waiting for app to start", type="warning")
+            f.message("Waiting for app to start", type="warning")
             time.sleep(0.5)
             
-        format.message(f"Web App hosted on IP {self._localIp}", type="success")
+        f.message(f"Web App hosted on IP {self._localIp}", type="success")
         
         # with self.app.app_context():
         #     self._context = context(self.app, self._supervisor, self.db)
@@ -158,13 +157,13 @@ class WebApp:
         #             self.findBPM()
         #             time.sleep(10)
         #         except Exception as e:
-        #             format.message(f"Error in BPM loop: {e}", type="error")
+        #             f.message(f"Error in BPM loop: {e}", type="error")
         #             break
 
         # self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
         # self.bpm_thread.start()  
             
-        format.message("Attempting to start Media status checker")
+        f.message("Attempting to start Media status checker")
         
         try:
             self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker)
@@ -172,7 +171,7 @@ class WebApp:
             self.mediaStatusCheckerThread.start()
             
         except Exception as e:
-            format.message(f"Error starting Media Status Checker: {e}", type="error")
+            f.message(f"Error starting Media Status Checker: {e}", type="error")
         
         # if self.devMode == False:
         #     webbrowser.open(f"http://{self._localIp}:8080")
@@ -183,23 +182,23 @@ class WebApp:
             self.obs_thread.start()
                 
         except Exception as e:
-            format.message(f"Error starting OBS Connection: {e}", type="error")
+            f.message(f"Error starting OBS Connection: {e}", type="error")
             
         try:
-            format.message("Setting up DMX Connection")
+            f.message("Setting up DMX Connection")
             self.DMXThread = threading.Thread(target=self.setUpDMX)
             self.DMXThread.daemon = True
             self.DMXThread.start()
             
         except Exception as e:
-            format.message(f"Error starting DMX Connection: {e}", type="error")
+            f.message(f"Error starting DMX Connection: {e}", type="error")
 
-        # format.message("Web App Started, hiding console", type="success")
+        # f.message("Web App Started, hiding console", type="success")
         
         # try:
         #     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
         # except Exception as e:
-        #     format.message(f"Hiding console: {e}", type="error")
+        #     f.message(f"Hiding console: {e}", type="error")
         
         try:
             self.sniffing_thread = threading.Thread(target=self.startSniffing)
@@ -207,29 +206,29 @@ class WebApp:
             self.sniffing_thread.start()
             
         except Exception as e:
-            format.message(f"Error starting packet sniffer: {e}", type="error")
+            f.message(f"Error starting packet sniffer: {e}", type="error")
             
         try:
             self.fetcher = MediaBPMFetcher()
         except Exception as e:
-            format.message(f"Error starting music info fetcher: {e}", type="error")
+            f.message(f"Error starting music info fetcher: {e}", type="error")
             
         try:
             self._eAPI = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"], secrets["GmailSenderEmail"], secrets["GmailSenderDisplayName"])
         except Exception as e:
-            format.message(f"Error starting email api: {e}", type="error")
+            f.message(f"Error starting email api: {e}", type="error")
             
         try:
             self._fAPI = RequestProcessor(self._context.db)
         except Exception as e:
-            format.message(f"Error starting feedback api: {e}", type="error")
+            f.message(f"Error starting feedback api: {e}", type="error")
             
         while self._supervisor == None:
             time.sleep(1)
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
-        format.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
+        f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         
         self.flaskThread.join()
 
@@ -250,48 +249,48 @@ class WebApp:
             self._dmx = dmx(self._context, self._supervisor, self.app, self.devMode)
             
         except Exception as e:
-            format.message(f"Error starting DMX Connection: {e}", type="error")
+            f.message(f"Error starting DMX Connection: {e}", type="error")
             return
         
         if self._dmx.isConnected() == True:
             
             try:
-                format.message("Registering Red Bulk-Head Lights", type="info")
+                f.message("Registering Red Bulk-Head Lights", type="info")
                 
                 self.BulkHeadLights = self._dmx.registerDimmerFixture("Bulk-Head Lights")
                 
             except Exception as e:
-                format.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
+                f.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
                 
             try:
-                format.message("Registering ColorWash 250 AT", type="info")
+                f.message("Registering ColorWash 250 AT", type="info")
                 
                 self.ColorWash250 = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "colorwash250at", 43)
                 self._dmx.addFixtureToGroup(self.ColorWash250, "Moving Heads")
                 
             except Exception as e:
-                format.message(f"Error registering ColorWash 250 AT: {e}", type="error")
+                f.message(f"Error registering ColorWash 250 AT: {e}", type="error")
                 
             try:
-                format.message("Registering ColorSpot 250 AT ", type="info")
+                f.message("Registering ColorSpot 250 AT ", type="info")
                 
                 self.ColorSpot250 = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", "colorspot250at", 10)
                 self._dmx.addFixtureToGroup(self.ColorSpot250, "Moving Heads")
                 
             except Exception as e:
-                format.message(f"Error registering ColorSpot 250 AT: {e}", type="error")
+                f.message(f"Error registering ColorSpot 250 AT: {e}", type="error")
         
             self.DMXConnected = True
             
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "dmxStatus"})
             
-            format.message("DMX Connection set up successfully", type="success")
+            f.message("DMX Connection set up successfully", type="success")
         
     def connectToOBS(self):
         try:
             self._obs = OBS(self.OBSSERVERIP, self.OBSSERVERPORT, self.OBSSERVERPASSWORD, self._dir, self._supervisor, secrets)
         except Exception as e:
-            format.message(f"Error setting up OBS connection: {e}", type="error")
+            f.message(f"Error setting up OBS connection: {e}", type="error")
 
     def setupRoutes(self):     
         # @self.app.errorhandler(404)
@@ -317,7 +316,7 @@ class WebApp:
                 return render_template('index.html')
         
             except Exception as e:
-                format.message(f"Error loading index.html: {e}", type="error")
+                f.message(f"Error loading index.html: {e}", type="error")
                 return render_template("error.html", message=f"Error loading index: {e}\nThis is a bug, a report has been automatically submitted.")
             
         @self.app.route("/api/getReleaseNotes")
@@ -335,7 +334,7 @@ class WebApp:
                     return {"error": str(e)}
                 
             except Exception as e:
-                format.message(f"Error getting release notes: {e}", type="error")
+                f.message(f"Error getting release notes: {e}", type="error")
                 return jsonify({"error": str(e)}), 500
     
         @self.app.route("/schedule")
@@ -405,7 +404,7 @@ class WebApp:
                     return render_template("scene.html")
                 
             except Exception as e:
-                format.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
+                f.message(f"Error fetching scene with Id '{sceneId}' for Advanced Scene view: {e}", type="error")
                 return render_template("error.html", message=f"Error fetching scene: {e}<br>This is a bug, a report has been automatically submitted.")
         
         @self.app.route("/text")
@@ -542,7 +541,7 @@ class WebApp:
                 else:
                     return {"error": "Unknown Type"}, 400
                 
-                format.sendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}", f"{type} Feedback Submitted")
+                f.messagesendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}", f"{type} Feedback Submitted")
 
                 return {"id": requestId}, 200
             
@@ -740,7 +739,7 @@ class WebApp:
 
         @self.app.route("/ping")
         def ping():   
-            #format.message("|--- I'm still alive! ---|")
+            #f.message("|--- I'm still alive! ---|")
             return 'OK'
         
         @self.app.route("/api/getAllGames", methods=["GET"])
@@ -859,7 +858,7 @@ class WebApp:
                                     "channel": key
                                 }
                             except Exception as e:
-                                format.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
+                                f.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
 
                     fixtureChannels.append({
                         "name": fixtureName,
@@ -1150,7 +1149,7 @@ class WebApp:
         
         @self.socketio.on('SpotifyControl')
         def handleSpotifyControl(json):
-            #format.message(f"Spotify control = {json["data"]}")
+            #f.message(f"Spotify control = {json["data"]}")
             
             self.spotifyControl = json["data"]
             
@@ -1176,7 +1175,7 @@ class WebApp:
         def playBriefing():
             if self._obs != None and self._obs.isConnected() == True:
                 try:
-                    #format.message("Playing briefing")
+                    #f.message("Playing briefing")
                     self._obs.switchScene("Video")
                     
                     return 200
@@ -1191,7 +1190,7 @@ class WebApp:
                     self._supervisor.logInternalServerError(ise)
 
             else:
-                #format.message("OBS not connected, cannot play breifing!", type="warning")
+                #f.message("OBS not connected, cannot play breifing!", type="warning")
                 return 500
     
         @self.app.route('/sendMessage', methods=['POST'])
@@ -1228,24 +1227,24 @@ class WebApp:
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             
     def startSniffing(self):
-        format.message("Starting packet sniffer...")
+        f.message("Starting packet sniffer...")
         try:
             sniff(prn=self.packetCallback, store=False, iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
-            format.message(f"Error while sniffing: {e}", type="error")
+            f.message(f"Error while sniffing: {e}", type="error")
             return
             
     async def getPlayingStatus(self):
         try:
             sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
         except Exception as e:
-            format.message(f"Error getting session manager: {e}", type="error")
+            f.message(f"Error getting session manager: {e}", type="error")
             raise
         
         try:
             current_session = sessions.get_current_session()
         except Exception as e:
-            format.message(f"Error getting current session: {e}", type="error")
+            f.message(f"Error getting current session: {e}", type="error")
             raise
         
         if not current_session:
@@ -1254,26 +1253,26 @@ class WebApp:
         try:
             playback_info = current_session.get_playback_info()
         except Exception as e:
-            format.message(f"Error getting playback info: {e}", type="error")
+            f.message(f"Error getting playback info: {e}", type="error")
             raise
         
         try:
             timeline_properties = current_session.get_timeline_properties()
         except Exception as e:
-            format.message(f"Error getting timeline properties: {e}", type="error")
+            f.message(f"Error getting timeline properties: {e}", type="error")
             raise
 
         try:
             status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
         except Exception as e:
-            format.message(f"Error getting playback status: {e}", type="error")
+            f.message(f"Error getting playback status: {e}", type="error")
             raise
 
         try:
             currentPosition = timeline_properties.position.total_seconds()
             totalDuration = timeline_properties.end_time.total_seconds()
         except Exception as e:
-            format.message(f"Error getting timeline properties: {e}", type="error")
+            f.message(f"Error getting timeline properties: {e}", type="error")
             raise
 
         return status, currentPosition, totalDuration
@@ -1282,13 +1281,13 @@ class WebApp:
         if self.spotifyControl == True:
             if mode.lower() == "toggle":
                 if self.spotifyStatus == "paused":
-                    #format.message("Playing music", type="warning")
+                    #f.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     
                     result = self.spotifyStatus
                 else:
-                    #format.message("Pausing music", type="warning")
+                    #f.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
                     result = self.spotifyStatus
@@ -1312,7 +1311,7 @@ class WebApp:
                 if self.spotifyStatus == "paused":
                     return
                 else:
-                    #format.message("Pausing music", type="warning")
+                    #f.message("Pausing music", type="warning")
                     self.spotifyStatus = "paused"
                     pyautogui.press('playpause')
                     result = "playing"
@@ -1321,7 +1320,7 @@ class WebApp:
                 if self.spotifyStatus == "playing":
                     return
                 else:
-                    #format.message("Playing music", type="warning")
+                    #f.message("Playing music", type="warning")
                     self.spotifyStatus = "playing"
                     pyautogui.press('playpause')
                     result = "paused"
@@ -1331,31 +1330,31 @@ class WebApp:
             #     self.bpm_thread.daemon = True
             #     self.bpm_thread.start()
             # except Exception as e:
-            #     format.message(f"Error running BPM thread: {e}", type="error")
+            #     f.message(f"Error running BPM thread: {e}", type="error")
                 
             return result
                     
         else:
-            format.message("Spotify control is disabled", type="warning")
+            f.message("Spotify control is disabled", type="warning")
             
     def restartApp(self, reason="unknown"):
         if self.devMode == True:
-            format.message("Development mode, skipping restart", type="warning")
+            f.message("Development mode, skipping restart", type="warning")
             return
         
-        format.message(f"Restarting App due to {reason}", type="error")
+        f.message(f"Restarting App due to {reason}", type="error")
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Restarting Web App Now!", 'type': "createWarning"})
         
         # Make sure all the end of game processing completes
         time.sleep(5)
         
-        format.message("Restarting App", type="warning")
+        f.message("Restarting App", type="warning")
 
         os._exit(1)
             
     def handleBPM(self, song, album, bpm=0):
-        #format.message(f"Get Here with {song}, {bpm}, {album}")
+        #f.message(f"Get Here with {song}, {bpm}, {album}")
         try:
             if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
                 
@@ -1434,7 +1433,7 @@ class WebApp:
                         case _:
                             bpm = "60"
             
-                #format.message(f"Current song: {song}, BPM: {bpm}")
+                #f.message(f"Current song: {song}, BPM: {bpm}")
             
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
                 
@@ -1445,7 +1444,7 @@ class WebApp:
                 self.rateLimit = True
                 return
             else:
-                format.message(f"Error occured while handling BPM: {e}", type="warning")
+                f.message(f"Error occured while handling BPM: {e}", type="warning")
         
     # def findBPM(self):
     #     try:
@@ -1458,7 +1457,7 @@ class WebApp:
                 
     #             self.handleBPM(song, album, bpm)
     #         except Exception as e:
-    #             format.message(f"Error fetching BPM: {e}", type="error")
+    #             f.message(f"Error fetching BPM: {e}", type="error")
             
     #         temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
 
@@ -1473,10 +1472,10 @@ class WebApp:
     #                 if response.status_code != 200:
     #                     raise Exception(f"Failed to send status: {response.text}")
     #             except Exception as e:
-    #                 format.message(f"Error sending Spotify status: {e}", type="error")
+    #                 f.message(f"Error sending Spotify status: {e}", type="error")
 
     #     except Exception as e:
-    #         format.message(f"Failed to find BPM: {e}", type="error")
+    #         f.message(f"Failed to find BPM: {e}", type="error")
    
     def runAsyncioInSta(self, coro):
         result_container = {}
@@ -1541,25 +1540,25 @@ class WebApp:
                         }
                     )
                 except Exception as e:
-                    format.message(f"Error sending music status message: {e}.", type="error")
+                    f.message(f"Error sending music status message: {e}.", type="error")
                     
                 # if currentPosition and totalDuration:
                 #     try:
                 #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
                 #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
                 #     except Exception as e:
-                #         format.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
+                #         f.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                 
             except Exception as e:
-                format.message(f"Error occured while checking media status: {e}", type="error")
+                f.message(f"Error occured while checking media status: {e}", type="error")
                 
                 if self.devMode == True:
-                    format.message("Development Mode, ignoring error handling because its dumb", type="warning")
+                    f.message("Development Mode, ignoring error handling because its dumb", type="warning")
                     return
                 
                 if str(e) != "an integer is required":
         
-                    format.message("Requesting app restart", type="warning")
+                    f.message("Requesting app restart", type="warning")
                         
                     # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                     
@@ -1577,7 +1576,7 @@ class WebApp:
                     time.sleep(60)
                     
                 else:
-                    format.message("Error not fatal, don't care", type="warning")
+                    f.message("Error not fatal, don't care", type="warning")
                 
                     time.sleep(3)                 
         
@@ -1587,13 +1586,13 @@ class WebApp:
         try:
             if packet.haslayer(IP) and (packet[IP].src == self.IP1 or packet[IP].src == self.IP2) and packet[IP].dst == "192.168.0.255":
                 
-                #format.message(f"Packet 1: {packet}")
+                #f.message(f"Packet 1: {packet}")
                 
                 packet_data = bytes(packet['Raw']).hex()
-                #format.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
+                #f.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
                 
                 decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
-                #format.message(f"Decoded Data: {decodedData}")
+                #f.message(f"Decoded Data: {decodedData}")
                 
                 if decodedData[0] == "1":
                     # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
@@ -1616,29 +1615,29 @@ class WebApp:
                     threading.Thread(target=self.shotConfirmedPacket, args=(decodedData,)).start()
                 
         except Exception as e:
-            format.message(f"Error handling packet: {e}", type="error")
+            f.message(f"Error handling packet: {e}", type="error")
         
     def gameStatusPacket(self, packetData):
         # 4,@015,0 = start
         # 4,@014,0 = end
         
-        format.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
+        f.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
         
         if packetData[1] == "@015":
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
-            #format.message(f"Response: {response.text}")
+            #f.message(f"Response: {response.text}")
         
         elif packetData[1] == "@014":
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.now())}", 'type': "end"})
-            #format.message(f"Response: {response.text}")
+            #f.message(f"Response: {response.text}")
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
         
     def teamScorePacket(self, packetData):
         #0 = red, 2 = green
-        #format.message(f"Team Score Packet: {packetData}")
+        #f.message(f"Team Score Packet: {packetData}")
         
         teamId = str(packetData[1])
         teamScore = str(packetData[2])
@@ -1651,15 +1650,15 @@ class WebApp:
         try:
             self.TeamScores[teamId] = teamScore
         except Exception as e:
-            format.message(f"Error updating Team Scores: {e}", type="error")
+            f.message(f"Error updating Team Scores: {e}", type="error")
 
     def timingPacket(self, packetData):
         timeLeft = packetData[3]
         
-        #format.message(f"Time Left: {timeLeft}")
+        #f.message(f"Time Left: {timeLeft}")
 
         if int(timeLeft) <= 0:
-            #format.message(f"Game Ended at {datetime.now()}", type="success") 
+            #f.message(f"Game Ended at {datetime.now()}", type="success") 
             self.gameEnded()
         else:
             self.gameStarted()
@@ -1667,8 +1666,6 @@ class WebApp:
             if self._obs != None:
                 self._obs.switchScene("Laser Scores")
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{timeLeft}", 'type': "timeRemaining"})
-        
-        #format.newline()
     
     def finalScorePacket(self, packetData):
         gunId = packetData[1]
@@ -1682,7 +1679,7 @@ class WebApp:
                 gunName : str = self._context.Gun.query.filter_by(id=gunId).first().name
         
         except Exception as e:
-            format.message(f"Error getting gun name: {e}", type="error")
+            f.message(f"Error getting gun name: {e}", type="error")
             
         if gunName == "":
             gunName = "id: "+gunId
@@ -1690,16 +1687,16 @@ class WebApp:
         try:
             self.GunScores[gunId] = finalScore
         except Exception as e:
-            format.message(f"Error updating Gun Scores: {e}", type="error")
+            f.message(f"Error updating Gun Scores: {e}", type="error")
             
-        #format.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
+        #f.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
         
         data = f"{gunId},{finalScore},{accuracy}"
         
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
         
     def shotConfirmedPacket(self, packetData):
-        #format.message(f"Shot Confirmed Packet: {packetData}")
+        #f.message(f"Shot Confirmed Packet: {packetData}")
         pass
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
@@ -1708,14 +1705,14 @@ class WebApp:
         if self.gameStatus == "running":
             return
         
-        format.newline()
+        f.newline()
         
         try:
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
         except Exception as e:
             pass
                     
-        format.message(f"Game started at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
+        f.message(f"Game started at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.handleMusic(mode="play")
 
@@ -1726,7 +1723,7 @@ class WebApp:
 
         self.currentGameId = self._context.createNewGame()
         
-        format.message(f"Created new game with Id {self.currentGameId}")
+        f.message(f"Created new game with Id {self.currentGameId}")
             
         if self._obs != None:
             self._obs.switchScene("Laser Scores")
@@ -1740,7 +1737,7 @@ class WebApp:
         except Exception as e:
             pass
         
-        format.message(f"Game ended at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
+        f.message(f"Game ended at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         self.gameStatus = "stopped"
         
@@ -1754,12 +1751,12 @@ class WebApp:
                 try:
                     winningPlayer = max(self.GunScores.items(), key=lambda x: x[1])[0]
                 except Exception as e:
-                    format.message(f"Error getting winning player: {e}", type="error")
+                    f.message(f"Error getting winning player: {e}", type="error")
                     
                 try:
                     winningTeam = max(self.TeamScores.items(), key=lambda x: x[1])[0]
                 except Exception as e:
-                    format.message(f"Error getting winning team: {e}", type="error")
+                    f.message(f"Error getting winning team: {e}", type="error")
                     
                 if winningPlayer != "" and winningTeam != "" and self._obs != None:
                     #self._obs.showWinners(str(winningPlayer), str(winningTeam))
@@ -1767,7 +1764,7 @@ class WebApp:
                 
                 self._context.updateGame(self.currentGameId, endTime=datetime.now(), winningPlayer=winningPlayer, winningTeam=winningTeam)
                 
-                #format.message(f"Set Current Game's End Time to {datetime.now()}, ID: {self.currentGameId}")
+                #f.message(f"Set Current Game's End Time to {datetime.now()}, ID: {self.currentGameId}")
             
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -1793,7 +1790,7 @@ class WebApp:
                         gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score, accuracy=0)
                         self._context.addGamePlayer(gamePlayer)
                         
-                    format.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
+                    f.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
                     
                 self.currentGameId = 0
                     
@@ -1823,7 +1820,7 @@ class WebApp:
     # -------------------------------------------------------------------------| Testing |----------------------------------------------------------------------------------------------------------------------------------- #    
     
     def sendTestPacket(self, type="server"):
-        format.message(f"Sending {type} packet")
+        f.message(f"Sending {type} packet")
         match type.lower():
             case "server":
                 with self.app.app_context():
@@ -1838,7 +1835,7 @@ class WebApp:
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                 
                 response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': "Test Packet", 'type': "server"})
-                format.message(f"Response: {response.text}")
+                f.message(f"Response: {response.text}")
             case "start":
                 self.gameStarted()
             case "end":

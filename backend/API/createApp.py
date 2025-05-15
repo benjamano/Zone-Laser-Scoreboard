@@ -8,7 +8,9 @@ from flask_migrate import Migrate
 from data.models import db  
 
 from API.DB import context as DBContext
-from API.Supervisor import Supervisor
+from API.format import Format
+
+f = Format("Create App")
 
 """
 
@@ -20,28 +22,18 @@ python -m flask --app API.createApp db upgrade
 
 """
 
-def create_app(supervisor = None):
-    if supervisor == "None":
-        return
-    
+def createApp():
     BasePath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-    
-    if "\\backend\\" in BasePath:
-        BasePath = BasePath.replace("backend\\", "") 
-    
-    staticPath = os.path.join(BasePath, "frontend\\static")
-    templatePath = os.path.join(BasePath, "frontend\\templates")
+
+    BasePath = BasePath.replace("\\backend", "")
+
+    staticPath = os.path.join(BasePath, "frontend", "static")
+    templatePath = os.path.join(BasePath, "frontend", "templates")
     databasePath = os.path.join(BasePath, "Scoreboard.db")
     
-    if "\\backend\\" in databasePath:
-        databasePath = databasePath.replace("backend\\", "") 
-    if "\\backend\\" in templatePath:
-        templatePath = templatePath.replace("backend\\", "") 
-    if "\\backend\\" in staticPath:
-        staticPath = staticPath.replace("backend\\", "") 
-    
-    print(f"Searching for static files here: {staticPath}\nSearching for templates here: {templatePath}")
-    print(f"Creating Database here: {databasePath}")
+    f.message(f"Searching for static files here: {f.colourText(staticPath, "Red")}")
+    f.message(f"Searching for templates here: {f.colourText(templatePath, "Red")}")
+    f.message(f"Creating Database here: {f.colourText(databasePath, "Red")}")
     
     app = Flask(
         __name__,
@@ -60,14 +52,15 @@ def create_app(supervisor = None):
 
     socketio = SocketIO(app, cors_allowed_origins="*")
 
-    db_context = DBContext(app, supervisor, db)
+    db_context = DBContext(app, db)
 
     return app, socketio, db_context
 
-try:
-    app, socketio, dbContext = create_app()
-except Exception as e:
-    pass
+# try:
+#     app, socketio, dbContext = createApp()
+# except Exception as e:
+#     pass
 
 if __name__ == '__main__':
+    app, socketio, dbContext = createApp()
     pass
