@@ -2,7 +2,6 @@ import threading
 import tkinter as tk
 from tkinter import ttk
 import ctypes
-from webApp import WebApp
 import subprocess
 import os
 import requests
@@ -141,6 +140,8 @@ def showInterface():
     interfaceWindow.mainloop()
 
 def startWebApp():
+    from webApp import WebApp
+    
     global webApp
     
     webApp = WebApp()

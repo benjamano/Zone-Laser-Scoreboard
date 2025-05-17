@@ -236,9 +236,16 @@ socket.on('songName', function (msg) {
     try{
         console.log(msg.message);
 
-        $("#currentPlayingSongForTrigger").val((msg.message).split(" - ")[1] + " - " + (msg.message).split(" - ")[0]);
-
-        $("#musicPlaying").text(msg.message);
+        if (msg.message == "No media playing"){
+            $("#currentPlayingSongForTrigger").val("No Media Playing");
+            $("#musicPlaying").text("No Media Playing");
+            $("#setThisSongAsBindButton").hide();
+        }
+        else{
+            $("#currentPlayingSongForTrigger").val((msg.message).split(" - ")[1] + " - " + (msg.message).split(" - ")[0]);
+            $("#musicPlaying").text(msg.message);
+            $("#setThisSongAsBindButton").show();
+        }
     }
     catch(err){}
 });

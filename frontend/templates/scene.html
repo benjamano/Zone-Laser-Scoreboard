@@ -28,61 +28,60 @@
 
 				<div class="col-6">
 
-					<div class="controls">
+					<div class="controls pe-0">
 
 						<div class="buttonControlsContainer">
 
-							<button class="fas fa-play col-3 controlButton"></button>
-							<button class="fas fa-pause col-3 controlButton"></button>
-							<button class="fas fa-stop col-3 controlButton"></button>
-
-						</div>
-
-						<div class="buttonControlsContainer">
-
-							<button onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" role="button" class="controlButton col-3 fas fa-eye mb-2" id="blindEditModeIcon"></button>
+							<button class="fas fa-play col-3 controlButton hover" title="Play"></button>
+							<!-- <button class="fas fa-pause col-3 controlButton"></button> -->
+							<button class="fas fa-stop col-3 controlButton hover" title="Stop All Running Scenes"></button>
+							<button  class="controlButton col-3 fas fa-eye hover" onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" id="blindEditModeIcon"></button>
 							<!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
 
 						</div>
 
-						<div class="songTriggerSelector">
+						<div id="selectedSceneControls" style="display: none;">
 
-							<label class="songTriggerLabel">Trigger on Song</label>
-							<div class="input-group">
-								<input type="text" id="currentPlayingSongForTrigger" class="pe-none songPlayingTriggerInput hideSelectEffect" readonly>
-								<button onclick="setThisSongAsKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+							<div class="songTriggerSelector form-group col-12">
+
+								<label class="songTriggerLabel">Trigger on Song</label>
+								<div class="input-group">
+									<input type="text" id="currentPlayingSongForTrigger" class="form-control pe-none songPlayingTriggerInput hideSelectEffect readonly" readonly>
+									<button onclick="setThisSongAsKeybind()" id="setThisSongAsBindButton" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+								</div>
+								<label class="songTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
+
 							</div>
-							<label class="songTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
 
-						</div>
+							<div class="songTriggerSelector form-group col-12">
 
-						<div class="songTriggerSelector">
+								<label class="songTriggerLabel">Trigger on Keybind</label>
+								<div class="input-group">
+									<input type="text" id="triggerKeybindClick" class="cursor-pointer form-control songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
+									<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+								</div>
+								<label class="songTriggerLabel hideSelectEffect">Current Set Keybind: <span id="currentPlayingKeybindForTriggerValue"></span></label>
 
-							<label class="songTriggerLabel">Trigger on Keybind</label>
-							<div class="input-group">
-								<input type="text" id="triggerKeybindClick" class="cursor-pointer songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
-								<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
 							</div>
-							<label class="songTriggerLabel hideSelectEffect">Current Set Keybind: <span id="currentPlayingKeybindForTriggerValue"></span></label>
 
-						</div>
-
-						<div class="actionCheckBoxContainer">
-
-							<label class="actionCheckBoxLabel"><i class="fas fa-repeat me-2"></i> Loop</label>
-
-							<div class="form-check">
-								<input class="form-check-input actionCheckBox" onchange="toggleSceneLoop()" type="checkbox" value="" id="loopCheckbox">
+							<div class="col d-flex align-items-center justify-content-between">
+								<label class="form-check-label mb-0" for="loopCheckbox">
+									<i class="fas fa-repeat me-1" aria-hidden="true"></i> Loop
+								</label>
+								<div class="form-switch mb-2">
+									<input class="form-check-input" type="checkbox" id="loopCheckbox" onchange="toggleSceneLoop()">
+								</div>
 							</div>
-							
-						</div>
 
-						<div class="actionCheckBoxContainer">
+							<div class="col d-flex align-items-center justify-content-between">
+								<label class="form-check-label mb-0" for="flashModeCheckbox">
+									<i class="fas fa-bolt me-1" aria-hidden="true"></i> Flash Mode
+								</label>
+								<div class="form-switch mb-2">
+									<input class="form-check-input" type="checkbox" id="flashModeCheckbox" onclick="toggleSceneFlashMode()">
+								</div>
+							</div>
 
-							<label class="actionCheckBoxLabel"><i class="fas fa-bolt me-2"></i> Flash Mode</label>
-
-							<input type="checkbox" id="flashModeCheckbox" role="switch" onclick="toggleSceneFlashMode()" class="actionCheckBox">
-							
 						</div>
 
 					</div>
@@ -100,7 +99,7 @@
 									<td>#</td>
 									<td>Start Time</td>
 									<td>Duration</td>
-									<td onclick="addNewSceneEvent()">+</td>
+									<td id="addNewSceneEventButton" style="display: none;" onclick="addNewSceneEvent()">+</td>
 								</tr>
 							</table>
 
@@ -573,6 +572,9 @@
             type: "GET",
             data: { sceneId: sceneId },
             success: function (response) {
+				$("#selectedSceneControls").show();
+				$("#addNewSceneEventButton").show();
+
                 var scene = response;
 
                 $("#"+scene.id+"_SceneBtn").addClass("selected");

@@ -173,7 +173,7 @@ class Supervisor:
                     f.message(f"Error occured while checking DMX status: {e}", type="error")
                 
             try:
-                if self._obs.isConnected() == True:
+                if self._obs != None and self._obs.isConnected() == True:
                     self._obs.openProjector()
                     
                     if (self._obs.getCurrentScene()).lower() != "video":

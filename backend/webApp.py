@@ -24,7 +24,7 @@ from API.Supervisor import Supervisor
 from API.Emails import EmailsAPIController
 from API.Feedback.feedback import *
 from data.models import *
-from API.createApp import *
+from API.createApp import createApp
 
 f = Format("Web App")
 
@@ -35,8 +35,6 @@ class WebApp:
         self._dir = os.path.dirname(os.path.realpath(__file__))
         
         secrets = dotenv_values(self._dir.replace(r"\backend", "") + r"\.env")
-        
-        # print(secrets)
         
         f.message(f.colourText("Loading Environment Variables", "Cyan"), type="info")
         
@@ -265,7 +263,6 @@ class WebApp:
             return
         
         if self._dmx.isConnected() == True:
-            
             try:
                 f.message("Registering Red Bulk-Head Lights", type="info")
                 
@@ -277,8 +274,8 @@ class WebApp:
             try:
                 f.message("Registering ColorWash 250 AT", type="info")
                 
-                self.ColorWash250 = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "colorwash250at", 43)
-                self._dmx.addFixtureToGroup(self.ColorWash250, "Moving Heads")
+                patchedFixture = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "colorwash250at", 43)
+                self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
                 
             except Exception as e:
                 f.message(f"Error registering ColorWash 250 AT: {e}", type="error")
@@ -286,8 +283,8 @@ class WebApp:
             try:
                 f.message("Registering ColorSpot 250 AT ", type="info")
                 
-                self.ColorSpot250 = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", "colorspot250at", 10)
-                self._dmx.addFixtureToGroup(self.ColorSpot250, "Moving Heads")
+                patchedFixture = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", "colorspot250at", 10)
+                self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
                 
             except Exception as e:
                 f.message(f"Error registering ColorSpot 250 AT: {e}", type="error")
@@ -839,7 +836,7 @@ class WebApp:
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
             if self._dmx == None or self._dmx.isConnected() == False:
-                return jsonify({"error": "DMX Connection not available"}), 500
+                return jsonify({"error": "DMX Connection not available"}), 503
             
             temp_fixtures = []
             
@@ -865,7 +862,7 @@ class WebApp:
             
         @self.app.route("/api/dmx/dmxChannelValues", methods=["GET"])
         def getDMXChannelValues():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
@@ -923,7 +920,7 @@ class WebApp:
             
         @self.app.route("/api/dmx/scenes", methods=["GET"])
         def getDMXScenes():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
@@ -945,7 +942,7 @@ class WebApp:
                 
         @self.app.route("/api/dmx/getScene", methods=["GET"])
         def getDMXScene():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             sceneId = request.args.get("sceneId") 
@@ -970,7 +967,7 @@ class WebApp:
             
         @self.app.route("/api/dmx/startScene", methods=["POST"])
         def startDMXScene():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             sceneId = request.form.get("sceneId") 
@@ -995,7 +992,7 @@ class WebApp:
 
         @self.app.route("/api/dmx/stopScene", methods=["POST"])
         def stopDMXScene():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             sceneId = request.form.get("sceneId") 
@@ -1020,7 +1017,7 @@ class WebApp:
         
         @self.app.route("/api/dmx/createScene", methods=["POST"])
         def createDMXScene():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
@@ -1048,7 +1045,7 @@ class WebApp:
             
         @self.app.route("/api/dmx/editSceneName", methods=["POST"])
         def editDMXSceneName():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
@@ -1080,7 +1077,7 @@ class WebApp:
 
         @self.app.route("/api/dmx/getSceneEvent", methods=["GET"])
         def getSceneEvent():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
             
             eventId = request.args.get("eventId")
@@ -1102,7 +1099,7 @@ class WebApp:
 
         @self.app.route("/api/dmx/saveSceneEvent", methods=["POST"])
         def saveSceneEvent():
-            if not self.DMXConnected:
+            if self._dmx == None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
             
             try:
@@ -1134,6 +1131,9 @@ class WebApp:
             
         @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
         def setSceneSongTrigger():
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
             sceneId = request.form.get("sceneId")
             songName = request.form.get("songName")
 
@@ -1143,6 +1143,9 @@ class WebApp:
 
         @self.app.route("/api/dmx/createSceneEvent", methods=["POST"])
         def createSceneEvent():
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
             sceneId = request.form.get("sceneId")
 
             try:

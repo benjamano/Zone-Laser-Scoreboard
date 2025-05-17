@@ -1163,6 +1163,14 @@ label{
     scale: 1.1;
 }
 
+.hover:not(:hover){
+    filter: brightness(0.8);
+}
+
+.hover:hover{
+    filter: brightness(1);
+}
+
 .resourceUtilisationChart{
     max-height: 12vh;
 }

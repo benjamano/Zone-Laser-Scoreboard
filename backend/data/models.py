@@ -136,6 +136,22 @@ class FixtureChannelValue(db.Model):
     name = db.Column(db.String(100), nullable=False)
     icon = db.Column(db.String(100), nullable=True)
     
+class PatchedFixture(db.Model):
+    __tablename__ = 'patchedfixtures'
+    id = db.Column(db.Integer, primary_key=True)
+    fixtureId = db.Column(db.Integer, db.ForeignKey("fixture.id", name="fk_patchedfixtures_fixture_id"), nullable=False)
+    groupId = db.Column(db.Integer, db.ForeignKey("patchedfixturegroups.id", name="fk_patchedfixtures_group_id"), nullable=True)
+    dmxControllerFixtureId = db.Column(db.Integer, nullable=False)
+    dmxStartAddress = db.Column(db.Integer, nullable=False)
+    dmxEndAddress = db.Column(db.Integer, nullable=False)
+    fixtureName = db.Column(db.String(100), nullable=False)
+
+class PatchedFixtureGroup(db.Model):
+    __tablename__ = 'patchedfixturegroups'
+    id = db.Column(db.Integer, primary_key=True)
+    groupName = db.Column(db.String(100), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False)
+    
 class DMXPatchedChannel(db.Model):
     __tablename__ = 'dmxpatchedchannel'
     id = db.Column(db.Integer, primary_key=True)

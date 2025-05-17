@@ -25,6 +25,7 @@ class context:
         self.Fixture = Fixture
         self.FixtureChannel = FixtureChannel
         self.FixtureChannelValue = FixtureChannelValue
+        self.PatchedFixtures = PatchedFixture
         self.InternalServerError = InternalServerError
         
         self.fixtureProfiles = {

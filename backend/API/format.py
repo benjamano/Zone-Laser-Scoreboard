@@ -127,7 +127,7 @@ class Format:
 
     def sendEmail(self, content, type):
         try:   
-            if "dev" in secrets["Environment"] and True:
+            if "dev" in secrets["Environment"].lower():
                 return
             
             url = "https://benmercer.pythonanywhere.com/play2day/api/sendLogMessage"
