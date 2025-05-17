@@ -237,6 +237,10 @@ function loadCardConfig() {
                     }
                 }
                 break;
+            case "briefingButtonCard":
+                contentArea = createPlayBriefingCard();
+
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -595,6 +599,19 @@ function createTextAreaCard(){
 
     contentArea.innerHTML = `
         <textarea style="width: 100%;height: 100%;"></textarea>`;
+
+    return contentArea;
+}
+
+function createPlayBriefingCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("briefingButtonCard", "wideCard");
+    card.dataset.type = "briefingButtonCard";
+
+    contentArea.innerHTML = `
+        <button class="btn btn-outline-primary w-100 h-100" style='font-size: 1.3rem;' onclick="playBriefing();" id="briefingButton">Play Briefing Video</button>
+    `;
 
     return contentArea;
 }

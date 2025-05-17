@@ -6,6 +6,7 @@ from API.Feedback.feedback import RequestProcessor
 from scapy.all import sniff, IP
 from dotenv import dotenv_values
 from datetime import timedelta
+from werkzeug.exceptions import HTTPException
 
 try:
     import winrt.windows.media.control as wmc
@@ -146,7 +147,7 @@ class WebApp:
             f.message("Waiting for app to start", type="warning")
             time.sleep(0.5)
             
-        f.message(f"Web App hosted on IP {self._localIp}", type="success")
+        f.message(f"Web App hosted on IP http://{self._localIp}:8080", type="success")
         
         # with self.app.app_context():
         #     self._context = context(self.app, self._supervisor, self.db)
@@ -304,7 +305,21 @@ class WebApp:
                 VersionNo=self.VersionNumber,
                 PageTitle=getattr(g, 'PageTitle', ""),
                 Environment=secrets["Environment"]
-            )
+        )
+
+        @self.app.errorhandler(HTTPException)
+        def handle_exception(e):
+            """Return JSON instead of HTML for HTTP errors."""
+            # start with the correct headers and status code from the error
+            response = e.get_response()
+            # replace the body with JSON
+            response.data = json.dumps({
+                "code": e.code,
+                "name": e.name,
+                "description": e.description,
+            })
+            response.content_type = "application/json"
+            return response
             
         @self.app.route('/')
         def index():
@@ -1175,6 +1190,8 @@ class WebApp:
         def playBriefing():
             if self._obs != None and self._obs.isConnected() == True:
                 try:
+                    f.message("Playing briefing")
+                    
                     #f.message("Playing briefing")
                     self._obs.switchScene("Video")
                     
