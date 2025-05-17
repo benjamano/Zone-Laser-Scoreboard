@@ -330,22 +330,40 @@
 		$.ajax({
 			url: "/api/getReleaseNotes", 
 			type: "GET",
-			success: function(response) {
-				$("#ReleaseNotesTxtBox").val("");
+			success: function(releaseNotes) {
+				var currentCommit = "";
 
-				response.forEach(function(iteratedObject) {
-					const formattedMessage = iteratedObject.commit.message.replace(/\n/g, "<br>");
-					$("#ReleaseNotesTxtBox").append(
-						"<div>" +
-							"<p><strong>Author:</strong> " + iteratedObject.commit.author.name + "</p>" +
-							"<p><strong>Date:</strong> " + new Date(iteratedObject.commit.author.date).toLocaleString() + "</p>" +
-							"<p><strong>Message:</strong> " + formattedMessage + "</p>" +
-							"<hr>" +
-						"</div>"
-					);
+				$.ajax({
+					url: "/api/getCurrentCommit", 
+					type: "GET",
+					success: function(response) {
+						$("#releaseNotesModalLabel").html("Release Notes - Current Running Version: <strong>" + response + "</strong>");
+
+						currentCommit = response;
+
+						$("#ReleaseNotesTxtBox").val("");
+
+						releaseNotes.forEach(function(iteratedObject) {
+							const formattedMessage = iteratedObject.commit.message.replace(/\n/g, "<br>");
+							const isCurrent = currentCommit && iteratedObject.sha.slice(0,7).includes(currentCommit);
+							const style = isCurrent ? "text-success" : "";
+							$("#ReleaseNotesTxtBox").append(
+								"<div>" +
+									"<p><strong>Release: <span class='"+ style +"'>" + iteratedObject.sha.slice(0,7) + "</span></p>" +
+									"<p><strong>Author:</strong> " + iteratedObject.commit.author.name + "</p>" +
+									"<p><strong>Date:</strong> " + new Date(iteratedObject.commit.author.date).toLocaleString() + "</p>" +
+									"<p><strong>Message:</strong> " + formattedMessage + "</p>" +
+									"<hr>" +
+								"</div>"
+							);
+						});
+
+						$("#releaseNotesModal").modal("show");
+					},
+					error: function(xhr, status, error) {
+						createNotification("Error: " + error, 30000);
+					}
 				});
-
-				$("#releaseNotesModal").modal("show");
 			},
 			error: function(xhr, status, error) {
 				createNotification("Error: " + error, 30000);

@@ -7,6 +7,7 @@ from scapy.all import sniff, IP
 from dotenv import dotenv_values
 from datetime import timedelta
 from werkzeug.exceptions import HTTPException
+import subprocess
 
 try:
     import winrt.windows.media.control as wmc
@@ -101,6 +102,8 @@ class WebApp:
             os._exit(1)
         
     def start(self):
+        f.message("Running on Commit: " + f.colourText(f"{self.getCurrentCommit()}", "green"), type="info")
+        
         f.message(f"Starting Web App at {str(datetime.now())}", type="warning")
         
         self.app, self.socketio, self._context = createApp() 
@@ -232,6 +235,14 @@ class WebApp:
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         
         self.flaskThread.join()
+        
+    def getCurrentCommit(self) -> str:
+        try:
+            commit = subprocess.check_output(['git', 'rev-parse', '--short', 'HEAD']).decode().strip()
+            return commit
+        except Exception as e:
+            f.message(f"Error getting current commit: {e}", type="error")
+            return ""
 
     def initLogging(self):
         #self.app.logger.disabled = True
@@ -310,16 +321,24 @@ class WebApp:
         @self.app.errorhandler(HTTPException)
         def handle_exception(e):
             """Return JSON instead of HTML for HTTP errors."""
-            # start with the correct headers and status code from the error
-            response = e.get_response()
-            # replace the body with JSON
-            response.data = json.dumps({
-                "code": e.code,
-                "name": e.name,
-                "description": e.description,
-            })
-            response.content_type = "application/json"
-            return response
+            if hasattr(e, "original_exception") and e.original_exception:
+                # f.message(f"HTTP Exception: {e.original_exception}", type="error")
+                # Try to serialize the original exception, fallback to str if not serializable
+                try:
+                    return jsonify({"error": str(e.original_exception)}), 500
+                except Exception:
+                    return jsonify({"error": "Unserializable exception"}), 500
+            else:
+                # f.message(f"HTTP Exception: {e}", type="error")
+                
+                response = e.get_response()
+                response.data = json.dumps({
+                    "code": e.code,
+                    "name": e.name,
+                    "description": e.description,
+                })
+                response.content_type = "application/json"
+                return response, 500
             
         @self.app.route('/')
         def index():
@@ -350,6 +369,14 @@ class WebApp:
                 
             except Exception as e:
                 f.message(f"Error getting release notes: {e}", type="error")
+                return jsonify({"error": str(e)}), 500
+            
+        @self.app.route("/api/getCurrentCommit")
+        def api_getCurrentCommit():
+            try:
+                return self.getCurrentCommit()
+            except Exception as e:
+                f.message(f"Error getting current commit: {e}", type="error")
                 return jsonify({"error": str(e)}), 500
     
         @self.app.route("/schedule")
@@ -811,8 +838,8 @@ class WebApp:
         
         @self.app.route("/api/availableFixtures", methods=["GET"])
         def availableFixtures():
-            if self.DMXConnected == False:
-                return jsonify({"error": "DMX Connection not available"})
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 500
             
             temp_fixtures = []
             
