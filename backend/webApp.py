@@ -1784,13 +1784,14 @@ class WebApp:
                     if gamePlayer != None:
                         gamePlayer.score = score
                         gamePlayer.accuracy = 0
-                        self._context.SaveChanges()
                         
                     else:
                         gamePlayer : GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score, accuracy=0)
                         self._context.addGamePlayer(gamePlayer)
                         
                     f.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
+                    
+                self._context.SaveChanges()
                     
                 self.currentGameId = 0
                     

@@ -398,7 +398,7 @@ class context:
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             ise.service = "db"
-            ise.exception_f.message = str(e)
+            ise.exception_message = str(e)
             ise.process = "Create New Game"
             ise.severity = 2
             
@@ -417,7 +417,7 @@ class context:
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             ise.service = "db"
-            ise.exception_f.message = str(e)
+            ise.exception_message.message = str(e)
             ise.process = "Add Game Player"
             ise.severity = 2
             
