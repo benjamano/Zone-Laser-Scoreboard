@@ -127,9 +127,9 @@ class Supervisor:
             except Exception as e:
                 pass
             
-            _time.sleep(3)
+            _time.sleep(30)
 
-            if self.devMode == True:
+            if self.devMode == False:
                 try:
                     # Check if all expected processes are running
                     for processName in self.expectedProcesses:
