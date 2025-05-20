@@ -79,13 +79,14 @@ class Format:
             elif type == "Warning":
                 self.logger.warning(f"{logtime} | {self.serviceName} | {type} | {message}")
 
-            try:
-                requests.post(
-                    f'http://{self._localIp}:8080/sendMessage',
-                    json={"message": {"message": message, "logType": type}, "type": "logMessage"}
-                )
-            except Exception:
-                pass
+            if ("dev" not in secrets["Environment"].lower()):
+                try:
+                    requests.post(
+                        f'http://{self._localIp}:8080/sendMessage',
+                        json={"message": {"message": message, "logType": type}, "type": "logMessage"}
+                    )
+                except Exception:
+                    pass
 
         except Exception as e:
             print(f"Error sending log message: {e}, MESSAGE: {message}")

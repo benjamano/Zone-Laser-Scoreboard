@@ -19,6 +19,7 @@ class OBS:
             self.PORT = OBSSERVERPORT
             self.PASSWORD = OBSSERVERPASSWORD
             self.AvailableMonitor = ""
+            self.AvailableMonitors = []
             self.Secrets = secrets
             
             self._supervisor : Supervisor.Supervisor = supervisor
@@ -168,6 +169,8 @@ class OBS:
         
     def getMonitorsToProjectTo(self) -> list:
         monitors = self.obs.get_monitor_list().monitors
+        
+        self.AvailableMonitors = monitors
         
         acceptedMonitors : list[str] = str(self.Secrets["MonitorsToProjectTo"]).split("/")
         
