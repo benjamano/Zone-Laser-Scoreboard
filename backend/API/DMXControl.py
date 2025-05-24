@@ -428,13 +428,13 @@ class dmx:
         
         return True
     
+    # Getters
+    
     def isConnected(self) -> bool:
         try:
             return (not self._dmx == None) or self.devMode == True
         except:
             return False
-
-    # Getters
         
     def getFixtureProfiles(self):
         return self.fixtureProfiles
@@ -779,12 +779,10 @@ class dmx:
                 
             return scenes
 
-    def __startScene(self, scene, stopEvent):  
+    def __startScene(self, scene : DMXScene, stopEvent):  
         try: 
-            if self._dmx == None or self.isConnected() == False:
+            if self.isConnected() == False:
                 return 200
-            
-            ##EDITING THIIIIIIIISS
             
             while not stopEvent.is_set():
                 for event in scene.events:
@@ -796,7 +794,10 @@ class dmx:
                             fixture = self._dmx.get_fixture(fixture_id)
                         except ValueError:
                             fixture = self.getFixturesByName(channel["fixture"])[0]
-
+                        except Exception as e:
+                            format.message(f"Error getting fixture: {e}", "error")
+                            continue
+                        
                         fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
                         
                         requests.post(
@@ -804,9 +805,14 @@ class dmx:
                             json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
                         )
 
-                            
                     if event.duration > 0:
                         time.sleep(event.duration / 1000)
+                
+                if scene.repeat == True:
+                    with self.app.app_context():
+                        foundScene : DMXScene = self.getDMXSceneById(scene.id)
+                        if foundScene.repeat == False:
+                            return 200
                 
                 if scene.repeat == True:
                     self.__startScene(scene, stopEvent)

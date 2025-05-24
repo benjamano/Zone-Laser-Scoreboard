@@ -19,15 +19,20 @@
             <div class="buttonControlsContainer">
               <button
                 class="fas fa-play col-3 controlButton hover"
-                title="Play"></button>
+                title="Play"
+				data-bs-toggle="tooltip"
+				id="scenePlayButton"></button>
               <!-- <button class="fas fa-pause col-3 controlButton"></button> -->
               <button
                 class="fas fa-stop col-3 controlButton hover"
-                title="Stop All Running Scenes"></button>
+                title="Stop All Running Scenes"
+				data-bs-toggle="tooltip"
+				id="sceneStopButton"></button>
               <button
                 class="controlButton col-3 fas fa-eye hover"
                 onclick="toggleBlindEditMode()"
                 title="Toggle Blind Edit Mode"
+				data-bs-toggle="tooltip"
                 id="blindEditModeIcon"></button>
               <!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
             </div>
@@ -107,26 +112,24 @@
           <div class="sceneTimeline">
             <div class="sceneEventsContainer">
               <table class="sceneEventTable">
-				<thead>
-					<tr class="header" id="header">
-					<td>#</td>
-					<td class="col-5">Start Time</td>
-					<td class="col-5">Duration</td>
-					<td
-						id="addNewSceneEventButton"
-						style="display: none"
-						class="cursor-pointer"
-						role="button"
-						data-bs-toggle="tooltip"
-						data-bs-title="Add New Scene Event"
-						onclick="addNewSceneEvent()">
-						+
-					</td>
-					</tr>
-				</thead>
-				<tbody id="sceneEventsContainer">
-
-				</tbody>
+                <thead>
+                  <tr class="header" id="header">
+                    <td>#</td>
+                    <td class="col-5">Start Time</td>
+                    <td class="col-5">Duration</td>
+                    <td
+                      id="addNewSceneEventButton"
+                      style="display: none"
+                      class="cursor-pointer"
+                      role="button"
+                      data-bs-toggle="tooltip"
+                      data-bs-title="Add New Scene Event"
+                      onclick="addNewSceneEvent()">
+                      +
+                    </td>
+                  </tr>
+                </thead>
+                <tbody id="sceneEventsContainer"></tbody>
               </table>
             </div>
           </div>
@@ -186,10 +189,19 @@
       '"' +
       (milliseconds < 100
         ? milliseconds < 10
-          ? "00" + milliseconds
+          ? "0" + milliseconds
           : "0" + milliseconds
         : milliseconds)
     );
+  }
+
+  function convertDurationToSeconds(duration) {
+    const parts = duration.split(":");
+    const minutes = parseInt(parts[0]) || 0;
+    const seconds = parseInt(parts[1]) || 0;
+    const milliseconds = parseInt(parts[2]) || 0;
+
+    return minutes * 60 * 1000 + seconds * 1000 + milliseconds;
   }
 
   function openContextMenu(channel, e, id) {
@@ -294,7 +306,9 @@
 
         const img = new Image();
         img.className = "attributeIcon";
-        img.title = channel.name.replace("_", " ");
+        img.setAttribute("data-bs-toggle", "tooltip");
+        img.setAttribute("data-bs-placement", "top");
+        img.setAttribute("data-bs-title", channel.name.replace(/_/g, " "));
         img.src = `/static/images/channelImageStore/${
           channel.name.toLowerCase().includes("speed")
             ? "speed"
@@ -318,6 +332,11 @@
 
       fetchDMXChannelValues();
     });
+
+	var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
   }
 
   function getDMXScenes() {
@@ -371,18 +390,19 @@
           var sceneSettingContainer = $("<div>").addClass(
             "sceneSettingContainer"
           );
+          var flashButton = $("<i>")
+            .addClass("fas fa-bolt")
+            .attr("id", name + "_flashBtn")
+            .css("display", flash ? "inline-block" : "none");
 
-          if (flash) {
-            var flashButton = $("<i>").addClass("fas fa-bolt");
+          sceneSettingContainer.append(flashButton);
 
-            sceneSettingContainer.append(flashButton);
-          }
+          var repeatButton = $("<i>")
+            .addClass("fas fa-rotate-right")
+            .attr("id", name + "_repeatBtn")
+            .css("display", repeat ? "inline-block" : "none");
 
-          if (repeat) {
-            var repeatButton = $("<i>").addClass("fas fa-rotate-right");
-
-            sceneSettingContainer.append(repeatButton);
-          }
+          sceneSettingContainer.append(repeatButton);
 
           sceneInfoContainer.append(sceneTitleInput);
           sceneInfoContainer.append(sceneDuration);
@@ -396,10 +416,10 @@
           .addClass("dmxScene dmxAddScene user-select-none")
           .attr("role", "button")
           .css({
-            "height": "1.5rem",
-            "width": "1.5rem",
-            "display": "flex",
-			"padding": "0",
+            height: "1.5rem",
+            width: "1.5rem",
+            display: "flex",
+            padding: "0",
             "justify-content": "center",
           })
           .on("click", function () {
@@ -531,85 +551,92 @@
 
     if (getBlindEditModeStatus() == false) {
       startScene(sceneId);
-	  editScene(sceneId);
+      editScene(sceneId);
     } else {
       editScene(sceneId);
     }
   }
 
   function startScene(sceneId) {
-    $.ajax({
-      url: "/api/dmx/startScene",
-      type: "POST",
-      data: { sceneId: sceneId },
-      success: function (response) {
-        console.log("Scene started:", response);
+	$.ajax({
+	  url: "/api/dmx/startScene",
+	  type: "POST",
+	  data: { sceneId: sceneId },
+	  success: function (response) {
+		console.log("Scene started:", response);
+  
+		$(".dmxScene").removeClass("selected active");
+		$("#" + sceneId + "_SceneBtn").addClass("active");
+		$("#scenePlayButton").addClass("active");
+  
+		const countdownElement = $("#" + sceneId + "_duration");
+		let duration = parseInt(countdownElement.text());
+		const visibleDurationElement = $("#" + sceneId + "_Visibleduration");
+		const initialDuration = formatDMXSceneDuration(duration);
+  
+		const events = response.events || [];
+		let elapsed = 0;
+  
+		function startCountdown() {
+		  let currentEventIndex = 0;
+  
+		  sceneTimeLeftCountdownInterval = setInterval(function () {
+			if (duration <= 0) {
+			  if ($("#loopCheckbox").is(":checked")) {
+				duration = parseInt(countdownElement.text());
+				elapsed = 0;
+				currentEventIndex = 0;
+				$(".dmxSceneEventTableElement").removeClass("active");
+			  } else {
+				clearInterval(sceneTimeLeftCountdownInterval);
+				visibleDurationElement.text(initialDuration);
+				$("#" + sceneId + "_SceneBtn").removeClass("active");
+				$("#scenePlayButton").removeClass("active");
+				$(".dmxSceneEventTableElement").removeClass("active");
+				return;
+			  }
+			}
+  
+			duration -= 10;
+			elapsed += 10;
+  
+			let total = 0;
+			for (let i = 0; i < events.length; i++) {
+			  total += events[i].duration;
+			  if (elapsed <= total) {
+				$(".dmxSceneEventTableElement").removeClass("active");
+				$("#sceneEvent_" + events[i].id).addClass("active");
+				currentEventIndex = i;
 
-        $(".dmxScene").removeClass("selected active");
-
-        repeat = $("#" + sceneId + "_SceneBtn").find(".fa-rotate-right").length;
-
-        $("#" + sceneId + "_SceneBtn").addClass("active");
-
-        var countdownElement = $("#" + sceneId + "_duration");
-        var duration = parseInt(countdownElement.text());
-        var visibleDurationElement = $("#" + sceneId + "_Visibleduration");
-        var initialDuration = formatDMXSceneDuration(duration);
-        var btnSelector = "#" + sceneId + "_SceneBtn";
-
-        // $(btnSelector).addClass("active").off('click').on('click', function () {
-        //  if ($(btnSelector).hasClass("active")) {
-        //    clearInterval(sceneTimeLeftCountdownInterval);
-        //$(btnSelector).removeClass("active");
-        //  visibleDurationElement.text(initialDuration);
-        //  duration = parseInt(countdownElement.text());
-
-        // stopScene(sceneId);
-        //}
-        //else{
-        //  startScene(sceneId);
-        //}
-        //});
-
-        function startCountdown() {
-          sceneTimeLeftCountdownInterval = setInterval(function () {
-            if (duration <= 0) {
-              if (repeat) {
-                duration = parseInt(countdownElement.text());
-              } else {
-                clearInterval(sceneTimeLeftCountdownInterval);
-                // $(btnSelector).removeClass("active");
-                visibleDurationElement.text(initialDuration);
-                return;
-              }
-            }
-
-            duration -= 10;
-            var milliseconds = duration % 1000;
-            var seconds = Math.floor((duration / 1000) % 60);
-            var minutes = Math.floor((duration / (1000 * 60)) % 60);
-
-            visibleDurationElement.text(
-              (minutes < 10 ? "0" + minutes : minutes) +
-                '"' +
-                (seconds < 10 ? "0" + seconds : seconds) +
-                '"' +
-                (milliseconds < 100
-                  ? milliseconds < 10
-                    ? "00" + milliseconds
-                    : "0" + milliseconds
-                  : milliseconds)
-            );
-          }, 10);
-        }
-
-        startCountdown();
-      },
-      error: function (xhr) {
-        console.error("Failed to start scene:", xhr.responseText);
-      },
-    });
-  }
+				break;
+			  }
+			}
+  
+			const milliseconds = duration % 1000;
+			const seconds = Math.floor((duration / 1000) % 60);
+			const minutes = Math.floor((duration / (1000 * 60)) % 60);
+  
+			visibleDurationElement.text(
+			  (minutes < 10 ? "0" + minutes : minutes) +
+				'"' +
+				(seconds < 10 ? "0" + seconds : seconds) +
+				'"' +
+				(milliseconds < 100
+				  ? milliseconds < 10
+					? "00" + milliseconds
+					: "0" + milliseconds
+				  : milliseconds)
+			);
+		  }, 10);
+		}
+  
+		startCountdown();
+	  },
+	  error: function (xhr) {
+		console.error("Failed to start scene:", xhr.responseText);
+	  },
+	});
+  }  
 
   function getBlindEditModeStatus() {
     if ($("#blindEditModeIcon").hasClass("fa-eye")) {
@@ -629,6 +656,47 @@
     }
   }
 
+  function getActiveSceneId(){
+	var activeScene = $(".dmxScene.active");
+
+	if (activeScene.length > 0) {
+	  return activeScene.attr("id").split("_")[0];
+	}
+	else{
+		activeScene = $(".dmxScene.selected");
+		if (activeScene.length > 0) {
+		  return activeScene.attr("id").split("_")[0];
+		}
+	}
+
+	return null;
+  }
+
+  function toggleSceneLoop(){
+	var activeSceneId = getActiveSceneId();
+
+	if (activeSceneId == null) {
+	  return;
+	}
+
+	var loopCheckbox = $("#loopCheckbox");
+
+	$.ajax({
+	  url: "/api/dmx/toggleSceneLoop",
+	  type: "POST",
+	  data: {
+		sceneId: activeSceneId,
+		loop: loopCheckbox.is(":checked"),
+	  },
+	  success: function (response) {
+		 $("#" + activeSceneId + "_repeatBtn").css("display", loopCheckbox.is(":checked") ? "inline-block" : "none");
+	  },
+	  error: function (xhr) {
+		console.error("Failed to toggle scene loop:", xhr.responseText);
+	  },
+	});
+  }
+
   function editScene(sceneId) {
     $.ajax({
       url: "/api/dmx/getScene",
@@ -640,7 +708,27 @@
 
         var scene = response;
 
-        $("#" + scene.id + "_SceneBtn").addClass("selected");
+		$("#editSceneContainer").show();
+		$("#sceneEventContainer").empty();
+		$("#lightingCardBody").collapse("show");
+		$("#sceneDetailButtons").empty();
+		$("#addNewSceneEventButton").show();
+
+		$("#editingSceneId").text("");
+		$("#sceneName").val(response.name);
+
+		var scene = response;
+
+		$("#" + scene.id + "_SceneBtn").addClass("selected");
+
+		$("#" + scene.id + "_Visibleduration").text(
+			formatDMXSceneDuration(scene.duration)
+		);
+
+		$("#" + scene.id + "_duration").text(scene.duration);
+
+		$("#loopCheckbox").prop("checked", scene.repeat);
+		$("#flashModeCheckbox").prop("checked", scene.flash);
 
         if (Array.isArray(scene.events)) {
           let currentTime = new Date(0);
@@ -671,7 +759,13 @@
               startTime.toISOString().substr(11, 8)
             );
 
-            var durationCell = $("<td>").html('<input type="text" class="form-control invisibleTextBox" value="' + formatDMXSceneDuration(duration) + '">');
+            var durationCell = $("<td>").html(
+              '<input type="text" onchange="updateSceneEventDuration(event, $(this))" id="SceneEvent_' + event.id + '" class="form-control text-center invisibleTextBox" value="' +
+                formatDMXSceneDuration(duration)
+                  .replace('"', ":")
+                  .replace('"', ":") +
+                '">'
+            );
 
             sceneEventRow.append(eventNumberCell);
             sceneEventRow.append(startTimeCell);
@@ -688,6 +782,22 @@
       error: function (xhr) {
         console.error("Failed to fetch scene details:", xhr.responseText);
       },
+    });
+  }
+
+  function updateSceneEventDuration(event, elem) {
+    var duration = convertDurationToSeconds(elem.val());
+
+    $.ajax({
+      url: "/api/dmx/updateSceneEventDuration",
+      type: "POST",
+      data: {
+        sceneEventId: elem.attr("id").split("_")[1],
+        duration: duration,
+      },
+	  success: function (response) {
+		editScene(response.sceneId);
+	  },
     });
   }
 
@@ -809,7 +919,8 @@
       success: function (response) {
         clearInterval(sceneTimeLeftCountdownInterval);
         $("#" + sceneId + "_SceneBtn").removeClass("active");
-        $("#" + sceneId + "_SceneBtn").removeClass("selected");
+		$("#scenePlayButton").removeClass("active");
+		$(".dmxSceneEventTableElement").removeClass("active");
 
         var visibleDuration = $("#" + sceneId + "_Visibleduration");
         var duration = $("#" + sceneId + "_duration");

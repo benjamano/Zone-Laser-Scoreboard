@@ -989,7 +989,7 @@ class WebApp:
             try:
                 self._dmx.startScene(sceneId)
 
-                return jsonify(200)
+                return jsonify(self._dmx.getDMXSceneById(sceneId).to_dict()), 200
             except Exception as e:
                 ise : InternalServerError = InternalServerError()
                 
@@ -1173,6 +1173,79 @@ class WebApp:
                 
                 self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to create scene event: {e}"}), 500
+            
+        @self.app.route("/api/dmx/updateSceneEventDuration", methods=["POST"])
+        def updateSceneEventDuration():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                sceneEventId = request.form.get("sceneEventId", type=int)
+                duration = request.form.get("duration", type=int)
+
+                if sceneEventId is None:
+                    return jsonify({"error": "sceneEventId is required"}), 400
+
+                if duration is None or duration < 0:
+                    return jsonify({"error": "Invalid duration"}), 400
+
+                with self.app.app_context():
+                    sceneEvent = self._context.DMXSceneEvent.query.filter_by(id=sceneEventId).first()
+                    if not sceneEvent:
+                        return jsonify({"error": "Scene event not found"}), 404
+
+                    sceneEvent.duration = duration
+
+                    scene = self._context.DMXScene.query.filter_by(id=sceneEvent.sceneID).first()
+                    if scene:
+                        totalDuration = sum(event.duration for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all())
+                        scene.duration = totalDuration
+
+                    self._context.db.session.commit()
+
+                    return jsonify(sceneEvent.to_dict()), 200
+
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to update scene event duration: {e}"
+                ise.process = "API: Update Scene Event Duration"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
+
+        @self.app.route("/api/dmx/toggleSceneLoop", methods=["POST"])
+        def toggleSceneLoop():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                sceneId = request.form.get("sceneId")
+                
+                if not sceneId:
+                    return jsonify({"error": "sceneId is required"}), 500
+                
+                with self.app.app_context():
+                    scene : DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+                    
+                    scene.repeat = not scene.repeat
+                    
+                    self._context.db.session.commit()
+                    
+                    return jsonify({"repeat": scene.repeat}), 200
+
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to update scene event duration: {e}"
+                ise.process = "API: Update Scene Event Duration"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
 
         @self.app.route('/end')
         def terminateServer():

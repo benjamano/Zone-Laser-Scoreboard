@@ -81,6 +81,24 @@ class GamePlayer(db.Model):
     accuracy = db.Column(db.Integer, nullable=True)
     team = db.Column(db.Integer, db.ForeignKey("team.id"), nullable=True)
 
+class DMXSceneEvent(db.Model):
+    __tablename__ = 'dmxsceneevent'
+    id = db.Column(db.Integer, primary_key=True)
+    sceneID = db.Column(db.Integer, db.ForeignKey("dmxscene.id"), nullable=False)
+    name = db.Column(db.String(60), nullable=False)
+    duration = db.Column(db.Integer, nullable=False)
+    updateDate = db.Column(db.DateTime, nullable=True)
+    scene = db.relationship("DMXScene", back_populates="events")
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "sceneId": self.sceneID,
+            "name": self.name,
+            "duration": self.duration,
+            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
+        }
+
 class DMXScene(db.Model):
     __tablename__ = 'dmxscene'
     id = db.Column(db.Integer, primary_key=True)
@@ -94,15 +112,6 @@ class DMXScene(db.Model):
     song_keybind = db.Column(db.String(15), nullable=True)
     game_event_keybind = db.Column(db.String(15), nullable=True)
     events = db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
-
-class DMXSceneEvent(db.Model):
-    __tablename__ = 'dmxsceneevent'
-    id = db.Column(db.Integer, primary_key=True)
-    sceneID = db.Column(db.Integer, db.ForeignKey("dmxscene.id"), nullable=False)
-    name = db.Column(db.String(60), nullable=False)
-    duration = db.Column(db.Integer, nullable=False)
-    updateDate = db.Column(db.DateTime, nullable=True)
-    scene = db.relationship("DMXScene", back_populates="events")
 
 class DMXSceneEventChannel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
