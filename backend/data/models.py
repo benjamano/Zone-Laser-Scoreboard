@@ -112,6 +112,20 @@ class DMXScene(db.Model):
     song_keybind = db.Column(db.String(15), nullable=True)
     game_event_keybind = db.Column(db.String(15), nullable=True)
     events = db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "duration": self.duration,
+            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
+            "createDate": self.createDate.isoformat(),
+            "repeat": self.repeat,
+            "flash": self.flash,
+            "keyboard_keybind": self.keyboard_keybind,
+            "song_keybind": self.song_keybind,
+            "game_event_keybind": self.game_event_keybind,
+        }
 
 class DMXSceneEventChannel(db.Model):
     id = db.Column(db.Integer, primary_key=True)

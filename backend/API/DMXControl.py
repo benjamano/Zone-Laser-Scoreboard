@@ -375,26 +375,6 @@ class dmx:
             
             return
     
-    def setSceneSongTrigger(self, sceneId, songName):
-        try:
-            scene = self.getDMXSceneById(sceneId)
-            scene.songKeybind = songName
-            self._context.db.session.commit()
-            
-            return scene
-    
-        except Exception as e:
-            ise : InternalServerError = InternalServerError()
-                
-            ise.service = "dmx"
-            ise.exception_message = str(f"Error setting scene song trigger for scene Id: '{sceneId}': {e}")
-            ise.process = "DMX: Set Scene Song Trigger"
-            ise.severity = "2"
-            
-            self._supervisor.logInternalServerError(ise)
-            
-            return None
-    
     def createNewSceneEvent(self, sceneId):
         try:
             newSceneEvent = self._context.DMXSceneEvent(
@@ -788,12 +768,17 @@ class dmx:
             if self.isConnected() == False:
                 return 200
             
+            if len(scene.events) == 0:
+                return 200
+            
             while not stopEvent.is_set():
                 for event in scene.events:
                     if stopEvent.is_set():
                         del self.runningScenes[str(scene.id)]
                         self.turnOffAllChannels()
                         return 200
+                    if (scene.duration == 0):
+                        return
                     for channel in event.channels:
                         try:
                             fixture_id = int(channel["fixture"])

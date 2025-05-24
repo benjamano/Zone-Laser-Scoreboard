@@ -74,9 +74,6 @@
                                         value="Click to set keybind"
                                         readonly
                                         onclick="startKeybindRecording(this)" />
-                                    <button
-                                        onclick="setKeybind()"
-                                        class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
                                 </div>
                                 <label class="songTriggerLabel hideSelectEffect"
                                     >Current Set Keybind:
@@ -182,11 +179,13 @@
 
 <script>
     var sceneTimeLeftCountdownInterval;
+    var sceneKeyTriggers = [];
 
     window.onload = function () {
         fetchFixtures();
         getDMXScenes();
         setupEventListeners();
+        getKeyboardTriggers();
     };
 
     document.addEventListener("click", function (e) {
@@ -196,7 +195,62 @@
         }
     });
 
+    function getKeyboardTriggers() {
+        $.ajax({
+            url: "/api/dmx/getScenesWithKeyboardTriggers",
+            type: "GET",
+            success: function (response) {
+                sceneKeyTriggers = response;
+
+                setupEventListeners();
+            },
+        });
+    }
+
+    function startKeybindRecording() {
+        $("#triggerKeybindClick").val("Press a key to set keybind");
+        $("#triggerKeybindClick")
+            .off("keydown")
+            .on("keydown", function (e) {
+                e.preventDefault();
+                var key = e.key;
+                if (key === "Escape") {
+                    $(this).val("Click to set keybind");
+                    return;
+                } else if (key == "Home") {
+                    $("#triggerKeybindClick").val("Invalid Key!");
+
+                    return;
+                }
+                $(this).val("Click to set keybind");
+                $("#currentPlayingKeybindForTriggerValue").text(
+                    key.toUpperCase()
+                );
+                $(this).off("keydown");
+
+                $.ajax({
+                    url: "/api/dmx/setSceneKeybind",
+                    type: "POST",
+                    data: {
+                        sceneId: getActiveSceneId(),
+                        keybind: key.toUpperCase(),
+                    },
+                    success: function (response) {
+                        console.log("Keybind set successfully:", response);
+                    },
+                    error: function (xhr) {
+                        console.error(
+                            "Failed to set keybind:",
+                            xhr.responseText
+                        );
+                    },
+                });
+            });
+    }
+
     function setupEventListeners() {
+		$(document).off("keydown");
+
         $(".dmxScene.holdMode").off("mousedown mouseup");
 
         $(".dmxScene.holdMode")
@@ -207,11 +261,26 @@
                 stopScene($(this).attr("id").split("_")[0]);
             });
 
-		$(".dmxScene:not(.holdMode)").off("click");
-		
-		$(".dmxScene:not(.holdMode)").on("click", function () {
-			startOrEditScene($(this).attr("id").split("_")[0]);
-		});
+        $(".dmxScene:not(.holdMode)").off("click");
+
+        $(".dmxScene:not(.holdMode)").on("click", function () {
+            stopActiveScene();
+            var elem = $(this);
+
+            setTimeout(function () {
+                startOrEditScene(elem.attr("id").split("_")[0]);
+            }, 100);
+        });
+
+        $(document).on("keydown", function (e) {
+            if (sceneKeyTriggers.some(scene => scene.keyboard_keybind === e.key.toUpperCase())) {
+                e.preventDefault();
+                var scene = sceneKeyTriggers.find(scene => scene.keyboard_keybind === e.key.toUpperCase());
+                if (scene && scene.id) {
+                    startOrEditScene(scene.id);
+                }
+            }
+        });
     }
 
     function formatDMXSceneDuration(duration) {
@@ -764,15 +833,15 @@
                     flashCheckbox.is(":checked") ? "inline-block" : "none"
                 );
 
-    if (flashCheckbox.is(":checked")) {
-    	$("#" + activeSceneId + "_SceneBtn").addClass("holdMode");
-    } else {
-    	$("#" + activeSceneId + "_SceneBtn").removeClass(
-    		"holdMode"
-    	);
-    }
+                if (flashCheckbox.is(":checked")) {
+                    $("#" + activeSceneId + "_SceneBtn").addClass("holdMode");
+                } else {
+                    $("#" + activeSceneId + "_SceneBtn").removeClass(
+                        "holdMode"
+                    );
+                }
 
-    setupEventListeners();
+                setupEventListeners();
             },
             error: function (xhr) {
                 console.error(
@@ -819,6 +888,8 @@
             success: function (response) {
                 $("#selectedSceneControls").show();
                 $("#addNewSceneEventButton").show();
+                $("#currentPlayingKeybindForTriggerValue").text("");
+                $("#currentPlayingSongForTriggerValue").text("");
 
                 var scene = response;
 
@@ -830,6 +901,12 @@
 
                 $("#editingSceneId").text("");
                 $("#sceneName").val(response.name);
+                $("#currentPlayingKeybindForTriggerValue").text(
+                    response.keyboard_keybind
+                );
+                $("#currentPlayingSongForTriggerValue").text(
+                    response.song_keybind
+                );
 
                 var scene = response;
 
@@ -1079,9 +1156,8 @@
     }
 
     function setThisSongAsKeybind() {
-        var activeScene = $("#dmxScene.active");
-        var sceneId = activeScene.attr("id").split("_")[1];
-        var songName = $("#currentPlayingSongForTrigger").text();
+        var sceneId = getActiveSceneId();
+        var songName = $("#currentPlayingSongForTrigger").val();
 
         $.ajax({
             url: "/api/dmx/setSceneSongTrigger",

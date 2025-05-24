@@ -335,7 +335,7 @@ class WebApp:
                     "description": e.description,
                 })
                 response.content_type = "application/json"
-                return response, 500
+                return response, e.code if e.code != None else 500 
             
         @self.app.route('/')
         def index():
@@ -1139,18 +1139,6 @@ class WebApp:
                 
                 self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to save scene event: {e}"}), 500
-            
-        @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
-        def setSceneSongTrigger():
-            if self._dmx == None or self._dmx.isConnected() == False:
-                return jsonify({"error": "DMX Connection not available"}), 503
-            
-            sceneId = request.form.get("sceneId")
-            songName = request.form.get("songName")
-
-            self._dmx.setSceneSongTrigger(sceneId, songName)
-
-            return jsonify({"success": "Scene song trigger set"})
 
         @self.app.route("/api/dmx/createSceneEvent", methods=["POST"])
         def createSceneEvent():
@@ -1274,6 +1262,95 @@ class WebApp:
                 ise.service = "api"
                 ise.exception_message = f"Failed to update scene event duration: {e}"
                 ise.process = "API: Update Scene Flash Mode"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
+
+        @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
+        def setSceneSongTrigger():
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
+            try:
+            
+                sceneId = request.form.get("sceneId")
+                songName = request.form.get("songName")
+
+                if not sceneId or not songName:
+                    return jsonify({"error": "sceneId and songName are required"}), 400
+                
+                with self.app.app_context():
+                    scene : DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+                    
+                    scene.song_keybind = songName
+                    
+                    self._context.db.session.commit()
+
+                return jsonify({"success": "Scene song trigger set"})
+            
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to update scene song trigger: {e}"
+                ise.process = "API: Update Scene Song Trigger"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
+
+        @self.app.route("/api/dmx/setSceneKeybind", methods=["POST"])
+        def setSceneKeybind():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                sceneId = request.form.get("sceneId")
+                keybind = request.form.get("keybind")
+                
+                if not sceneId or not keybind:
+                    return jsonify({"error": "sceneId and keybind are required"}), 400
+                
+                with self.app.app_context():
+                    scene : DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+                    
+                    scene.keyboard_keybind = keybind
+                    
+                    self._context.db.session.commit()
+                
+                return jsonify({"success": "Scene keybind set"}), 200
+
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to update scene key bind: {e}"
+                ise.process = "API: Update Scene Keybind"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
+            
+        @self.app.route("/api/dmx/getScenesWithKeyboardTriggers", methods=["GET"])
+        def getScenesWithKeyboardTriggers():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                with self.app.app_context():
+                    Scenes : list[DMXScene] = self._context.DMXScene.query.filter(self._context.DMXScene.keyboard_keybind.isnot(None).isnot("")).all()
+
+                    scenesWithTriggers = [scene.to_dict() for scene in Scenes if scene.keyboard_keybind]
+                    
+                return jsonify(scenesWithTriggers), 200
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to get scenes with keyboard triggers: {e}"
+                ise.process = "API: Get Scenes With Keyboard Triggers"
                 ise.severity = "3"
 
                 self._supervisor.logInternalServerError(ise)

@@ -201,7 +201,7 @@
 	}
 
 	$(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
-		createNotification(thrownError + " - " + xhr.responseJSON.error ?? xhr.responseJSON, 30000)
+		createNotification(thrownError + " - " + (xhr.responseJSON?.error || xhr.responseJSON.description || "Unknown error"), 30000)
 	});
 
 	function toggleSidebar(){
