@@ -1235,13 +1235,11 @@ class WebApp:
         @self.socketio.on('playBriefing')
         def playBriefing():
             if self._obs != None and self._obs.isConnected() == True:
-                try:
-                    f.message("Playing briefing")
-                    
+                try:                    
                     #f.message("Playing briefing")
                     self._obs.switchScene("Video")
                     
-                    return 200
+                    return jsonify({"status": "success"}), 200
                 except Exception as e:
                     ise : InternalServerError = InternalServerError()
                 
@@ -1254,7 +1252,7 @@ class WebApp:
 
             else:
                 #f.message("OBS not connected, cannot play breifing!", type="warning")
-                return 500
+                return jsonify({"status": "error", "message": "OBS not connected, cannot play briefing!"}), 500
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():

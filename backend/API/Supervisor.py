@@ -60,10 +60,11 @@ class Supervisor:
         while self._context == None:
             _time.sleep(0.5)
         
-        f.message(f.colourText(f"Supervisor: Setting dependencies...", "Green"), type="info")
+        f.message(f.colourText(f"Setting dependencies...", "Green"), type="info")
         try:
             # TODO: NEED TO SET ALL OTHER DEPENDENCIES TO THE NEW DEPENDENCIES
             self._context.setSupervisor(self)
+            f.message(f.colourText(f"Dependancies Reset!", "Green"), type="info")
         except Exception as e:
             f.message(f"Error occurred while resetting dependencies: {e}", type="error")
         
@@ -171,7 +172,7 @@ class Supervisor:
                         threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
                 except Exception as e:
                     f.message(f"Error occured while checking DMX status: {e}", type="error")
-                
+                    
             try:
                 if self._obs != None and self._obs.isConnected() == True:
                     self._obs.openProjector()
