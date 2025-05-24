@@ -1024,7 +1024,7 @@ class WebApp:
                 ise.severity = "3"
                 
                 self._supervisor.logInternalServerError(ise)
-                return jsonify({"error": f"Failed to start scene: {e}"}), 500
+                return jsonify({"error": f"Failed to end scene: {e}"}), 500
         
         @self.app.route("/api/dmx/createScene", methods=["POST"])
         def createDMXScene():
@@ -1235,13 +1235,45 @@ class WebApp:
                     
                     self._context.db.session.commit()
                     
-                    return jsonify({"repeat": scene.repeat}), 200
+                    return jsonify(scene.repeat), 200
+
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to update scene repeat mode: {e}"
+                ise.process = "API: Update Scene Repeat Mode"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
+            
+        @self.app.route("/api/dmx/toggleSceneFlash", methods=["POST"])
+        def toggleSceneFlash():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                sceneId = request.form.get("sceneId")
+                
+                if not sceneId:
+                    return jsonify({"error": "sceneId is required"}), 500
+                
+                with self.app.app_context():
+                    scene : DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+                    
+                    scene.flash = not scene.flash
+                    
+                    self._context.db.session.commit()
+                    
+                    return jsonify(scene.flash), 200
 
             except Exception as e:
                 ise = InternalServerError()
                 ise.service = "api"
                 ise.exception_message = f"Failed to update scene event duration: {e}"
-                ise.process = "API: Update Scene Event Duration"
+                ise.process = "API: Update Scene Flash Mode"
                 ise.severity = "3"
 
                 self._supervisor.logInternalServerError(ise)

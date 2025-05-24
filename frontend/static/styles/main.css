@@ -60,7 +60,8 @@ html {
 
 .sceneSettingContainer {
   display: flex;
-  flex-direction: row;
+  height: 100%;
+  flex-direction: column;
   justify-content: flex-end;
   align-items: flex-start;
   margin-left: 0.5rem;

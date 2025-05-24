@@ -264,7 +264,10 @@ class dmx:
         
         for thread in threading.enumerate():
             if thread.name == f"DMXScene Running - {sceneId}":
-                thread, stopEvent = self.runningScenes[sceneId]
+                try:
+                    thread, stopEvent = self.runningScenes[sceneId]
+                except KeyError:
+                    continue
                 stopEvent.set() 
                 del self.runningScenes[sceneId]
                 format.message(f"Scene {sceneId} stopped", "info")
@@ -283,10 +286,11 @@ class dmx:
     def stopScene(self, sceneId):
         for thread in threading.enumerate():
             if thread.name == f"DMXScene Running - {sceneId}":
-                thread, stopEvent = self.runningScenes[sceneId]
+                try:
+                    thread, stopEvent = self.runningScenes[sceneId]
+                except KeyError:
+                    return
                 stopEvent.set() 
-                del self.runningScenes[sceneId]
-                self.turnOffAllChannels()
                 format.message(f"Scene {sceneId} stopped", "info")
                 return
             
@@ -787,6 +791,8 @@ class dmx:
             while not stopEvent.is_set():
                 for event in scene.events:
                     if stopEvent.is_set():
+                        del self.runningScenes[str(scene.id)]
+                        self.turnOffAllChannels()
                         return 200
                     for channel in event.channels:
                         try:
