@@ -214,6 +214,8 @@ async function getAlbumCover(albumName) {
     }
 }
 
+var previousAlbumName = "";
+
 socket.on('songAlbum', async function(albumName) {
     try{
         if (albumName.message == "None"){
@@ -223,10 +225,14 @@ socket.on('songAlbum', async function(albumName) {
             return;
         }
 
-        const imageUrl = await getAlbumCover(albumName.message);
+        if (albumName.message != previousAlbumName){
+            previousAlbumName = albumName.message;
 
-        if (imageUrl) {
-            document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
+            const imageUrl = await getAlbumCover(albumName);
+
+            if (imageUrl) {
+                document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
+            }
         }
     }
     catch(err){}
