@@ -60,33 +60,30 @@ class dmx:
         
         return self.fixtureGroups[groupName]
         
-    def registerDimmerFixture(self, fixtureName):
+    def registerDimmerFixture(self, displayName):
         try:
             fixture = None
-            
             try:
-                fixture = self._dmx.add_fixture(Dimmer, name=fixtureName)
-                setattr(self, fixtureName, fixture)
+                fixture = self._dmx.add_fixture(Dimmer, name=displayName)
+                setattr(self, displayName, fixture)
             except Exception as e:
                 pass
             
             fixtureTypeId = self.getFixtureTypeIdFromName("dimmer")
-                
+            
             with self.app.app_context():
-                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureName="dimmer", dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureTypeId, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
                 
                 if patchedFixture == None:
                     self._context.db.session.add(PatchedFixture(
-                        fixtureName = fixtureName,
+                        fixtureName = displayName,
                         fixtureId = fixtureTypeId,
                         dmxControllerFixtureId = fixture.id if fixture != None else 0,
                         dmxStartAddress = fixture.start_channel if fixture != None else 0,
-                        dmxEndAddress= len(self.getFixtureTypeChannels(fixtureTypeId)) + startChannel - 1,
+                        dmxEndAddress= len(self.getFixtureTypeChannels(fixtureTypeId)) + (fixture.start_channel if fixture != None else 0) - 1,
                     ))
 
                     self._context.db.session.commit()
-            
-            # self.__appendToFixtures(fixture, "dimmer")
             
             return fixture
         except Exception as e:
@@ -121,24 +118,24 @@ class dmx:
             self._supervisor.logInternalServerError(ise)
             return None
         
-    def registerFixtureUsingType(self, fixtureName, fixtureType, startChannel):
+    def registerFixtureUsingType(self, displayName, fixtureType, startChannel):
         try:
             if str(fixtureType).lower() in self.fixtureProfiles:
                 fixture = None
                 try:
-                    fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=fixtureName))
-                    setattr(self, fixtureName, fixture)
+                    fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=displayName))
+                    setattr(self, displayName, fixture)
                 except Exception as e:
                     pass
                 
                 fixtureTypeId = self.getFixtureTypeIdFromName(fixtureType)
                 
                 with self.app.app_context():
-                    patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureName=fixtureType, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
+                    patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureTypeId, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
                     
                     if patchedFixture == None:
                         self._context.db.session.add(PatchedFixture(
-                            fixtureName = fixtureName,
+                            fixtureName = displayName,
                             fixtureId = fixtureTypeId,
                             dmxControllerFixtureId = fixture.id if fixture != None else 0,
                             dmxStartAddress = startChannel,
@@ -235,8 +232,11 @@ class dmx:
             
             return 0
         
-    def setFixtureChannel(self, fixtureName, channelName, value):
+    def setFixtureChannel(self, fixtureName, channelName, value) -> int:
         try:
+            if (self._dmx == None or self.isConnected() == False):
+                return -1
+            
             try:
                 fixture = self._dmx.get_fixture(int(fixtureName))
             except Exception as e:
@@ -244,6 +244,8 @@ class dmx:
             
             if fixture != None:
                 fixture.set_channel(channelName.lower(), int(value))
+                
+                return int(value)
             else:
                 return LookupError(f"Fixture {fixtureName} not found")
             
@@ -264,7 +266,6 @@ class dmx:
             if thread.name == f"DMXScene Running - {sceneId}":
                 thread, stopEvent = self.runningScenes[sceneId]
                 stopEvent.set() 
-                thread.join()   
                 del self.runningScenes[sceneId]
                 format.message(f"Scene {sceneId} stopped", "info")
         
@@ -274,15 +275,16 @@ class dmx:
             thread.name = f"DMXScene Running - {sceneId}"
             self.runningScenes[sceneId] = (thread, stopEvent)
             thread.start()
+            
+            return
         else:
-            return None
+            return
             
     def stopScene(self, sceneId):
         for thread in threading.enumerate():
             if thread.name == f"DMXScene Running - {sceneId}":
                 thread, stopEvent = self.runningScenes[sceneId]
                 stopEvent.set() 
-                thread.join()   
                 del self.runningScenes[sceneId]
                 self.turnOffAllChannels()
                 format.message(f"Scene {sceneId} stopped", "info")
@@ -445,12 +447,18 @@ class dmx:
                 for registeredFixture in registeredFixtures:
                 
                     fixture : Fixture = self._context.Fixture.query.filter_by(id = registeredFixture.fixtureId).first()
-
-                    DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)[0]
                     
-                    fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
-                    fixtureDict = fixtureDTO[0].to_dict()
-                    Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": DMXFixture.channel_usage})
+                    if (registeredFixture.dmxControllerFixtureId == 0):
+                        fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
+                        fixtureDict = fixtureDTO[0].to_dict()
+                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": (registeredFixture.dmxEndAddress - registeredFixture.dmxStartAddress)})
+                    else:
+                        
+                        DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)[0]
+                        
+                        fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
+                        fixtureDict = fixtureDTO[0].to_dict()
+                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": DMXFixture.channel_usage})
                         
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -474,8 +482,11 @@ class dmx:
         fixtures = self._dmx.get_fixtures_by_name(fixtureName)
         return fixtures
     def getFixtureById(self, fixtureId):
-        fixture = self._dmx.get_fixture(fixtureId)
-        return fixture
+        try:
+            fixture = self._dmx.get_fixture(fixtureId)
+            return fixture
+        except Exception as e:
+            return None
     def getDMXScenes(self):
         try:
             self.__processJSONDMXScenes()
@@ -572,7 +583,7 @@ class dmx:
     def __mapToFixtureDTO(self, fixture, fixtureId = None):
         return [
             self._context.FixtureDTO(
-                id=fixtureId,
+                id=fixture.id,
                 name=fixture.name,
                 mode=fixture.mode,
                 notes=fixture.notes,
@@ -770,6 +781,11 @@ class dmx:
 
     def __startScene(self, scene, stopEvent):  
         try: 
+            if self._dmx == None or self.isConnected() == False:
+                return 200
+            
+            ##EDITING THIIIIIIIISS
+            
             while not stopEvent.is_set():
                 for event in scene.events:
                     if stopEvent.is_set():

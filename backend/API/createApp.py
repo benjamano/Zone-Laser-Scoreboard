@@ -10,17 +10,7 @@ from API.format import Format
 
 f = Format("Create App")
 
-"""
-
-cd backend
-
-python -m flask --app API.createApp:createApp db migrate -m "Initial DB Creation"
-
-python -m flask --app API.createApp:createApp db migrate 
-
-"""
-
-def createApp():
+def createApp(appOnly = False):
     BasePath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
     BasePath = BasePath.replace("\\backend", "")
 
@@ -45,6 +35,10 @@ def createApp():
     
     db.init_app(app)
     Migrate(app, db)
+    
+    if appOnly:
+        return app
+    
     socketio = SocketIO(app, cors_allowed_origins="*")
     db_context = DBContext(app, db)
 

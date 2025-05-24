@@ -1,798 +1,881 @@
-{% extends "layout.html" %}
-
-{% block content %}
+{% extends "layout.html" %} {% block content %}
 
 <div class="row">
+  <div class="col-7">
+    <div class="card">
+      <div class="card-header">Scenes</div>
 
-	<div class="col-7">
+      <div class="card-body col-12">
+        <div class="sceneContainer col-12" id="sceneContainer"></div>
+      </div>
+    </div>
+  </div>
 
-		<div class="card">
+  <div class="col-5">
+    <div class="card sceneControlsCard">
+      <div class="row h-100">
+        <div class="col-6">
+          <div class="controls pe-0">
+            <div class="buttonControlsContainer">
+              <button
+                class="fas fa-play col-3 controlButton hover"
+                title="Play"></button>
+              <!-- <button class="fas fa-pause col-3 controlButton"></button> -->
+              <button
+                class="fas fa-stop col-3 controlButton hover"
+                title="Stop All Running Scenes"></button>
+              <button
+                class="controlButton col-3 fas fa-eye hover"
+                onclick="toggleBlindEditMode()"
+                title="Toggle Blind Edit Mode"
+                id="blindEditModeIcon"></button>
+              <!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
+            </div>
 
-			<div class="card-header">Scenes</div>
+            <div id="selectedSceneControls" style="display: none">
+              <div class="songTriggerSelector form-group col-12">
+                <label class="songTriggerLabel">Trigger on Song</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="currentPlayingSongForTrigger"
+                    class="form-control pe-none songPlayingTriggerInput hideSelectEffect readonly"
+                    readonly />
+                  <button
+                    onclick="setThisSongAsKeybind()"
+                    id="setThisSongAsBindButton"
+                    class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+                </div>
+                <label class="songTriggerLabel hideSelectEffect"
+                  >Current Set Song:
+                  <span id="currentPlayingSongForTriggerValue"></span
+                ></label>
+              </div>
 
-			<div class="card-body col-12">
+              <div class="songTriggerSelector form-group col-12">
+                <label class="songTriggerLabel">Trigger on Keybind</label>
+                <div class="input-group">
+                  <input
+                    type="text"
+                    id="triggerKeybindClick"
+                    class="cursor-pointer form-control songPlayingTriggerInput hideSelectEffect"
+                    value="Click to set keybind"
+                    readonly
+                    onclick="startKeybindRecording(this)" />
+                  <button
+                    onclick="setKeybind()"
+                    class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
+                </div>
+                <label class="songTriggerLabel hideSelectEffect"
+                  >Current Set Keybind:
+                  <span id="currentPlayingKeybindForTriggerValue"></span
+                ></label>
+              </div>
 
-				<div class="sceneContainer col-12" id="sceneContainer"></div>
+              <div
+                class="col d-flex align-items-center justify-content-between">
+                <label class="form-check-label mb-0" for="loopCheckbox">
+                  <i class="fas fa-repeat me-1" aria-hidden="true"></i> Loop
+                </label>
+                <div class="form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="loopCheckbox"
+                    onchange="toggleSceneLoop()" />
+                </div>
+              </div>
 
-			</div>
+              <div
+                class="col d-flex align-items-center justify-content-between">
+                <label class="form-check-label mb-0" for="flashModeCheckbox">
+                  <i class="fas fa-bolt me-1" aria-hidden="true"></i> Flash Mode
+                </label>
+                <div class="form-switch mb-2">
+                  <input
+                    class="form-check-input"
+                    type="checkbox"
+                    id="flashModeCheckbox"
+                    onclick="toggleSceneFlashMode()" />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
 
-		</div>
+        <div class="col-6">
+          <div class="sceneTimeline">
+            <div class="sceneEventsContainer">
+              <table class="sceneEventTable">
+				<thead>
+					<tr class="header" id="header">
+					<td>#</td>
+					<td class="col-5">Start Time</td>
+					<td class="col-5">Duration</td>
+					<td
+						id="addNewSceneEventButton"
+						style="display: none"
+						class="cursor-pointer"
+						role="button"
+						data-bs-toggle="tooltip"
+						data-bs-title="Add New Scene Event"
+						onclick="addNewSceneEvent()">
+						+
+					</td>
+					</tr>
+				</thead>
+				<tbody id="sceneEventsContainer">
 
-	</div>
-
-	<div class="col-5">
-
-		<div class="card sceneControlsCard">
-
-			<div class="row h-100">
-
-				<div class="col-6">
-
-					<div class="controls pe-0">
-
-						<div class="buttonControlsContainer">
-
-							<button class="fas fa-play col-3 controlButton hover" title="Play"></button>
-							<!-- <button class="fas fa-pause col-3 controlButton"></button> -->
-							<button class="fas fa-stop col-3 controlButton hover" title="Stop All Running Scenes"></button>
-							<button  class="controlButton col-3 fas fa-eye hover" onclick="toggleBlindEditMode()" title="Toggle Blind Edit Mode" id="blindEditModeIcon"></button>
-							<!-- <button onclick="createNewScene()" title="Create New Scene" role="button" class="controlButton col-3 fas fa-circle-plus mb-2" id="createNewSceneIcon"></button> -->
-
-						</div>
-
-						<div id="selectedSceneControls" style="display: none;">
-
-							<div class="songTriggerSelector form-group col-12">
-
-								<label class="songTriggerLabel">Trigger on Song</label>
-								<div class="input-group">
-									<input type="text" id="currentPlayingSongForTrigger" class="form-control pe-none songPlayingTriggerInput hideSelectEffect readonly" readonly>
-									<button onclick="setThisSongAsKeybind()" id="setThisSongAsBindButton" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
-								</div>
-								<label class="songTriggerLabel hideSelectEffect">Current Set Song: <span id="currentPlayingSongForTriggerValue"></span></label>
-
-							</div>
-
-							<div class="songTriggerSelector form-group col-12">
-
-								<label class="songTriggerLabel">Trigger on Keybind</label>
-								<div class="input-group">
-									<input type="text" id="triggerKeybindClick" class="cursor-pointer form-control songPlayingTriggerInput hideSelectEffect" value="Click to set keybind" readonly onclick="startKeybindRecording(this)">
-									<button onclick="setKeybind()" class="fas fa-check input-group-text songPlayingTriggerAddButton hideSelectEffect"></button>
-								</div>
-								<label class="songTriggerLabel hideSelectEffect">Current Set Keybind: <span id="currentPlayingKeybindForTriggerValue"></span></label>
-
-							</div>
-
-							<div class="col d-flex align-items-center justify-content-between">
-								<label class="form-check-label mb-0" for="loopCheckbox">
-									<i class="fas fa-repeat me-1" aria-hidden="true"></i> Loop
-								</label>
-								<div class="form-switch mb-2">
-									<input class="form-check-input" type="checkbox" id="loopCheckbox" onchange="toggleSceneLoop()">
-								</div>
-							</div>
-
-							<div class="col d-flex align-items-center justify-content-between">
-								<label class="form-check-label mb-0" for="flashModeCheckbox">
-									<i class="fas fa-bolt me-1" aria-hidden="true"></i> Flash Mode
-								</label>
-								<div class="form-switch mb-2">
-									<input class="form-check-input" type="checkbox" id="flashModeCheckbox" onclick="toggleSceneFlashMode()">
-								</div>
-							</div>
-
-						</div>
-
-					</div>
-
-				</div>
-
-				<div class="col-6">
-
-					<div class="sceneTimeline">
-
-						<div class="sceneEventsContainer">
-
-							<table id="sceneEventsContainer" class="sceneEventTable">
-								<tr class="header" id="header">
-									<td>#</td>
-									<td>Start Time</td>
-									<td>Duration</td>
-									<td id="addNewSceneEventButton" style="display: none;" onclick="addNewSceneEvent()">+</td>
-								</tr>
-							</table>
-
-						</div>
-
-					</div>
-
-				</div>
-
-			</div>
-
-		</div>
-
-	</div>
-
+				</tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div class="virtualConsole">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">Virtual Desk</div>
 
-	<div class="col-12">
-
-		<div class="card">
-
-			<div class="card-header">Virtual Desk</div>
-
-			<div class="card-body col-12">
-
-				<div class="fixtures-container col-12" id="fixtures-container" style="max-width: unset;"></div>
-
-			</div>
-
-		</div>
-
-	</div>
-
+      <div class="card-body col-12 user-select-none">
+        <div
+          class="fixtures-container col-12"
+          id="fixtures-container"
+          style="max-width: unset"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <div id="contextMenu" class="contextMenu">
-	<ul id="contextMenuList">
-		<li>Red</li>
-		<li>Green</li>
-		<li>Blue</li>
-	</ul>
+  <ul id="contextMenuList">
+    <li>Red</li>
+    <li>Green</li>
+    <li>Blue</li>
+  </ul>
 </div>
 
 <script>
-	var sceneTimeLeftCountdownInterval;
+  var sceneTimeLeftCountdownInterval;
 
-	window.onload = function() {
-		fetchFixtures();
-		getDMXScenes();
-	};
+  window.onload = function () {
+    fetchFixtures();
+    getDMXScenes();
+  };
 
-	document.addEventListener('click', function(e) {
-		var contextMenu = document.getElementById('contextMenu');
-		if (contextMenu && !contextMenu.contains(e.target)) {
-			contextMenu.style.display = 'none';
-		}
-	});
+  document.addEventListener("click", function (e) {
+    var contextMenu = document.getElementById("contextMenu");
+    if (contextMenu && !contextMenu.contains(e.target)) {
+      contextMenu.style.display = "none";
+    }
+  });
 
-	function formatDMXSceneDuration(duration) {
-        var milliseconds = duration % 1000;
-        var seconds = Math.floor((duration / 1000) % 60);
-        var minutes = Math.floor((duration / (1000 * 60)) % 60);
+  function formatDMXSceneDuration(duration) {
+    var milliseconds = duration % 1000;
+    var seconds = Math.floor((duration / 1000) % 60);
+    var minutes = Math.floor((duration / (1000 * 60)) % 60);
 
-        return (
-            (minutes < 10 ? "0" + minutes : minutes) + '"' +
-            (seconds < 10 ? "0" + seconds : seconds) + '"' +
-            (milliseconds < 100 ? (milliseconds < 10 ? "00" + milliseconds : "0" + milliseconds) : milliseconds)
+    return (
+      (minutes < 10 ? "0" + minutes : minutes) +
+      '"' +
+      (seconds < 10 ? "0" + seconds : seconds) +
+      '"' +
+      (milliseconds < 100
+        ? milliseconds < 10
+          ? "00" + milliseconds
+          : "0" + milliseconds
+        : milliseconds)
+    );
+  }
+
+  function openContextMenu(channel, e, id) {
+    var contextMenu = $("#contextMenuList");
+
+    contextMenu.empty();
+
+    var fixtureId = id;
+    var channelName = channel.name;
+
+    const distinctValues = [
+      ...new Set(channel.channelValues.map((cv) => cv.name)),
+    ].map((name) => channel.channelValues.find((cv) => cv.name === name));
+
+    distinctValues.forEach((channelValue) => {
+      var contextMenuItem = $("<li>").text(channelValue.name);
+      contextMenuItem.on("click", function () {
+        const channelIdSafe = channelName.replace(/\s+/g, "_");
+        var sliderId = `slider_${fixtureId}_${channelIdSafe}`;
+        var valueId = `valueLabel_${fixtureId}_${channelIdSafe}`;
+
+        slider = $(`#${sliderId}`);
+        valueLabel = $(`#${valueId}`);
+
+        if (slider.length && valueLabel.length) {
+          slider.val(channelValue.value);
+          valueLabel.text(channelValue.value);
+          updateDMXValue(channelName, fixtureId, channelValue.value);
+        } else {
+          console.error(
+            `Could not find slider or value label with IDs: ${sliderId}, ${valueId}`
+          );
+        }
+      });
+      contextMenu.append(contextMenuItem);
+    });
+
+    $("#contextMenu").css({
+      display: "block",
+      top: e.pageY,
+      left: e.pageX,
+    });
+  }
+
+  async function fetchFixtures() {
+    const response = await fetch(`/api/availableFixtures`);
+    const fixtures = await response.json();
+
+    fixtures.forEach((fixture) => {
+      const container = document.getElementById("fixtures-container");
+
+      var fixtureId = fixture.id;
+
+      console.log(
+        "Channel range for " + fixture.name + ": " + fixture.channels
+      );
+
+      const fixtureDiv = document.createElement("div");
+      fixtureDiv.className = `fixture`;
+      fixtureDiv.id = `fixture-${fixtureId}`;
+
+      const fixtureContainer = document.createElement("div");
+      fixtureContainer.className = "fixtureContainer";
+
+      const fixtureTitle = document.createElement("h1");
+      fixtureTitle.className = "title";
+      fixtureTitle.textContent = fixture.name;
+
+      container.appendChild(fixtureDiv);
+      fixtureDiv.appendChild(fixtureTitle);
+
+      fixture.fixture.channels.forEach((channel) => {
+        const fixtureChannel = $(document.createElement("div")).on(
+          "contextmenu",
+          function (e) {
+            e.preventDefault();
+            openContextMenu(channel, e, fixture.id);
+          }
+        )[0];
+        fixtureChannel.className = "fixtureChannel";
+        const channelIdSafe = channel.name.replace(/\s+/g, "_");
+        fixtureChannel.id = `fixtureChannel_${fixtureId}_${channelIdSafe}`;
+
+        console.log(`DMXVal: ${channel.name}, Attribute: ${channel.value}`);
+
+        const slider = document.createElement("input");
+        slider.type = "range";
+        slider.min = 0;
+        slider.max = 255;
+        slider.value = 0;
+        slider.className = "slider";
+        slider.id = `slider_${fixtureId}_${channelIdSafe}`;
+        slider.oninput = function () {
+          updateDMXValue(channel.name, fixtureId, this.value);
+          valueLabel.textContent = this.value;
+        };
+
+        const valueLabel = document.createElement("label");
+        valueLabel.className = "valueLabel";
+        valueLabel.id = `valueLabel_${fixtureId}_${channelIdSafe}`;
+        valueLabel.textContent = 0;
+
+        const img = new Image();
+        img.className = "attributeIcon";
+        img.title = channel.name.replace("_", " ");
+        img.src = `/static/images/channelImageStore/${
+          channel.name.toLowerCase().includes("speed")
+            ? "speed"
+            : channel.name
+                .replace(/[0-9\s]/g, "")
+                .toLowerCase()
+                .replace(/_+$/, "")
+        }.png`;
+
+        img.onerror = () => {
+          img.src = `/static/images/channelImageStore/Undef.png`;
+        };
+
+        fixtureChannel.appendChild(slider);
+        fixtureChannel.appendChild(valueLabel);
+        fixtureChannel.appendChild(img);
+        fixtureContainer.appendChild(fixtureChannel);
+      });
+
+      fixtureDiv.appendChild(fixtureContainer);
+
+      fetchDMXChannelValues();
+    });
+  }
+
+  function getDMXScenes() {
+    $.ajax({
+      url: "/api/dmx/scenes",
+      type: "GET",
+      success: function (response) {
+        if (!Array.isArray(response)) {
+          response = [response];
+        }
+
+        var container = $("#sceneContainer");
+        container.empty();
+
+        response.forEach(function (scene) {
+          var name = scene.id;
+          var flash = scene.flash;
+          var repeat = scene.repeat;
+          var totalDuration = scene.duration;
+
+          var sceneDiv = $("<div>")
+            .addClass("dmxScene user-select-none")
+            .attr("id", name + "_SceneBtn")
+            .attr("role", "button")
+            .on("click", function () {
+              startOrEditScene(name);
+            });
+
+          var sceneTitleInput = $("<input>")
+            .addClass("sceneTitleText hideSelectEffect")
+            .attr("type", "text")
+            .val(scene.name)
+            .attr("id", name + "_sceneName")
+            .on("change", function () {
+              updateSceneName(name, $(this).val());
+            });
+
+          var sceneDuration = $("<p>")
+            .addClass("duration")
+            .attr("id", name + "_Visibleduration")
+            .text(formatDMXSceneDuration(totalDuration));
+
+          var sceneDurationHidden = $("<p>")
+            .addClass("duration")
+            .attr("id", name + "_duration")
+            .attr("style", "display: none;")
+            .text(totalDuration);
+
+          var sceneInfoContainer = $("<div>").addClass("sceneInfoContainer");
+
+          var sceneSettingContainer = $("<div>").addClass(
+            "sceneSettingContainer"
+          );
+
+          if (flash) {
+            var flashButton = $("<i>").addClass("fas fa-bolt");
+
+            sceneSettingContainer.append(flashButton);
+          }
+
+          if (repeat) {
+            var repeatButton = $("<i>").addClass("fas fa-rotate-right");
+
+            sceneSettingContainer.append(repeatButton);
+          }
+
+          sceneInfoContainer.append(sceneTitleInput);
+          sceneInfoContainer.append(sceneDuration);
+          sceneInfoContainer.append(sceneDurationHidden);
+          sceneDiv.append(sceneInfoContainer);
+          sceneDiv.append(sceneSettingContainer);
+          container.append(sceneDiv);
+        });
+
+        var sceneDiv = $(document.createElement("div"))
+          .addClass("dmxScene dmxAddScene user-select-none")
+          .attr("role", "button")
+          .css({
+            "height": "1.5rem",
+            "width": "1.5rem",
+            "display": "flex",
+			"padding": "0",
+            "justify-content": "center",
+          })
+          .on("click", function () {
+            createNewScene();
+          });
+
+        var sceneText = $(document.createElement("p"))
+          .addClass("title")
+          .text("+");
+
+        sceneDiv.append(sceneText);
+        container.append(sceneDiv);
+      },
+      error: function (xhr) {
+        console.error("Failed to fetch DMX scenes:", xhr.responseText);
+      },
+    });
+  }
+
+  async function fetchDMXChannelValues() {
+    const response = await fetch(`/api/dmx/dmxChannelValues`);
+    const channelValues = await response.json();
+
+    channelValues.forEach((channelValue) => {
+      console.log("Updating DMX Value: ", channelValue);
+
+      const attributes = channelValue.attributes;
+
+      if (attributes.channel && attributes.DMXValue !== undefined) {
+        const channel = attributes.channel.replace(/\b\w/g, (char) =>
+          char.toUpperCase()
         );
+        const channelIdSafe = channel.replace(/\s+/g, "_");
+        const value = attributes.DMXValue;
+        const fixture = channelValue.id;
+
+        const valueLabel = document.getElementById(
+          `valueLabel_${fixture}_${channelIdSafe}`
+        );
+        const slider = document.getElementById(
+          `slider_${fixture}_${channelIdSafe}`
+        );
+
+        if (valueLabel) valueLabel.textContent = value;
+        if (slider) slider.value = value;
+      } else {
+        for (const [key, attribute] of Object.entries(attributes)) {
+          const channel = attribute.channel.replace(/\b\w/g, (char) =>
+            char.toUpperCase()
+          );
+          const channelIdSafe = channel.replace(/\s+/g, "_");
+          const value = attribute.DMXValue;
+          const fixture = channelValue.id;
+
+          const valueLabel = document.getElementById(
+            `valueLabel_${fixture}_${channelIdSafe}`
+          );
+          const slider = document.getElementById(
+            `slider_${fixture}_${channelIdSafe}`
+          );
+
+          if (valueLabel) valueLabel.textContent = value;
+          if (slider) slider.value = value;
+        }
+      }
+    });
+  }
+
+  function updateDMXValue(attributeName, fixtureName, value) {
+    console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
+
+    socket.emit("UpdateDMXValue", {
+      fixtureName: fixtureName,
+      attributeName: attributeName,
+      value: value,
+    });
+  }
+
+  var socket = io.connect("http://" + window.location.hostname + ":8080", {
+    transports: ["websocket"],
+  });
+
+  socket.on("connect", function () {
+    $("#warningsContainer").css("display", "none");
+
+    console.log("Client connected!");
+  });
+
+  function updateSceneName(sceneId, newName) {
+    $.ajax({
+      url: "/api/dmx/editSceneName",
+      type: "POST",
+      data: { sceneId: sceneId, newName: newName },
+      success: function (response) {
+        console.log("Scene Name Changed:", response);
+      },
+      error: function (xhr) {
+        console.error("Failed to update scene name:", xhr.responseText);
+      },
+    });
+  }
+
+  function createNewScene() {
+    var id;
+
+    $("#editingSceneId").text("");
+
+    $("#editSceneContainer").show();
+    $("#sceneEventContainer").empty();
+    $("#lightingCardBody").collapse("show");
+    $("#sceneDetailButtons").empty();
+
+    $.ajax({
+      url: "/api/dmx/createScene",
+      type: "POST",
+      success: function (response) {
+        getDMXScenes();
+
+        editScene(response);
+      },
+    });
+  }
+
+  function startOrEditScene(sceneId) {
+    if ($("#" + sceneId + "_SceneBtn").hasClass("active")) {
+      stopScene(sceneId);
+      return;
     }
 
-	function openContextMenu(channel, e, id) {
-		var contextMenu = $("#contextMenuList");
-
-		contextMenu.empty();
-
-		var fixtureId = id;
-		var channelName = channel.name;
-
-		const distinctValues = [...new Set(channel.channelValues.map(cv => cv.name))]
-			.map(name => channel.channelValues.find(cv => cv.name === name));
-			
-		distinctValues.forEach(channelValue => {
-			var contextMenuItem = $("<li>").text(channelValue.name);
-			contextMenuItem.on("click", function () {
-				const channelIdSafe = channelName.replace(/\s+/g, '_');
-				var sliderId = `slider_${fixtureId}_${channelIdSafe}`;
-				var valueId = `valueLabel_${fixtureId}_${channelIdSafe}`;
-
-				slider = $(`#${sliderId}`);
-				valueLabel = $(`#${valueId}`);
-
-				if (slider.length && valueLabel.length) {
-					slider.val(channelValue.value);
-					valueLabel.text(channelValue.value);
-					updateDMXValue(channelName, fixtureId, channelValue.value);
-				} else {
-					console.error(`Could not find slider or value label with IDs: ${sliderId}, ${valueId}`);
-				}
-			});
-			contextMenu.append(contextMenuItem);
-		});
-
-		$("#contextMenu").css({
-			display: "block",
-			top: e.pageY,
-			left: e.pageX,
-		  });
-	}
-
-	async function fetchFixtures() {
-        const response = await fetch(`/api/availableFixtures`);
-        const fixtures = await response.json();
-
-        fixtures.forEach(fixture => {
-			const container = document.getElementById('fixtures-container');
-
-			var fixtureId = fixture.id;
-
-			console.log("Channel range for " + fixture.name + ": " + fixture.channels);
-		
-			const fixtureDiv = document.createElement('div');
-			fixtureDiv.className = `fixture`;
-			fixtureDiv.id = `fixture-${fixtureId}`;
-		
-			const fixtureContainer = document.createElement('div');
-			fixtureContainer.className = 'fixtureContainer';
-		
-			const fixtureTitle = document.createElement('h1');
-			fixtureTitle.className = "title";
-			fixtureTitle.textContent = fixture.name;
-		
-			container.appendChild(fixtureDiv);
-			fixtureDiv.appendChild(fixtureTitle);
-		
-			fixture.fixture.channels.forEach(channel => {
-				const fixtureChannel = $(document.createElement('div')).on('contextmenu', function(e) {
-					e.preventDefault();
-					openContextMenu(channel, e, fixture.id);
-				})[0];
-				fixtureChannel.className = 'fixtureChannel';
-				const channelIdSafe = channel.name.replace(/\s+/g, '_');
-				fixtureChannel.id = `fixtureChannel_${fixtureId}_${channelIdSafe}`;
-
-				console.log(`DMXVal: ${channel.name}, Attribute: ${channel.value}`);
-	
-				const slider = document.createElement('input');
-				slider.type = 'range';
-				slider.min = 0;
-				slider.max = 255;
-				slider.value = 0;
-				slider.className = 'slider';
-				slider.id = `slider_${fixtureId}_${channelIdSafe}`;
-				slider.oninput = function () {
-					updateDMXValue(channel.name, fixtureId, this.value);
-					valueLabel.textContent = this.value;
-				};
-	
-				const valueLabel = document.createElement('label');
-				valueLabel.className = 'valueLabel';
-				valueLabel.id = `valueLabel_${fixtureId}_${channelIdSafe}`;
-				valueLabel.textContent = 0;
-	
-				const img = new Image();
-				img.className = 'attributeIcon';
-				img.title = channel.name;
-				img.src = `/static/images/channelImageStore/${channel.name.toLowerCase().includes('speed') ? 'speed' : channel.name.replace(/[0-9\s]/g, '').toLowerCase().replace(/_+$/, '')}.png`;
-	
-				img.onerror = () => {
-					img.src = `/static/images/channelImageStore/Undef.png`;
-				};
-	
-				fixtureChannel.appendChild(slider);
-				fixtureChannel.appendChild(valueLabel);
-				fixtureChannel.appendChild(img);
-				fixtureContainer.appendChild(fixtureChannel);
-			});
-		
-			fixtureDiv.appendChild(fixtureContainer);
-
-			fetchDMXChannelValues();
-		});
+    if (getBlindEditModeStatus() == false) {
+      startScene(sceneId);
+	  editScene(sceneId);
+    } else {
+      editScene(sceneId);
     }
+  }
 
-	function getDMXScenes() {
-        $.ajax({
-            url: "/api/dmx/scenes",
-            type: "GET",
-            success: function (response) {
-                if (!Array.isArray(response)) {
-                    response = [response];
-                }
-                
-                var container = $("#sceneContainer");
-                container.empty();
+  function startScene(sceneId) {
+    $.ajax({
+      url: "/api/dmx/startScene",
+      type: "POST",
+      data: { sceneId: sceneId },
+      success: function (response) {
+        console.log("Scene started:", response);
 
-                response.forEach(function (scene) {
-                    var name = scene.id;
-                    var flash = scene.flash;
-                    var repeat = scene.repeat;
-					var totalDuration = scene.duration;
-	
-					var sceneDiv = $("<div>")
-						.addClass("dmxScene user-select-none")
-						.attr("id", name + "_SceneBtn")
-						.attr("role", "button")
-						.on("click", function () {
-							startOrEditScene(name);
-						});
-	
-					var sceneTitleInput = $("<input>")
-						.addClass("sceneTitleText hideSelectEffect")
-						.attr("type", "text")
-						.val(scene.name)
-						.attr("id", name + "_sceneName")
-						.on("change", function () {
-							updateSceneName(name, $(this).val());
-						});
-	
-					var sceneDuration = $("<p>")
-						.addClass("duration")
-						.attr("id", name + "_Visibleduration")
-						.text(formatDMXSceneDuration(totalDuration));
+        $(".dmxScene").removeClass("selected active");
 
-					var sceneDurationHidden = $("<p>")
-						.addClass("duration")
-						.attr("id", name + "_duration")
-						.attr("style", "display: none;")
-						.text(totalDuration);
-	
-					var sceneInfoContainer = $("<div>")
-						.addClass("sceneInfoContainer");
-	
-					var sceneSettingContainer = $("<div>")
-						.addClass("sceneSettingContainer");
-	
-					if (flash) {
-						var flashButton = $("<i>")
-							.addClass("fas fa-bolt");
-	
-						sceneSettingContainer.append(flashButton);
-					}
-	
-					if (repeat) {
-						var repeatButton = $("<i>")
-							.addClass("fas fa-rotate-right");
-	
-						sceneSettingContainer.append(repeatButton);
-					}
-	
-					sceneInfoContainer.append(sceneTitleInput);
-					sceneInfoContainer.append(sceneDuration);
-					sceneInfoContainer.append(sceneDurationHidden);
-					sceneDiv.append(sceneInfoContainer);
-					sceneDiv.append(sceneSettingContainer);
-					container.append(sceneDiv);
-                });
+        repeat = $("#" + sceneId + "_SceneBtn").find(".fa-rotate-right").length;
 
-            var sceneDiv = $(document.createElement("div"))
-                .addClass("dmxScene dmxAddScene user-select-none")
-                .attr("role", "button")
-                .on("click", function () {
-                    createNewScene();
-                });
+        $("#" + sceneId + "_SceneBtn").addClass("active");
 
-            var sceneText = $(document.createElement("p"))
-                .addClass("title")
-                .text("+");
+        var countdownElement = $("#" + sceneId + "_duration");
+        var duration = parseInt(countdownElement.text());
+        var visibleDurationElement = $("#" + sceneId + "_Visibleduration");
+        var initialDuration = formatDMXSceneDuration(duration);
+        var btnSelector = "#" + sceneId + "_SceneBtn";
 
-            sceneDiv.append(sceneText);
-            container.append(sceneDiv);
+        // $(btnSelector).addClass("active").off('click').on('click', function () {
+        //  if ($(btnSelector).hasClass("active")) {
+        //    clearInterval(sceneTimeLeftCountdownInterval);
+        //$(btnSelector).removeClass("active");
+        //  visibleDurationElement.text(initialDuration);
+        //  duration = parseInt(countdownElement.text());
 
-            },
-            error: function (xhr) {
-                console.error("Failed to fetch DMX scenes:", xhr.responseText);
+        // stopScene(sceneId);
+        //}
+        //else{
+        //  startScene(sceneId);
+        //}
+        //});
+
+        function startCountdown() {
+          sceneTimeLeftCountdownInterval = setInterval(function () {
+            if (duration <= 0) {
+              if (repeat) {
+                duration = parseInt(countdownElement.text());
+              } else {
+                clearInterval(sceneTimeLeftCountdownInterval);
+                // $(btnSelector).removeClass("active");
+                visibleDurationElement.text(initialDuration);
+                return;
+              }
             }
+
+            duration -= 10;
+            var milliseconds = duration % 1000;
+            var seconds = Math.floor((duration / 1000) % 60);
+            var minutes = Math.floor((duration / (1000 * 60)) % 60);
+
+            visibleDurationElement.text(
+              (minutes < 10 ? "0" + minutes : minutes) +
+                '"' +
+                (seconds < 10 ? "0" + seconds : seconds) +
+                '"' +
+                (milliseconds < 100
+                  ? milliseconds < 10
+                    ? "00" + milliseconds
+                    : "0" + milliseconds
+                  : milliseconds)
+            );
+          }, 10);
+        }
+
+        startCountdown();
+      },
+      error: function (xhr) {
+        console.error("Failed to start scene:", xhr.responseText);
+      },
+    });
+  }
+
+  function getBlindEditModeStatus() {
+    if ($("#blindEditModeIcon").hasClass("fa-eye")) {
+      return false;
+    } else {
+      return true;
+    }
+  }
+
+  function toggleBlindEditMode() {
+    if (getBlindEditModeStatus() == false) {
+      $("#blindEditModeIcon").removeClass("fa-eye");
+      $("#blindEditModeIcon").addClass("fa-eye-slash");
+    } else {
+      $("#blindEditModeIcon").removeClass("fa-eye-slash");
+      $("#blindEditModeIcon").addClass("fa-eye");
+    }
+  }
+
+  function editScene(sceneId) {
+    $.ajax({
+      url: "/api/dmx/getScene",
+      type: "GET",
+      data: { sceneId: sceneId },
+      success: function (response) {
+        $("#selectedSceneControls").show();
+        $("#addNewSceneEventButton").show();
+
+        var scene = response;
+
+        $("#" + scene.id + "_SceneBtn").addClass("selected");
+
+        if (Array.isArray(scene.events)) {
+          let currentTime = new Date(0);
+
+          var i = 1;
+
+          var sceneContainer = $("#sceneEventsContainer");
+          sceneContainer.find("tr").not("#header").remove();
+
+          $("#currentPlayingSongForTriggerValue").text(scene.songKeybind);
+          $("#triggerKeybindClick").text(scene.keyboardKeybind);
+
+          scene.events.forEach(function (event) {
+            const duration = event.duration || 0;
+            const startTime = new Date(currentTime.getTime());
+            const endTime = new Date(currentTime.getTime() + duration);
+
+            var sceneEventRow = $("<tr>")
+              .attr("id", "sceneEvent_" + event.id)
+              .addClass("dmxSceneEventTableElement")
+              .on("click", function () {
+                loadSceneEvent(event, $(this));
+              });
+
+            var eventNumberCell = $("<td>").text(i.toString());
+
+            var startTimeCell = $("<td>").text(
+              startTime.toISOString().substr(11, 8)
+            );
+
+            var durationCell = $("<td>").html('<input type="text" class="form-control invisibleTextBox" value="' + formatDMXSceneDuration(duration) + '">');
+
+            sceneEventRow.append(eventNumberCell);
+            sceneEventRow.append(startTimeCell);
+            sceneEventRow.append(durationCell);
+            sceneEventRow.append("<td></td>");
+
+            sceneContainer.append(sceneEventRow);
+
+            i++;
+            currentTime = endTime;
+          });
+        }
+      },
+      error: function (xhr) {
+        console.error("Failed to fetch scene details:", xhr.responseText);
+      },
+    });
+  }
+
+  function loadSceneEvent(event, elem) {
+    //valueLabel-ColorWash 250 AT-Pan
+    //slider-ColorWash 250 AT-Pan
+
+    var existingActiveElem = $(".dmxSceneEventTableElement.active");
+
+    if (existingActiveElem.length > 0) {
+      saveActiveSceneEvent(existingActiveElem);
+    }
+
+    elem.addClass("active").siblings().removeClass("active");
+
+    $("#fixtures-container")
+      .find(".fixtureChannel")
+      .each(function () {
+        var valueLabel = $(this).find(".valueLabel");
+        var slider = $(this).find(".slider");
+
+        valueLabel.text("0");
+        slider.val(0);
+      });
+
+    $.ajax({
+      url: "/api/dmx/getSceneEvent",
+      type: "GET",
+      data: {
+        eventId: elem.attr("id").split("_")[1],
+      },
+      success: function (response) {
+        event = response;
+
+        event.channels.forEach(function (channel) {
+          var fixtureName = channel.fixture;
+          var channelName = channel.channel;
+          var channelIdSafe = channelName.replace(/\s+/g, "_");
+          var value = channel.value;
+
+          var valueLabel = document.getElementById(
+            `valueLabel_${fixtureName}_${channelIdSafe}`
+          );
+          var slider = document.getElementById(
+            `slider_${fixtureName}_${channelIdSafe}`
+          );
+
+          valueLabel.textContent = value;
+          slider.value = value;
         });
-    }
+      },
+      error: function (xhr) {
+        console.error(
+          "Failed to get scene event, falling back to previous values:",
+          xhr.responseText
+        );
 
-	async function fetchDMXChannelValues() {
-		const response = await fetch(`/api/dmx/dmxChannelValues`);
-		const channelValues = await response.json();
-	
-		channelValues.forEach(channelValue => {
-			console.log("Updating DMX Value: ", channelValue);
-	
-			const attributes = channelValue.attributes;
-	
-			if (attributes.channel && attributes.DMXValue !== undefined) {
-				const channel = attributes.channel.replace(/\b\w/g, char => char.toUpperCase());
-				const channelIdSafe = channel.replace(/\s+/g, '_');
-				const value = attributes.DMXValue;
-				const fixture = channelValue.id;
-	
-				const valueLabel = document.getElementById(`valueLabel_${fixture}_${channelIdSafe}`);
-				const slider = document.getElementById(`slider_${fixture}_${channelIdSafe}`);
-	
-				if (valueLabel) valueLabel.textContent = value;
-				if (slider) slider.value = value;
-			} else {
-				for (const [key, attribute] of Object.entries(attributes)) {
-					const channel = attribute.channel.replace(/\b\w/g, char => char.toUpperCase());
-					const channelIdSafe = channel.replace(/\s+/g, '_');
-					const value = attribute.DMXValue;
-					const fixture = channelValue.id;
-	
-					const valueLabel = document.getElementById(`valueLabel_${fixture}_${channelIdSafe}`);
-					const slider = document.getElementById(`slider_${fixture}_${channelIdSafe}`);
-	
-					if (valueLabel) valueLabel.textContent = value;
-					if (slider) slider.value = value;
-				}
-			}
-		});
-	}
+        event.channels.forEach(function (channel) {
+          var fixtureName = channel.fixture;
+          var channelName = channel.channel;
+          var channelIdSafe = channelName.replace(/\s+/g, "_");
+          var value = channel.value;
 
-    function updateDMXValue(attributeName, fixtureName, value) {
-        console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
+          var valueLabel = document.getElementById(
+            `valueLabel_${fixtureName}_${channelIdSafe}`
+          );
+          var slider = document.getElementById(
+            `slider_${fixtureName}_${channelIdSafe}`
+          );
 
-		socket.emit('UpdateDMXValue', {"fixtureName": fixtureName, "attributeName": attributeName, "value": value});
-    }
-	
-	var socket = io.connect('http://' + window.location.hostname + ':8080', {transports: ['websocket']});
-
-	socket.on('connect', function() {
-
-		$("#warningsContainer").css("display", "none");
-		
-		console.log("Client connected!");
-	});
-
-	function updateSceneName(sceneId, newName){
-        $.ajax({
-            url: "/api/dmx/editSceneName",
-            type: "POST",
-            data: { sceneId: sceneId,
-                    newName: newName },
-            success: function (response) {
-                console.log("Scene Name Changed:", response);
-            },
-            error: function (xhr) {
-                console.error("Failed to update scene name:", xhr.responseText);
-            }
+          valueLabel.textContent = value;
+          slider.value = value;
         });
-    }
+      },
+    });
+  }
 
-	function createNewScene(){
-        var id;
+  function saveActiveSceneEvent(elem) {
+    var DMXValueData = [];
 
-        $("#editingSceneId").text("");
+    $("#fixtures-container")
+      .find(".fixtureChannel")
+      .each(function () {
+        var fixtureName = $(this).attr("id").split("_")[1];
+        var channelName = $(this)
+          .attr("id")
+          .split("_")
+          .slice(2)
+          .join("_")
+          .replace(/_/g, " ");
+        var value = $(this).find(".valueLabel").text();
 
-        $("#editSceneContainer").show();
-        $("#sceneEventContainer").empty();
-        $('#lightingCardBody').collapse('show');
-        $("#sceneDetailButtons").empty(); 
-
-        $.ajax({
-            url: "/api/dmx/createScene",
-            type: "POST",
-            success: function (response) {
-				getDMXScenes();
-
-                editScene(response.sceneId);
-            },
+        DMXValueData.push({
+          fixture: fixtureName,
+          channel: channelName,
+          value: value,
         });
+      });
+
+    $.ajax({
+      url: "/api/dmx/saveSceneEvent",
+      type: "POST",
+      data: {
+        sceneEventId: elem.attr("id").split("_")[1],
+        DMXValues: JSON.stringify(DMXValueData),
+      },
+      success: function (response) {},
+      error: function (xhr) {
+        console.error("Failed to save scene event:", xhr.responseText);
+      },
+    });
+  }
+
+  function stopScene(sceneId) {
+    $.ajax({
+      url: "/api/dmx/stopScene",
+      type: "POST",
+      data: { sceneId: sceneId },
+      success: function (response) {
+        clearInterval(sceneTimeLeftCountdownInterval);
+        $("#" + sceneId + "_SceneBtn").removeClass("active");
+        $("#" + sceneId + "_SceneBtn").removeClass("selected");
+
+        var visibleDuration = $("#" + sceneId + "_Visibleduration");
+        var duration = $("#" + sceneId + "_duration");
+
+        visibleDuration.text(formatDMXSceneDuration(duration.text()));
+
+        $("#fixtures-container")
+          .find(".fixtureChannel")
+          .each(function () {
+            var valueLabel = $(this).find(".valueLabel");
+            var slider = $(this).find(".slider");
+
+            valueLabel.text("0");
+            slider.val(0);
+          });
+
+        console.log("Scene stopped:", response);
+      },
+      error: function (xhr) {
+        console.error("Failed to stop scene:", xhr.responseText);
+      },
+    });
+  }
+
+  function setThisSongAsKeybind() {
+    var activeScene = $("#dmxScene.active");
+    var sceneId = activeScene.attr("id").split("_")[1];
+    var songName = $("#currentPlayingSongForTrigger").text();
+
+    $.ajax({
+      url: "/api/dmx/setSceneSongTrigger",
+      type: "POST",
+      data: {
+        sceneId: sceneId,
+        songName: songName,
+      },
+      success: function (response) {
+        $("#currentPlayingSongForTriggerValue").text(songName);
+      },
+    });
+  }
+
+  function addNewSceneEvent() {
+    var activeScene = $(".dmxScene.selected");
+
+    if (activeScene.length == 0) {
+      return;
     }
 
-	function startOrEditScene(sceneId){
-		if ($("#"+sceneId + "_SceneBtn").hasClass("active")){
-			stopScene(sceneId);
-			return;
-		}
+    var sceneId = activeScene.attr("id").split("_")[0];
 
-		if (getBlindEditModeStatus() == false){
-			startScene(sceneId);
-		} else {
-			editScene(sceneId);
-		}
+    if (sceneId == null || sceneId == "") {
+      return;
     }
 
-	function startScene(sceneId) {
-        $.ajax({
-            url: "/api/dmx/startScene",
-            type: "POST",
-            data: { sceneId: sceneId },
-            success: function (response) {
-                console.log("Scene started:", response);
-
-                repeat = $("#"+sceneId + "_SceneBtn").find(".fa-rotate-right").length;
-
-                $("#" + sceneId + "_SceneBtn").addClass("active");
-
-                var countdownElement = $("#" + sceneId + "_duration");
-                var duration = parseInt(countdownElement.text());
-                var visibleDurationElement = $("#" + sceneId + "_Visibleduration");
-                var initialDuration = formatDMXSceneDuration(duration);
-                var btnSelector = "#" + sceneId + "_SceneBtn";
-
-                // $(btnSelector).addClass("active").off('click').on('click', function () {
-                  //  if ($(btnSelector).hasClass("active")) {
-                    //    clearInterval(sceneTimeLeftCountdownInterval);
-                        //$(btnSelector).removeClass("active");
-                      //  visibleDurationElement.text(initialDuration);
-                      //  duration = parseInt(countdownElement.text());
-    
-                       // stopScene(sceneId);
-                    //}
-                    //else{
-                      //  startScene(sceneId);
-                    //}
-                //}); 
-    
-                function startCountdown() {
-                    sceneTimeLeftCountdownInterval = setInterval(function () {
-                        if (duration <= 0) {
-                            if (repeat) {
-                                duration = parseInt(countdownElement.text());
-                            } else {
-                                clearInterval(sceneTimeLeftCountdownInterval);
-                                $(btnSelector).removeClass("active");
-                                visibleDurationElement.text(initialDuration);
-                                return;
-                            }
-                        }
-
-                        duration -= 10;
-                        var milliseconds = duration % 1000;
-                        var seconds = Math.floor((duration / 1000) % 60);
-                        var minutes = Math.floor((duration / (1000 * 60)) % 60);
-    
-                        visibleDurationElement.text(
-                            (minutes < 10 ? "0" + minutes : minutes) + '"' +
-                            (seconds < 10 ? "0" + seconds : seconds) + '"' +
-                            (milliseconds < 100 ? (milliseconds < 10 ? "00" + milliseconds : "0" + milliseconds) : milliseconds)
-                        );
-                    }, 10);
-                }
-    
-                startCountdown();
-
-            },
-            error: function (xhr) {
-                console.error("Failed to start scene:", xhr.responseText);
-            }
-        });
-    }
-
-	function getBlindEditModeStatus(){
-		if ($("#blindEditModeIcon").hasClass("fa-eye")){
-			return false;
-		} else {
-			return true;
-		}
-	}
-
-	function toggleBlindEditMode(){
-		if (getBlindEditModeStatus() == false) {
-			$("#blindEditModeIcon").removeClass("fa-eye");
-			$("#blindEditModeIcon").addClass("fa-eye-slash");
-		} else {
-			$("#blindEditModeIcon").removeClass("fa-eye-slash");
-			$("#blindEditModeIcon").addClass("fa-eye");
-		}
-	}
-
-	function editScene(sceneId) {
-        $.ajax({
-            url: "/api/dmx/getScene",
-            type: "GET",
-            data: { sceneId: sceneId },
-            success: function (response) {
-				$("#selectedSceneControls").show();
-				$("#addNewSceneEventButton").show();
-
-                var scene = response;
-
-                $("#"+scene.id+"_SceneBtn").addClass("selected");
-                
-                if (Array.isArray(scene.events)) {
-                    let currentTime = new Date(0); 
-
-                    var i = 1;
-
-					var sceneContainer = $("#sceneEventsContainer");
-					sceneContainer.find("tr").not("#header").remove();
-
-					$("#currentPlayingSongForTriggerValue").text(scene.songKeybind);
-					$("#triggerKeybindClick").text(scene.keyboardKeybind);
-                
-                    scene.events.forEach(function (event) {
-                        const duration = event.duration || 0; 
-                        const startTime = new Date(currentTime.getTime()); 
-                        const endTime = new Date(currentTime.getTime() + duration); 
-                                        
-						var sceneEventRow = $("<tr>")
-							.attr("id", "sceneEvent_" + event.id)
-							.addClass("dmxSceneEventTableElement")
-							.on("click", function () {
-								loadSceneEvent(event, $(this));
-							});
-
-						var eventNumberCell = $("<td>")
-							.text(i.toString());
-
-						var startTimeCell = $("<td>")
-							.text(startTime.toISOString().substr(11, 8));
-
-						var durationCell = $("<td>")
-							.text(formatDMXSceneDuration(duration));
-
-						sceneEventRow.append(eventNumberCell);
-						sceneEventRow.append(startTimeCell);
-						sceneEventRow.append(durationCell);
-
-						sceneContainer.append(sceneEventRow);
-                        
-                        i++;
-                        currentTime = endTime;
-                    });
-                }
-            },
-            error: function (xhr) {
-                console.error("Failed to fetch scene details:", xhr.responseText);
-            }
-        });
-    }
-
-	function loadSceneEvent(event, elem){
-		//valueLabel-ColorWash 250 AT-Pan
-		//slider-ColorWash 250 AT-Pan
-
-		var existingActiveElem = $(".dmxSceneEventTableElement.active");
-
-		if (existingActiveElem.length > 0){
-			saveActiveSceneEvent(existingActiveElem);
-		}
-
-		elem.addClass("active").siblings().removeClass("active");
-
-		$("#fixtures-container").find(".fixtureChannel").each(function(){
-			var valueLabel = $(this).find(".valueLabel");
-			var slider = $(this).find(".slider");
-			
-			valueLabel.text("0");
-			slider.val(0);
-		});
-
-		$.ajax({
-			url: "/api/dmx/getSceneEvent",
-			type: "GET", 
-			data: {
-				eventId: elem.attr("id").split("_")[1]
-			},
-			success: function(response) {
-				event = response;
-
-				event.channels.forEach(function(channel){
-					var fixtureName = channel.fixture;
-					var channelName = channel.channel;
-					var channelIdSafe = channelName.replace(/\s+/g, '_');
-					var value = channel.value; 
-		
-					var valueLabel = document.getElementById(`valueLabel_${fixtureName}_${channelIdSafe}`);
-					var slider = document.getElementById(`slider_${fixtureName}_${channelIdSafe}`);
-		
-					valueLabel.textContent = value;
-					slider.value = value;
-				})
-			},
-			error: function(xhr) {
-				console.error("Failed to get scene event, falling back to previous values:", xhr.responseText);
-				
-				event.channels.forEach(function(channel){
-					var fixtureName = channel.fixture;
-					var channelName = channel.channel;
-					var channelIdSafe = channelName.replace(/\s+/g, '_');
-					var value = channel.value; 
-		
-					var valueLabel = document.getElementById(`valueLabel_${fixtureName}_${channelIdSafe}`);
-					var slider = document.getElementById(`slider_${fixtureName}_${channelIdSafe}`);
-		
-					valueLabel.textContent = value;
-					slider.value = value;
-				})
-			}
-		});
-	}
-
-	function saveActiveSceneEvent(elem){
-		var DMXValueData = [];
-
-		$("#fixtures-container").find(".fixtureChannel").each(function(){
-			var fixtureName = $(this).attr("id").split("_")[1];
-			var channelName = $(this).attr("id").split("_").slice(2).join("_").replace(/_/g, ' ');
-			var value = $(this).find(".valueLabel").text();
-
-			DMXValueData.push({
-				"fixture": fixtureName,
-				"channel": channelName,
-				"value": value
-			});
-		});
-
-		$.ajax({
-            url: "/api/dmx/saveSceneEvent",
-            type: "POST",
-            data: { 
-				sceneEventId: elem.attr("id").split("_")[1],
-				DMXValues: JSON.stringify(DMXValueData)
-		 	},
-            success: function (response) {
-				
-            },
-            error: function (xhr) {
-                console.error("Failed to save scene event:", xhr.responseText);
-            }
-        });
-	}
-
-	function stopScene(sceneId){
-        $.ajax({
-            url: "/api/dmx/stopScene",
-            type: "POST",
-            data: { sceneId: sceneId },
-            success: function (response) {
-				clearInterval(sceneTimeLeftCountdownInterval);
-				$("#"+ sceneId +"_SceneBtn").removeClass("active");
-				$("#"+ sceneId +"_SceneBtn").removeClass("selected");
-
-				var visibleDuration = $("#" + sceneId + "_Visibleduration");
-				var duration = $("#" + sceneId + "_duration");
-
-				visibleDuration.text(formatDMXSceneDuration(duration.text()));
-
-                $("#fixtures-container").find(".fixtureChannel").each(function(){
-                    var valueLabel = $(this).find(".valueLabel");
-                    var slider = $(this).find(".slider");
-                    
-                    valueLabel.text("0");
-                    slider.val(0);
-                });
-
-                console.log("Scene stopped:", response);
-            },
-            error: function (xhr) {
-                console.error("Failed to stop scene:", xhr.responseText);
-            }
-        });
-    }
-
-	function setThisSongAsKeybind(){
-		var activeScene = $("#dmxScene.active");
-		var sceneId = activeScene.attr("id").split("_")[1];
-		var songName = $("#currentPlayingSongForTrigger").text();
-
-		$.ajax({
-			url: "/api/dmx/setSceneSongTrigger",
-			type: "POST",
-			data: { 
-				sceneId: sceneId, 
-				songName: songName 
-			},
-			success: function (response) {
-				$("#currentPlayingSongForTriggerValue").text(songName);
-			}
-		});
-	}
-
-	function addNewSceneEvent(){
-		var activeScene = $(".dmxScene.selected");
-
-		if (activeScene.length == 0){
-			return;
-		}
-
-		var sceneId = activeScene.attr("id").split("_")[0];
-
-		if (sceneId == null || sceneId == ""){
-			return;
-		}
-
-		$.ajax({
-			url: "/api/dmx/createSceneEvent",
-			type: "POST",
-			data: { 
-				sceneId: sceneId
-			},
-			success: function (response) {
-				editScene(sceneId);
-			}
-		});
-	}
-</script> 
+    $.ajax({
+      url: "/api/dmx/createSceneEvent",
+      type: "POST",
+      data: {
+        sceneId: sceneId,
+      },
+      success: function (response) {
+        editScene(sceneId);
+      },
+    });
+  }
+</script>
 
 {% endblock %}

@@ -866,46 +866,56 @@ class WebApp:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
-
-                fixtures = self._dmx.getRegisteredFixtures()
+                fixtures = self._dmx.getFixtures()
                 
-                fixtureChannels = []
+                channelValues = []
 
-                for fixture in fixtures.items():
-                    fixtureId = fixture[1]["id"]
-                    fixtureName = fixture[0]
-                    fixtureType = fixture[1]["type"]
-                    fixtureProfile = (self._dmx.getFixtureProfiles()).get(fixtureType)
+                for fixture in fixtures:
+                    fixtureId = fixture["id"]
+                    fixtureName = fixture["name"]
+                    fixtureType = fixture["fixture"]["id"]
+                    fixtureChannels = (self._dmx.getFixtureTypeChannels(fixtureType))
 
-                    # Add an index to each attribute
-                    indexed_fixture_profile = {}
-                    for index, (key, value) in enumerate(fixtureProfile.items()):
-                        fixture_temp = self._dmx.getFixturesByName(fixtureName)[0]
+                    channels = {}
+
+                    for channel in fixtureChannels:
+                        DMXFixture = self._dmx.getFixtureById(fixtureId)
                         
-                        if fixture_temp.json_data["type"] == "Generic.Dimmer":
-                            indexed_fixture_profile = {"index": index, "value": fixture_temp.get_channel_value(key), "DMXValue": fixture_temp.channels[1]["value"][0], "channel": fixture_temp.channels[1]["name"]}
+                        if (DMXFixture == None):
+                            channels[channel.name] = {
+                                    "DMXValue": -1,
+                                    "channel": channel.name
+                            }
+                            continue
+                        
+                        channelValue = DMXFixture.get_channel_value(channel.channelNo)
+                        
+                        if DMXFixture.json_data["type"] == "Generic.Dimmer":
+                            channels = {"index": index, "value": channelValue, "DMXValue": DMXFixture.channels[1]["value"][0], "channel": DMXFixture.channels[1]["name"]}
                         else:
                             try:
-                                fixtureChannel_temp = 0
+                                fixtureChannelTemp = 0
 
-                                for key_id, channel in fixture_temp.channels.items():
-                                    if channel["name"] == key.lower():
-                                        fixtureChannel_temp = channel["value"][0]
+                                for key_id, channel in DMXFixture.channels.items():
+                                    if str(channel["name"]).lower() == str(channel.name).lower():
+                                        fixtureChannelTemp = channel["value"][0]
 
-                                indexed_fixture_profile[key] = {
-                                    "DMXValue": fixtureChannel_temp,
-                                    "channel": key
+                                channels[channel.name] = {
+                                    "DMXValue": fixtureChannelTemp,
+                                    "channel": count
                                 }
                             except Exception as e:
-                                f.message(f"Error getting fixture channel: {e}, {key}, {value}", type="error")
+                                f.message(f"Error getting fixture channel: {e}, {channel.name}, {channelValue}", type="error")
+                                
+                        count += 1
 
-                    fixtureChannels.append({
+                    channelValues.append({
                         "name": fixtureName,
                         "id": fixtureId,
-                        "attributes": indexed_fixture_profile
+                        "attributes": channels
                     })
                     
-                return jsonify(fixtureChannels)
+                return jsonify(channelValues), 200
             
             except Exception as e:
                 ise : InternalServerError = InternalServerError()
@@ -916,6 +926,7 @@ class WebApp:
                 ise.severity = "3"
                 
                 self._supervisor.logInternalServerError(ise)
+                
                 return jsonify({"error": f"Error getting DMX Channel Values: {e}"}), 500
             
         @self.app.route("/api/dmx/scenes", methods=["GET"])
@@ -948,7 +959,7 @@ class WebApp:
             sceneId = request.args.get("sceneId") 
 
             if not sceneId:
-                return jsonify({"error": "Scene name is required"}), 400
+                return jsonify({"error": "Scene Id is required"}), 400
 
             try:
                 scene = self._dmx.getDMXSceneById(sceneId)
@@ -973,7 +984,7 @@ class WebApp:
             sceneId = request.form.get("sceneId") 
 
             if not sceneId:
-                return jsonify({"error": "Scene name is required"}), 400
+                return jsonify({"error": "Scene id is required"}), 500
 
             try:
                 self._dmx.startScene(sceneId)
@@ -998,7 +1009,7 @@ class WebApp:
             sceneId = request.form.get("sceneId") 
 
             if not sceneId:
-                return jsonify({"error": "Scene name is required"}), 400
+                return jsonify({"error": "Scene id is required"}), 500
 
             try:
                 self._dmx.stopScene(sceneId)
@@ -1200,12 +1211,17 @@ class WebApp:
             
         @self.socketio.on('UpdateDMXValue')
         def UpdateDMXValue(json):
+            if self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
+            
             fixture = json["fixtureName"]
             channelName = json["attributeName"]
             value = json["value"]
             
             try:
                 self._dmx.setFixtureChannel(fixture, channelName, value)
+                
+                return jsonify({"newValue": value}), 200
             except Exception as e:
                 ise : InternalServerError = InternalServerError()
                 

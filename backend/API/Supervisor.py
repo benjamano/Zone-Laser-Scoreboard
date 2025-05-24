@@ -128,7 +128,7 @@ class Supervisor:
             
             _time.sleep(30)
 
-            if self.devMode == True:
+            if self.devMode == False:
                 try:
                     # Check if all expected processes are running
                     for processName in self.expectedProcesses:
@@ -196,12 +196,13 @@ class Supervisor:
                 pass
                 f.message(f"Error occurred while switching to sleep mode: {e}", type="warning")
                 
-            try:
-                now = datetime.now().time()
-                if time(0, 0, 0) <= now <= time(0, 5, 0):
-                    self.__restartPC("Daily Restart")
-            except Exception as e:
-                f.message(f"Error occurred while executing daily restart: {e}", type="error")               
+            if self.devMode == False:
+                try:
+                    now = datetime.now().time()
+                    if time(0, 0, 0) <= now <= time(0, 5, 0):
+                        self.__restartPC("Daily Restart")
+                except Exception as e:
+                    f.message(f"Error occurred while executing daily restart: {e}", type="error")               
                 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
@@ -349,24 +350,21 @@ class Supervisor:
             recentErrorList=-1
         )
 
-    def logInternalServerError(self, ise: InternalServerError):
-        try:
-            if self._context != None and ise != None:
-                
-                if ise.severity == 1:
-                    f.message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException f.message: {ise.exception_message}", type="error")
-                else:
-                    f.message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
-                
-                ise.timestamp = datetime.now()
-                
-                with self._app.app_context():
-                    self._context.db.session.add(ise)
-                    self._context.db.session.commit()
-            
-            return
-        
-        except Exception as e:
-            f.message(f"Error occurred while logging internal server error: {e}", type="error")
-            
-            return
+    def logInternalServerError(self, ise: InternalServerError) -> None:
+        def _log():
+            try:
+                if self._context is not None and ise is not None:
+                    if ise.severity == 1:
+                        f.message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException f.message: {ise.exception_message}", type="error")
+                    else:
+                        f.message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
+
+                    ise.timestamp = datetime.now()
+
+                    with self._app.app_context():
+                        self._context.db.session.add(ise)
+                        self._context.db.session.commit()
+            except Exception as e:
+                f.message(f"Error occurred while logging internal server error: {e}", type="error")
+
+        threading.Thread(target=_log, daemon=True).start()
