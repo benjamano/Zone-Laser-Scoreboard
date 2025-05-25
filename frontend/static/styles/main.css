@@ -1,1222 +1,1233 @@
 :root {
-  --dark-gray: #2f37498f;
-  --medium-dark-gray: #52596e8c;
-  --primary-gray: #6d748c57;
-  --light-gray: #9ea5ba63;
-  --ghost-gray: #d2d5df54;
-  --blue: #37a6d187;
-  --pale-orange: #ff977b8c;
-  --bs-danger: #bb313e;
+    --dark-gray: #2f37498f;
+    --medium-dark-gray: #52596e8c;
+    --primary-gray: #6d748c57;
+    --light-gray: #9ea5ba63;
+    --ghost-gray: #d2d5df54;
+    --blue: #37a6d187;
+    --pale-orange: #ff977b8c;
+    --bs-danger: #bb313e;
 
-  --TBSHover: var(--primary-gray);
-  --TBSBGPrimary: #1f2532;
-  --TBSBGSecondary: var(--medium-dark-gray);
-  --TSBBGLight: var(--light-gray);
-  --TBSBGExtraLight: #9ea5ba1a;
-  --TBSBGDark: #10101273;
-  --contextMenu: #5e6473;
+    --TBSHover: var(--primary-gray);
+    --TBSBGPrimary: #1f2532;
+    --TBSBGSecondary: var(--medium-dark-gray);
+    --TSBBGLight: var(--light-gray);
+    --TBSBGExtraLight: #9ea5ba1a;
+    --TBSBGDark: #10101273;
+    --contextMenu: #5e6473;
 }
 
 html {
-  overflow-x: hidden;
+    overflow-x: hidden;
 }
 
 .card {
-  background-color: var(--medium-dark-gray);
-  color: #ffffff;
-  margin-bottom: 1rem;
+    background-color: var(--medium-dark-gray);
+    color: #ffffff;
+    margin-bottom: 1rem;
 }
 
 .dmxScene {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: flex-end;
-  background-color: var(--primary-gray);
-  color: #ffffff;
-  border-radius: 0.3rem;
-  border: 3px solid transparent;
-  padding: 0.5rem;
-  box-sizing: border-box;
-  width: 8.5rem;
-  height: 3.8rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: flex-end;
+    background-color: var(--primary-gray);
+    color: #ffffff;
+    border-radius: 0.3rem;
+    border: 3px solid transparent;
+    padding: 0.5rem;
+    box-sizing: border-box;
+    width: 8.5rem;
+    height: 3.8rem;
 }
 
 .dmxAddScene {
-  background-color: #ffffff1a;
-  transition: background-color 0.5s;
+    background-color: #ffffff1a;
+    transition: background-color 0.5s;
 }
 
 .dmxAddScene:hover {
-  background-color: #ffffff33;
+    background-color: #ffffff33;
 }
 
 .sceneInfoContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: flex-start;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
 }
 
 .sceneSettingContainer {
-  display: flex;
-  height: 100%;
-  flex-direction: column;
-  justify-content: flex-end;
-  align-items: flex-start;
-  margin-left: 0.5rem;
-  font-size: 0.7rem;
-  opacity: 0.6;
-  gap: 0.3rem;
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    margin-left: 0.5rem;
+    font-size: 0.7rem;
+    opacity: 0.6;
+    gap: 0.3rem;
 }
 
 .dmxScene .title {
-  font-size: 0.9rem;
-  margin: 0rem;
+    font-size: 0.9rem;
+    margin: 0rem;
 }
 
 .dmxScene .duration {
-  font-size: 0.7rem;
-  opacity: 0.8;
-  margin: 0;
+    font-size: 0.7rem;
+    opacity: 0.8;
+    margin: 0;
 }
 
 .controlButton.active,
 .dmxScene.active {
-  animation: fade 1s infinite alternate cubic-bezier(0.54, -0.25, 1, 1.23);
-  border-color: var(--light-gray);
+    animation: fade 1s infinite alternate cubic-bezier(0.54, -0.25, 1, 1.23);
+    border-color: var(--light-gray);
 }
 
 .dmxScene.selected {
-  /* background-color: var(--light-gray); */
-  border-color: var(--light-gray);
+    /* background-color: var(--light-gray); */
+    border-color: var(--light-gray);
 }
 
 @keyframes fade {
-  from {
-    background-color: var(--primary-gray);
-  }
-  to {
-    background-color: var(--light-gray);
-  }
+    from {
+        background-color: var(--primary-gray);
+    }
+    to {
+        background-color: var(--light-gray);
+    }
 }
 
 .sceneContainer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  align-content: center;
-  justify-content: flex-start;
-  align-items: center;
-  gap: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-content: center;
+    justify-content: flex-start;
+    align-items: center;
+    gap: 0.5rem;
 }
 
 .sceneContainer .editSceneContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
 }
 
 .sceneContainer .editSceneContainer .sceneEventContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: flex-start;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
 }
 
 .sceneContainer .editSceneContainer .sceneEventContainer .sceneDetailButtons {
-  display: flex;
-  flex-direction: column;
+    display: flex;
+    flex-direction: column;
 }
 
 .intSelected {
-  color: rgb(106 255 139 / 46%);
+    color: rgb(106 255 139 / 46%);
 }
 
 .intSelected:hover {
-  color: rgba(106, 255, 138, 0.781);
-  animation: color 2s alternate linear;
+    color: rgba(106, 255, 138, 0.781);
+    animation: color 2s alternate linear;
 }
 
 .intNotSelected {
-  color: var(--primary-gray);
+    color: var(--primary-gray);
 }
 
 .intNotSelected:hover {
-  color: var(--light-gray);
-  animation: color 2s alternate linear;
+    color: var(--light-gray);
+    animation: color 2s alternate linear;
 }
 
 .editSceneContainer {
-  margin-top: 0;
-  padding: 0rem;
+    margin-top: 0;
+    padding: 0rem;
 }
 
 .editSceneContainer .sceneName {
-  text-decoration: underline;
+    text-decoration: underline;
 }
 
 .DMXScenesCardBody {
-  padding: 0;
+    padding: 0;
 }
 
 #visualization {
-  color: white;
-  background-color: #00000040;
+    color: white;
+    background-color: #00000040;
 }
 
 .vis-time-axis .vis-grid.vis-minor,
 .vis-panel.vis-center {
-  color: #818181 !important;
+    color: #818181 !important;
 }
 
 .vis-time-axis .vis-text {
-  color: white !important;
+    color: white !important;
 }
 
 .vis-timeline .vis-item {
-  margin-top: 0;
+    margin-top: 0;
 }
 
 .vis-timeline {
-  border: none !important;
-  border-radius: 8px !important;
+    border: none !important;
+    border-radius: 8px !important;
 }
 
 .dmxSceneEvent {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  background-color: var(--primary-gray);
-  color: #ffffff;
-  border-radius: 2rem;
-  border-radius: 0.3rem;
-  padding: 0.5rem;
-  align-content: flex-start;
-  align-items: flex-start;
-  flex-wrap: wrap;
-  font-size: 20.5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    background-color: var(--primary-gray);
+    color: #ffffff;
+    border-radius: 2rem;
+    border-radius: 0.3rem;
+    padding: 0.5rem;
+    align-content: flex-start;
+    align-items: flex-start;
+    flex-wrap: wrap;
+    font-size: 20.5px;
 }
 
 .dmxSceneEvent p {
-  margin: 0;
+    margin: 0;
 }
 
 .sceneEventContainer {
-  display: flex;
-  align-content: center;
-  flex-wrap: nowrap;
-  overflow-x: scroll;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 1rem;
-  gap: 10px;
+    display: flex;
+    align-content: center;
+    flex-wrap: nowrap;
+    overflow-x: scroll;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 1rem;
+    gap: 10px;
 }
 
 .sceneNameEdit {
-  background-color: transparent;
-  border: none;
-  border-bottom: 1px solid var(--primary-gray);
-  color: #ffffff;
-  border-radius: 0.2rem;
-  width: 30%;
-  font-size: 1rem;
-  margin-left: 15px;
-  padding: 0.3rem;
+    background-color: transparent;
+    border: none;
+    border-bottom: 1px solid var(--primary-gray);
+    color: #ffffff;
+    border-radius: 0.2rem;
+    width: 30%;
+    font-size: 1rem;
+    margin-left: 15px;
+    padding: 0.3rem;
 }
 
 .sceneNameEdit:focus,
 .sceneNameEdit:active,
 .sceneNameEdit:hover,
 .sceneNameEdit:focus-visible {
-  transition: background-color 0.8s;
-  /* border: none !important; */
-  background-color: #ffffff09;
-  box-shadow: none;
-  outline: 0px;
+    transition: background-color 0.8s;
+    /* border: none !important; */
+    background-color: #ffffff09;
+    box-shadow: none;
+    outline: 0px;
 }
 
 body {
-  background-color: black;
+    background-color: black;
 }
 
 #album-container {
-  position: relative;
-  width: 100%;
-  height: 100%;
+    position: relative;
+    width: 100%;
+    height: 100%;
 }
 
 .albumContainer {
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 }
 
 #album-cover {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-size: cover;
-  background-position: center;
-  filter: brightness(0.6) blur(0.5px);
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-size: cover;
+    background-position: center;
+    filter: brightness(0.6) blur(0.5px);
 }
 
 #musicPlaying {
-  font-size: 0.7rem;
+    font-size: 0.7rem;
 }
 
 #album-container p,
 #album-container span {
-  position: relative;
-  z-index: 1;
-  color: white; /* Make sure the text is visible over the image */
+    position: relative;
+    z-index: 1;
+    color: white; /* Make sure the text is visible over the image */
 }
 
 html {
-  overflow: scroll;
+    overflow: scroll;
 }
 
 #fixtures-container {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  align-content: center;
-  justify-content: flex-start;
-  font-size: 0.8rem;
-  overflow-x: auto;
-  white-space: nowrap;
-  max-width: unset;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    align-content: center;
+    justify-content: flex-start;
+    font-size: 0.8rem;
+    overflow-x: auto;
+    white-space: nowrap;
+    max-width: unset;
 }
 
 #fixtures-container .fixture .title {
-  color: white;
-  font-size: 1.2rem;
-  text-align: center;
-  text-decoration: underline;
-  margin-bottom: 8.5vh;
-  text-transform: uppercase;
+    color: white;
+    font-size: 1.2rem;
+    text-align: center;
+    text-decoration: underline;
+    margin-bottom: 8.5vh;
+    text-transform: uppercase;
 }
 
 #lightingCardBody {
-  width: 100%;
-  max-width: 100%;
-  overflow-x: auto;
-  width: 100%;
-  -webkit-user-select: none;
-  -ms-user-select: none;
-  user-select: none;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    width: 100%;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
 }
 
 .fixture {
-  padding-right: 1vw;
-  text-align: center;
-  border: none;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-content: center;
-  justify-content: space-between;
+    padding-right: 1vw;
+    text-align: center;
+    border: none;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: space-between;
 }
 
 .fixture:not(:last-child) {
-  border-right: 2px solid var(--TBSBGSecondary);
+    border-right: 2px solid var(--TBSBGSecondary);
 }
 
 .fixtureContainer {
-  display: flex;
-  flex-direction: row;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
-  width: auto;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    width: auto;
 }
 
 .fixtureChannel {
-  display: flex;
-  flex-direction: column;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
-  width: 4.5vw;
+    display: flex;
+    flex-direction: column;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    width: 4.5vw;
 }
 
 .slider {
-  -webkit-appearance: none;
-  width: 15vh;
-  height: 0.35vw;
-  background: #d3d3d3;
-  outline: none;
-  -webkit-transform: rotate(-90deg);
-  margin-bottom: 3rem;
+    -webkit-appearance: none;
+    width: 15vh;
+    height: 0.35vw;
+    background: #d3d3d3;
+    outline: none;
+    -webkit-transform: rotate(-90deg);
+    margin-bottom: 3rem;
 }
 
 .slider::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  appearance: none;
-  width: 40px;
-  height: 25px;
-  background: #252525;
-  cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+    width: 40px;
+    height: 25px;
+    background: #252525;
+    cursor: pointer;
 }
 
 .label {
-  margin-top: 10px;
+    margin-top: 10px;
 }
 
 .warning {
-  position: fixed;
-  top: 0;
-  margin: 0;
-  padding: 0.2rem;
-  background-color: #972100;
-  z-index: 999;
-  width: 100%;
-  display: none;
-  animation: fadeInOut 2s ease-in-out infinite;
-  z-index: 99999999;
-  padding: 1rem;
-  cursor: not-allowed;
+    position: fixed;
+    top: 0;
+    margin: 0;
+    padding: 0.2rem;
+    background-color: #972100;
+    z-index: 999;
+    width: 100%;
+    display: none;
+    animation: fadeInOut 2s ease-in-out infinite;
+    z-index: 99999999;
+    padding: 1rem;
+    cursor: not-allowed;
 }
 
 @keyframes fadeInOut {
-  0% {
-    filter: brightness(0.8);
-  }
-  50% {
-    filter: brightness(1.2);
-  }
-  100% {
-    filter: brightness(0.8);
-  }
+    0% {
+        filter: brightness(0.8);
+    }
+    50% {
+        filter: brightness(1.2);
+    }
+    100% {
+        filter: brightness(0.8);
+    }
 }
 
 .warning h1 {
-  color: white;
-  text-transform: uppercase;
-  font-weight: bold;
-  text-align: center;
-  font-size: 1.5rem;
+    color: white;
+    text-transform: uppercase;
+    font-weight: bold;
+    text-align: center;
+    font-size: 1.5rem;
 }
 
 .attributeIcon {
-  scale: 0.7;
-  max-height: 4.5vh;
+    scale: 0.7;
+    max-height: 4.5vh;
 }
 
 .buttonControlsContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .header {
-  /* display: flex;
+    /* display: flex;
     flex-direction: row;
     justify-content: space-between; */
-  /* align-items: center; */
-  padding: 0.5rem;
-  background-color: var(--dark-gray);
+    /* align-items: center; */
+    padding: 0.5rem;
+    background-color: var(--dark-gray);
 }
 
 .valueLabel {
-  margin-top: 1.5vh;
-  font-size: 1.7rem;
+    margin-top: 1.5vh;
+    font-size: 1.7rem;
 }
 
 .invert {
-  max-height: 5vh;
+    max-height: 5vh;
 }
 
 .controlButton {
-  background-color: var(--primary-gray);
-  padding: 0.5rem;
-  text-align: center;
-  border: 1px grey solid;
-  color: #ffffff8c;
+    background-color: var(--primary-gray);
+    padding: 0.5rem;
+    text-align: center;
+    border: 1px grey solid;
+    color: #ffffff8c;
 }
 
 .controls {
-  padding: 0.8rem;
-  height: 100%;
+    padding: 0.8rem;
+    height: 100%;
 }
 
 .buttonControlsContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
 }
 
 .header {
-  /* display: flex;
+    /* display: flex;
     flex-direction: row;
     justify-content: space-between; */
-  /* align-items: center; */
-  padding: 0.5rem;
-  background-color: var(--dark-gray);
+    /* align-items: center; */
+    padding: 0.5rem;
+    background-color: var(--dark-gray);
 }
 
 .invert {
-  filter: invert(1);
+    filter: invert(1);
 }
 
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+    width: 12px;
+    height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--dark-gray);
+    background: var(--dark-gray);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--dark-gray);
-  border-radius: 10px;
-  border: 3px solid var(--dark-gray);
+    background-color: var(--dark-gray);
+    border-radius: 10px;
+    border: 3px solid var(--dark-gray);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--primary-gray);
+    background-color: var(--primary-gray);
 }
 
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 12vw;
-  background-color: var(--TBSBGPrimary);
-  color: white;
-  z-index: 999;
-  transition: width 0.3s ease;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 12vw;
+    background-color: var(--TBSBGPrimary);
+    color: white;
+    z-index: 999;
+    transition: width 0.3s ease;
 }
 
 .sidebar.collapsed {
-  width: 3vw;
+    width: 3vw;
 }
 
 .sidebarText {
-  opacity: 1;
-  transition: opacity 0.3s ease;
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarText {
-  opacity: 0;
-  font-size: 0px;
+    opacity: 0;
+    font-size: 0px;
 }
 
 .sidebar.collapse .sidebarIcon {
-  margin-right: 0 !important;
+    margin-right: 0 !important;
 }
 
 .sidebarIcon {
-  width: 16px !important;
-  height: 16px !important;
-  margin-right: 0.5rem !important;
+    width: 16px !important;
+    height: 16px !important;
+    margin-right: 0.5rem !important;
 }
 
 .sidebar ul {
-  list-style-type: none;
-  padding: 0;
+    list-style-type: none;
+    padding: 0;
 }
 
 .sidebar ul li {
-  width: 100%;
-  padding: 0.8rem;
-  border-bottom: 1px solid var(--TBSBGSecondary);
-  transition: background-color 0.3s ease, padding 0.3s ease,
-    text-align 0.3s ease;
+    width: 100%;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--TBSBGSecondary);
+    transition: background-color 0.3s ease, padding 0.3s ease,
+        text-align 0.3s ease;
 }
 
 .sidebar.collapsed ul li {
-  text-align: center;
+    text-align: center;
 }
 
 .sidebar ul li:hover {
-  background-color: var(--TBSHover);
+    background-color: var(--TBSHover);
 }
 
 .sidebar ul li a {
-  color: white;
-  text-decoration: none;
+    color: white;
+    text-decoration: none;
 }
 
 main {
-  margin-left: 12vw;
-  transition: margin-left 0.3s ease;
+    margin-left: 12vw;
+    transition: margin-left 0.3s ease;
 }
 
 main.collapsed {
-  margin-left: 4vw;
+    margin-left: 4vw;
 }
 
 .closeSidebarButton {
-  text-align: end;
+    text-align: end;
 }
 
 .sceneTitleText {
-  background: none;
-  color: white;
-  border: none;
-  border-bottom: solid 1px grey;
-  width: 6rem;
-  margin-bottom: 0.2rem;
+    background: none;
+    color: white;
+    border: none;
+    border-bottom: solid 1px grey;
+    width: 6rem;
+    margin-bottom: 0.2rem;
 }
 
 .hideSelectEffect:focus,
 .hideSelectEffect:active,
 .hideSelectEffect:hover,
 .hideSelectEffect:focus-visible {
-  box-shadow: none;
-  outline: 0px;
+    box-shadow: none;
+    outline: 0px;
 }
 
 .songPlayingTriggerInput {
-  font-size: 0.9rem;
-  background: var(--TBSBGSecondary);
-  color: white;
-  border: none;
-  border-radius: 0;
-  padding: 0.5rem;
+    font-size: 0.9rem;
+    background: var(--TBSBGSecondary);
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
 }
 
 .songTriggerLabel {
-  font-size: 0.8rem;
-  opacity: 0.7;
-  margin-bottom: 0.2rem;
+    font-size: 0.8rem;
+    opacity: 0.7;
+    margin-bottom: 0.2rem;
 }
 
 .songPlayingTriggerAddButton {
-  color: var(--bs-success);
-  background-color: var(--TBSBGSecondary);
-  border: none;
-  border-radius: 0;
+    color: var(--bs-success);
+    background-color: var(--TBSBGSecondary);
+    border: none;
+    border-radius: 0;
 }
 
 ::-webkit-scrollbar {
-  width: 12px;
-  height: 12px;
+    width: 12px;
+    height: 12px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--dark-gray);
+    background: var(--dark-gray);
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: var(--dark-gray);
-  border-radius: 10px;
-  border: 3px solid var(--dark-gray);
+    background-color: var(--dark-gray);
+    border-radius: 10px;
+    border: 3px solid var(--dark-gray);
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: var(--primary-gray);
+    background-color: var(--primary-gray);
 }
 
 .virtualConsole {
-  margin-top: 1rem;
+    margin-top: 1rem;
 }
 
 .sidebar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100%;
-  width: 12vw;
-  background-color: var(--TBSBGPrimary);
-  color: white;
-  z-index: 999;
-  transition: width 0.3s ease;
-  padding-bottom: 3rem;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 12vw;
+    background-color: var(--TBSBGPrimary);
+    color: white;
+    z-index: 999;
+    transition: width 0.3s ease;
+    padding-bottom: 3rem;
 }
 
 .sidebar.collapsed .sidebar-footer {
-  display: none;
+    display: none;
 }
 
 .sidebar-footer {
-  position: absolute;
-  bottom: 0;
-  width: 100%;
-  text-align: center;
-  padding: 0.5rem 0;
-  font-size: 0.8rem;
-  color: white;
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    text-align: center;
+    padding: 0.5rem 0;
+    font-size: 0.8rem;
+    color: white;
 }
 
 .sidebar.collapsed {
-  width: 4vw;
+    width: 4vw;
 }
 
 .sidebarText {
-  opacity: 1;
-  transition: opacity 0.3s ease;
+    opacity: 1;
+    transition: opacity 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarText {
-  opacity: 0;
-  font-size: 0px;
+    opacity: 0;
+    font-size: 0px;
 }
 
 .sidebar ul {
-  list-style-type: none;
-  padding: 0;
+    list-style-type: none;
+    padding: 0;
 }
 
 .sidebar ul li {
-  width: 100%;
-  padding: 0.8rem;
-  border-bottom: 1px solid var(--TBSBGSecondary);
-  transition: background-color 0.3s ease, padding 0.3s ease,
-    text-align 0.3s ease;
+    width: 100%;
+    padding: 0.8rem;
+    border-bottom: 1px solid var(--TBSBGSecondary);
+    transition: background-color 0.3s ease, padding 0.3s ease,
+        text-align 0.3s ease;
 }
 
 .nav-item-options {
-  display: none;
-  border-bottom: none;
-  padding: 0;
-  padding-left: 1rem;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+    display: none;
+    border-bottom: none;
+    padding: 0;
+    padding-left: 1rem;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 .sidebar li.nav-item.active .nav-item-options {
-  display: block;
+    display: block;
 }
 
 .sidebar.collapsed ul li {
-  text-align: center;
+    text-align: center;
 }
 
 .sidebar ul li:hover {
-  background-color: var(--TBSHover);
+    background-color: var(--TBSHover);
 }
 
 .sidebar ul li a {
-  color: white;
-  text-decoration: none;
+    color: white;
+    text-decoration: none;
 }
 
 .closeSidebarButton {
-  text-align: end;
+    text-align: end;
 }
 
 .sceneTitleText {
-  background: none;
-  color: white;
-  border: none;
-  border-bottom: solid 1px grey;
-  width: 6rem;
-  margin-bottom: 0.2rem;
+    background: none;
+    color: white;
+    border: none;
+    border-bottom: solid 1px grey;
+    width: 6rem;
+    margin-bottom: 0.2rem;
 }
 
 .hideSelectEffect:focus,
 .hideSelectEffect:active,
 .hideSelectEffect:hover,
 .hideSelectEffect:focus-visible {
-  box-shadow: none;
-  outline: 0px;
+    box-shadow: none;
+    outline: 0px;
 }
 
 .songPlayingTriggerInput {
-  font-size: 0.9rem;
-  background: var(--TBSBGSecondary);
-  color: white;
-  border: none;
-  border-radius: 0;
-  padding: 0.5rem;
+    font-size: 0.9rem;
+    background: var(--TBSBGSecondary);
+    color: white;
+    border: none;
+    border-radius: 0;
+    padding: 0.5rem;
 }
 
 .songPlayingTriggerAddButton {
-  color: #45b452;
-  background-color: var(--TBSBGSecondary);
-  border: none;
-  border-radius: 0;
+    color: #45b452;
+    background-color: var(--TBSBGSecondary);
+    border: none;
+    border-radius: 0;
 }
 
 .settingsIcon {
-  transition: transform 0.5s ease-in-out;
-  /* width: unset !important;
+    transition: transform 0.5s ease-in-out;
+    /* width: unset !important;
     height: unset !important; */
 }
 
 .nav-item:hover .settingsIcon {
-  animation: spin 1s linear infinite;
+    animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
 .sceneTimeline {
-  height: 100%;
+    height: 100%;
 }
 
 .gunScoreTable {
-  width: 100%;
-  table-layout: fixed;
+    width: 100%;
+    table-layout: fixed;
 }
 
 .gunScoreTable td {
-  width: 25%;
+    width: 25%;
 }
 
 .gunScoreTableHeader {
-  background-color: var(--TBSBGSecondary);
+    background-color: var(--TBSBGSecondary);
 }
 
 .gunScoreTableHeader td {
-  background-color: var(--TBSBGSecondary);
-  padding: 0.5rem;
+    background-color: var(--TBSBGSecondary);
+    padding: 0.5rem;
 }
 
 .contextMenu {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  background-color: var(--contextMenu);
-  color: white;
-  z-index: 999;
-  opacity: 1;
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background-color: var(--contextMenu);
+    color: white;
+    z-index: 999;
+    opacity: 1;
 }
 
 .contextMenu ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-wrap: wrap;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
 }
 
 .contextMenu li {
-  list-style: none;
-  padding: 1.5rem;
-  cursor: pointer;
-  width: 70px;
-  height: 70px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 0.9rem;
-  border: solid 1px black;
+    list-style: none;
+    padding: 1.5rem;
+    cursor: pointer;
+    width: 70px;
+    height: 70px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    border: solid 1px black;
 }
 
 .sceneEventTable {
-  width: 100%;
-  border-collapse: collapse;
-  position: relative;
+    width: 100%;
+    border-collapse: collapse;
+    position: relative;
 }
 
 .sceneEventTable::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 0;
 }
 
 .sceneEventTable tr.header td {
-  background-color: var(--TBSBGSecondary);
-  font-size: 0.7rem;
+    background-color: var(--TBSBGSecondary);
+    font-size: 0.7rem;
 }
 
 .sceneEventTable .active td {
-  background-color: var(--light-gray);
+    background-color: var(--light-gray);
 }
 
 .sceneEventsContainer th,
 .sceneEventsContainer td {
-  padding: 0.2rem;
-  text-align: center;
-  position: relative;
-  z-index: 1;
-  user-select: none;
-  white-space: nowrap;
+    padding: 0.2rem;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+    user-select: none;
+    white-space: nowrap;
 }
 
 .sceneEventsContainer tbody td {
-  cursor: pointer;
+    cursor: pointer;
 }
 
 .sceneEventTable tr:hover td {
-  background-color: var(--TBSHover);
+    background-color: var(--TBSHover);
 }
 
 .sceneEventTable tr {
-  border-bottom: 1px dashed #adadad;
+    border-bottom: 1px dashed #adadad;
 }
 
 .sceneEventTable th:last-child,
 .sceneEventTable td:last-child {
-  border-right: none;
+    border-right: none;
 }
 
 .sceneEventTable tr:first-child {
-  border-top: none;
+    border-top: none;
 }
 
 .sceneEventsContainer {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: stretch;
-  gap: 0.5rem;
-  background-color: var(--TBSBGDark);
-  height: 100%;
-  border: black 1px solid;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.5rem;
+    background-color: var(--TBSBGDark);
+    height: 100%;
+    border: black 1px solid;
 }
 
 .sceneEvent {
-  flex-grow: 1;
+    flex-grow: 1;
 }
 
 .actionCheckBoxContainer {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.5rem;
-  border-bottom: black solid 1px;
-  padding-top: 0.5rem;
-  padding-bottom: 0.5rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+    border-bottom: black solid 1px;
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
 }
 
 label {
-  opacity: 0.7;
-  font-size: 1rem;
+    opacity: 0.7;
+    font-size: 1rem;
 }
 
 .songTriggerSelector {
-  border-bottom: black solid 1px;
-  padding-bottom: 1rem;
-  padding-top: 0.3rem;
+    border-bottom: black solid 1px;
+    padding-bottom: 1rem;
+    padding-top: 0.3rem;
 }
 
 .sceneControlsCard {
-  height: 55vh;
+    height: 55vh;
 }
 
 .backgroundServiceStatusContainer {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  align-content: center;
-  justify-content: center;
-  align-items: center;
-  column-gap: 2rem;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    column-gap: 2rem;
 }
 
 .backgroundServiceStatus {
-  padding: 1rem;
-  background-color: var(--bs-dark);
-  border-radius: 0.7rem;
-  display: flex;
-  flex-direction: column;
-  flex-wrap: nowrap;
-  align-content: flex-start;
-  justify-content: center;
-  align-items: center;
-  row-gap: 1rem;
-  width: calc(100% / 3);
+    padding: 1rem;
+    background-color: var(--bs-dark);
+    border-radius: 0.7rem;
+    display: flex;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    align-content: flex-start;
+    justify-content: center;
+    align-items: center;
+    row-gap: 1rem;
+    width: calc(100% / 3);
 }
 
 .pcDetailsHeader {
-  display: flex;
-  flex-direction: row;
-  align-content: center;
-  align-items: center;
-  justify-content: space-around;
+    display: flex;
+    flex-direction: row;
+    align-content: center;
+    align-items: center;
+    justify-content: space-around;
 }
 
 @media screen and (max-width: 1300px) {
-  .sidebar {
-    display: none;
-  }
+    .sidebar {
+        display: none;
+    }
 
-  main {
-    margin-left: 0 !important;
-  }
+    main {
+        margin-left: 0 !important;
+    }
 }
 
 .movableItemsContainer {
-  width: 100%;
-  height: 90vh;
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 0px;
-  border: 2px solid black;
-  position: relative;
+    width: 100%;
+    height: 90vh;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+    grid-template-rows: repeat(auto-fill, minmax(100px, 1fr));
+    gap: 0px;
+    border: 2px solid black;
+    position: relative;
 }
 
 .draggableCard {
-  width: 100px;
-  height: 100px;
-  background-color: transparent !important;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  cursor: grab;
-  position: absolute;
-  user-select: none;
-  cursor: grab;
-  flex-direction: column;
-  color: white;
-  padding: 0.15rem;
+    width: 100px;
+    height: 100px;
+    background-color: transparent !important;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    position: absolute;
+    user-select: none;
+    cursor: grab;
+    flex-direction: column;
+    color: white;
+    padding: 0.15rem;
 }
 
 .smallCard {
-  width: 100px;
-  height: 100px;
-  background-color: lightgreen;
+    width: 100px;
+    height: 100px;
+    background-color: lightgreen;
 }
 
 .largeCard {
-  width: 200px;
-  height: 200px;
-  background-color: lightpink;
+    width: 200px;
+    height: 200px;
+    background-color: lightpink;
 }
 
 .wideCard {
-  width: 300px;
-  height: 200px;
-  min-width: 300px !important;
-  min-height: 100px !important;
-  background-color: lightblue;
+    width: 300px;
+    height: 200px;
+    min-width: 300px !important;
+    min-height: 100px !important;
+    background-color: lightblue;
 }
 
 .smallWideCard {
-  width: 500px;
-  height: 100px;
-  min-width: 300px !important;
-  min-height: 100px !important;
-  background-color: transparent;
+    width: 500px;
+    height: 100px;
+    min-width: 300px !important;
+    min-height: 100px !important;
+    background-color: transparent;
 }
 
 .mediumSquareCard {
-  width: 200px;
-  height: 200px;
-  min-height: 100px !important;
-  min-width: 100px !important;
-  background-color: transparent;
+    width: 200px;
+    height: 200px;
+    min-height: 100px !important;
+    min-width: 100px !important;
+    background-color: transparent;
 }
 
 .scoreBoardCard {
-  width: 800px;
-  height: 600px;
-  min-width: 500px !important;
-  min-height: 600px !important;
-  background-color: lightgreen;
+    width: 800px;
+    height: 600px;
+    min-width: 500px !important;
+    min-height: 600px !important;
+    background-color: lightgreen;
 }
 
 .halfScoreBoardCard {
-  width: 400px;
-  height: 600px;
-  min-width: 200px !important;
-  min-height: 600px !important;
-  background-color: lightgreen;
+    width: 400px;
+    height: 600px;
+    min-width: 200px !important;
+    min-height: 600px !important;
+    background-color: lightgreen;
 }
 
 .digitalClock {
-  font-family: "Courier New", monospace;
-  font-size: 2rem;
-  text-align: center;
-  padding: 10px;
-  font-weight: 900;
-  color: white;
+    font-family: "Courier New", monospace;
+    font-size: 2rem;
+    text-align: center;
+    padding: 10px;
+    font-weight: 900;
+    color: white;
 }
 
 .digitalClockCard {
-  background-color: #1a1a29;
+    background-color: #1a1a29;
 }
 
 .musicControls {
-  display: flex;
-  align-items: center;
-  /* border-radius: 20px 20px 0px 0px; */
-  gap: 10px;
-  font-size: 1.2rem;
-  padding: 0.6rem 1rem 0.6rem 1.2rem;
-  color: white;
-  width: 100%;
-  background-color: var(--TBSBGPrimary);
-  height: 100%;
-  font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    /* border-radius: 20px 20px 0px 0px; */
+    gap: 10px;
+    font-size: 1.2rem;
+    padding: 0.6rem 1rem 0.6rem 1.2rem;
+    color: white;
+    width: 100%;
+    background-color: var(--TBSBGPrimary);
+    height: 100%;
+    font-size: 1.5rem;
 }
 
 .cardContent {
-  width: 100%;
-  height: 100%;
-  align-content: center;
-  background-color: #1a1a29;
-  aspect-ratio: 1;
+    width: 100%;
+    height: 100%;
+    align-content: center;
+    background-color: #1a1a29;
+    aspect-ratio: 1;
 }
 
 .cardFooter {
-  background-color: transparent;
-  width: 100%;
-  padding: 1rem;
-  height: 15px;
-  align-content: center;
-  padding: 0.5rem 1rem;
-  top: -16px;
-  position: relative;
-  z-index: 99999;
+    background-color: transparent;
+    width: 100%;
+    padding: 1rem;
+    height: 15px;
+    align-content: center;
+    padding: 0.5rem 1rem;
+    top: -16px;
+    position: relative;
+    z-index: 99999;
 }
 
 .cursor-pointer {
-  cursor: pointer !important;
+    cursor: pointer !important;
 }
 
 .cursor-no {
-  cursor: not-allowed !important;
+    cursor: not-allowed !important;
 }
 
 .cursor-text {
-  cursor: text !important;
+    cursor: text !important;
 }
 
 .resizable {
-  min-width: 100px;
-  min-height: 100px;
+    min-width: 100px;
+    min-height: 100px;
 }
 
 .hourMarker {
-  background-color: rgb(219, 219, 219) !important;
+    background-color: rgb(219, 219, 219) !important;
 }
 
 .playingSongText {
-  height: 100%;
-  align-content: end;
-  padding: 0.5rem;
-  display: block;
-  font-size: 1rem !important;
-  text-align: left;
+    height: 100%;
+    align-content: end;
+    padding: 0.5rem;
+    display: block;
+    font-size: 1rem !important;
+    text-align: left;
 }
 
 .logContainer {
-  background-color: black;
-  color: white;
-  max-height: 40vh;
-  overflow-y: scroll;
-  padding: 1rem;
+    background-color: black;
+    color: white;
+    max-height: 40vh;
+    overflow-y: scroll;
+    padding: 1rem;
 }
 
 .logContainer p {
-  text-wrap: none;
-  word-wrap: normal;
-  white-space: nowrap;
+    text-wrap: none;
+    word-wrap: normal;
+    white-space: nowrap;
 }
 
 .logMessage {
-  margin: 5px 0;
+    margin: 5px 0;
 }
 
 .musicControlsButton {
-  filter: brightness(0.8);
+    filter: brightness(0.8);
 }
 
 .musicControlsButton:hover {
-  filter: brightness(1);
-  scale: 1.05;
+    filter: brightness(1);
+    scale: 1.05;
 }
 
 .form-group .btn-group .btn {
-  margin-top: 0.3rem !important;
+    margin-top: 0.3rem !important;
 }
 
 .form-group {
-  margin-bottom: 0.5rem !important;
+    margin-bottom: 0.5rem !important;
 }
 
 .display-none {
-  display: none !important;
+    display: none !important;
 }
 
 .badge {
-  margin-left: 0.1rem;
+    margin-left: 0.1rem;
 }
 
 .notifications {
-  position: fixed;
-  bottom: 0;
-  right: 0;
-  z-index: 9999;
-  margin: 1rem;
-  transition: opacity 0.5s ease;
-  color: white;
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  border-radius: 0.2rem;
-  flex-direction: column;
-  z-index: 99999999;
+    position: fixed;
+    bottom: 0;
+    right: 0;
+    z-index: 9999;
+    margin: 1rem;
+    transition: opacity 0.5s ease;
+    color: white;
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 0.2rem;
+    flex-direction: column;
+    z-index: 99999999;
 }
 
 .unauthorisedBlocker {
-  position: fixed;
-  z-index: 99999999;
-  width: 100%;
-  height: 100%;
-  background-color: var(--bs-danger);
-  text-align: center;
-  display: flex;
-  justify-content: center;
-  align-items: center;
+    position: fixed;
+    z-index: 99999999;
+    width: 100%;
+    height: 100%;
+    background-color: var(--bs-danger);
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .hover:not(:hover) .fas {
-  filter: brightness(0.8);
+    filter: brightness(0.8);
 }
 
 .hover:hover .fas {
-  filter: brightness(1);
-  scale: 1.1;
+    filter: brightness(1);
+    scale: 1.1;
 }
 
 .hover:not(:hover) {
-  filter: brightness(0.8);
+    filter: brightness(0.8);
 }
 
 .hover:hover {
-  filter: brightness(1);
+    filter: brightness(1);
 }
 
 .resourceUtilisationChart {
-  max-height: 12vh;
+    max-height: 12vh;
 }
 
 .customContextMenu {
-  position: absolute;
-  background: var(--contextMenu);
-  border: 1px solid var(--dark-gray);
-  padding: 0.5rem;
-  display: none;
-  z-index: 10000;
+    position: absolute;
+    background: var(--contextMenu);
+    border: 1px solid var(--dark-gray);
+    padding: 0.5rem;
+    display: none;
+    z-index: 10000;
 }
 
 .customContextMenu ul:hover {
-  filter: brightness(1.4);
+    filter: brightness(1.4);
 }
 /*  */
 
-.invisibleTextBox{
-  background-color: transparent;
-  border: none;
-  color: white;
+.invisibleTextBox {
+    background-color: transparent;
+    border: none;
+    color: white;
+}
+
+.triggerIcon {
+    width: 1rem;
+    height: 1.4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: var(--TSBBGLight);
+    margin-bottom: 0;
+    border-radius: 0.2rem;
 }

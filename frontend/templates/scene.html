@@ -214,8 +214,10 @@
             .on("keydown", function (e) {
                 e.preventDefault();
                 var key = e.key;
+
                 if (key === "Escape") {
                     $(this).val("Click to set keybind");
+
                     return;
                 } else if (key == "Home") {
                     $("#triggerKeybindClick").val("Invalid Key!");
@@ -223,33 +225,37 @@
                     return;
                 }
                 $(this).val("Click to set keybind");
+
                 $("#currentPlayingKeybindForTriggerValue").text(
                     key.toUpperCase()
                 );
+
                 $(this).off("keydown");
+
+                var sceneId = getActiveSceneId();
 
                 $.ajax({
                     url: "/api/dmx/setSceneKeybind",
                     type: "POST",
                     data: {
-                        sceneId: getActiveSceneId(),
+                        sceneId: sceneId,
                         keybind: key.toUpperCase(),
                     },
                     success: function (response) {
-                        console.log("Keybind set successfully:", response);
-                    },
-                    error: function (xhr) {
-                        console.error(
-                            "Failed to set keybind:",
-                            xhr.responseText
-                        );
+                        $("#" + sceneId + "_keyboardTrigger").text(key.toUpperCase());
+
+                        $("#" + sceneId + "_keyboardTrigger").css({
+                            "color": "white",
+                            "background-color": "revert-layer",
+                        });
                     },
                 });
             });
     }
 
     function setupEventListeners() {
-		$(document).off("keydown");
+        $(document).off("keydown");
+        $(document).off("keyup");
 
         $(".dmxScene.holdMode").off("mousedown mouseup");
 
@@ -273,12 +279,26 @@
         });
 
         $(document).on("keydown", function (e) {
-            if (sceneKeyTriggers.some(scene => scene.keyboard_keybind === e.key.toUpperCase())) {
+            if (e.originalEvent.repeat) return;
+        
+            const key = e.key.toUpperCase();
+            const scene = sceneKeyTriggers.find(scene => scene.keyboard_keybind === key);
+        
+            if (scene && scene.id) {
                 e.preventDefault();
-                var scene = sceneKeyTriggers.find(scene => scene.keyboard_keybind === e.key.toUpperCase());
-                if (scene && scene.id) {
-                    startOrEditScene(scene.id);
-                }
+                startOrEditScene(scene.id);
+            }
+        });
+
+        $(document).on("keyup", function (e) {
+            if (e.originalEvent.repeat) return;
+
+            const key = e.key.toUpperCase();
+            const scene = sceneKeyTriggers.find(scene => scene.keyboard_keybind === key);
+        
+            if (scene && scene.id) {
+                e.preventDefault();
+                stopScene(scene.id);
             }
         });
     }
@@ -504,19 +524,29 @@
                     var sceneSettingContainer = $("<div>").addClass(
                         "sceneSettingContainer"
                     );
+
                     var flashButton = $("<i>")
                         .addClass("fas fa-bolt")
                         .attr("id", name + "_flashBtn")
-                        .css("display", flash ? "inline-block" : "none");
+                        .css("color", flash ? "white" : "transparent");
 
                     sceneSettingContainer.append(flashButton);
 
                     var repeatButton = $("<i>")
                         .addClass("fas fa-rotate-right")
                         .attr("id", name + "_repeatBtn")
-                        .css("display", repeat ? "inline-block" : "none");
+                        .css("color", flash ? "white" : "transparent");
 
                     sceneSettingContainer.append(repeatButton);
+
+                    var keyboardTrigger = $("<p>")
+                        .addClass("triggerIcon")
+                        .attr("id", name + "_keyboardTrigger")
+                        .text(scene.keyboard_keybind || "")
+                        .css("color", scene.keyboard_keybind ? "white" : "transparent")
+                        .css("background-color", scene.keyboard_keybind ? "revert-layer" : "transparent");
+
+                    sceneSettingContainer.append(keyboardTrigger);
 
                     sceneInfoContainer.append(sceneTitleInput);
                     sceneInfoContainer.append(sceneDuration);
@@ -811,6 +841,16 @@
         return null;
     }
 
+    function getRunningSceneId() {
+        var activeScene = $(".dmxScene.active");
+
+        if (activeScene.length > 0) {
+            return activeScene.attr("id").split("_")[0];
+        }
+
+        return null;
+    }
+
     function toggleSceneFlashMode() {
         var activeSceneId = getActiveSceneId();
 
@@ -829,8 +869,8 @@
             },
             success: function (response) {
                 $("#" + activeSceneId + "_flashBtn").css(
-                    "display",
-                    flashCheckbox.is(":checked") ? "inline-block" : "none"
+                    "color",
+                    flashCheckbox.is(":checked") ? "white" : "transparent"
                 );
 
                 if (flashCheckbox.is(":checked")) {
@@ -870,8 +910,8 @@
             },
             success: function (response) {
                 $("#" + activeSceneId + "_repeatBtn").css(
-                    "display",
-                    loopCheckbox.is(":checked") ? "inline-block" : "none"
+                    "color",
+                    loopCheckbox.is(":checked") ? "white" : "transparent"
                 );
             },
             error: function (xhr) {
@@ -1122,6 +1162,10 @@
     }
 
     function stopScene(sceneId) {
+        if (getRunningSceneId() != sceneId){
+            return;
+        }
+
         $.ajax({
             url: "/api/dmx/stopScene",
             type: "POST",
@@ -1158,6 +1202,10 @@
     function setThisSongAsKeybind() {
         var sceneId = getActiveSceneId();
         var songName = $("#currentPlayingSongForTrigger").val();
+
+        if (sceneId == null || sceneId == "" || songName == null || songName == "") {
+            return;
+        }
 
         $.ajax({
             url: "/api/dmx/setSceneSongTrigger",
