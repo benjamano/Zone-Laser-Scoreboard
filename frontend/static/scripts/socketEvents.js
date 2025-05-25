@@ -43,7 +43,7 @@ socket.on('start', function(msg) {
     try{
         gamePlayingStatus = "playing";
 
-        console.log(msg);
+        // console.log(msg);
 
         for (let i = 1; i <= 21; i++) {
             $("#gun-" + i + "-score").text("0");
@@ -68,7 +68,7 @@ socket.on('start', function(msg) {
 
 socket.on('obsStatus', function(msg) {
     try{
-        console.log(msg.message);
+        // console.log(msg.message);
 
         $("#OBSConnectionStatus").text(msg.message)
     }
@@ -77,7 +77,7 @@ socket.on('obsStatus', function(msg) {
 
 socket.on('dmxStatus', function(msg) {
     try{
-        console.log(msg.message);
+        // console.log(msg.message);
 
         $("#DMXConnectionStatus").text(msg.message)
     }
@@ -88,7 +88,7 @@ socket.on('end', function(msg) {
     try{
         gamePlayingStatus = "stopped";
 
-        console.log(msg);
+        // console.log(msg);
 
         for (let i = 1; i <= 21; i++) {
             $("#gun-" + i + "-score").text("0");
@@ -107,7 +107,7 @@ socket.on('end', function(msg) {
 
 socket.on('server', function(msg) {
     try{
-        console.log(msg);
+        // console.log(msg);
 
         try{
             var messageDiv = document.getElementById('messages');
@@ -121,7 +121,7 @@ socket.on('server', function(msg) {
 
 socket.on('gameMode', function(msg) {
     try{
-        console.log("Game Mode: ", msg.message);
+        // console.log("Game Mode: ", msg.message);
 
         try{
         var messageDiv = document.getElementById('messages');
@@ -139,7 +139,7 @@ socket.on('gunScores', function(msg) {
             return;
         }
 
-    console.log("gunScore: "+msg);
+    // console.log("gunScore: "+msg);
 
     var gunScores = msg.message.split(',');
 
@@ -147,7 +147,7 @@ socket.on('gunScores', function(msg) {
     var finalScore = gunScores[1];
     var Accuracy = gunScores[2];
 
-    console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
+    // console.log("Gun ID: " + gunId + " Score: " + finalScore + " Accuracy: " + Accuracy);
 
         $("#gun-"+gunId+"-score").text(finalScore);
         $("#gun-"+gunId+"-accuracy").text(Accuracy+"%")
@@ -240,7 +240,7 @@ socket.on('songAlbum', async function(albumName) {
 
 socket.on('songName', function (msg) {
     try{
-        console.log(msg.message);
+        // console.log(msg.message);
 
         if (msg.message == "No media playing"){
             $("#currentPlayingSongForTrigger").val("No Media Playing");
@@ -299,12 +299,12 @@ socket.on('musicStatusV2', function (msg) {
             updateProgressBar(currentTime, totalDuration);
         }
     } catch (err) {
-        console.error("Error processing music status:", err);
+        // console.error("Error processing music status:", err);
     }
 });
 socket.on('songBPM', function (msg) {
     try{
-        console.log(msg.message);
+        // console.log(msg.message);
 
         if (lastBPM == msg.message){
             return;
@@ -358,7 +358,7 @@ socket.on('songBPM', function (msg) {
 // });
 
 socket.on('UpdateDMXValue', function(data) {
-    console.log("Updating DMX Value: ", data)
+    // console.log("Updating DMX Value: ", data)
 
     var channel = data.message.channel;
     var value = data.message.value;
@@ -376,9 +376,9 @@ socket.on("refreshPage", function() {
 });
 
 socket.on("logMessage", function(data) {
-    console.log(`Received log message: ${JSON.stringify(data)}`);
-    console.log(`Received log message with content: ${data.message.message}`);
-    console.log(`Received log message with type: ${data.message.logType}`);
+    // console.log(`Received log message: ${JSON.stringify(data)}`);
+    // console.log(`Received log message with content: ${data.message.message}`);
+    // console.log(`Received log message with type: ${data.message.logType}`);
 
     const now = Date.now();
 

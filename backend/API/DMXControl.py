@@ -292,6 +292,15 @@ class dmx:
                     return
                 stopEvent.set() 
                 format.message(f"Scene {sceneId} stopped", "info")
+                
+                response = requests.post(
+                    f'http://{self._localIp}:8080/sendMessage',
+                    json={
+                        'message': {"sceneId": sceneId},
+                        'type': "dmxSceneStarted"
+                    }
+                )
+                
                 return
             
         return
@@ -771,6 +780,14 @@ class dmx:
             if len(scene.events) == 0:
                 return 200
             
+            response = requests.post(
+                f'http://{self._localIp}:8080/sendMessage',
+                json={
+                    'message': {"message": f"Scene '{scene.name}' started", "scene": self.getDMXSceneById(scene.id).to_dict()},
+                    'type': "dmxSceneStarted"
+                }
+            )
+            
             while not stopEvent.is_set():
                 for event in scene.events:
                     if stopEvent.is_set():
@@ -780,21 +797,22 @@ class dmx:
                     if (scene.duration == 0):
                         return
                     for channel in event.channels:
-                        try:
-                            fixture_id = int(channel["fixture"])
-                            fixture = self._dmx.get_fixture(fixture_id)
-                        except ValueError:
-                            fixture = self.getFixturesByName(channel["fixture"])[0]
-                        except Exception as e:
-                            format.message(f"Error getting fixture: {e}", "error")
-                            continue
-                        
-                        fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
-                        
-                        requests.post(
-                            f'http://{self._localIp}:8080/sendMessage',
-                            json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
-                        )
+                        if (self._dmx != None):
+                            try:
+                                fixture_id = int(channel["fixture"])
+                                fixture = self._dmx.get_fixture(fixture_id)
+                            except ValueError:
+                                fixture = self.getFixturesByName(channel["fixture"])[0]
+                            except Exception as e:
+                                format.message(f"Error getting fixture: {e}", "error")
+                                continue
+                            
+                            fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
+                            
+                            requests.post(
+                                f'http://{self._localIp}:8080/sendMessage',
+                                json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
+                            )
 
                     if event.duration > 0:
                         time.sleep(event.duration / 1000)
@@ -807,6 +825,8 @@ class dmx:
                 
                 if scene.repeat == True:
                     self.__startScene(scene, stopEvent)
+                else:
+                    return 200
                     
             return 200
         except Exception as e:

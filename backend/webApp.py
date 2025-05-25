@@ -1444,7 +1444,10 @@ class WebApp:
                 type_ = data.get("type") or request.form.get("type")
 
                 if type_:
-                    self.socketio.emit(f"{type_}", {"message": message}) 
+                    if isinstance(message, dict):
+                        self.socketio.emit(f"{type_}", message)
+                    else:
+                        self.socketio.emit(f"{type_}", {"message": message})
                                     
                 return jsonify({"status": "success"}), 200
             
@@ -1457,15 +1460,6 @@ class WebApp:
                 ise.severity = "1"
                 
                 self._supervisor.logInternalServerError(ise)
-                    
-            # ise : InternalServerError = InternalServerError()
-            
-            # ise.service = "api"
-            # ise.exception_message = str(f"Failed to start server: {e}")
-            # ise.process = "API: Start Server"
-            # ise.severity = "1"
-            
-            # self._supervisor.logInternalServerError(ise)
     
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- # 
             

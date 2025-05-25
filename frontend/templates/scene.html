@@ -195,6 +195,128 @@
         }
     });
 
+    function displayStartedScene(scene) {
+        $(".dmxScene").removeClass("selected active");
+        $("#" + scene.id + "_SceneBtn").addClass("active");
+        $("#scenePlayButton").addClass("active");
+
+        var countdownElement = $("#" + scene.id + "_duration");
+
+        var duration = parseInt(countdownElement.text());
+
+        var initialDuration = formatDMXSceneDuration(duration);
+
+        var visibleDurationElement = $(
+            "#" + scene.id + "_Visibleduration"
+        );
+
+        var events = scene.events || [];
+        let elapsed = 0;
+
+        function startCountdown() {
+            let currentEventIndex = 0;
+
+            sceneTimeLeftCountdownInterval = setInterval(function () {
+                if (duration <= 0) {
+                    if ($("#loopCheckbox").is(":checked")) {
+                        duration = parseInt(countdownElement.text());
+                        elapsed = 0;
+                        currentEventIndex = 0;
+                        $(".dmxSceneEventTableElement").removeClass(
+                            "active"
+                        );
+                    } else {
+                        clearInterval(sceneTimeLeftCountdownInterval);
+                        visibleDurationElement.text(initialDuration);
+                        $("#" + scene.id + "_SceneBtn").removeClass(
+                            "active"
+                        );
+                        $("#scenePlayButton").removeClass("active");
+                        $(".dmxSceneEventTableElement").removeClass(
+                            "active"
+                        );
+                        return;
+                    }
+                }
+
+                duration -= 10;
+                elapsed += 10;
+
+                let total = 0;
+                for (let i = 0; i < events.length; i++) {
+                    total += events[i].duration;
+                    if (elapsed <= total) {
+                        $(".dmxSceneEventTableElement").removeClass(
+                            "active"
+                        );
+                        $("#sceneEvent_" + events[i].id).addClass(
+                            "active"
+                        );
+                        currentEventIndex = i;
+
+                        break;
+                    }
+                }
+
+                const milliseconds = duration % 1000;
+                const seconds = Math.floor((duration / 1000) % 60);
+                const minutes = Math.floor(
+                    (duration / (1000 * 60)) % 60
+                );
+
+                visibleDurationElement.text(
+                    (minutes < 10 ? "0" + minutes : minutes) +
+                        '"' +
+                        (seconds < 10 ? "0" + seconds : seconds) +
+                        '"' +
+                        (milliseconds < 100
+                            ? milliseconds < 10
+                                ? "00" + milliseconds
+                                : "0" + milliseconds
+                            : milliseconds)
+                );
+            }, 10);
+        }
+
+        startCountdown();
+    }
+
+    function displayStoppedScene(sceneId) {
+        $("#" + currentlyActiveSceneId + "_SceneBtn").removeClass("active");
+        $("#scenePlayButton").removeClass("active");
+        $(".dmxSceneEventTableElement").removeClass("active");
+        clearInterval(sceneTimeLeftCountdownInterval);
+
+        var visibleDuration = $("#" + sceneId + "_Visibleduration");
+        var duration = $("#" + sceneId + "_duration");
+
+        visibleDuration.text(formatDMXSceneDuration(duration.text()));
+    }
+
+    socket.on("dmxSceneStarted", function (data) {
+        console.log("Scene started:", data);
+
+        var activeSceneId = getRunningSceneId();
+        var currentlyActiveSceneId = data.scene.id;
+
+        if (activeSceneId == currentlyActiveSceneId) {
+            return;
+        }
+
+        displayStartedScene(data.scene);
+    });
+
+    socket.on("dmxSceneStopped", function (data) {
+        console.log("Scene stopped:", data);
+
+        var activeSceneId = getRunningSceneId();
+        var currentlyActiveSceneId = data.sceneId;
+
+        if (activeSceneId == currentlyActiveSceneId) {
+            displayStoppedScene(currentlyActiveSceneId);
+        }
+    });
+
     function getKeyboardTriggers() {
         $.ajax({
             url: "/api/dmx/getScenesWithKeyboardTriggers",
@@ -242,10 +364,12 @@
                         keybind: key.toUpperCase(),
                     },
                     success: function (response) {
-                        $("#" + sceneId + "_keyboardTrigger").text(key.toUpperCase());
+                        $("#" + sceneId + "_keyboardTrigger").text(
+                            key.toUpperCase()
+                        );
 
                         $("#" + sceneId + "_keyboardTrigger").css({
-                            "color": "white",
+                            color: "white",
                             "background-color": "revert-layer",
                         });
                     },
@@ -280,10 +404,12 @@
 
         $(document).on("keydown", function (e) {
             if (e.originalEvent.repeat) return;
-        
+
             const key = e.key.toUpperCase();
-            const scene = sceneKeyTriggers.find(scene => scene.keyboard_keybind === key);
-        
+            const scene = sceneKeyTriggers.find(
+                (scene) => scene.keyboard_keybind === key
+            );
+
             if (scene && scene.id) {
                 e.preventDefault();
                 startOrEditScene(scene.id);
@@ -294,8 +420,10 @@
             if (e.originalEvent.repeat) return;
 
             const key = e.key.toUpperCase();
-            const scene = sceneKeyTriggers.find(scene => scene.keyboard_keybind === key);
-        
+            const scene = sceneKeyTriggers.find(
+                (scene) => scene.keyboard_keybind === key
+            );
+
             if (scene && scene.id) {
                 e.preventDefault();
                 stopScene(scene.id);
@@ -535,7 +663,7 @@
                     var repeatButton = $("<i>")
                         .addClass("fas fa-rotate-right")
                         .attr("id", name + "_repeatBtn")
-                        .css("color", flash ? "white" : "transparent");
+                        .css("color", repeat ? "white" : "transparent");
 
                     sceneSettingContainer.append(repeatButton);
 
@@ -543,8 +671,16 @@
                         .addClass("triggerIcon")
                         .attr("id", name + "_keyboardTrigger")
                         .text(scene.keyboard_keybind || "")
-                        .css("color", scene.keyboard_keybind ? "white" : "transparent")
-                        .css("background-color", scene.keyboard_keybind ? "revert-layer" : "transparent");
+                        .css(
+                            "color",
+                            scene.keyboard_keybind ? "white" : "transparent"
+                        )
+                        .css(
+                            "background-color",
+                            scene.keyboard_keybind
+                                ? "revert-layer"
+                                : "transparent"
+                        );
 
                     sceneSettingContainer.append(keyboardTrigger);
 
@@ -718,90 +854,6 @@
             url: "/api/dmx/startScene",
             type: "POST",
             data: { sceneId: sceneId },
-            success: function (response) {
-                console.log("Scene started:", response);
-
-                $(".dmxScene").removeClass("selected active");
-                $("#" + sceneId + "_SceneBtn").addClass("active");
-                $("#scenePlayButton").addClass("active");
-
-                const countdownElement = $("#" + sceneId + "_duration");
-                let duration = parseInt(countdownElement.text());
-                const visibleDurationElement = $(
-                    "#" + sceneId + "_Visibleduration"
-                );
-                const initialDuration = formatDMXSceneDuration(duration);
-
-                const events = response.events || [];
-                let elapsed = 0;
-
-                function startCountdown() {
-                    let currentEventIndex = 0;
-
-                    sceneTimeLeftCountdownInterval = setInterval(function () {
-                        if (duration <= 0) {
-                            if ($("#loopCheckbox").is(":checked")) {
-                                duration = parseInt(countdownElement.text());
-                                elapsed = 0;
-                                currentEventIndex = 0;
-                                $(".dmxSceneEventTableElement").removeClass(
-                                    "active"
-                                );
-                            } else {
-                                clearInterval(sceneTimeLeftCountdownInterval);
-                                visibleDurationElement.text(initialDuration);
-                                $("#" + sceneId + "_SceneBtn").removeClass(
-                                    "active"
-                                );
-                                $("#scenePlayButton").removeClass("active");
-                                $(".dmxSceneEventTableElement").removeClass(
-                                    "active"
-                                );
-                                return;
-                            }
-                        }
-
-                        duration -= 10;
-                        elapsed += 10;
-
-                        let total = 0;
-                        for (let i = 0; i < events.length; i++) {
-                            total += events[i].duration;
-                            if (elapsed <= total) {
-                                $(".dmxSceneEventTableElement").removeClass(
-                                    "active"
-                                );
-                                $("#sceneEvent_" + events[i].id).addClass(
-                                    "active"
-                                );
-                                currentEventIndex = i;
-
-                                break;
-                            }
-                        }
-
-                        const milliseconds = duration % 1000;
-                        const seconds = Math.floor((duration / 1000) % 60);
-                        const minutes = Math.floor(
-                            (duration / (1000 * 60)) % 60
-                        );
-
-                        visibleDurationElement.text(
-                            (minutes < 10 ? "0" + minutes : minutes) +
-                                '"' +
-                                (seconds < 10 ? "0" + seconds : seconds) +
-                                '"' +
-                                (milliseconds < 100
-                                    ? milliseconds < 10
-                                        ? "00" + milliseconds
-                                        : "0" + milliseconds
-                                    : milliseconds)
-                        );
-                    }, 10);
-                }
-
-                startCountdown();
-            },
             error: function (xhr) {
                 console.error("Failed to start scene:", xhr.responseText);
             },
@@ -1162,7 +1214,7 @@
     }
 
     function stopScene(sceneId) {
-        if (getRunningSceneId() != sceneId){
+        if (getRunningSceneId() != sceneId) {
             return;
         }
 
@@ -1170,29 +1222,6 @@
             url: "/api/dmx/stopScene",
             type: "POST",
             data: { sceneId: sceneId },
-            success: function (response) {
-                clearInterval(sceneTimeLeftCountdownInterval);
-                $("#" + sceneId + "_SceneBtn").removeClass("active");
-                $("#scenePlayButton").removeClass("active");
-                $(".dmxSceneEventTableElement").removeClass("active");
-
-                var visibleDuration = $("#" + sceneId + "_Visibleduration");
-                var duration = $("#" + sceneId + "_duration");
-
-                visibleDuration.text(formatDMXSceneDuration(duration.text()));
-
-                $("#fixtures-container")
-                    .find(".fixtureChannel")
-                    .each(function () {
-                        var valueLabel = $(this).find(".valueLabel");
-                        var slider = $(this).find(".slider");
-
-                        valueLabel.text("0");
-                        slider.val(0);
-                    });
-
-                console.log("Scene stopped:", response);
-            },
             error: function (xhr) {
                 console.error("Failed to stop scene:", xhr.responseText);
             },
@@ -1203,7 +1232,12 @@
         var sceneId = getActiveSceneId();
         var songName = $("#currentPlayingSongForTrigger").val();
 
-        if (sceneId == null || sceneId == "" || songName == null || songName == "") {
+        if (
+            sceneId == null ||
+            sceneId == "" ||
+            songName == null ||
+            songName == ""
+        ) {
             return;
         }
 
