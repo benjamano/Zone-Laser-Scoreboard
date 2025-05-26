@@ -49,7 +49,7 @@ class WebApp:
         
         # LOAD SYSTEM VARIABLES
         self.SysName = "TBS"
-        self.VersionNumber = "1.1.8"
+        self.VersionNumber = "1.2"
         # END LOAD
         
         # INIT ALL OTHER VARIABLES

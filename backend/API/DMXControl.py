@@ -799,8 +799,6 @@ class dmx:
             if len(scene.events) == 0:
                 return 200
             
-            print(f"DMX SocketIO ID: {id(socket)}")
-
             self.socket.emit(
                 'dmxSceneStarted',
                 {"message": f"Scene '{scene.name}' started", "scene": self.getDMXSceneById(scene.id).to_dict()} #,
