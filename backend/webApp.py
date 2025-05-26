@@ -1,8 +1,7 @@
 import string
 from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
 from flask_socketio import SocketIO, emit
-import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time
-from API.Feedback.feedback import RequestProcessor
+import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time, sys
 from scapy.all import sniff, IP
 from dotenv import dotenv_values
 from datetime import timedelta
@@ -22,7 +21,7 @@ from API.DB import *
 from API.OBS import OBS
 from API.Supervisor import Supervisor
 from API.Emails import EmailsAPIController
-from API.Feedback.feedback import *
+from API.Feedback.feedback import RequestAndFeedbackAPIController
 from data.models import *
 from API.createApp import createApp
 
@@ -76,7 +75,7 @@ class WebApp:
         self._context : context = None
         self.app : Flask = None
         self._eAPI : EmailsAPIController = None
-        self._fAPI : RequestProcessor = None
+        self._fAPI : RequestAndFeedbackAPIController = None
         # END INIT
                 
         pyautogui.FAILSAFE = False
@@ -84,48 +83,31 @@ class WebApp:
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
     
     def startFlask(self):
+        f.message(f.colourText("Attempting to start Flask Server", "green"))
+        
         try:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 if s.connect_ex((self._localIp, 8080)) == 0:
                     f.message(f"Port 8080 is already in use on {self._localIp}", type="error")
                     raise RuntimeError("Port in use. Exiting application.")
+                
+                log = logging.getLogger('werkzeug')
+                log.disabled = True
+                cli = sys.modules['flask.cli']
+                cli.show_server_banner = lambda *x: None
 
-                self.socketio.run(self.app, host=self._localIp, port=8080)
+                self.socketio.run(self.app, host=self._localIp, port=8080, debug=self.devMode, use_reloader=False)
                 
                 if self.devMode == True:
                     self.app.debug = True
                 
         except Exception as e:
             f.message(f"Fatal! {e}")
-            os._exit(1)
+            raise
         
-    def start(self):
-        f.message("Running on Commit: " + f.colourText(f"{self.getCurrentCommit()}", "green"), type="info")
-        
-        f.message(f"Starting Web App at {str(datetime.now())}", type="warning")
-        
-        self.app, self.socketio, self._context = createApp() 
-        
-        self.initLogging()
-        
-        f.message(f.colourText("Setting up routes..." ,"Blue"))
-        
-        self.setupRoutes()
-        
-        f.message(f.colourText("Starting Up Threads and Services" ,"Green"))
-        
-        try:
-            ctypes.windll.kernel32.SetConsoleTitleW("Zone Laser Scoreboard")
-        except Exception as e:
-            f.message(f"Error setting console title: {e}", type="error")
-        
-        try:
-            f.message(f.colourText("Starting Supervisor", "green"), type="info")
-            self._supervisor = Supervisor()
-        except Exception as e:
-            f.message(f"Error starting Supervisor: {e}", type="error")
-            raise Exception("Error starting Supervisor: ", e)
-        
+        f.message(f"Web App hosted on IP" + f.colourText(f"http://{self._localIp}:8080", "blue"), type="success")
+            
+    def _getLocalIp(self) -> str:
         try:
             # Create a dummy socket connection to find the local IP address
             s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -135,106 +117,36 @@ class WebApp:
         except Exception as e:
             f.message(f"Error finding local IP: {e}")
         
-        try:
-            f.message("Attempting to start Flask Server")
-            self.flaskThread = threading.Thread(target=self.startFlask)
-            self.flaskThread.daemon = True
-            self.flaskThread.start()
-        except Exception as e:
-            f.message(f"Error starting Flask Server: {e}", type="error")
-            raise
+    def start(self):
+        f.message("Running on Commit: " + f.colourText(f"{self.getCurrentCommit()}", "green"), type="info")
+        f.message(f"Starting Web App at {str(datetime.now())}", type="warning")
         
-        while self.app == None:
-            f.message("Waiting for app to start", type="warning")
-            time.sleep(0.5)
-            
-        f.message(f"Web App hosted on IP http://{self._localIp}:8080", type="success")
+        ctypes.windll.kernel32.SetConsoleTitleW("Zone Laser Scoreboard")
         
-        # with self.app.app_context():
-        #     self._context = context(self.app, self._supervisor, self.db)
-        
-        # def bpmLoop():
-        #     while True:
-        #         try:
-        #             self.findBPM()
-        #             time.sleep(10)
-        #         except Exception as e:
-        #             f.message(f"Error in BPM loop: {e}", type="error")
-        #             break
+        self.app, self.socketio, self._context = createApp() 
 
-        # self.bpm_thread = threading.Thread(target=bpmLoop, daemon=True)
-        # self.bpm_thread.start()  
-            
-        f.message("Attempting to start Media status checker")
+        self._getLocalIp()
+        self.setupRoutes()
         
-        try:
-            self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker)
-            self.mediaStatusCheckerThread.daemon = True
-            self.mediaStatusCheckerThread.start()
-            
-        except Exception as e:
-            f.message(f"Error starting Media Status Checker: {e}", type="error")
+        self._supervisor = Supervisor()
         
-        # if self.devMode == False:
-        #     webbrowser.open(f"http://{self._localIp}:8080")
-            
-        try:
-            self.obs_thread = threading.Thread(target=self.connectToOBS)
-            self.obs_thread.daemon = True
-            self.obs_thread.start()
-                
-        except Exception as e:
-            f.message(f"Error starting OBS Connection: {e}", type="error")
-            
-        try:
-            f.message("Setting up DMX Connection")
-            self.DMXThread = threading.Thread(target=self.setUpDMX)
-            self.DMXThread.daemon = True
-            self.DMXThread.start()
-            
-        except Exception as e:
-            f.message(f"Error starting DMX Connection: {e}", type="error")
-
-        # f.message("Web App Started, hiding console", type="success")
-        
-        # try:
-        #     ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
-        # except Exception as e:
-        #     f.message(f"Hiding console: {e}", type="error")
-        
-        try:
-            self.sniffing_thread = threading.Thread(target=self.startSniffing)
-            self.sniffing_thread.daemon = True
-            self.sniffing_thread.start()
-            
-        except Exception as e:
-            f.message(f"Error starting packet sniffer: {e}", type="error")
-            
-        try:
-            self.fetcher = MediaBPMFetcher()
-        except Exception as e:
-            f.message(f"Error starting music info fetcher: {e}", type="error")
-            
-        try:
-            self._eAPI = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"], secrets["GmailSenderEmail"], secrets["GmailSenderDisplayName"])
-        except Exception as e:
-            f.message(f"Error starting email api: {e}", type="error")
-            
-        try:
-            self._fAPI = RequestProcessor(self._context.db)
-        except Exception as e:
-            f.message(f"Error starting feedback api: {e}", type="error")
-            
         while self._supervisor == None:
             time.sleep(1)
+        
+        self._fetcher = MediaBPMFetcher()
+        self._fAPI = RequestAndFeedbackAPIController(self._context.db)
+        
+        self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
+        self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker, daemon=True).start()
+        self.obsThread = threading.Thread(target=self.connectToOBS, daemon=True).start()
+        self.dmxThread = threading.Thread(target=self.setUpDMX, daemon=True).start()
+        self.sniffingThread = threading.Thread(target=self.startSniffing, daemon=True).start()
+
+        self._eAPI = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"] if secrets["GmailAppPassword"] is not None else "", secrets["GmailSenderEmail"] if secrets["GmailSenderEmail"] is not None else "", secrets["GmailSenderDisplayName"] if secrets["GmailSenderDisplayName"] is not None else "")
         
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
-        
-        print(f"WebApp SocketIO ID: {id(self.socketio)}")
-        
-        self.flaskThread.join()
         
     def getCurrentCommit(self) -> str:
         try:
@@ -243,19 +155,11 @@ class WebApp:
         except Exception as e:
             f.message(f"Error getting current commit: {e}", type="error")
             return ""
-
-    def initLogging(self):
-        #self.app.logger.disabled = True
-        #logging.getLogger('werkzeug').disabled = True
-        return
-    
-    def startSupervisor(self):
-        
-        
-        return
     
     def setUpDMX(self):
         #Requires USB to DMX with driver version of "libusb-win32"
+        
+        f.message(f.colourText("Setting up DMX Connection", "green"), type="info")
         
         try:
             self._dmx = dmx(self._context, self._supervisor, self.socketio, self.app, self.devMode)
@@ -293,7 +197,7 @@ class WebApp:
         
             self.DMXConnected = True
             
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"CONNECTED", 'type': "dmxStatus"})
+            self.socketio.emit("dmxStatus", {"message": "CONNECTED"})
             
             f.message("DMX Connection set up successfully", type="success")
         
@@ -304,6 +208,8 @@ class WebApp:
             f.message(f"Error setting up OBS connection: {e}", type="error")
 
     def setupRoutes(self):     
+        f.message(f.colourText("Setting up routes..." ,"Blue"))
+        
         # @self.app.errorhandler(404)
         # def not_found():
         #     return render_template("error.html", message="Page not found")
@@ -1395,7 +1301,7 @@ class WebApp:
         
         @self.socketio.on("getCurrentSong")
         def getCurrentSong():
-            song, album, bpm = self.fetcher.get_current_song_and_bpm()
+            song, album, bpm = self._fetcher.get_current_song_and_bpm()
             
             self.sendSongDetails(song,album,bpm)
             
@@ -1694,8 +1600,8 @@ class WebApp:
     # def findBPM(self):
     #     try:
     #         try:
-    #             self.fetcher.fetch()
-    #             song, bpm, album = self.fetcher.get_current_song_and_bpm()
+    #             self._fetcher.fetch()
+    #             song, bpm, album = self._fetcher.get_current_song_and_bpm()
                 
     #             if type(bpm) == str:
     #                 bpm = 0
@@ -1752,13 +1658,15 @@ class WebApp:
         self.socketio.emit('songName', {'message': song})
    
     def mediaStatusChecker(self):
+        f.message(f.colourText("Attempting to start Media status checker", "blue"))
+        
         previousSong : str = ""
         
         while True:
             time.sleep(5)
             
             try:
-                song, album, bpm = self.fetcher.get_current_song_and_bpm()
+                song, album, bpm = self._fetcher.get_current_song_and_bpm()
                 
                 if (previousSong != song):
                     previousSong = song

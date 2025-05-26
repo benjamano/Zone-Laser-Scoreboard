@@ -1,6 +1,6 @@
 from data.models import *
 
-class RequestProcessor:
+class RequestAndFeedbackAPIController:
     def __init__(self, db):
         self.db : SQLAlchemy = db
 

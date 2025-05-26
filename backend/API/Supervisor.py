@@ -26,7 +26,9 @@ if TYPE_CHECKING:
     from webApp import WebApp as _webApp 
 
 class Supervisor:
-    def __init__(self):        
+    def __init__(self):  
+        f.message(f.colourText("Starting Supervisor", "green"), type="info")
+              
         self._obs = None
         self._dmx = None
         self._context = None
