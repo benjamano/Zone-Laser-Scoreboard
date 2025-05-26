@@ -796,26 +796,24 @@ class WebApp:
                             }
                             continue
                         
-                        channelValue = DMXFixture.get_channel_value(channel.channelNo)
+                        channelValue = DMXFixture.get_channel_value((str(channel.name)).lower())
                         
                         if DMXFixture.json_data["type"] == "Generic.Dimmer":
-                            channels = {"index": index, "value": channelValue, "DMXValue": DMXFixture.channels[1]["value"][0], "channel": DMXFixture.channels[1]["name"]}
+                            channels = {"DMXValue": DMXFixture.channels[1]["value"][0], "channel": DMXFixture.channels[1]["name"]}
                         else:
                             try:
                                 fixtureChannelTemp = 0
 
-                                for key_id, channel in DMXFixture.channels.items():
-                                    if str(channel["name"]).lower() == str(channel.name).lower():
-                                        fixtureChannelTemp = channel["value"][0]
+                                for keyId, dmxChannel in DMXFixture.channels.items():
+                                    if str(channel.name).lower() == str(dmxChannel["name"]).lower():
+                                        fixtureChannelTemp = dmxChannel["value"][0]
 
                                 channels[channel.name] = {
                                     "DMXValue": fixtureChannelTemp,
-                                    "channel": count
+                                    "channel": channel.name
                                 }
                             except Exception as e:
-                                f.message(f"Error getting fixture channel: {e}, {channel.name}, {channelValue}", type="error")
-                                
-                        count += 1
+                                f.message(f"Error getting fixture channel: {e}, {dmxChannel["name"]}, {channelValue}", type="error")
 
                     channelValues.append({
                         "name": fixtureName,
@@ -829,7 +827,7 @@ class WebApp:
                 ise : InternalServerError = InternalServerError()
                 
                 ise.service = "api"
-                ise.exception_message = str(f"Error DMX channel values: {e}")
+                ise.exception_message = str(f"Error getting DMX channel values: {e}")
                 ise.process = "API: Get DMX Values"
                 ise.severity = "3"
                 
