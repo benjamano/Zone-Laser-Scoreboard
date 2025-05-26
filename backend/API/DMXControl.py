@@ -466,7 +466,7 @@ class dmx:
                         Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": (registeredFixture.dmxEndAddress - registeredFixture.dmxStartAddress)})
                     else:
                         
-                        DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)[0]
+                        DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)
                         
                         fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
                         fixtureDict = fixtureDTO[0].to_dict()
