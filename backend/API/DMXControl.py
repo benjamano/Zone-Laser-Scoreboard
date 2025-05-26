@@ -14,11 +14,12 @@ import time
 import requests
 import socket
 import datetime
+from flask_socketio import SocketIO
 
 format = Format("DMX")
             
 class dmx:
-    def __init__(self, context : dbContext, supervisor : Supervisor, app, devmode):
+    def __init__(self, context : dbContext, supervisor : Supervisor, socket : SocketIO, app, devmode):
         self._dmx = None
 
         try:
@@ -29,6 +30,7 @@ class dmx:
         self._context : dbContext = context
         self._supervisor : Supervisor = supervisor
         self.app : Flask = app
+        self.socket : SocketIO = socket
         
         self._localIp = self.__getLocalIp()
         self.devMode = devmode
@@ -47,6 +49,23 @@ class dmx:
         self._supervisor.setDependencies(dmx=self)
 
     # Setters
+    
+    def checkForSongTriggers(self, songName):
+        try:
+            with self.app.app_context():
+                scenes : list[DMXScene] = self._context.DMXScene.query.filter_by(song_keybind=songName).all()
+                if len(scenes) > 0:
+                    for scene in scenes:
+                        self.startScene(scene.id)
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error checking for song triggers: {e}")
+            ise.process = "DMX: Check For Song Triggers"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
     
     def __appendToFixtures(self, fixture, fixtureType):
         return
@@ -270,7 +289,7 @@ class dmx:
                     continue
                 stopEvent.set() 
                 del self.runningScenes[sceneId]
-                format.message(f"Scene {sceneId} stopped", "info")
+                format.message(f"Scene {sceneId} started", "info")
         
         if scene != None:
             stopEvent = threading.Event()
@@ -297,7 +316,7 @@ class dmx:
                     f'http://{self._localIp}:8080/sendMessage',
                     json={
                         'message': {"sceneId": sceneId},
-                        'type': "dmxSceneStarted"
+                        'type': "dmxSceneStopped"
                     }
                 )
                 
@@ -780,12 +799,11 @@ class dmx:
             if len(scene.events) == 0:
                 return 200
             
-            response = requests.post(
-                f'http://{self._localIp}:8080/sendMessage',
-                json={
-                    'message': {"message": f"Scene '{scene.name}' started", "scene": self.getDMXSceneById(scene.id).to_dict()},
-                    'type': "dmxSceneStarted"
-                }
+            print(f"DMX SocketIO ID: {id(socket)}")
+
+            self.socket.emit(
+                'dmxSceneStarted',
+                {"message": f"Scene '{scene.name}' started", "scene": self.getDMXSceneById(scene.id).to_dict()} #,
             )
             
             while not stopEvent.is_set():
@@ -793,8 +811,19 @@ class dmx:
                     if stopEvent.is_set():
                         del self.runningScenes[str(scene.id)]
                         self.turnOffAllChannels()
+                        
+                        self.socket.emit(
+                            'dmxSceneStopped',
+                            {"message": {'sceneId': scene.id}},
+                        )
+                        
                         return 200
                     if (scene.duration == 0):
+                        self.socket.emit(
+                            'dmxSceneStopped',
+                            {'sceneId': scene.id},
+                        )
+                        
                         return
                     for channel in event.channels:
                         if (self._dmx != None):
@@ -809,11 +838,10 @@ class dmx:
                             
                             fixture.set_channel(channel["channel"].lower(), int(channel["value"]))
                             
-                            requests.post(
-                                f'http://{self._localIp}:8080/sendMessage',
-                                json={"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}, "type": "UpdateDMXValue"}
+                            self.socket.emit(
+                                'UpdateDMXValue',
+                                {"message": {"channel": str(channel["channel"]).title(), "fixture": fixture.id, "value": int(channel["value"])}},
                             )
-
                     if event.duration > 0:
                         time.sleep(event.duration / 1000)
                 
@@ -821,11 +849,21 @@ class dmx:
                     with self.app.app_context():
                         foundScene : DMXScene = self.getDMXSceneById(scene.id)
                         if foundScene.repeat == False:
+                            self.socket.emit(
+                                'dmxSceneStopped',
+                                {"message": {'sceneId': scene.id}},
+                            )
+            
                             return 200
                 
                 if scene.repeat == True:
                     self.__startScene(scene, stopEvent)
                 else:
+                    self.socket.emit(
+                        'dmxSceneStopped',
+                        {"message": {'sceneId': scene.id}},
+                    )
+
                     return 200
                     
             return 200

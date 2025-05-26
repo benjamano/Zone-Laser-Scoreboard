@@ -39,7 +39,7 @@ def createApp(appOnly = False):
     if appOnly:
         return app
     
-    socketio = SocketIO(app, cors_allowed_origins="*")
+    socketio = SocketIO(app, cors_allowed_origins="*") #, logger=True, engineio_logger=True
     db_context = DBContext(app, db)
 
     return app, socketio, db_context

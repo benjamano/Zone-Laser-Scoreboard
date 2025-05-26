@@ -1,3 +1,6 @@
+import eventlet
+eventlet.monkey_patch() 
+
 try:
     from checkDependencies import VerifyDependencies
     import os

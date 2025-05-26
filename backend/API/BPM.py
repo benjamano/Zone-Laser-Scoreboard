@@ -45,7 +45,7 @@ class MediaBPMFetcher:
 
         if artist and title:
             # bpm = self._get_song_bpm(artist, title)
-            self.current_song = f"{artist} - {title}"
+            self.current_song = f"{title} - {artist}"
             self.current_bpm = 0
             self.current_album = album
         elif title:

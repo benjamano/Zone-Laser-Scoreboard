@@ -195,6 +195,30 @@
         }
     });
 
+    socket.on("dmxSceneStarted", function (data) {
+        console.log("Scene started:", data);
+
+        var activeSceneId = getRunningSceneId();
+        var currentlyActiveSceneId = data.scene.id;
+
+        if (activeSceneId == currentlyActiveSceneId) {
+            return;
+        }
+
+        displayStartedScene(data.scene);
+    });
+
+    socket.on("dmxSceneStopped", function (data) {
+        console.log("Scene stopped:", data);
+
+        var activeSceneId = getRunningSceneId();
+        var currentlyActiveSceneId = data.message.sceneId;
+
+        if (activeSceneId == currentlyActiveSceneId) {
+            displayStoppedScene(currentlyActiveSceneId);
+        }
+    });
+
     function displayStartedScene(scene) {
         $(".dmxScene").removeClass("selected active");
         $("#" + scene.id + "_SceneBtn").addClass("active");
@@ -206,9 +230,7 @@
 
         var initialDuration = formatDMXSceneDuration(duration);
 
-        var visibleDurationElement = $(
-            "#" + scene.id + "_Visibleduration"
-        );
+        var visibleDurationElement = $("#" + scene.id + "_Visibleduration");
 
         var events = scene.events || [];
         let elapsed = 0;
@@ -222,19 +244,13 @@
                         duration = parseInt(countdownElement.text());
                         elapsed = 0;
                         currentEventIndex = 0;
-                        $(".dmxSceneEventTableElement").removeClass(
-                            "active"
-                        );
+                        $(".dmxSceneEventTableElement").removeClass("active");
                     } else {
                         clearInterval(sceneTimeLeftCountdownInterval);
                         visibleDurationElement.text(initialDuration);
-                        $("#" + scene.id + "_SceneBtn").removeClass(
-                            "active"
-                        );
+                        $("#" + scene.id + "_SceneBtn").removeClass("active");
                         $("#scenePlayButton").removeClass("active");
-                        $(".dmxSceneEventTableElement").removeClass(
-                            "active"
-                        );
+                        $(".dmxSceneEventTableElement").removeClass("active");
                         return;
                     }
                 }
@@ -246,12 +262,8 @@
                 for (let i = 0; i < events.length; i++) {
                     total += events[i].duration;
                     if (elapsed <= total) {
-                        $(".dmxSceneEventTableElement").removeClass(
-                            "active"
-                        );
-                        $("#sceneEvent_" + events[i].id).addClass(
-                            "active"
-                        );
+                        $(".dmxSceneEventTableElement").removeClass("active");
+                        $("#sceneEvent_" + events[i].id).addClass("active");
                         currentEventIndex = i;
 
                         break;
@@ -260,9 +272,7 @@
 
                 const milliseconds = duration % 1000;
                 const seconds = Math.floor((duration / 1000) % 60);
-                const minutes = Math.floor(
-                    (duration / (1000 * 60)) % 60
-                );
+                const minutes = Math.floor((duration / (1000 * 60)) % 60);
 
                 visibleDurationElement.text(
                     (minutes < 10 ? "0" + minutes : minutes) +
@@ -282,7 +292,7 @@
     }
 
     function displayStoppedScene(sceneId) {
-        $("#" + currentlyActiveSceneId + "_SceneBtn").removeClass("active");
+        $("#" + sceneId + "_SceneBtn").removeClass("active");
         $("#scenePlayButton").removeClass("active");
         $(".dmxSceneEventTableElement").removeClass("active");
         clearInterval(sceneTimeLeftCountdownInterval);
@@ -292,30 +302,6 @@
 
         visibleDuration.text(formatDMXSceneDuration(duration.text()));
     }
-
-    socket.on("dmxSceneStarted", function (data) {
-        console.log("Scene started:", data);
-
-        var activeSceneId = getRunningSceneId();
-        var currentlyActiveSceneId = data.scene.id;
-
-        if (activeSceneId == currentlyActiveSceneId) {
-            return;
-        }
-
-        displayStartedScene(data.scene);
-    });
-
-    socket.on("dmxSceneStopped", function (data) {
-        console.log("Scene stopped:", data);
-
-        var activeSceneId = getRunningSceneId();
-        var currentlyActiveSceneId = data.sceneId;
-
-        if (activeSceneId == currentlyActiveSceneId) {
-            displayStoppedScene(currentlyActiveSceneId);
-        }
-    });
 
     function getKeyboardTriggers() {
         $.ajax({
@@ -403,6 +389,8 @@
         });
 
         $(document).on("keydown", function (e) {
+            if ($(e.target).is('input, textarea, [contenteditable="true"]'))
+                return;
             if (e.originalEvent.repeat) return;
 
             const key = e.key.toUpperCase();
@@ -417,6 +405,8 @@
         });
 
         $(document).on("keyup", function (e) {
+            if ($(e.target).is('input, textarea, [contenteditable="true"]'))
+                return;
             if (e.originalEvent.repeat) return;
 
             const key = e.key.toUpperCase();

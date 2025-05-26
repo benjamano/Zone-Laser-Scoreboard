@@ -232,6 +232,8 @@ class WebApp:
         
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         
+        print(f"WebApp SocketIO ID: {id(self.socketio)}")
+        
         self.flaskThread.join()
         
     def getCurrentCommit(self) -> str:
@@ -256,7 +258,7 @@ class WebApp:
         #Requires USB to DMX with driver version of "libusb-win32"
         
         try:
-            self._dmx = dmx(self._context, self._supervisor, self.app, self.devMode)
+            self._dmx = dmx(self._context, self._supervisor, self.socketio, self.app, self.devMode)
             
         except Exception as e:
             f.message(f"Error starting DMX Connection: {e}", type="error")
@@ -1390,6 +1392,12 @@ class WebApp:
             #f.message(f"Spotify control = {json["data"]}")
             
             self.spotifyControl = json["data"]
+        
+        @self.socketio.on("getCurrentSong")
+        def getCurrentSong():
+            song, album, bpm = self.fetcher.get_current_song_and_bpm()
+            
+            self.sendSongDetails(song,album,bpm)
             
         @self.socketio.on('UpdateDMXValue')
         def UpdateDMXValue(json):
@@ -1445,7 +1453,7 @@ class WebApp:
 
                 if type_:
                     if isinstance(message, dict):
-                        self.socketio.emit(f"{type_}", message)
+                        self.socketio.emit(f"{type_}", {"message": message})
                     else:
                         self.socketio.emit(f"{type_}", {"message": message})
                                     
@@ -1739,18 +1747,26 @@ class WebApp:
 
         return result_container['result']
 
+    def sendSongDetails(self, song, album, bpm):
+        self.socketio.emit('songAlbum', {'message': album})
+        self.socketio.emit('songName', {'message': song})
    
     def mediaStatusChecker(self):
+        previousSong : str = ""
+        
         while True:
             time.sleep(5)
             
             try:
                 song, album, bpm = self.fetcher.get_current_song_and_bpm()
                 
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{album}", 'type': "songAlbum"})
-                
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{song}", 'type': "songName"})
-                
+                if (previousSong != song):
+                    previousSong = song
+                    
+                    self.sendSongDetails(song, album, bpm)
+                    
+                    self._dmx.checkForSongTriggers(song)
+    
                 # self.handleBPM(song)
             
             except Exception as e:

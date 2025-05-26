@@ -302,6 +302,7 @@ socket.on('musicStatusV2', function (msg) {
         // console.error("Error processing music status:", err);
     }
 });
+
 socket.on('songBPM', function (msg) {
     try{
         // console.log(msg.message);
@@ -393,3 +394,12 @@ socket.on("logMessage", function(data) {
 
     localStorage.setItem("logMessages", JSON.stringify(logMessages));
 });
+
+function getCurrentSong(){
+    try {
+        socket.emit("getCurrentSong");
+    }
+    catch(err) {
+        console.error("Error getting current song:", err);
+    }
+}
