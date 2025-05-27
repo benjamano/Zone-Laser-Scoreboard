@@ -1330,7 +1330,8 @@ class WebApp:
         def playBriefing():
             if self._obs != None and self._obs.isConnected() == True:
                 try:                    
-                    #f.message("Playing briefing")
+                    f.message("Playing briefing")
+                    
                     self._obs.switchScene("Video")
                     
                     return jsonify({"status": "success"}), 200
