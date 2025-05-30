@@ -734,4 +734,345 @@ function updateProgressBar(currentTime, totalDuration) {
 
 <script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>
 
+<!-- <!DOCTYPE html>
+<html lang="en" style="overflow-x: hidden;">
+<head>
+	<meta charset="UTF-8">
+	<title>Real-Time Packet Sniffer</title>
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/LCARS/lcars-colors.css') }}" rel="stylesheet">
+    <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
+    <script src="{{ url_for('static', filename='styles/LCARS/jquery-3-7-0.min.js') }}"></script>
+    <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script>
+	<script src="https://kit.fontawesome.com/9d35a24d36.js" crossorigin="anonymous"></script>
+    <link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet">
+</head>
+<body>
+	<div id="warningsContainer" class="warning">
+		<h1 id="warningsText"></h1>
+	</div>
+			<div class="lcars-frame-after" id="album-container" style="width: 220px; height: 220px;">
+				<p>Song Playing:</p>
+				<p><span id="musicPlaying"></span></p>
+				<div id="album-cover" style="width: 100%; height: 100%;"></div>
+			</div>
+			
+				<span>BPM:	<a id="musicBPM">0</a> </span>
+				<div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
+					<span style="display: flex;">
+						<div id="flashingDot" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: var(--bs-danger);"></div>
+					</span>
+					<span style="display: flex;">
+						<div id="flashingDot2" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: var(--bs-form-valid-border-color);"></div>
+					</span>
+				</div>
+
+
+							<a role="button" onclick="toggleSpotifyControl()">SPOTIFY CONTROL: <span id="spotifyPlaybackStatus">OFF</span></a>
+							<a role="button" onclick="controlPlayback('end')">TERMINATE SERVER</a>
+							<div class="panel-1"><div class="lcars-access">
+                                <a>Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span></a>
+                            </div></div>
+							<div class="panel-1"><div class="lcars-access">
+								<a>DMX NETWORK: <span class="blink medium-dark-blue" id="DMXConnectionStatus">{{DMXConnected}}</span></a>
+                            </div></div>
+							<div class="panel-1"><div class="lcars-access">
+								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
+                            </div></div>
+
+								<a>TIME REMAINING: <span class="medium-dark-blue" id="timeRemaining">00:00</span></a>
+
+										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div
+
+										<div class="card" style="background-color: var(--dark-gray); color: #ffffff;">
+											<div class="card-header collapsed">
+												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
+											</div>
+
+											<div class="card-body p-2">
+
+												<!-- <div class="card mb-2" style="background-color: var(--medium-dark-gray); color: #ffffff; width: 61vw;">
+
+													<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
+
+													<div id="lightingCardBody" style="width: 100%;" class="card-body collapse">
+
+														<div id="fixtures-container" class="col-12"></div>
+
+													</div>
+
+												</div> 
+
+												<div class="card mb-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
+
+													<div class="card-header">Music Control</div>
+
+													<div id="musicControlCardBody" class="card-body d-flex justify-content-between align-items-start">
+
+														<div class="musicControls mb-2 col-5" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; font-size: 1.2rem; padding: 0.6rem 1rem 0.6rem 1.2rem;">
+															<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
+															<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
+															<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
+														
+															<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
+																<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
+															</div>
+															
+															<span id="timeLeft" style="color: #fff;">0:00</span>
+														</div>
+
+														<div class="card col-5" style="color: #ffffff; background-color: var(--primary-gray);">
+
+															<div class="card-header collapsed d-flex justify-content-between align-items-center" onclick="$('#musicRequestFormCardBody').collapse('toggle')"><span>Request a song</span><i class="fa-solid fa-arrow-pointer fa-beat"></i></div>
+
+															<div class="card-body collapse" id="musicRequestFormCardBody">
+
+																<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
+
+															</div>
+
+														</div>
+														
+													</div>
+
+												</div>
+
+												<!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> 
+
+												<div class="card mb-2">
+
+													<div class="card-header" role="button" onclick="$('#scoreboardCardBody').collapse('toggle')">LIVE Scoreboard</div>
+
+													<div class="card-body collapse" id="scoreboardCardBody">
+														<table class="table table-bordered border-dark" style="font-size: 0.8rem; margin: 0;">
+															<thead>
+																<tr>
+																	<th class="text-center text-white bg-danger">Red Team</th>
+																	<th class="text-center text-white bg-success">Green Team</th>
+																</tr>
+															</thead>
+															<tbody id="scoresTable">
+																<tr>
+																	<td class="text-center text-white bg-dark p-0">
+																		<table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+																			<td>Name</td>
+																			<td>Score</td>
+																			<td>Accuracy</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark p-0">
+																		<table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
+																			<td>Name</td>
+																			<td>Score</td>
+																			<td>Accuracy</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="1" class="bg-dark"></tr>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Alpha</td>
+																			<td id="gun-1-score">0</td>
+																			<td id="gun-1-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Dodger</td>
+																			<td id="gun-11-score">0</td>
+																			<td id="gun-11-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="2" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Apollo</td>
+																			<td id="gun-2-score">0</td>
+																			<td id="gun-2-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Dragon</td>
+																			<td id="gun-12-score">0</td>
+																			<td id="gun-12-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="3" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Chaos</td>
+																			<td id="gun-3-score">0</td>
+																			<td id="gun-3-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Eagle</td>
+																			<td id="gun-13-score">0</td>
+																			<td id="gun-13-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="4" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Cipher</td>
+																			<td id="gun-4-score">0</td>
+																			<td id="gun-4-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Eliminator</td>
+																			<td id="gun-14-score">0</td>
+																			<td id="gun-14-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="5" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Cobra</td>
+																			<td id="gun-5-score">0</td>
+																			<td id="gun-5-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Elite</td>
+																			<td id="gun-15-score">0</td>
+																			<td id="gun-15-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="6" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Comet</td>
+																			<td id="gun-6-score">0</td>
+																			<td id="gun-6-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Falcon</td>
+																			<td id="gun-16-score">0</td>
+																			<td id="gun-16-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="7" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Commander</td>
+																			<td id="gun-7-score">0</td>
+																			<td id="gun-7-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Ghost</td>
+																			<td id="gun-17-score">0</td>
+																			<td id="gun-17-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="8" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Cyborg</td>
+																			<td id="gun-8-score">0</td>
+																			<td id="gun-8-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Gladiator</td>
+																			<td id="gun-18-score">0</td>
+																			<td id="gun-18-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="9" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Cyclone</td>
+																			<td id="gun-9-score">0</td>
+																			<td id="gun-9-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Hawk</td>
+																			<td id="gun-19-score">0</td>
+																			<td id="gun-19-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="10" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Delta</td>
+																			<td id="gun-10-score">0</td>
+																			<td id="gun-10-accuracy">0%</td>
+																		</table>
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Hyper</td>
+																			<td id="gun-20-score">0</td>
+																			<td id="gun-20-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+																<tr id="11" class="bg-dark">
+																	<td class="text-center text-white bg-dark">
+																	</td>
+																	<td class="text-center text-white bg-dark">
+																		<table class="gunScoreTable" style="width: 100%;">
+																			<td>Inferno</td>
+																			<td id="gun-21-score">0</td>
+																			<td id="gun-21-accuracy">0%</td>
+																		</table>
+																	</td>
+																</tr>
+															</tbody>
+														</table>
+													</div>
+												</div>
+
+												<div class="card mb-2">
+
+													<div class="card-header collapsed d-flex justify-content-between align-items-center" role="button" onclick="$('#feedbackCardBody').collapse('toggle')">
+														<span>Leave Feedback</span>
+														<i class="fa-solid fa-arrow-pointer fa-beat"></i>
+													</div>
+
+													<div class="card-body collapse" id="feedbackCardBody">
+
+														<iframe src="https://docs.google.com/forms/d/e/1FAIpQLScIxSLFGxJIEv7aKgw11nmjlu6MKclMyOkxSfc_w9xdAkrWYA/viewform?embedded=true" width="70%" height="500" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
+
+													</div>
+
+												</div>
+
+											</div>
+										</div>
+									</div>
+						<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>				
+
+
+-->
+
 {% endblock %}
+

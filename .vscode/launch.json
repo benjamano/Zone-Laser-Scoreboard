@@ -18,6 +18,7 @@
                 "reloadOnSourceControlChanges": true,
                 "reloadOnEditorTextChange": true
             },
+            "jinja": true,
         }
     ]
 }

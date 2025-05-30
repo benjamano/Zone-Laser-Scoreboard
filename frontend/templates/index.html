@@ -1,659 +1,571 @@
-{% extends "layout.html" %}
-
-{% block content %}
+{% extends "layout.html" %} {% block content %}
 
 <div id="customContextMenu" class="customContextMenu">
-	<ul class="list-unstyled mb-0" style="padding: 0; margin: 0;">
-	  <li id="deleteCardOption" style="cursor: pointer;">Delete Card</li>
-	</ul>
-  </div>  
-
-<div class="mb-2 pb-2 border-bottom border-dark-subtle">
-	<button class="btn btn-outline-primary" onclick="playBriefing();" type="button" id="playBriefingBtn">
-		PLAY BRIEFING VIDEO
-	</button>
-
-	<div class="dropdown d-inline-block">
-	  <button class="btn btn-secondary dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-		Add Card
-	  </button>
-	  <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="addCardDropdown">
-		<li><button class="dropdown-item" onclick="createTextAreaCard()">Add Text Entry</button></li>
-		<li><hr class="dropdown-divider"></li>
-		<li><button class="dropdown-item" onclick="createTimeRemainingCard()">Add Timeleft</button></li>
-		<li><button class="dropdown-item" onclick="addScoreBoardCard()">Add Scoreboard</button></li>
-		<li><button class="dropdown-item" onclick="createRedTeamScoreCard()">Add Red Team Scores</button></li>
-		<li><button class="dropdown-item" onclick="createGreenTeamScoreCard()">Add Green Team Scores</button></li>
-		<li><button class="dropdown-item" onclick="createWinningPlayerCard()" disabled>Add Winning Player (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createWinningRedPlayerCard()" disabled>Add Winning Red Player (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createWinningGreenPlayerCard()" disabled>Add Winning Green Player (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createWinningTeamCard()" disabled>Add Winning Team (Coming Soon)</button></li>
-		<li><hr class="dropdown-divider"></li>
-		<li><button class="dropdown-item" onclick="createMusicControlsCard()">Add Music Controls</button></li>
-		<li><button class="dropdown-item" onclick="createMusicAlbumCard()">Add Music Album Cover</button></li>
-		<li><button class="dropdown-item" onclick="createMusicNameCard()" disabled>Add Music Name (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createMusicVolumeSliderCard()" disabled>Add Volume Slider (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createMusicBPMCard()" disabled>Add BPM Number (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createClockCard()">Add Digital Clock</button></li>
-		<li><button class="dropdown-item" onclick="createAnalogueClockCard()">Add Analogue Clock</button></li>
-		<li><hr class="dropdown-divider"></li>
-		<li><button class="dropdown-item" onclick="createPlayBriefingCard()">Add Play Briefing Button</button></li>
-		<li><button class="dropdown-item" onclick="createWeatherCard()" disabled>Add Weather Card (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createTemparatureCard()" disabled>Add Arena Tempatature Card (Coming Soon)</button></li>
-		<li><hr class="dropdown-divider"></li>
-		<li><button class="dropdown-item" onclick="createVirtualLightingDeskCard()" disabled>Add Virtual Lighting Desk (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createLightingSceneCard()" disabled>Add Lighting Scene Control (Coming Soon)</button></li>
-		<li><button class="dropdown-item" onclick="createLightingBrightnessCard()" disabled>Add Lighting Brightness Slider (Coming Soon)</button></li>
-	  </ul>
-	</div>
-
-	<div class="dropdown d-inline-block ms-2">
-		<button class="btn btn-secondary dropdown-toggle" type="button" id="loadPresetDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-		  Load Preset
-		</button>
-		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="loadPresetDropdown">
-		  <li><button class="dropdown-item" href="#" onclick="" disabled>Coming Soon</button></li>
-		</ul>
-	  </div>
-  
-	<button class="btn btn-secondary ms-2" onclick="clearAllCards()">Clear All Cards</button>
-
-	<div class="dropdown d-inline-block ms-2">
-		<button class="btn btn-danger dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-			Help
-		</button>
-		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
-			<li class="dropdown-item">- Add Cards using the "Add Card" dropdown</li>
-			<li class="dropdown-item">- Drag cards by clicking and holding the card</li>
-			<li class="dropdown-item">- Resize the card by dragging the bottom right</li>
-			<li class="dropdown-item">- Delete the card by right-clicking the card</li>
-			<li class="dropdown-item">- Card positions save, reload the page and see!</li>
-			<li class="dropdown-item">- To request a card addition, suggest it in the feedback section</li>
-			<li class="dropdown-item">- More Cards coming soon!</li>
-		</ul>
-	</div>
-
-	<!-- <div class="dropdown d-inline-block ms-2">
-		<button class="btn btn-outline-warning dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-			Create Warning
-		</button>
-		<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
-			<li class="dropdown-item" role="button" onclick="createWarning('Restart')">- Restart Warning</li>
-			<li class="dropdown-item" role="button" onclick="createSkippedSongsWarning()">- Skipped Songs</li>
-		</ul>
-	</div> -->
+    <ul class="list-unstyled mb-0" style="padding: 0; margin: 0">
+        <li id="deleteCardOption" style="cursor: pointer">Delete Card</li>
+    </ul>
 </div>
 
-<div class="movableItemsContainer"></div>
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark px-2">
+    <div class="container-fluid p-0">
+        <ul class="navbar-nav p-0 nav nav-tabs w-100">
+            <div id="tabContainer" class="d-flex"></div>
+            <li class="nav-item dropdown">
+                <a
+                    class="nav-link dropdown-toggle"
+                    data-bs-toggle="dropdown"
+                    role="button"
+                    >Options</a
+                >
+                <ul class="dropdown-menu">
+                    <li>
+                        <a
+                            class="dropdown-item"
+                            id="tabNew"
+                            role="button"
+                            onclick="addNewCategory();"
+                            >Add New</a
+                        >
+                    </li>
+                    <li>
+                        <a class="dropdown-item" id="tabRename" role="button"
+                            >Rename Existing</a
+                        >
+                    </li>
+                    <li>
+                        <a class="dropdown-item" id="tabDelete" role="button"
+                            >Delete</a
+                        >
+                    </li>
+                </ul>
+            </li>
+
+            <div class="d-flex ms-auto flex-wrap align-items-center float-end">
+                <div class="dropdown d-inline-block me-2 mb-2">
+                    <button
+                        class="btn btn-danger dropdown-toggle"
+                        type="button"
+                        id="helpDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Help
+                    </button>
+                    <ul
+                        class="dropdown-menu dropdown-menu-dark"
+                        aria-labelledby="helpDropdown">
+                        <li class="dropdown-item">
+                            - Add Cards using the "Add Card" dropdown
+                        </li>
+                        <li class="dropdown-item">
+                            - Drag cards by clicking and holding the card
+                        </li>
+                        <li class="dropdown-item">
+                            - Resize the card by dragging the bottom right
+                        </li>
+                        <li class="dropdown-item">
+                            - Delete the card by right-clicking the card
+                        </li>
+                        <li class="dropdown-item">
+                            - Card positions save, reload the page and see!
+                        </li>
+                        <li class="dropdown-item">
+                            - To request a card addition, suggest it in the
+                            feedback section
+                        </li>
+                        <li class="dropdown-item">- More Cards coming soon!</li>
+                    </ul>
+                </div>
+
+                <div class="dropdown d-inline-block me-2 mb-2">
+                    <button
+                        class="btn btn-secondary dropdown-toggle"
+                        type="button"
+                        id="addCardDropdown"
+                        data-bs-toggle="dropdown"
+                        aria-expanded="false">
+                        Add Card
+                    </button>
+                    <ul
+                        class="dropdown-menu dropdown-menu-dark"
+                        aria-labelledby="addCardDropdown">
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createTextAreaCard()">
+                                Add Text Entry
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createTimeRemainingCard()">
+                                Add Timeleft
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="addScoreBoardCard()">
+                                Add Scoreboard
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createRedTeamScoreCard()">
+                                Add Red Team Scores
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createGreenTeamScoreCard()">
+                                Add Green Team Scores
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createWinningPlayerCard()"
+                                disabled>
+                                Add Winning Player (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createWinningRedPlayerCard()"
+                                disabled>
+                                Add Winning Red Player (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createWinningGreenPlayerCard()"
+                                disabled>
+                                Add Winning Green Player (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createWinningTeamCard()"
+                                disabled>
+                                Add Winning Team (Coming Soon)
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createMusicControlsCard()">
+                                Add Music Controls
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createMusicAlbumCard()">
+                                Add Music Album Cover
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createMusicNameCard()"
+                                disabled>
+                                Add Music Name (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createMusicVolumeSliderCard()"
+                                disabled>
+                                Add Volume Slider (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createMusicBPMCard()"
+                                disabled>
+                                Add BPM Number (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createClockCard()">
+                                Add Digital Clock
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createAnalogueClockCard()">
+                                Add Analogue Clock
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createPlayBriefingCard()">
+                                Add Play Briefing Button
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createWeatherCard()"
+                                disabled>
+                                Add Weather Card (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createTemparatureCard()"
+                                disabled>
+                                Add Arena Tempatature Card (Coming Soon)
+                            </button>
+                        </li>
+                        <li><hr class="dropdown-divider" /></li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createVirtualLightingDeskCard()"
+                                disabled>
+                                Add Virtual Lighting Desk (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createLightingSceneCard()"
+                                disabled>
+                                Add Lighting Scene Control (Coming Soon)
+                            </button>
+                        </li>
+                        <li>
+                            <button
+                                class="dropdown-item"
+                                onclick="createLightingBrightnessCard()"
+                                disabled>
+                                Add Lighting Brightness Slider (Coming Soon)
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+                <!-- 
+				<div class="dropdown d-inline-block me-2 mb-2">
+					<button class="btn btn-secondary dropdown-toggle" type="button" id="loadPresetDropdown"
+						data-bs-toggle="dropdown" aria-expanded="false">
+						Load Preset
+					</button>
+					<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="loadPresetDropdown">
+						<li><button class="dropdown-item" href="#" onclick="" disabled>Coming Soon</button></li>
+					</ul>
+				</div> -->
+
+                <button
+                    class="btn btn-secondary me-2 mb-2"
+                    onclick="clearAllCards()">
+                    Clear All Cards
+                </button>
+
+                <button
+                    class="btn btn-outline-primary me-2 mb-2"
+                    onclick="playBriefing();"
+                    type="button"
+                    id="playBriefingBtn">
+                    PLAY BRIEFING VIDEO
+                </button>
+            </div>
+        </ul>
+    </div>
+</nav>
+
+<div class="p-2">
+
+	<div class="movableItemsContainer"></div>
+
+</div>
 
 <script src="/static/scripts/draggableCards.js"></script>
 
-<!-- <!DOCTYPE html>
-<html lang="en" style="overflow-x: hidden;">
-<head>
-	<meta charset="UTF-8">
-	<title>Real-Time Packet Sniffer</title>
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-	<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet">
-    <link href="{{ url_for('static', filename='styles/LCARS/lcars-colors.css') }}" rel="stylesheet">
-    <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
-    <script src="{{ url_for('static', filename='styles/LCARS/jquery-3-7-0.min.js') }}"></script>
-    <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script>
-	<script src="https://kit.fontawesome.com/9d35a24d36.js" crossorigin="anonymous"></script>
-    <link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet">
-</head>
-<body>
-	<div id="warningsContainer" class="warning">
-		<h1 id="warningsText"></h1>
-	</div>
-			<div class="lcars-frame-after" id="album-container" style="width: 220px; height: 220px;">
-				<p>Song Playing:</p>
-				<p><span id="musicPlaying"></span></p>
-				<div id="album-cover" style="width: 100%; height: 100%;"></div>
-			</div>
-			
-				<span>BPM:	<a id="musicBPM">0</a> </span>
-				<div style="display: flex; flex-direction: row; align-items: center; justify-content: center; gap: 10px;">
-					<span style="display: flex;">
-						<div id="flashingDot" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: var(--bs-danger);"></div>
-					</span>
-					<span style="display: flex;">
-						<div id="flashingDot2" style="display: inline-block; width: 20px; height: 20px; border-radius: 50%; background-color: var(--bs-form-valid-border-color);"></div>
-					</span>
-				</div>
-
-
-							<a role="button" onclick="toggleSpotifyControl()">SPOTIFY CONTROL: <span id="spotifyPlaybackStatus">OFF</span></a>
-							<a role="button" onclick="controlPlayback('end')">TERMINATE SERVER</a>
-							<div class="panel-1"><div class="lcars-access">
-                                <a>Web App Status: <span id="webAppOnlineStatus" class="blink medium-dark-blue">Unknown</span></a>
-                            </div></div>
-							<div class="panel-1"><div class="lcars-access">
-								<a>DMX NETWORK: <span class="blink medium-dark-blue" id="DMXConnectionStatus">{{DMXConnected}}</span></a>
-                            </div></div>
-							<div class="panel-1"><div class="lcars-access">
-								<a>OBS CONNECTION: <span class="blink medium-dark-blue" id="OBSConnectionStatus">{{OBSConnected}}</span></a>
-                            </div></div>
-
-								<a>TIME REMAINING: <span class="medium-dark-blue" id="timeRemaining">00:00</span></a>
-
-										<!-- <div class="lcars-heading pb-2">LASER TAG SCOREBOARD NETWORK</div
-
-										<div class="card" style="background-color: var(--dark-gray); color: #ffffff;">
-											<div class="card-header collapsed">
-												<button  class="btn btn-primary" onclick="playBriefing()">Play Briefing</button>
-											</div>
-
-											<div class="card-body p-2">
-
-												<!-- <div class="card mb-2" style="background-color: var(--medium-dark-gray); color: #ffffff; width: 61vw;">
-
-													<div class="card-header collapsed" role="button" onclick="$('#lightingCardBody').collapse('toggle')">Lighting Control</div>
-
-													<div id="lightingCardBody" style="width: 100%;" class="card-body collapse">
-
-														<div id="fixtures-container" class="col-12"></div>
-
-													</div>
-
-												</div> 
-
-												<div class="card mb-2" style="background-color: var(--medium-dark-gray); color: #ffffff;">
-
-													<div class="card-header">Music Control</div>
-
-													<div id="musicControlCardBody" class="card-body d-flex justify-content-between align-items-start">
-
-														<div class="musicControls mb-2 col-5" style="display: flex; align-items: center; background-color: #000; border-radius: 20px; gap: 10px; font-size: 1.2rem; padding: 0.6rem 1rem 0.6rem 1.2rem;">
-															<i role="button" onclick="restartSong()" class="fa-solid fa-backward"></i>
-															<i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play"></i>
-															<i role="button" onclick="nextSong()" class="fa-solid fa-forward"></i>
-														
-															<div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
-																<div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
-															</div>
-															
-															<span id="timeLeft" style="color: #fff;">0:00</span>
-														</div>
-
-														<div class="card col-5" style="color: #ffffff; background-color: var(--primary-gray);">
-
-															<div class="card-header collapsed d-flex justify-content-between align-items-center" onclick="$('#musicRequestFormCardBody').collapse('toggle')"><span>Request a song</span><i class="fa-solid fa-arrow-pointer fa-beat"></i></div>
-
-															<div class="card-body collapse" id="musicRequestFormCardBody">
-
-																<iframe src="https://docs.google.com/forms/d/e/1FAIpQLSfHAWxPJBkmmP__dPlmHkSwA-li7bDA76Dgih_X7UJ3gfx8fw/viewform?embedded=true" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"></iframe>
-
-															</div>
-
-														</div>
-														
-													</div>
-
-												</div>
-
-												<!-- <div style="height: 400px; overflow-y: scroll; line-height: 20px;" id="messages"></div> 
-
-												<div class="card mb-2">
-
-													<div class="card-header" role="button" onclick="$('#scoreboardCardBody').collapse('toggle')">LIVE Scoreboard</div>
-
-													<div class="card-body collapse" id="scoreboardCardBody">
-														<table class="table table-bordered border-dark" style="font-size: 0.8rem; margin: 0;">
-															<thead>
-																<tr>
-																	<th class="text-center text-white bg-danger">Red Team</th>
-																	<th class="text-center text-white bg-success">Green Team</th>
-																</tr>
-															</thead>
-															<tbody id="scoresTable">
-																<tr>
-																	<td class="text-center text-white bg-dark p-0">
-																		<table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
-																			<td>Name</td>
-																			<td>Score</td>
-																			<td>Accuracy</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark p-0">
-																		<table class="gunScoreTable gunScoreTableHeader" style="width: 100%;">
-																			<td>Name</td>
-																			<td>Score</td>
-																			<td>Accuracy</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="1" class="bg-dark"></tr>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Alpha</td>
-																			<td id="gun-1-score">0</td>
-																			<td id="gun-1-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Dodger</td>
-																			<td id="gun-11-score">0</td>
-																			<td id="gun-11-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="2" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Apollo</td>
-																			<td id="gun-2-score">0</td>
-																			<td id="gun-2-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Dragon</td>
-																			<td id="gun-12-score">0</td>
-																			<td id="gun-12-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="3" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Chaos</td>
-																			<td id="gun-3-score">0</td>
-																			<td id="gun-3-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Eagle</td>
-																			<td id="gun-13-score">0</td>
-																			<td id="gun-13-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="4" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Cipher</td>
-																			<td id="gun-4-score">0</td>
-																			<td id="gun-4-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Eliminator</td>
-																			<td id="gun-14-score">0</td>
-																			<td id="gun-14-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="5" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Cobra</td>
-																			<td id="gun-5-score">0</td>
-																			<td id="gun-5-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Elite</td>
-																			<td id="gun-15-score">0</td>
-																			<td id="gun-15-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="6" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Comet</td>
-																			<td id="gun-6-score">0</td>
-																			<td id="gun-6-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Falcon</td>
-																			<td id="gun-16-score">0</td>
-																			<td id="gun-16-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="7" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Commander</td>
-																			<td id="gun-7-score">0</td>
-																			<td id="gun-7-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Ghost</td>
-																			<td id="gun-17-score">0</td>
-																			<td id="gun-17-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="8" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Cyborg</td>
-																			<td id="gun-8-score">0</td>
-																			<td id="gun-8-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Gladiator</td>
-																			<td id="gun-18-score">0</td>
-																			<td id="gun-18-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="9" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Cyclone</td>
-																			<td id="gun-9-score">0</td>
-																			<td id="gun-9-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Hawk</td>
-																			<td id="gun-19-score">0</td>
-																			<td id="gun-19-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="10" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Delta</td>
-																			<td id="gun-10-score">0</td>
-																			<td id="gun-10-accuracy">0%</td>
-																		</table>
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Hyper</td>
-																			<td id="gun-20-score">0</td>
-																			<td id="gun-20-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-																<tr id="11" class="bg-dark">
-																	<td class="text-center text-white bg-dark">
-																	</td>
-																	<td class="text-center text-white bg-dark">
-																		<table class="gunScoreTable" style="width: 100%;">
-																			<td>Inferno</td>
-																			<td id="gun-21-score">0</td>
-																			<td id="gun-21-accuracy">0%</td>
-																		</table>
-																	</td>
-																</tr>
-															</tbody>
-														</table>
-													</div>
-												</div>
-
-												<div class="card mb-2">
-
-													<div class="card-header collapsed d-flex justify-content-between align-items-center" role="button" onclick="$('#feedbackCardBody').collapse('toggle')">
-														<span>Leave Feedback</span>
-														<i class="fa-solid fa-arrow-pointer fa-beat"></i>
-													</div>
-
-													<div class="card-body collapse" id="feedbackCardBody">
-
-														<iframe src="https://docs.google.com/forms/d/e/1FAIpQLScIxSLFGxJIEv7aKgw11nmjlu6MKclMyOkxSfc_w9xdAkrWYA/viewform?embedded=true" width="70%" height="500" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>
-
-													</div>
-
-												</div>
-
-											</div>
-										</div>
-									</div>
-						<h1>Current Game Status &#149 <span id="gameStatus" class="blink-slow go-mars">Disconnected</span></h1>				
-
-
--->
-
 <script>
-    window.onload = function() {
-		if (controlSpotify == true){
-			$("#spotifyPlaybackStatus").text("ON")
-		} else {
-			$("#spotifyPlaybackStatus").text("OFF")
-		}
+    window.onload = function () {
+        if (controlSpotify == true) {
+            $("#spotifyPlaybackStatus").text("ON");
+        } else {
+            $("#spotifyPlaybackStatus").text("OFF");
+        }
 
-		fetchFixtures();
+        fetchFixtures();
 
-		let currentTimeLeft;
-		let countdownInterval;
+        let currentTimeLeft;
+        let countdownInterval;
 
-        console.log("LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com");	
-	};
+        console.log(
+            "LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com"
+        );
 
-	async function getAlbumCover(albumName) {
-        const apiKey = 'ce4aeea69e2f5a8fb184700d5892aa82';
-        const response = await fetch(`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${encodeURIComponent(albumName)}&api_key=${apiKey}&format=json`);
+        getDashboardCategories();
+    };
+
+    function getDashboardCategories() {
+        $.ajax({
+            url: "/api/dashboards",
+            type: "GET",
+            success: function (response) {
+                $("#tabContainer").empty();
+
+                response.forEach((category) => {
+                    const tab = document.createElement("li");
+
+                    tab.role = "button";
+                    tab.className = "user-select-none";
+                    tab.innerHTML = `<a class="nav-link dashboardTab ${
+                        category.name == "Main" ? "active" : ""
+                    }" id="tab_${category.id}" data-bs-toggle="tab">${
+                        category.name
+                    }</a>`;
+                    tab.addEventListener("click", function () {
+                        openDashboard(category.id);
+                    });
+
+                    if (category.name == "Main") {
+                        openDashboard(category.id);
+                    }
+
+                    $("#tabContainer").append(tab);
+                });
+            },
+        });
+    }
+
+    function addNewCategory() {
+        const newCategoryName = prompt("Enter the name of the new category:");
+
+        if (newCategoryName) {
+            $.ajax({
+                url: "/api/dashboards",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({ name: newCategoryName }),
+                success: function (response) {
+                    getDashboardCategories();
+                },
+            });
+        } else {
+            alert("Category name cannot be empty.");
+        }
+    }
+
+    function openDashboard(categoryId) {
+        $.ajax({
+            url: `/api/dashboards/${categoryId}`,
+            type: "GET",
+            success: function (response) {
+                $(".movableItemsContainer").empty();
+
+                loadCardConfig(response.widgets);
+            },
+        });
+    }
+
+    async function getAlbumCover(albumName) {
+        const apiKey = "ce4aeea69e2f5a8fb184700d5892aa82";
+        const response = await fetch(
+            `http://ws.audioscrobbler.com/2.0/?method=album.search&album=${encodeURIComponent(
+                albumName
+            )}&api_key=${apiKey}&format=json`
+        );
         const data = await response.json();
         if (data.results.albummatches.album.length > 0) {
-            return data.results.albummatches.album[0].image[3]['#text'];
+            return data.results.albummatches.album[0].image[3]["#text"];
         } else {
             return null;
         }
     }
 
-	function formatTime(seconds) {
-		const minutes = Math.floor(seconds / 60);
-		const remainingSeconds = seconds % 60;
-		return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
-	}
+    function formatTime(seconds) {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${
+            remainingSeconds < 10 ? "0" : ""
+        }${remainingSeconds}`;
+    }
 
-    async function toggleSpotifyControl(){
+    async function toggleSpotifyControl() {
         controlSpotify = !controlSpotify;
 
-		if (controlSpotify == true){
-			$("#spotifyPlaybackStatus").text("ON")
-		} else {
-			$("#spotifyPlaybackStatus").text("OFF")
-		}
+        if (controlSpotify == true) {
+            $("#spotifyPlaybackStatus").text("ON");
+        } else {
+            $("#spotifyPlaybackStatus").text("OFF");
+        }
 
-        socket.emit('SpotifyControl', {data: controlSpotify});
+        socket.emit("SpotifyControl", { data: controlSpotify });
 
         console.log("SpotifyControl: " + controlSpotify);
     }
 
     async function controlPlayback(action) {
-        if (action == "end"){
-            if (window.confirm("Are you sure you want to terminate the server?")) {
+        if (action == "end") {
+            if (
+                window.confirm("Are you sure you want to terminate the server?")
+            ) {
                 const response = await fetch(`/${action}`);
                 const result = await response.json();
                 alert(result.message || result.error);
-				return;
-			}
+                return;
+            }
+        } else {
+            const response = await fetch(`/${action}`);
+            const result = await response.json();
+            alert(result.message || result.error);
         }
-		else{
-			const response = await fetch(`/${action}`);
-			const result = await response.json();
-			alert(result.message || result.error);
-		}
     }
 
-	async function fetchFixtures() {
+    async function fetchFixtures() {
         const response = await fetch(`/api/availableFixtures`);
         const fixtures = await response.json();
 
-        fixtures.forEach(fixture => {
+        fixtures.forEach((fixture) => {
+            if (fixture.type.includes("Colorspot575XT")) {
+                console.log(
+                    "Colorspot 575 XT found with name: " + fixture.name
+                );
+            } else if (fixture.type.includes("Colorspot250AT")) {
+                console.log("Colorspot 250 AT found with ID: " + fixture.name);
+            } else if (fixture.type.includes("Colorwash250AT")) {
+                console.log("Colorwash 250 AT found with ID: " + fixture.name);
+            } else if (fixture.type.includes("Dimmer")) {
+                console.log("Dimmer found with ID: " + fixture.name);
 
-			if (fixture.type.includes("Colorspot575XT")) {
-				console.log("Colorspot 575 XT found with name: " + fixture.name); 
-			}
-			else if (fixture.type.includes("Colorspot250AT")) {
-				console.log("Colorspot 250 AT found with ID: " + fixture.name);
-			}
-			else if (fixture.type.includes("Colorwash250AT")) {
-				console.log("Colorwash 250 AT found with ID: " + fixture.name);
-			}
-			else if (fixture.type.includes("Dimmer")) {
-				console.log("Dimmer found with ID: " + fixture.name);
+                //createDimmerSlider(fixture);
+            }
 
-				//createDimmerSlider(fixture);
-			}
+            const container = document.getElementById("fixtures-container");
 
-			const container = document.getElementById('fixtures-container');
+            const fixtureDiv = document.createElement("div");
+            fixtureDiv.className = `fixture`;
+            fixtureDiv.id = `fixture-${fixture.id}`;
 
-			const fixtureDiv = document.createElement('div');
-			fixtureDiv.className = `fixture`;
-			fixtureDiv.id = `fixture-${fixture.id}`;
+            const fixtureContainer = document.createElement("div");
+            fixtureContainer.className = "fixtureContainer";
 
-			const fixtureContainer = document.createElement('div');
-			fixtureContainer.className = 'fixtureContainer';
+            const fixtureTitle = document.createElement("h1");
+            fixtureTitle.className = "title";
+            fixtureTitle.textContent = fixture.name;
 
-			const fixtureTitle = document.createElement('h1');
-			fixtureTitle.className = "title";
-			fixtureTitle.textContent = fixture.name;
+            container.appendChild(fixtureDiv);
+            fixtureDiv.appendChild(fixtureTitle);
 
-			container.appendChild(fixtureDiv);
-			fixtureDiv.appendChild(fixtureTitle);
+            Object.entries(fixture.attributes)
+                .map(([key, { DMXValue, index, value }]) => ({
+                    key,
+                    DMXValue,
+                    index,
+                    value,
+                }))
+                .sort((a, b) => a.index - b.index)
+                .forEach(({ key, value, DMXValue }) => {
+                    console.log(
+                        `DMXVal: ${DMXValue}, Attribute: ${key}`,
+                        value
+                    );
 
+                    const attributeName = key;
 
-			Object.entries(fixture.attributes)
-				.map(([key, { DMXValue, index, value }]) => ({ key, DMXValue, index, value }))
-				.sort((a, b) => a.index - b.index) 
-				.forEach(({ key, value, DMXValue }) => {
-					console.log(`DMXVal: ${DMXValue}, Attribute: ${key}`, value);
+                    const slider = document.createElement("input");
+                    slider.type = "range";
+                    slider.min = 0;
+                    slider.max = 255;
+                    slider.value = DMXValue;
+                    slider.className = "slider";
+                    slider.id = `slider-${fixture.name}-${attributeName}`;
+                    slider.oninput = function () {
+                        updateDMXValue(attributeName, fixture.name, this.value);
+                        valueLabel.textContent = this.value;
+                    };
 
-					const attributeName = key;
+                    const label = document.createElement("label");
+                    label.className = "label";
+                    label.textContent = attributeName;
 
-					const slider = document.createElement('input');
-					slider.type = 'range';
-					slider.min = 0;
-					slider.max = 255;
-					slider.value = DMXValue;
-					slider.className = 'slider';
-					slider.id = `slider-${fixture.name}-${attributeName}`;
-					slider.oninput = function() {
-						updateDMXValue(attributeName, fixture.name, this.value);
-						valueLabel.textContent = this.value;
-					};
-		
-					const label = document.createElement('label');
-					label.className = 'label';
-					label.textContent = attributeName;
-		
-					const valueLabel = document.createElement('label');
-					valueLabel.className = 'valueLabel';
-					valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`; 
-					valueLabel.textContent = DMXValue; 
-		
-					const fixtureChannel = document.createElement('div');
-					fixtureChannel.className = 'fixtureChannel';
-					fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`; 
+                    const valueLabel = document.createElement("label");
+                    valueLabel.className = "valueLabel";
+                    valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`;
+                    valueLabel.textContent = DMXValue;
 
-					fixtureChannel.appendChild(slider);
-					fixtureChannel.appendChild(label);
-					fixtureChannel.appendChild(valueLabel);
-					fixtureContainer.appendChild(fixtureChannel);
-					fixtureDiv.appendChild(fixtureContainer);
-				});
+                    const fixtureChannel = document.createElement("div");
+                    fixtureChannel.className = "fixtureChannel";
+                    fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`;
 
-				var gLabel = document.getElementById("musicControlCardBody");
-				var style = window.getComputedStyle(gLabel , null);
+                    fixtureChannel.appendChild(slider);
+                    fixtureChannel.appendChild(label);
+                    fixtureChannel.appendChild(valueLabel);
+                    fixtureContainer.appendChild(fixtureChannel);
+                    fixtureDiv.appendChild(fixtureContainer);
+                });
 
-				document.getElementById('fixtures-container').style.width = style.getPropertyValue("width")
+            var gLabel = document.getElementById("musicControlCardBody");
+            var style = window.getComputedStyle(gLabel, null);
+
+            document.getElementById("fixtures-container").style.width =
+                style.getPropertyValue("width");
         });
     }
 
-	function createDimmerSlider(fixture) {
-
-	}
+    function createDimmerSlider(fixture) {}
 
     function updateDMXValue(attributeName, fixtureName, value) {
         console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
 
-		socket.emit('UpdateDMXValue', {"fixtureName": fixtureName, "attributeName": attributeName, "value": value});
+        socket.emit("UpdateDMXValue", {
+            fixtureName: fixtureName,
+            attributeName: attributeName,
+            value: value,
+        });
     }
 
-	function toggleMusic(){
-		$("#pauseplayButton").toggleClass("fa-circle-play fa-circle-pause");
+    function toggleMusic() {
+        $("#pauseplayButton").toggleClass("fa-circle-play fa-circle-pause");
 
-		socket.emit('toggleMusic');
-	}
-
-	function nextSong(){
-		var songsSkipped = localStorage.getItem("SkippedSongsCount");
-		localStorage.setItem("SkippedSongsCount", `${(parseInt(songsSkipped) + 1).toString()}`);
-
-		socket.emit('nextSong');
-	}
-
-	function restartSong(){
-		socket.emit('restartSong');
-	}
-
-function updateProgressBar(currentTime, totalDuration) {
-    const progressBar = $('#progressBar');
-    const timeLeftDisplay = $('#timeLeft');
-
-    if (musicTimeInterval) {
-        clearInterval(musicTimeInterval);
+        socket.emit("toggleMusic");
     }
 
-    let internalCurrentTime = currentTime;
+    function nextSong() {
+        var songsSkipped = localStorage.getItem("SkippedSongsCount");
+        localStorage.setItem(
+            "SkippedSongsCount",
+            `${(parseInt(songsSkipped) + 1).toString()}`
+        );
 
-    function updateDisplay() {
-		if (gamePlayingStatus == "stopped"){
-			return;
-		}
+        socket.emit("nextSong");
+    }
 
-        if (totalDuration > 0) {
-            const progressPercent = (internalCurrentTime / totalDuration) * 100;
-            progressBar.css('width', progressPercent + '%');
+    function restartSong() {
+        socket.emit("restartSong");
+    }
+
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Home") {
+            console.log("Home Key pressed, Playing Briefing");
+            playBriefing();
         }
+    });
 
-        const timeLeft = totalDuration - internalCurrentTime;
-        if (timeLeft >= 0) {
-            const minutesLeft = Math.floor(timeLeft / 60);
-            const secondsLeft = Math.floor(timeLeft % 60);
-
-            timeLeftDisplay.text(
-                `-${minutesLeft}:${secondsLeft < 10 ? '0' : ''}${secondsLeft}`
-            );
-        }
-
-        internalCurrentTime++;
+    function playBriefing() {
+        console.log("Playing Briefing");
+        socket.emit("playBriefing");
     }
-
-    updateDisplay();
-
-    musicTimeInterval = setInterval(() => {
-        updateDisplay();
-    }, 1000);
-}
-
-	document.addEventListener('keydown', function(event) {
-		if (event.key === 'Home') {
-			console.log("Home Key pressed, Playing Briefing");
-			playBriefing()
-		}
-	});
-
-	function playBriefing(){
-		console.log("Playing Briefing");
-		socket.emit('playBriefing');
-	}
 </script>
 
 <script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>

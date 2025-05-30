@@ -260,3 +260,46 @@ class RestartRequest(db.Model):
     created_by_service_name = db.Column(db.String(255), nullable=False)
     complete = db.Column(db.Boolean, default=False, nullable=False)
     reason = db.Column(db.String(1024), nullable=True)
+    
+class DashboardCategory(db.Model):
+    __tablename__ = 'DashboardCategories'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    order = db.Column(db.Integer, nullable=True, default=0)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "order": self.order,
+            "isActive": self.isActive,
+            "widgets": [widget.to_dict() for widget in DashboardWidget.query.filter_by(categoryId=self.id and DashboardWidget.isActive == True).all()]
+        }
+        
+class DashboardWidget(db.Model):
+    __tablename__ = 'DashboardWidgets'
+    id = db.Column(db.Integer, primary_key=True)
+    height = db.Column(db.Integer, nullable=False, default=1)
+    width = db.Column(db.Integer, nullable=False, default=1)
+    left = db.Column(db.Integer, nullable=False, default=0)
+    top = db.Column(db.Integer, nullable=False, default=0)
+    typeId = db.Column(db.Integer, nullable=False)
+    content = db.Column(db.Text, nullable=True)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+    categoryId = db.Column(db.Integer, db.ForeignKey('DashboardCategories.id'), nullable=False)
+    
+    category = db.relationship('DashboardCategory', backref='DashboardWidgets')
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "height": self.height,
+            "width": self.width,
+            "left": self.left,
+            "top": self.top,
+            "typeId": self.typeId,
+            "content": self.content,
+            "categoryId": self.categoryId,
+            "isActive": self.isActive,
+        }

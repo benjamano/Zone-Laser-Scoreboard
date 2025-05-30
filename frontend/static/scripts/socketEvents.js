@@ -228,7 +228,7 @@ socket.on('songAlbum', async function(albumName) {
         if (albumName.message != previousAlbumName){
             previousAlbumName = albumName.message;
 
-            const imageUrl = await getAlbumCover(albumName);
+            const imageUrl = await getAlbumCover(albumName.message);
 
             if (imageUrl) {
                 document.getElementById('album-cover').style.backgroundImage = 'url(' + imageUrl + ')';
@@ -283,14 +283,14 @@ socket.on('musicStatusV2', function (msg) {
 
         if (msg.playbackStatus == "playing") {
             gamePlayingStatus = "playing";
-            $("#pauseplayButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
+            $(".pausePlayMusicButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
         } else {
             gamePlayingStatus = "stopped";
-            $("#pauseplayButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+            $(".pausePlayMusicButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
         }
 
         if (msg.duration && msg.duration != totalDuration) {
-            if (msg.musicPosition != undefined) {
+            if (msg.musicPosition !== undefined) {
                 currentTime = msg.musicPosition;
             }
 
@@ -299,9 +299,50 @@ socket.on('musicStatusV2', function (msg) {
             updateProgressBar(currentTime, totalDuration);
         }
     } catch (err) {
-        // console.error("Error processing music status:", err);
+        // handle error if you want, or leave silent
     }
 });
+
+function updateProgressBar(currentTime, totalDuration) {
+    const progressBars = $(".musicProgressBar");
+    const timeLeftDisplays = $(".timeLeft");
+
+    if (musicTimeInterval) {
+        clearInterval(musicTimeInterval);
+    }
+
+    let internalCurrentTime = currentTime;
+    let startTime = Date.now();
+
+    function updateDisplay() {
+        if (gamePlayingStatus === "stopped") return;
+
+        const elapsedSeconds = (Date.now() - startTime) / 1000;
+        const progressPercent = (Math.min(internalCurrentTime + elapsedSeconds, totalDuration) / totalDuration) * 100;
+
+        progressBars.css("width", progressPercent + "%");
+
+        const timeLeft = totalDuration - (internalCurrentTime + elapsedSeconds);
+        if (timeLeft >= 0) {
+            const minutesLeft = Math.floor(timeLeft / 60);
+            const secondsLeft = Math.floor(timeLeft % 60);
+            const timeString = `-${minutesLeft}:${secondsLeft < 10 ? "0" : ""}${secondsLeft}`;
+            timeLeftDisplays.text(timeString);
+        }
+
+        if (elapsedSeconds >= 1) {
+            internalCurrentTime += Math.floor(elapsedSeconds);
+            startTime += Math.floor(elapsedSeconds) * 1000;
+        }
+
+        if (internalCurrentTime >= totalDuration) {
+            clearInterval(musicTimeInterval);
+        }
+    }
+
+    updateDisplay();
+    musicTimeInterval = setInterval(updateDisplay, 100);
+}
 
 socket.on('songBPM', function (msg) {
     try{

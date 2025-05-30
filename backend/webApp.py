@@ -1,5 +1,5 @@
 import string
-from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for
+from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for, Blueprint
 from flask_socketio import SocketIO, emit
 import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time, sys
 from scapy.all import sniff, IP
@@ -24,6 +24,8 @@ from API.Emails import EmailsAPIController
 from API.Feedback.feedback import RequestAndFeedbackAPIController
 from data.models import *
 from API.createApp import createApp
+
+# MainBlueprint = Blueprint("Main", __name__)
 
 f = Format("Web App")
 
@@ -1688,17 +1690,19 @@ class WebApp:
                 try:
                     # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
-                    response = requests.post(
-                        f"http://{self._localIp}:8080/sendMessage",
-                        json={
-                            "message": {
-                                "playbackStatus": self.spotifyStatus,
-                                "musicPosition": currentPosition,
-                                "duration": totalDuration
-                            },
-                            "type": "musicStatusV2"
-                        }
-                    )
+                    self.socketio.emit('musicStatusV2', {'message': {"playbackStatus": self.spotifyStatus, "musicPosition": currentPosition, "duration": totalDuration}})
+                    
+                    # response = requests.post(
+                    #     f"http://{self._localIp}:8080/sendMessage",
+                    #     json={
+                    #         "message": {
+                    #             "playbackStatus": self.spotifyStatus,
+                    #             "musicPosition": currentPosition,
+                    #             "duration": totalDuration
+                    #         },
+                    #         "type": "musicStatusV2"
+                    #     }
+                    # )
                 except Exception as e:
                     f.message(f"Error sending music status message: {e}.", type="error")
                     

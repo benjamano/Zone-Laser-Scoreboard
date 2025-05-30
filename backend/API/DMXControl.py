@@ -456,8 +456,7 @@ class dmx:
             with self.app.app_context():
                 registeredFixtures : list[PatchedFixture] = self._context.PatchedFixtures.query.all()
                 
-                for registeredFixture in registeredFixtures:
-                
+                for registeredFixture in registeredFixtures:            
                     fixture : Fixture = self._context.Fixture.query.filter_by(id = registeredFixture.fixtureId).first()
                     
                     if (registeredFixture.dmxControllerFixtureId == 0):
@@ -465,7 +464,6 @@ class dmx:
                         fixtureDict = fixtureDTO[0].to_dict()
                         Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": (registeredFixture.dmxEndAddress - registeredFixture.dmxStartAddress)})
                     else:
-                        
                         DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)
                         
                         fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)

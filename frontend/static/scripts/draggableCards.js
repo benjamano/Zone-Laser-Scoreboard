@@ -5,7 +5,9 @@ function formatTime(seconds) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = Math.floor(seconds % 60);
     const milliseconds = Math.floor((seconds % 1) * 1000);
-    return `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}:${milliseconds.toString().padStart(3, '0')}`;
+    return `${minutes.toString().padStart(2, "0")}:${remainingSeconds
+        .toString()
+        .padStart(2, "0")}:${milliseconds.toString().padStart(3, "0")}`;
 }
 
 function createCard() {
@@ -13,18 +15,19 @@ function createCard() {
     card.classList.add("draggableCard", "resizable");
     card.style.left = "0px";
     card.style.top = "0px";
-    card.style.position = "absolute"; 
+    card.style.position = "absolute";
     card.draggable = true;
-    card.dataset.id = crypto.randomUUID 
-        ? crypto.randomUUID() 
-        : Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    card.dataset.id = "widget_0";
 
     card.addEventListener("dragstart", (e) => {
-        e.dataTransfer.setData("text/plain", JSON.stringify({
-            offsetX: e.offsetX,
-            offsetY: e.offsetY,
-            cardId: card.dataset.id
-        }));
+        e.dataTransfer.setData(
+            "text/plain",
+            JSON.stringify({
+                offsetX: e.offsetX,
+                offsetY: e.offsetY,
+                cardId: card.dataset.id,
+            })
+        );
         card.classList.add("dragging");
     });
 
@@ -38,7 +41,7 @@ function createCard() {
 
     const footer = document.createElement("div");
     footer.classList.add("cardFooter");
-    footer.style.position = "relative"; 
+    footer.style.position = "relative";
     card.appendChild(footer);
 
     // const deleteBtn = document.createElement("i");
@@ -57,8 +60,14 @@ function createCard() {
 function observeResizable(card) {
     const observer = new MutationObserver((mutations) => {
         mutations.forEach((mutation) => {
-            if (mutation.type === "attributes" && mutation.attributeName === "class") {
-                if (card.classList.contains("resizable") && !card.dataset.resizableAttached) {
+            if (
+                mutation.type === "attributes" &&
+                mutation.attributeName === "class"
+            ) {
+                if (
+                    card.classList.contains("resizable") &&
+                    !card.dataset.resizableAttached
+                ) {
                     makeResizable(card);
                     card.dataset.resizableAttached = "true";
                 }
@@ -66,7 +75,10 @@ function observeResizable(card) {
         });
     });
     observer.observe(card, { attributes: true });
-    if (card.classList.contains("resizable") && !card.dataset.resizableAttached) {
+    if (
+        card.classList.contains("resizable") &&
+        !card.dataset.resizableAttached
+    ) {
         makeResizable(card);
         card.dataset.resizableAttached = "true";
     }
@@ -75,7 +87,7 @@ function observeResizable(card) {
 function makeResizable(card) {
     const footer = card.querySelector(".cardFooter");
     if (!footer) return;
-    
+
     const resizer = document.createElement("div");
     resizer.classList.add("resizer");
     resizer.style.width = "10px";
@@ -85,7 +97,7 @@ function makeResizable(card) {
     resizer.style.right = "0";
     resizer.style.bottom = "0";
     resizer.style.cursor = "se-resize";
-    
+
     footer.appendChild(resizer);
 
     resizer.addEventListener("mousedown", (e) => {
@@ -97,8 +109,14 @@ function makeResizable(card) {
     function resize(e) {
         let containerRect = container.getBoundingClientRect();
         // Calculate new width/height relative to the container, snapping to the grid.
-        let newWidth = Math.round((e.pageX - card.offsetLeft - containerRect.left) / GRID_SIZE) * GRID_SIZE;
-        let newHeight = Math.round((e.pageY - card.offsetTop - containerRect.top) / GRID_SIZE) * GRID_SIZE;
+        let newWidth =
+            Math.round(
+                (e.pageX - card.offsetLeft - containerRect.left) / GRID_SIZE
+            ) * GRID_SIZE;
+        let newHeight =
+            Math.round(
+                (e.pageY - card.offsetTop - containerRect.top) / GRID_SIZE
+            ) * GRID_SIZE;
         card.style.width = `${Math.max(GRID_SIZE, newWidth)}px`;
         card.style.height = `${Math.max(GRID_SIZE, newHeight)}px`;
     }
@@ -111,87 +129,255 @@ function makeResizable(card) {
 
 // Save the configuration of all cards (type, position, and size) into localStorage.
 function saveCardConfig() {
+    var openDashboardId = $(".nav-link.dashboardTab.active")
+        .attr("id")
+        .replace("tab_", "");
+
     const cards = container.querySelectorAll(".draggableCard");
-    const config = Array.from(cards).map(card => ({
+    const config = Array.from(cards).map((card) => ({
+        id: card.dataset.id.replace("widget_", ""),
         type: card.dataset.type,
         left: card.style.left,
         top: card.style.top,
         width: card.style.width,
         height: card.style.height,
-        content: card.querySelector("textarea")?.value
+        content: card.querySelector("textarea")?.value,
     }));
+
+    $.ajax({
+        url: `/api/dashboards/${openDashboardId}`,
+        type: "PUT",
+        contentType: "application/json",
+        data: JSON.stringify({
+            widgets: config,
+        }),
+        success: function (response) {
+            // loadCardConfig(response.widgets);
+        },
+    });
+
     localStorage.setItem("cardConfig", JSON.stringify(config));
 }
 
-setInterval(saveCardConfig, 2000);
+setInterval(saveCardConfig, 10000);
 
-function loadCardConfig() {
-    let configStr = localStorage.getItem("cardConfig");
+function loadCardConfig(configStr) {
+    let config;
 
-    if (!configStr || configStr.trim() === "" || configStr === "[]" || configStr === "null") {
-        console.log("No autosaved config found, generating new");
-        configStr = JSON.stringify([
+    console.log(config);
+
+    try {
+        if (typeof configStr === "string") {
+            config = JSON.parse(configStr);
+        } else if (Array.isArray(configStr)) {
+            config = configStr;
+        } else {
+            throw new Error("Unsupported config format");
+        }
+
+        if (!Array.isArray(config)) throw new Error("Config is not an array");
+    } catch (error) {
+        console.error("Failed to parse configStr:", error);
+
+        console.log("No valid config found, generating legacy default");
+        config = [
             {
-                "type": "musicControlsCard",
+                "categoryId": 1,
+                "content": null,
+                "height": "600px",
+                "id": 1,
+                "isActive": true,
+                "left": "0px",
+                "top": "0px",
+                "typeId": "scoreBoardCard",
+                "width": "1600px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "100px",
+                "id": 2,
+                "isActive": true,
+                "left": "0px",
+                "top": "700px",
+                "typeId": "timeRemainingCard",
+                "width": "1800px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "100px",
+                "id": 3,
+                "isActive": true,
                 "left": "0px",
                 "top": "600px",
-                "width": "1000px",
-                "height": "100px"
+                "typeId": "musicControlsCard",
+                "width": "1800px"
             },
             {
-                "type": "scoreBoardCard",
+                "categoryId": 1,
+                "content": null,
+                "height": "200px",
+                "id": 4,
+                "isActive": true,
+                "left": "1600px",
+                "top": "400px",
+                "typeId": "albumCoverCard",
+                "width": "200px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "100px",
+                "id": 5,
+                "isActive": true,
                 "left": "0px",
-                "top": "0px",
-                "width": "1000px",
-                "height": "600px"
+                "top": "800px",
+                "typeId": "digitalClockCard",
+                "width": "1800px"
             },
             {
-                "type": "albumCoverCard",
-                "left": "1000px",
+                "categoryId": 1,
+                "content": null,
+                "height": "200px",
+                "id": 6,
+                "isActive": true,
+                "left": "1600px",
                 "top": "0px",
-                "width": "200px",
-                "height": "200px"
+                "typeId": "analogueClockCard",
+                "width": "200px"
             },
             {
-                "type": "analogueClockCard",
-                "left": "1200px",
-                "top": "0px",
-                "width": "200px",
-                "height": "200px"
-            },
-            {
-                "type": "digitalClockCard",
-                "left": "1000px",
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 17,
+                "isActive": true,
+                "left": "1600px",
                 "top": "200px",
-                "width": "400px",
-                "height": "100px"
+                "typeId": "briefingButtonCard",
+                "width": ""
             },
             {
-                "type": "timeRemainingCard",
-                "left": "1000px",
-                "top": "300px",
-                "width": "400px",
-                "height": "200px"
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 18,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 19,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 20,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 21,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 22,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 23,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 24,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 25,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 26,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 27,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
             }
-        ]);
+        ];
     }
 
-    let config;
-    try {
-        config = JSON.parse(configStr);
-        if (!Array.isArray(config)) throw new Error("Invalid config format");
-    } catch (error) {
-        console.error("Failed to parse config:", error);
-        return;
-    }
-
-    console.log("Loading from autosaved config", config);
+    console.log("Loading card config:", config);
 
     clearAllCards();
 
-    config.forEach(cardConfig => {
+    config.forEach((cardConfig) => {
         let contentArea;
-        switch (cardConfig.type) {
+        switch (cardConfig.typeId) {
             case "smallCard":
                 contentArea = addSmallCard();
                 break;
@@ -229,17 +415,17 @@ function loadCardConfig() {
                 break;
             case "textAreaCard":
                 contentArea = createTextAreaCard();
-
-                if (cardConfig.content != "") {
+                if (cardConfig.content !== "") {
                     const textArea = contentArea.querySelector("textarea");
                     if (textArea) {
-                        textArea.value = cardConfig.content ?? "The contents of this card are saved automatically";
+                        textArea.value =
+                            cardConfig.content ??
+                            "The contents of this card are saved automatically";
                     }
                 }
                 break;
             case "briefingButtonCard":
                 contentArea = createPlayBriefingCard();
-
                 break;
             default:
                 contentArea = addSmallCard();
@@ -249,13 +435,218 @@ function loadCardConfig() {
             const cardContainer = contentArea.parentElement;
             cardContainer.style.left = cardConfig.left;
             cardContainer.style.top = cardConfig.top;
+            cardContainer.dataset.id = "widget_" + (cardConfig.id ?? "");
             if (cardConfig.width) cardContainer.style.width = cardConfig.width;
-            if (cardConfig.height) cardContainer.style.height = cardConfig.height;
+            if (cardConfig.height)
+                cardContainer.style.height = cardConfig.height;
         }
     });
+
+    getCurrentSong();
+}
+
+function loadOriginalCardLayout() {
+    loadCardConfig([
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "600px",
+            "id": 1,
+            "isActive": true,
+            "left": "0px",
+            "top": "0px",
+            "typeId": "scoreBoardCard",
+            "width": "1600px"
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "100px",
+            "id": 2,
+            "isActive": true,
+            "left": "0px",
+            "top": "700px",
+            "typeId": "timeRemainingCard",
+            "width": "1800px"
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "100px",
+            "id": 3,
+            "isActive": true,
+            "left": "0px",
+            "top": "600px",
+            "typeId": "musicControlsCard",
+            "width": "1800px"
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "200px",
+            "id": 4,
+            "isActive": true,
+            "left": "1600px",
+            "top": "400px",
+            "typeId": "albumCoverCard",
+            "width": "200px"
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "100px",
+            "id": 5,
+            "isActive": true,
+            "left": "0px",
+            "top": "800px",
+            "typeId": "digitalClockCard",
+            "width": "1800px"
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "200px",
+            "id": 6,
+            "isActive": true,
+            "left": "1600px",
+            "top": "0px",
+            "typeId": "analogueClockCard",
+            "width": "200px"
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 17,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 18,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 19,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 20,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 21,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 22,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 23,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 24,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 25,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 26,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        },
+        {
+            "categoryId": 1,
+            "content": null,
+            "height": "",
+            "id": 27,
+            "isActive": true,
+            "left": "1600px",
+            "top": "200px",
+            "typeId": "briefingButtonCard",
+            "width": ""
+        }
+    ]);
 }
 
 function deleteCard(card) {
+    var cardId = card.dataset.id.replace("widget_", "");
+
+    if (cardId && cardId != "0") {
+        $.ajax({
+            url: `/api/dashboards/widgets/${card.dataset.id.replace("widget_", "")}`,
+            type: "DELETE",
+        });
+    }
+
     card.remove();
 }
 
@@ -266,11 +657,17 @@ container.addEventListener("drop", (e) => {
     let data = e.dataTransfer.getData("text/plain");
     if (!data) return;
     let { offsetX, offsetY, cardId } = JSON.parse(data);
-    let droppedCard = [...document.querySelectorAll(".draggableCard")].find(c => c.dataset.id === cardId);
+    let droppedCard = [...document.querySelectorAll(".draggableCard")].find(
+        (c) => c.dataset.id === cardId
+    );
     if (!droppedCard) return;
     let containerRect = container.getBoundingClientRect();
-    let x = Math.round((e.pageX - containerRect.left - offsetX) / GRID_SIZE) * GRID_SIZE;
-    let y = Math.round((e.pageY - containerRect.top - offsetY) / GRID_SIZE) * GRID_SIZE;
+    let x =
+        Math.round((e.pageX - containerRect.left - offsetX) / GRID_SIZE) *
+        GRID_SIZE;
+    let y =
+        Math.round((e.pageY - containerRect.top - offsetY) / GRID_SIZE) *
+        GRID_SIZE;
     droppedCard.style.left = `${x}px`;
     droppedCard.style.top = `${y}px`;
 });
@@ -339,23 +736,54 @@ function addScoreBoardCard() {
                         </table>
                     </td>
                 </tr>
-                ${Array.from({ length: 11 }, (_, i) => `
+                ${Array.from(
+                    { length: 11 },
+                    (_, i) => `
                 <tr id="${i + 1}" class="bg-dark">
                     <td class="text-center text-white bg-dark">
                         <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
+                            <td>${
+                                [
+                                    "Alpha",
+                                    "Apollo",
+                                    "Chaos",
+                                    "Cipher",
+                                    "Cobra",
+                                    "Comet",
+                                    "Commander",
+                                    "Cyborg",
+                                    "Cyclone",
+                                    "Delta",
+                                    "",
+                                ][i]
+                            }</td>
                             <td id="gun-${i + 1}-score">0</td>
                             <td id="gun-${i + 1}-accuracy">0%</td>
                         </table>
                     </td>
                     <td class="text-center text-white bg-dark">
                         <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
+                            <td>${
+                                [
+                                    "Dodger",
+                                    "Dragon",
+                                    "Eagle",
+                                    "Eliminator",
+                                    "Elite",
+                                    "Falcon",
+                                    "Ghost",
+                                    "Gladiator",
+                                    "Hawk",
+                                    "Hyper",
+                                    "Inferno",
+                                ][i]
+                            }</td>
                             <td id="gun-${i + 11}-score">0</td>
                             <td id="gun-${i + 11}-accuracy">0%</td>
                         </table>
                     </td>
-                </tr>`).join('')}
+                </tr>`
+                ).join("")}
             </tbody>
         </table>`;
     return contentArea;
@@ -383,16 +811,33 @@ function createRedTeamScoreCard() {
                         </table>
                     </td>
                 </tr>
-                ${Array.from({ length: 11 }, (_, i) => `
+                ${Array.from(
+                    { length: 11 },
+                    (_, i) => `
                 <tr id="${i + 1}" class="bg-dark">
                     <td class="text-center text-white bg-dark">
                         <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Alpha', 'Apollo', 'Chaos', 'Cipher', 'Cobra', 'Comet', 'Commander', 'Cyborg', 'Cyclone', 'Delta', ''][i]}</td>
+                            <td>${
+                                [
+                                    "Alpha",
+                                    "Apollo",
+                                    "Chaos",
+                                    "Cipher",
+                                    "Cobra",
+                                    "Comet",
+                                    "Commander",
+                                    "Cyborg",
+                                    "Cyclone",
+                                    "Delta",
+                                    "",
+                                ][i]
+                            }</td>
                             <td id="gun-${i + 1}-score">0</td>
                             <td id="gun-${i + 1}-accuracy">0%</td>
                         </table>
                     </td>
-                </tr>`).join('')}
+                </tr>`
+                ).join("")}
             </tbody>
         </table>`;
     return contentArea;
@@ -420,16 +865,33 @@ function createGreenTeamScoreCard() {
                         </table>
                     </td>
                 </tr>
-                ${Array.from({ length: 11 }, (_, i) => `
+                ${Array.from(
+                    { length: 11 },
+                    (_, i) => `
                 <tr id="${i + 1}" class="bg-dark">
                     <td class="text-center text-white bg-dark">
                         <table class="gunScoreTable" style="width: 100%;">
-                            <td>${['Dodger', 'Dragon', 'Eagle', 'Eliminator', 'Elite', 'Falcon', 'Ghost', 'Gladiator', 'Hawk', 'Hyper', 'Inferno'][i]}</td>
+                            <td>${
+                                [
+                                    "Dodger",
+                                    "Dragon",
+                                    "Eagle",
+                                    "Eliminator",
+                                    "Elite",
+                                    "Falcon",
+                                    "Ghost",
+                                    "Gladiator",
+                                    "Hawk",
+                                    "Hyper",
+                                    "Inferno",
+                                ][i]
+                            }</td>
                             <td id="gun-${i + 11}-score">0</td>
                             <td id="gun-${i + 11}-accuracy">0%</td>
                         </table>
                     </td>
-                </tr>`).join('')}
+                </tr>`
+                ).join("")}
             </tbody>
         </table>`;
     return contentArea;
@@ -447,8 +909,9 @@ function createClockCard() {
 
     function updateClock() {
         const now = new Date();
-        const timeString = now.toLocaleTimeString("en-GB", { hour12: false }) +
-            `.${now.getMilliseconds().toString().padStart(3, "0")}`;
+        const timeString =
+            now.toLocaleTimeString("en-GB", { hour12: false }) +
+            `.${now.getMilliseconds().toString().padStart(3, "0").slice(0, 2)}`;
         clock.textContent = timeString;
     }
     setInterval(updateClock, 10);
@@ -469,24 +932,24 @@ function createTimeRemainingCard() {
 
 function createMusicControlsCard() {
     const contentArea = createCard();
-    const card = contentArea.parentElement;``
+    const card = contentArea.parentElement;
     card.classList.add("smallWideCard");
     card.dataset.type = "musicControlsCard";
 
     contentArea.innerHTML = `
     <div class="musicControls">
         <i role="button" onclick="restartSong()" class="fa-solid fa-backward musicControlsButton" title='Previous'></i>
-        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play musicControlsButton" title='Pause / Unpause'></i>
+        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play musicControlsButton pausePlayMusicButton" title='Pause / Unpause'></i>
         <i role="button" onclick="nextSong()" class="fa-solid fa-forward musicControlsButton" title = 'Next'></i>
         <div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
-            <div id="progressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
+            <div id="progressBar" class="musicProgressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
         </div>
-        <span id="timeLeft" style="color: #fff;">0:00</span>
+        <span id="timeLeft" class="timeLeft" style="color: #fff;">0:00</span>
     </div>`;
     return contentArea;
 }
 
-function createMusicAlbumCard(){
+function createMusicAlbumCard() {
     const contentArea = createCard();
     const card = contentArea.parentElement;
     card.classList.add("albumCoverCard", "mediumSquareCard");
@@ -500,7 +963,7 @@ function createMusicAlbumCard(){
     return contentArea;
 }
 
-function createAnalogueClockCard(){
+function createAnalogueClockCard() {
     const contentArea = createCard();
     const card = contentArea.parentElement;
     card.classList.add("analogueClockCard", "mediumSquareCard");
@@ -522,12 +985,14 @@ function createAnalogueClockCard(){
         marker.classList.add("hourMarker");
         marker.style.position = "absolute";
         marker.style.width = "2px";
-        marker.style.height = "26%"; 
+        marker.style.height = "26%";
         marker.style.background = "#333";
         marker.style.top = "24%";
         marker.style.left = "50%";
         marker.style.transformOrigin = "center bottom";
-        marker.style.transform = `rotate(${i * 30}deg) translateY(-90%) translateX(-50%)`;
+        marker.style.transform = `rotate(${
+            i * 30
+        }deg) translateY(-90%) translateX(-50%)`;
         clockContainer.appendChild(marker);
     }
 
@@ -576,11 +1041,11 @@ function createAnalogueClockCard(){
         const seconds = now.getSeconds();
         const minutes = now.getMinutes();
         const hours = now.getHours();
-      
+
         const secondDeg = seconds * 6; // 360° / 60 = 6° per second.
         const minuteDeg = minutes * 6 + seconds * 0.1; // 6° per minute plus a smooth transition.
         const hourDeg = (hours % 12) * 30 + minutes * 0.5; // 360° / 12 = 30° per hour.
-      
+
         secondHand.style.transform = `translateX(-50%) rotate(${secondDeg}deg)`;
         minuteHand.style.transform = `translateX(-50%) rotate(${minuteDeg}deg)`;
         hourHand.style.transform = `translateX(-50%) rotate(${hourDeg}deg)`;
@@ -591,7 +1056,7 @@ function createAnalogueClockCard(){
     return contentArea;
 }
 
-function createTextAreaCard(){
+function createTextAreaCard() {
     const contentArea = createCard();
     const card = contentArea.parentElement;
     card.classList.add("textAreaCard", "wideCard");
@@ -603,52 +1068,50 @@ function createTextAreaCard(){
     return contentArea;
 }
 
-function createPlayBriefingCard(){
+function createPlayBriefingCard() {
     const contentArea = createCard();
     const card = contentArea.parentElement;
-    card.classList.add("briefingButtonCard", "wideCard");
+    card.classList.add("briefingButtonCard", "mediumSquareCard");
     card.dataset.type = "briefingButtonCard";
 
     contentArea.innerHTML = `
-        <button class="btn btn-outline-primary w-100 h-100" style='font-size: 1.3rem;' onclick="playBriefing();" id="briefingButton">Play Briefing Video</button>
+        <button class="btn btn-outline-primary w-100 h-100 fs-4" onclick="playBriefing();" id="briefingButton">PLAY BRIEFING VIDEO</button>
     `;
 
     return contentArea;
 }
 
-function clearAllCards(){
-    document.querySelectorAll(".movableItemsContainer .draggableCard").forEach(card => card.remove());
+function clearAllCards() {
+    document
+        .querySelectorAll(".movableItemsContainer .draggableCard")
+        .forEach((card) => card.remove());
 }
 
-document.addEventListener("DOMContentLoaded", loadCardConfig)
+// document.addEventListener("DOMContentLoaded", loadCardConfig);
 
 let currentCard = null;
 
-// Listen for right-click events on the container
-container.addEventListener("contextmenu", function(e) {
-    // Check if a draggable card (or a child of one) was right-clicked.
+container.addEventListener("contextmenu", function (e) {
     const card = e.target.closest(".draggableCard");
     if (card) {
         e.preventDefault();
         currentCard = card;
         const customMenu = document.getElementById("customContextMenu");
-        // Position the custom menu where the user right-clicked.
         customMenu.style.left = e.pageX + "px";
         customMenu.style.top = e.pageY + "px";
         customMenu.style.display = "block";
     }
 });
 
-// Hide the custom menu when clicking anywhere else on the page.
-document.addEventListener("click", function(e) {
+document.addEventListener("click", function (e) {
     const customMenu = document.getElementById("customContextMenu");
     customMenu.style.display = "none";
 });
 
-// When the "Delete Card" option is clicked, remove the card.
-document.getElementById("deleteCardOption").addEventListener("click", function() {
-    if (currentCard) {
-        deleteCard(currentCard);
-        document.getElementById("customContextMenu").style.display = "none";
-    }
-});
+document.getElementById("deleteCardOption")
+    .addEventListener("click", function () {
+        if (currentCard) {
+            deleteCard(currentCard);
+            document.getElementById("customContextMenu").style.display = "none";
+        }
+    });
