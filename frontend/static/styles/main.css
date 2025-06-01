@@ -767,8 +767,14 @@ main.collapsed {
     table-layout: fixed;
 }
 
+.gunScoreTable th{
+    width: 25%;
+    font-size: 1rem;
+}
+
 .gunScoreTable td {
     width: 25%;
+    font-size: 1rem;
 }
 
 .gunScoreTableHeader {
