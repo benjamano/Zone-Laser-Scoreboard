@@ -65,7 +65,7 @@ class DashboardAPIController:
                     existingWidget.top = widget.get("top", existingWidget.top)
                     existingWidget.typeId = widget.get("type", existingWidget.typeId)
                     existingWidget.content = widget.get("content", existingWidget.content)
-                    existingWidget.isActive = widget.get("isActive", existingWidget.isActive)
+                    existingWidget.isActive = True
                 else:
                     newWidget = DashboardWidget(
                         categoryId = dashboard.id,

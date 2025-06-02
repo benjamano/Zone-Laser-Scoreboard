@@ -274,7 +274,7 @@ class DashboardCategory(db.Model):
             "name": self.name,
             "order": self.order,
             "isActive": self.isActive,
-            "widgets": [widget.to_dict() for widget in DashboardWidget.query.filter_by(categoryId=self.id and DashboardWidget.isActive == True).all()]
+            "widgets": [widget.to_dict() for widget in DashboardWidget.query.filter_by(categoryId=self.id, isActive=True).all()]
         }
         
 class DashboardWidget(db.Model):
