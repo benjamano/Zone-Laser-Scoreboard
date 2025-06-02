@@ -289,7 +289,8 @@ socket.on('musicStatusV2', function (msg) {
             $(".pausePlayMusicButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
         }
 
-        if (msg.duration && msg.duration != totalDuration) {
+        const durationDiff = Math.abs(msg.musicPosition - (currentTime ?? 0));
+        if (durationDiff > 10 || currentTime == 0) {
             if (msg.musicPosition !== undefined) {
                 currentTime = msg.musicPosition;
             }

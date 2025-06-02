@@ -1664,7 +1664,7 @@ class WebApp:
         previousSong : str = ""
         
         while True:
-            time.sleep(5)
+            time.sleep(1)
             
             try:
                 song, album, bpm = self._fetcher.get_current_song_and_bpm()

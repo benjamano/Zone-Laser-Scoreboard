@@ -850,6 +850,7 @@ main.collapsed {
     text-align: center;
     position: relative;
     z-index: 1;
+    -webkit-user-select: none;
     user-select: none;
     white-space: nowrap;
 }
@@ -978,8 +979,8 @@ label {
     align-items: center;
     cursor: grab;
     position: absolute;
+    -webkit-user-select: none;
     user-select: none;
-    cursor: grab;
     flex-direction: column;
     color: white;
     padding: 0.15rem;
