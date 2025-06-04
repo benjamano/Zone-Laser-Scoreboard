@@ -1896,16 +1896,16 @@ class WebApp:
         if self.gameStatus == "stopped":
             return
         
+        self.gameStatus = "stopped"
+        
+        self.handleMusic(mode="pause")
+        
         try:
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.now())}", 'type': "end"})
+            self.socketio.emit('end', {'message': f"Game Ended @ {str(datetime.now())}"})
         except Exception as e:
             pass
         
         f.message(f"Game ended at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
-
-        self.gameStatus = "stopped"
-        
-        self.handleMusic(mode="pause")
             
         try:
             if self.currentGameId != 0:
