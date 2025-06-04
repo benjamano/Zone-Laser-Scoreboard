@@ -443,7 +443,7 @@ class context:
         except Exception as e:
             ise : InternalServerError = InternalServerError()
             ise.service = "db"
-            ise.exception_f.message = str(e)
+            ise.exception_message = str(e)
             ise.process = "Update Game"
             ise.severity = 2
             
