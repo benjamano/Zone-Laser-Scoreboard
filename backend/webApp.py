@@ -1716,10 +1716,6 @@ class WebApp:
             except Exception as e:
                 f.message(f"Error occured while checking media status: {e}", type="error")
                 
-                if self.devMode == True:
-                    f.message("Development Mode, ignoring error handling because its dumb", type="warning")
-                    return
-                
                 if str(e) != "an integer is required":
         
                     f.message("Requesting app restart", type="warning")
@@ -1731,7 +1727,7 @@ class WebApp:
                     with self.app.app_context():
                         self._context.db.session.add(RestartRequest(
                             created_by_service_name = "WebApp - Media Status Checker",
-                            reason = f"Failed to check for media status: {str(e)}"
+                            reason = f"RESTART PC - Failed to check for media status: {str(e)}",
                         ))
                     
                         self._context.db.session.commit()
@@ -1969,18 +1965,18 @@ class WebApp:
             
             self._supervisor.logInternalServerError(ise)
             
-        try:
-            self._supervisor.executePendingRestarts()
+        # try:
+        #     self._supervisor.executePendingRestarts()
             
-        except Exception as e:
-            ise : InternalServerError = InternalServerError()
+        # except Exception as e:
+        #     ise : InternalServerError = InternalServerError()
                 
-            ise.service = "webapp"
-            ise.exception_message = str(f"Failed to check for requested restart: {e}")
-            ise.process = "WebApp: Check for requested restarts"
-            ise.severity = "1"
+        #     ise.service = "webapp"
+        #     ise.exception_message = str(f"Failed to check for requested restart: {e}")
+        #     ise.process = "WebApp: Check for requested restarts"
+        #     ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+        #     self._supervisor.logInternalServerError(ise)
 
     # -------------------------------------------------------------------------| Testing |----------------------------------------------------------------------------------------------------------------------------------- #    
     

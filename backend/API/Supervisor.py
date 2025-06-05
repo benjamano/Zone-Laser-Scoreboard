@@ -122,12 +122,15 @@ class Supervisor:
         else:
             pass
         
+    def __focusWindow(self):
+        try:
+            self.__focusWindow("Zone Laser Scoreboard")
+        except Exception as e:
+            pass
+        
     def __checkForErrors(self):
         while True:
-            try:
-                self.__focusWindow("Zone Laser Scoreboard")
-            except Exception as e:
-                pass
+            self.__focusWindow()
             
             _time.sleep(30)
 
@@ -199,13 +202,17 @@ class Supervisor:
                 pass
                 f.message(f"Error occurred while switching to sleep mode: {e}", type="warning")
                 
+            now = datetime.now().time()
+                
             if self.devMode == False:
                 try:
-                    now = datetime.now().time()
                     if time(0, 0, 0) <= now <= time(0, 5, 0):
                         self.__restartPC("Daily Restart")
                 except Exception as e:
-                    f.message(f"Error occurred while executing daily restart: {e}", type="error")               
+                    f.message(f"Error occurred while executing daily restart: {e}", type="error")          
+                  
+            if now >= time(21, 0, 0) or now <= time(10, 0, 0):
+                self.executePendingRestarts()
                 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
@@ -284,7 +291,7 @@ class Supervisor:
         with self._app.app_context():
             PendingRestarts : list[RestartRequest] = self._context.db.session.query(RestartRequest).filter_by(complete=False).all()
             
-            if (len(PendingRestarts) >= 4):
+            if len(PendingRestarts) >= 1:
                 reasons = "; ".join([r.reason for r in PendingRestarts if r.reason])
                 
                 f.message("WARNING - Restarting Program due to pending restarts.", type="warning")
@@ -297,7 +304,10 @@ class Supervisor:
                 if self.devMode:
                     f.message("Won't restart program in dev mode, please restart manually.", type="warning")
                 else:
-                    self.__closeApp((f"Restarting Program at {datetime.now()} due to: " + reasons))
+                    if "RESTART PC" in reasons:
+                        self.__restartPC("Restart Request by " + PendingRestarts[0].created_by_service_name + "with reason: " + reasons)
+                    else: 
+                        self.__closeApp((f"Restarting Program at {datetime.now()} due to: " + reasons))
         
         return None
         
