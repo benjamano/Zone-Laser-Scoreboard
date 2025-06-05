@@ -1831,6 +1831,8 @@ class WebApp:
         gunId = packetData[1]
         finalScore = packetData[3]
         accuracy = packetData[7]
+        
+        self.socketio.emit('gunScores', {'message': f"{gunId},{finalScore},{accuracy}"})
 
         gunName = ""
         
@@ -1850,13 +1852,9 @@ class WebApp:
             f.message(f"Error updating Gun Scores: {e}", type="error")
             
         #f.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
-        
-        data = f"{gunId},{finalScore},{accuracy}"
-        
-        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
-        
+
     def shotConfirmedPacket(self, packetData):
-        #f.message(f"Shot Confirmed Packet: {packetData}")
+        f.message(f"Shot Confirmed Packet: {packetData}")
         pass
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
@@ -1868,7 +1866,7 @@ class WebApp:
         f.newline()
         
         try:
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
+            self.socketio.emit('start', {'message': f"Game Started @ {str(datetime.now())}"})
         except Exception as e:
             pass
                     
