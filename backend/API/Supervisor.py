@@ -111,16 +111,20 @@ class Supervisor:
                 return None
             
     def __focusWindow(self, title):
-        pythoncom.CoInitialize()
-        shell = win32com.client.Dispatch("WScript.Shell")
-        hwnd = win32gui.FindWindow(None, title)
+        try:
+            pythoncom.CoInitialize()
+            shell = win32com.client.Dispatch("WScript.Shell")
+            hwnd = win32gui.FindWindow(None, title)
 
-        if hwnd:
-            win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-            shell.SendKeys('%')
-            win32gui.SetForegroundWindow(hwnd)
-        else:
-            pass
+            if hwnd:
+                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
+                shell.SendKeys('%')
+                win32gui.SetForegroundWindow(hwnd)
+            else:
+                pass
+        except Exception as e:
+            f.message(f"Error focusing window: {e}", type="error")
+            return None
 
     def __checkForErrors(self):
         while True:
