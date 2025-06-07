@@ -121,16 +121,10 @@ class Supervisor:
             win32gui.SetForegroundWindow(hwnd)
         else:
             pass
-        
-    def __focusWindow(self):
-        try:
-            self.__focusWindow("Zone Laser Scoreboard")
-        except Exception as e:
-            pass
-        
+
     def __checkForErrors(self):
         while True:
-            self.__focusWindow()
+            self.__focusWindow("Zone Laser Scoreboard")
             
             _time.sleep(30)
 
