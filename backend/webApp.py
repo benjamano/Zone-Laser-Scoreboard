@@ -1733,7 +1733,7 @@ class WebApp:
                         self._context.db.session.commit()
                     
                     # Just makes sure to pause this process, so it doesn't keep logging the same error
-                    time.sleep(60)
+                    time.sleep(1800)
                     
                 else:
                     f.message("Error not fatal, don't care", type="warning")
