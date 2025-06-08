@@ -1854,7 +1854,45 @@ class WebApp:
         #f.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
 
     def shotConfirmedPacket(self, packetData):
-        f.message(f"Shot Confirmed Packet: {packetData}")
+        # f.message(f"Shot Confirmed Packet: {packetData}")
+        
+        shotGunId = packetData[1]
+        shooterGunId = packetData[2]
+        pointForRedTeam = packetData[3]
+        pointForGreenTeam = packetData[4]
+        
+        shotGunName = ""
+        shooterGunName = ""
+        
+        try:
+            with self.app.app_context():
+                shotGunName : str = self._context.Gun.query.filter_by(id=shotGunId).first().name
+                shooterGunName : str = self._context.Gun.query.filter_by(id=shooterGunId).first().name
+        
+        except Exception as e:
+            f.message(f"Error getting gun names: {e}", type="error")
+        
+        f.message(f"{shotGunName} just shot {shooterGunName}")
+        
+        self.socketio.emit("shotConfirmed", {"ShotGun": shotGunId, "ShooterGun": shooterGunId})
+        
+        # if pointForRedTeam > 0:
+        #     self.TeamScores["Red"] += pointForRedTeam
+        # elif pointForGreenTeam > 0:
+        #     self.TeamScores["Green"] += pointForGreenTeam
+        
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '6', '1', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '6', '1', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '10', '9', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '10', '9', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '13', '1', '2', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '13', '1', '2', '0', '0', '0', '0\x00']
+        
         pass
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
