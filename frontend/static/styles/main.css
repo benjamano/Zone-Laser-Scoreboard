@@ -769,6 +769,8 @@ main.collapsed {
 
 .gunScoreTable td {
     width: 25%;
+    font-size: 1rem;
+    text-align: center;
 }
 
 .gunScoreTableHeader {
@@ -1166,6 +1168,8 @@ label {
     border-radius: 0.2rem;
     flex-direction: column;
     z-index: 99999999;
+    max-width: 50vw;
+    max-height: 25vh;
 }
 
 .unauthorisedBlocker {
@@ -1234,4 +1238,13 @@ label {
 
 .nav-link {
     height: 100%;
+}
+
+.card:not(.card .card) {
+    margin: 1rem;
+}
+
+th,
+td{
+    text-align: left;
 }

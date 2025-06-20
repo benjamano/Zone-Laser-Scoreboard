@@ -303,3 +303,64 @@ class DashboardWidget(db.Model):
             "categoryId": self.categoryId,
             "isActive": self.isActive,
         }
+        
+class PlayList(db.Model):
+    __tablename__ = 'Playlists'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+
+    songs = db.relationship("PlaylistSong", back_populates="playlist", cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "songs": [ps.song.to_dict() for ps in self.songs if ps.isActive]
+        }
+
+class Song(db.Model):
+    __tablename__ = 'Songs'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(255), nullable=False)
+    youtubeLink = db.Column(db.String(255), nullable=True)
+    duration = db.Column(db.Integer, nullable=True)
+    isDownloaded = db.Column(db.Boolean, nullable=True)
+
+    songs = db.relationship("PlaylistSong", back_populates="song", cascade="all, delete-orphan")
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "youtubeLink": self.youtubeLink,
+            "isDownloaded": self.isDownloaded,
+            "duration": self.duration
+        }
+
+class PlaylistSong(db.Model):
+    __tablename__ = 'playlistSongs'
+    playlistId = db.Column(db.Integer, db.ForeignKey('Playlists.id'), primary_key=True)
+    songId = db.Column(db.Integer, db.ForeignKey('Songs.id'), primary_key=True)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+
+    playlist = db.relationship("PlayList", back_populates="songs")
+    song = db.relationship("Song", back_populates="songs")
+    
+class SongDetailsDTO():
+    def __init__(self, name, album, duration, timeleft, isPlaying, currentVolume):
+        self.name = name
+        self.album = album
+        self.duration = duration
+        self.timeleft = timeleft
+        self.isPlaying = isPlaying
+        self.currentVolume = currentVolume
+
+    def to_dict(self):
+        return {
+            "name": self.name,
+            "album": self.album,
+            "duration": self.duration,
+            "timeleft": self.timeleft,
+            "isPlaying": self.isPlaying,
+            "currentVolume": self.currentVolume
+        }

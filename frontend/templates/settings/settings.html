@@ -1,32 +1,75 @@
-{% extends "layout.html" %}
-
-{% block content %}	
+{% extends "layout.html" %} {% block content %}
 
 <div class="card">
-
-	<div class="card-header">Lighting / Scenes</div>
-
-	<div class="card-body">
-
-		<h3>Export Scene as JSON</h3>
-
+	<div class="card-header d-flex justify-content-between">
+		Playlists
+		<button class="btn btn-outline-success" onclick="createNewPlaylist();">Create New Playlist</button>
 	</div>
 
+	<div class="card-body">
+		<table class="table table-dark table-striped table-hover" id="Playlisttbl">
+			<thead class="thead-dark">
+				<tr>
+					<th>Id</th>
+					<th>Name</th>
+					<th>Actions</th>
+				</tr>
+			</thead>
+
+			<tbody></tbody>
+		</table>
+
+		<div id="playlistDetails" style="display: none">
+			<hr />
+
+			<div class="row">
+				<div class="form-group col-3">
+					<label class="form-label">Playlist Id</label>
+					<input type="text" id="playlistId" class="form-control readonly" readonly disabled />
+				</div>
+
+				<div class="form-group col-3">
+					<label class="form-label">Playlist Name</label>
+					<div class="input-group">
+						<input type="text" id="playlistName" class="form-control" />
+						<span class="input-group-text" role="button" onclick="updatePlaylist();">
+							<i class="fas fa-floppy-disk"></i>
+						</span>
+						<span class="input-group-text" role="button" onclick="addNewSongToPlaylist();">
+							<i class="fas fa-plus"></i>
+						</span>
+						<span class="input-group-text" role="button" onclick="playPlaylist();">
+							<i class="fas fa-play"></i>
+						</span>
+						<span class="input-group-text" role="button" onclick="stopPlaylist();">
+							<i class="fas fa-stop"></i>
+						</span>
+					</div>
+				</div>
+			</div>
+
+			<table class="table table-dark table-striped table-hover" id="Musictbl">
+				<thead class="thead-dark">
+					<tr>
+						<th>Id</th>
+						<th>Name</th>
+						<th>Duration</th>
+					</tr>
+				</thead>
+
+				<tbody></tbody>
+			</table>
+		</div>
+	</div>
 </div>
 
 <div class="card">
-
 	<div class="card-header">Developer Tools</div>
 
-	<div class="card-body">
-
-		{% include "_LogConsolePartial.html" %}
-
-	</div>
-
+	<div class="card-body">{% include "_LogConsolePartial.html" %}</div>
 </div>
 
-<div class="card mt-2">
+<!-- <div class="card mt-2">
 
     <div class="card-header cursor-pointer user-select-none" id="communicationHeader" onclick="$('#communicationBody').toggle(); $('#communicationHeader').toggleClass('collapsed')">Communication</div>
 
@@ -54,108 +97,467 @@
     
     </div>
 
-</div>
+</div> -->
 
 <div class="card">
+	<div class="card-header">View Database Data</div>
 
-    <div class="card-header">View Database Data</div>
+	<div class="card-body">
+		<table class="table table-dark table-striped table-hover" id="Gamestbl">
+			<thead class="thead-dark">
+				<tr>
+					<th>Id</th>
+					<th>Start Time</th>
+					<th>End Time</th>
+					<th>Winning Player</th>
+					<th>Winning Team</th>
+				</tr>
+			</thead>
 
-    <div class="card-body">
+			<tbody></tbody>
+		</table>
+	</div>
+</div>
 
-        <table class="table table-dark table-striped table-hover" id="Gamestbl">
+<div class="modal fade" id="addSongToPlayListModal" tabindex="-1" aria-labelledby="addSongToPlayListModal" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="addSongToPlayListModalLabel">Add Song To Playlist</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+                <div class="row">
+                    <div class="form-group col-3">
+                        <label class="form-label">Load Song</label>
+                        <select id="addSongToPlaylistSongId" class="form-select" onchange="getSongDetailsForModal($(this).val());">
+                            <option value="">Select a song</option>
+                        </select>
+                    </div>
 
-            <thead class="thead-dark">
-                <tr>
-                    <th>Id</th>
-                    <th>Start Time</th>
-                    <th>End Time</th>
-                    <th>Winning Player</th>
-                    <th>Winning Team</th>
-                </tr>
-            </thead>
+					<div class="form-group col-9">
+						<label class="form-label">Song Name</label>
+						<input type="text" id="addSongToPlaylistSongName" class="form-control" placeholder="Song Name" />
+					</div>
+				</div>
 
-            <tbody></tbody>
+				<div class="row">
+					<div class="form-group">
+						<label class="form-label">Song URL (Optional)</label>
+						<input type="text" id="addSongToPlaylistURL" class="form-control" placeholder="Song URL" />
+					</div>
+				</div>
 
-        </table>
+				<div class="row" hidden>
+					<div class="form-group">
+						<label class="form-label">Song Path Name</label>
+						<input type="text" id="addSongToPlaylistSongPath" class="form-control" placeholder="Song Path" />
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-success" onclick="addSongToPlaylist();">Add Song</button>
+			</div>
+		</div>
+	</div>
+</div>
 
-    </div>
+<div class="modal fade" id="editSongModal" tabindex="-1" aria-labelledby="editSongModal" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+		<div class="modal-content">
+			<div class="modal-header">
+				<h5 class="modal-title" id="editSongModalTitle">Edit Song</h5>
+				<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+			</div>
+			<div class="modal-body">
+                <div class="row">
+					<div class="form-group">
+						<label class="form-label">Song Id</label>
+						<input type="text" id="editSongId" class="form-control readonly" disabled/>
+					</div>
+				</div>
 
+				<div class="row">
+					<div class="form-group">
+						<label class="form-label">Song Name</label>
+						<input type="text" id="editSongName" class="form-control" placeholder="Song Name" />
+					</div>
+				</div>
+
+				<div class="row">
+					<div class="form-group">
+						<label class="form-label">Song URL (Optional)</label>
+						<input type="text" id="editSongURL" class="form-control" placeholder="Song URL" />
+					</div>
+				</div>
+
+				<div class="row" hidden>
+					<div class="form-group">
+						<label class="form-label">Song Path Name</label>
+						<input type="text" id="addSongToPlaylistSongPath" class="form-control" placeholder="Song Path" />
+					</div>
+				</div>
+			</div>
+			<div class="modal-footer">
+				<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+				<button type="button" class="btn btn-success" onclick="editSong();">Edit Song</button>
+			</div>
+		</div>
+	</div>
 </div>
 
 <script>
+	$(document).ready(function () {
+		//setInterval(refreshChatBox, 1000);
 
-    $(document).ready(function(){
-        setInterval(refreshChatBox, 1000);
+		setTimeout(function () {
+			var chatBox = document.getElementById("communicationChatBox");
+			chatBox.scrollTop = chatBox.scrollHeight;
+		}, 1500);
+	});
 
-        setTimeout(function() {
-            var chatBox = document.getElementById("communicationChatBox");
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }, 1500);
-    });
+	function sendMessage() {
+		var messageToSend = $("#sendMessageAsAlias").val() + ": " + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0" + $("#sendMessageTextBox").val();
 
-    function sendMessage(){
-        var messageToSend = $("#sendMessageAsAlias").val() + ": " + "\u00A0\u00A0\u00A0\u00A0\u00A0\u00A0" + $("#sendMessageTextBox").val();
+		$.ajax({
+			url: "/api/settings/sendMessage",
+			type: "POST",
+			data: {
+				message: messageToSend,
+			},
+			success: function (response) {
+				refreshChatBox();
 
-        $.ajax({
-            url: "/api/settings/sendMessage", 
-            type: "POST",
-            data: {
-                message: messageToSend
-            },
-            success: function(response) {
-                refreshChatBox();
+				setTimeout(function () {
+					var chatBox = document.getElementById("communicationChatBox");
+					chatBox.scrollTop = chatBox.scrollHeight;
+				}, 300);
+			},
+		});
+	}
 
-                setTimeout(function() {
-                    var chatBox = document.getElementById("communicationChatBox");
-                    chatBox.scrollTop = chatBox.scrollHeight;
-                }, 300);
-            },
-        });
+	function refreshChatBox() {
+		$.ajax({
+			url: "/api/settings/getMessages",
+			type: "GET",
+			success: function (response) {
+				$("#communicationChatBox").val(response);
+			},
+		});
+	}
+
+	var Gamestbl = $("#Gamestbl").DataTable({
+		pageLength: 10,
+		ajax: {
+			type: "GET",
+			url: "/api/getAllGames",
+			dataSrc: "",
+			data: {},
+		},
+		columns: [
+			{
+				data: "id",
+				render: renderValue,
+			},
+			{
+				data: "startTime",
+				render: renderDate,
+			},
+			{
+				data: "endTime",
+				render: renderDate,
+			},
+			{
+				data: "winningPlayer",
+				render: renderValue,
+			},
+			{
+				data: "winningTeam",
+				render: renderValue,
+			},
+		],
+		order: [[1, "desc"]],
+	});
+
+	var Musictbl = $("#Musictbl").DataTable({
+		pageLength: 10,
+		ajax: {
+			type: "GET",
+			url: "/api/music/playlists/" + ($("#playlistId").val() == "" ? "0" : $("#playlistId").val()) + "/songs",
+			dataSrc: "",
+		},
+		columns: [
+			{
+				data: "id",
+				render: renderValue,
+			},
+			{
+				data: "name",
+				render: renderValue,
+			},
+			{
+				data: "duration",
+				render: renderValue,
+			},
+			{
+				data: null,
+				render: function (data, type, row) {
+					return `<button class="btn btn-outline-danger me-2" onclick="deleteSongFromPlaylist(${row.id});">Delete</button><button class='btn btn-outline-primary' onclick="openEditSongModal(${row.id});">Edit</button>`;
+				},
+			},
+		],
+		order: [[0, "desc"]],
+	});
+
+	var Playlisttbl = $("#Playlisttbl").DataTable({
+		pageLength: 10,
+		ajax: {
+			type: "GET",
+			url: "/api/music/playlists",
+			dataSrc: "",
+			data: {},
+		},
+		columns: [
+			{
+				data: "id",
+				render: renderValue,
+			},
+			{
+				data: "name",
+				render: renderValue,
+			},
+			{
+				data: "",
+				render: renderPlaylistActions,
+			},
+		],
+		order: [[0, "desc"]],
+		createdRow: function (row, data, dataIndex) {
+			$(row).addClass("cursor-pointer");
+			$(row).on("click", function () {
+				openPlaylist(data.id);
+			});
+		},
+	});
+
+	function getSongs() {
+		$.ajax({
+			url: "/api/music/songs",
+			type: "GET",
+			success: function (response) {
+				console.log(response);
+			},
+		});
+	}
+
+	function addSong() {
+		var songId = $("#songId").val();
+
+		if (songId != "") {
+			$.ajax({
+				url: "/api/music/songs/" + songId,
+				type: "PUT",
+				contentType: "application/json",
+				data: JSON.stringify({ name: $("#songName").val(), playlistId: $("#playlistId").val() }),
+				success: function (response) {
+					$("#songName").val(response.name);
+
+					Musictbl.ajax.reload(null, false);
+				},
+			});
+		} else {
+			$.ajax({
+				url: "/api/music/songs",
+				type: "POST",
+				data: {
+					name: $("#songName").val(),
+					playlistId: $("#playlistId").val(),
+				},
+				success: function (response) {
+					$("#songId").val(response.id);
+
+					Musictbl.ajax.reload(null, false);
+				},
+			});
+		}
+	}
+
+	function getSong() {
+		$.ajax({
+			url: "/api/music/songs/" + $("#songId").val(),
+			type: "GET",
+			success: function (response) {
+				$("#songName").val(response.name);
+			},
+		});
+	}
+
+	function createNewPlaylist() {
+		var playlistName = prompt("Enter playlist name:", "New Playlist");
+		if (playlistName != null && playlistName.trim() != "") {
+			$.ajax({
+				url: "/api/music/playlists",
+				type: "POST",
+				contentType: "application/json",
+				data: JSON.stringify({ name: playlistName }),
+				success: function (response) {
+					Playlisttbl.ajax.reload(null, false);
+				},
+			});
+		}
+	}
+
+	function updatePlaylist() {
+		var playlistId = $("#playlistId").val();
+		var playlistName = $("#playlistName").val();
+
+		if (playlistId && playlistName) {
+			$.ajax({
+				url: "/api/music/playlists/" + playlistId,
+				type: "PUT",
+				contentType: "application/json",
+				data: JSON.stringify({ name: playlistName }),
+				success: function (response) {
+					$("#playlistName").val(response.name);
+					Playlisttbl.ajax.reload(null, false);
+				},
+			});
+		}
+	}
+
+	function openPlaylist(playlistId) {
+		$.ajax({
+			url: "/api/music/playlists/" + (playlistId || $("#playlistId").val()),
+			type: "GET",
+			success: function (response) {
+				$("#playlistName").val(response.name);
+				$("#playlistId").val(response.id);
+
+				$("#playlistDetails").show();
+
+				Musictbl.ajax.url("/api/music/playlists/" + response.id + "/songs").load();
+			},
+		});
+	}
+
+	function addNewSongToPlaylist() {
+		$("#addSongToPlayListModal").modal("show");
+		$("#songName").val("");
+		$("#songPath").val("");
+		$("#songId").val("");
+		$("#addSongToPlaylistURL").val("");
+
+		$.ajax({
+			url: "/api/music/songs",
+			type: "GET",
+			success: function (response) {
+				var select = $("#addSongToPlayListModal select");
+				select.empty();
+				select.append('<option value="">Select a song</option>');
+				response.forEach(function (song) {
+					select.append('<option value="' + song.id + '">' + song.name + "</option>");
+				});
+			},
+		});
+	}
+
+	function getSongDetailsForModal(playlistId) {
+		if (playlistId) {
+			$.ajax({
+				url: "/api/music/songs/" + playlistId,
+				type: "GET",
+				success: function (response) {
+					$("#addSongToPlaylistSongName").val(response.name);
+					$("#addSongToPlaylistSongPath").val(response.path);
+					$("#addSongToPlaylistURL").val(response.youtubeLink);
+					//$("#songId").val(response.id);
+				},
+			});
+		} else {
+			$("#songName").val("");
+			$("#addSongToPlaylistSongPath").val("");
+			$("#addSongToPlaylistURL").val("");
+			//$("#songId").val("");
+		}
+	}
+
+	function addSongToPlaylist() {
+		var songId = $("#addSongToPlaylistSongId").val();
+		var songName = $("#addSongToPlaylistSongName").val();
+		var songPath = $("#addSongToPlaylistSongPath").val();
+		var songUrl = $("#addSongToPlaylistURL").val();
+
+		if (songName) {
+			$.ajax({
+				url: "/api/music/playlists/" + ($("#playlistId").val() || "0") + "/songs",
+				type: "POST",
+				contentType: "application/json",
+				data: JSON.stringify({ songId: songId, name: songName, path: songPath, songUrl: songUrl }),
+				success: function (response) {
+					$("#addSongToPlayListModal").modal("hide");
+					Musictbl.ajax.reload(null, false);
+				},
+			});
+		} else {
+			alert("Please fill in the Song Name.");
+		}
+	}
+
+	function playPlaylist() {
+		var playlistId = $("#playlistId").val();
+		if (playlistId) {
+			$.ajax({
+				url: "/api/music/playlists/" + playlistId + "/load",
+				type: "POST",
+			});
+		}
+	}
+
+	function deleteSongFromPlaylist(songId) {
+		var playlistId = $("#playlistId").val();
+
+		if (songId && playlistId) {
+			$.ajax({
+				url: "/api/music/playlists/" + playlistId + "/songs/" + songId,
+				type: "DELETE",
+				success: function (response) {
+					Musictbl.ajax.reload(null, false);
+				},
+			});
+		}
+	}
+
+	function stopPlaylist() {
+		$.ajax({
+			url: "/api/music/playlists/stop",
+			type: "POST",
+		});
+	}
+
+	function openEditSongModal(songId) {
+		if (songId) {
+			$.ajax({
+				url: "/api/music/songs/" + songId,
+				type: "GET",
+				success: function (response) {
+                    $("#editSongId").val(response.id);
+					$("#editSongName").val(response.name);
+					$("#editSongURL").val(response.youtubeLink);
+					$("#addSongToPlaylistSongPath").val(response.path);
+					$("#editSongModal").modal("show");
+				},
+			});
+		}
+	}
+
+	function editSong() {
+        var songId = $("#editingSongId").val();
+
+        //$.ajax({
+            //url: 
+        //})
     }
-
-    function refreshChatBox(){
-        $.ajax({
-            url: "/api/settings/getMessages",
-            type: "GET", 
-            success: function(response) {
-                $("#communicationChatBox").val(response);
-            },
-        });
-    }
-
-    var Gamestbl = $("#Gamestbl").DataTable({
-        pageLength: 10,
-        ajax: {
-            type: "GET",
-            url: "/api/getAllGames",
-            dataSrc: "",
-            data: {}
-        },
-        columns: [
-            {
-                data: "id",
-				render: renderValue
-            },
-			{
-                data: "startTime",
-				render: renderDate
-            },
-			{
-                data: "endTime",
-				render: renderDate
-            },
-			{
-                data: "winningPlayer",
-				render: renderValue
-            },
-			{
-                data: "winningTeam",
-				render: renderValue
-            },
-        ],
-        order: [[1, "desc"]],
-    });
-
 </script>
 
 {% endblock %}

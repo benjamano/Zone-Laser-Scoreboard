@@ -22,6 +22,7 @@ from API.OBS import OBS
 from API.Supervisor import Supervisor
 from API.Emails import EmailsAPIController
 from API.Feedback.feedback import RequestAndFeedbackAPIController
+from API.Music.MusicAPIController import MusicAPIController
 from data.models import *
 from API.createApp import createApp
 
@@ -51,14 +52,12 @@ class WebApp:
         
         # LOAD SYSTEM VARIABLES
         self.SysName = "TBS"
-        self.VersionNumber = "1.2"
+        self.VersionNumber = "1.3"
         # END LOAD
         
         # INIT ALL OTHER VARIABLES
         self.OBSConnected = False
         self.devMode = self.ENVIRONMENT == "Development"
-        self.spotifyControl = True
-        self.spotifyStatus = "paused"
         self._localIp = ""
         self.RestartRequested = False
         self.gameStatus = "stopped" # Either running or stopped
@@ -78,6 +77,7 @@ class WebApp:
         self.app : Flask = None
         self._eAPI : EmailsAPIController = None
         self._fAPI : RequestAndFeedbackAPIController = None
+        self._mAPI : MusicAPIController = None
         # END INIT
                 
         pyautogui.FAILSAFE = False
@@ -137,6 +137,7 @@ class WebApp:
         
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
+        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app)
         
         self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
         self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker, daemon=True).start()
@@ -1270,9 +1271,7 @@ class WebApp:
             os.kill(os.getpid(), signal.SIGTERM)
             
         @self.socketio.on('connect')
-        def handleConnect():
-            emit('musicStatus', {'message': f"{self.spotifyStatus}"} )
-            
+        def handleConnect():            
             emit('response', {'message': 'Connected to server'})
             
         @self.socketio.on('toggleMusic')
@@ -1292,18 +1291,6 @@ class WebApp:
             response = self.handleMusic("next")
             
             emit('musicStatus', {'message': f"{response}"})
-        
-        @self.socketio.on('SpotifyControl')
-        def handleSpotifyControl(json):
-            #f.message(f"Spotify control = {json["data"]}")
-            
-            self.spotifyControl = json["data"]
-        
-        @self.socketio.on("getCurrentSong")
-        def getCurrentSong():
-            song, album, bpm = self._fetcher.get_current_song_and_bpm()
-            
-            self.sendSongDetails(song,album,bpm)
             
         @self.socketio.on('UpdateDMXValue')
         def UpdateDMXValue(json):
@@ -1386,108 +1373,64 @@ class WebApp:
             f.message(f"Error while sniffing: {e}", type="error")
             return
             
-    async def getPlayingStatus(self):
-        try:
-            sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
-        except Exception as e:
-            f.message(f"Error getting session manager: {e}", type="error")
-            raise
+    # async def getPlayingStatus(self):
+    #     try:
+    #         sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
+    #     except Exception as e:
+    #         f.message(f"Error getting session manager: {e}", type="error")
+    #         raise
         
-        try:
-            current_session = sessions.get_current_session()
-        except Exception as e:
-            f.message(f"Error getting current session: {e}", type="error")
-            raise
+    #     try:
+    #         current_session = sessions.get_current_session()
+    #     except Exception as e:
+    #         f.message(f"Error getting current session: {e}", type="error")
+    #         raise
         
-        if not current_session:
-            return "paused", 0, 0
+    #     if not current_session:
+    #         return "paused", 0, 0
 
-        try:
-            playback_info = current_session.get_playback_info()
-        except Exception as e:
-            f.message(f"Error getting playback info: {e}", type="error")
-            raise
+    #     try:
+    #         playback_info = current_session.get_playback_info()
+    #     except Exception as e:
+    #         f.message(f"Error getting playback info: {e}", type="error")
+    #         raise
         
-        try:
-            timeline_properties = current_session.get_timeline_properties()
-        except Exception as e:
-            f.message(f"Error getting timeline properties: {e}", type="error")
-            raise
+    #     try:
+    #         timeline_properties = current_session.get_timeline_properties()
+    #     except Exception as e:
+    #         f.message(f"Error getting timeline properties: {e}", type="error")
+    #         raise
 
-        try:
-            status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
-        except Exception as e:
-            f.message(f"Error getting playback status: {e}", type="error")
-            raise
+    #     try:
+    #         status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
+    #     except Exception as e:
+    #         f.message(f"Error getting playback status: {e}", type="error")
+    #         raise
 
-        try:
-            currentPosition = timeline_properties.position.total_seconds()
-            totalDuration = timeline_properties.end_time.total_seconds()
-        except Exception as e:
-            f.message(f"Error getting timeline properties: {e}", type="error")
-            raise
+    #     try:
+    #         currentPosition = timeline_properties.position.total_seconds()
+    #         totalDuration = timeline_properties.end_time.total_seconds()
+    #     except Exception as e:
+    #         f.message(f"Error getting timeline properties: {e}", type="error")
+    #         raise
 
-        return status, currentPosition, totalDuration
+    #     return status, currentPosition, totalDuration
     
     def handleMusic(self, mode):
-        if self.spotifyControl == True:
-            if mode.lower() == "toggle":
-                if self.spotifyStatus == "paused":
-                    #f.message("Playing music", type="warning")
-                    self.spotifyStatus = "playing"
-                    pyautogui.press('playpause')
-                    
-                    result = self.spotifyStatus
-                else:
-                    #f.message("Pausing music", type="warning")
-                    self.spotifyStatus = "paused"
-                    pyautogui.press('playpause')
-                    result = self.spotifyStatus
-                
-            elif mode.lower() == "next":
-                pyautogui.hotkey('nexttrack')
-                self.spotifyStatus = "playing"
-                result = self.spotifyStatus
-            
-            elif mode.lower() == "previous":
-                pyautogui.hotkey('prevtrack')
-                pyautogui.hotkey('prevtrack')
-                self.spotifyStatus = "playing"
-                result = self.spotifyStatus
-            
-            elif mode.lower() == "restart":
-                pyautogui.hotkey('prevtrack')
-                result = self.spotifyStatus
-                
-            elif mode.lower() == "pause":
-                if self.spotifyStatus == "paused":
-                    return
-                else:
-                    #f.message("Pausing music", type="warning")
-                    self.spotifyStatus = "paused"
-                    pyautogui.press('playpause')
-                    result = "playing"
-            
-            elif mode.lower() == "play":
-                if self.spotifyStatus == "playing":
-                    return
-                else:
-                    #f.message("Playing music", type="warning")
-                    self.spotifyStatus = "playing"
-                    pyautogui.press('playpause')
-                    result = "paused"
-                
-            # try:
-            #     self.bpm_thread = threading.Thread(target=self.findBPM)
-            #     self.bpm_thread.daemon = True
-            #     self.bpm_thread.start()
-            # except Exception as e:
-            #     f.message(f"Error running BPM thread: {e}", type="error")
-                
-            return result
-                    
-        else:
-            f.message("Spotify control is disabled", type="warning")
+        match mode.lower():
+            case "toggle":
+                self._mAPI.togglePauseMusic()
+            case "next":
+                self._mAPI.next()
+            case "previous":
+                self._mAPI.previous()
+            case "restart":
+                self._mAPI.restart()
+            case "pause":
+                self._mAPI.pause()
+            case "play":
+                self._mAPI.play()
+        return True
             
     def restartApp(self, reason="unknown"):
         if self.devMode == True:
@@ -1505,98 +1448,98 @@ class WebApp:
 
         os._exit(1)
             
-    def handleBPM(self, song, album, bpm=0):
-        #f.message(f"Get Here with {song}, {bpm}, {album}")
-        try:
-            if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
+    # def handleBPM(self, song, album, bpm=0):
+    #     #f.message(f"Get Here with {song}, {bpm}, {album}")
+    #     try:
+    #         if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
                 
-                if song == None or bpm == None or bpm == "Song not found":
-                    match song:
-                        #This makes me want to die
-                        #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
-                        case "Main Theme":
-                            bpm = "69"
-                        case "Loon Skirmish":
-                            bpm = "80"
-                        case "Crainy Yum (Medium)":
-                            bpm = "80"
-                        case "Crainy Yum":
-                            bpm = "80"
-                        case "Thing Of It Is":
-                            bpm = "87"
-                        case "Bug Zap":
-                            bpm = "87"
-                        case "Bug Zap (Medium)":
-                            bpm = "87"
-                        case "Only Partially Blown Up (Medium)":
-                            bpm = "87"
-                        case "Only Partially Blown Up":
-                            bpm = "87"
-                        case "Baron von Bats":
-                            bpm = "87"
-                        case "Treasure Yeti":
-                            bpm = "86"
-                        case "Normal Wave (A) (Medium)":
-                            bpm = "86"
-                        case "Normal Wave A":
-                            bpm = "86"
-                        case "Normal Wave B":
-                            bpm = "87"
-                        case "Normal Wave (C) (High)":
-                            bpm = "87"
-                        case "Special Wave A":
-                            bpm = "87"
-                        case "Special Wave B":
-                            bpm = "101"
-                        case "Challenge Wave B":
-                            bpm = "101"
-                        case "Challenge Wave C":
-                            bpm = "101"
-                        case "Boss Wave (A)":
-                            bpm = "93"
-                        case "Boss Wave (B)":
-                            bpm = "98"
-                        case "The Gnomes Cometh (B)":
-                            bpm = "90"
-                        case "The Gnomes Cometh (C)":
-                            bpm = "86"
-                        case "Gnome King":
-                            bpm = "95"
-                        case "D Boss Is Here":
-                            bpm = "90"
-                        case "Excessively Bossy":
-                            bpm = "93"
-                        case "One Bad Boss":
-                            bpm = "84"
-                        case "Zombie Horde":
-                            bpm = "84"
-                        case "Marching Madness":
-                            bpm = "58"
-                        case "March Of The Brain Munchers":
-                            bpm = "58"
-                        case "SUBURBINATION!!!":
-                            bpm = "86"
-                        case "Splattack!":
-                            bpm = "88"
-                        case "Science Blaster":
-                            bpm = "92"
-                        case "Undertow":
-                            bpm = "88"
-                        case _:
-                            bpm = "60"
+    #             if song == None or bpm == None or bpm == "Song not found":
+    #                 match song:
+    #                     #This makes me want to die
+    #                     #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
+    #                     case "Main Theme":
+    #                         bpm = "69"
+    #                     case "Loon Skirmish":
+    #                         bpm = "80"
+    #                     case "Crainy Yum (Medium)":
+    #                         bpm = "80"
+    #                     case "Crainy Yum":
+    #                         bpm = "80"
+    #                     case "Thing Of It Is":
+    #                         bpm = "87"
+    #                     case "Bug Zap":
+    #                         bpm = "87"
+    #                     case "Bug Zap (Medium)":
+    #                         bpm = "87"
+    #                     case "Only Partially Blown Up (Medium)":
+    #                         bpm = "87"
+    #                     case "Only Partially Blown Up":
+    #                         bpm = "87"
+    #                     case "Baron von Bats":
+    #                         bpm = "87"
+    #                     case "Treasure Yeti":
+    #                         bpm = "86"
+    #                     case "Normal Wave (A) (Medium)":
+    #                         bpm = "86"
+    #                     case "Normal Wave A":
+    #                         bpm = "86"
+    #                     case "Normal Wave B":
+    #                         bpm = "87"
+    #                     case "Normal Wave (C) (High)":
+    #                         bpm = "87"
+    #                     case "Special Wave A":
+    #                         bpm = "87"
+    #                     case "Special Wave B":
+    #                         bpm = "101"
+    #                     case "Challenge Wave B":
+    #                         bpm = "101"
+    #                     case "Challenge Wave C":
+    #                         bpm = "101"
+    #                     case "Boss Wave (A)":
+    #                         bpm = "93"
+    #                     case "Boss Wave (B)":
+    #                         bpm = "98"
+    #                     case "The Gnomes Cometh (B)":
+    #                         bpm = "90"
+    #                     case "The Gnomes Cometh (C)":
+    #                         bpm = "86"
+    #                     case "Gnome King":
+    #                         bpm = "95"
+    #                     case "D Boss Is Here":
+    #                         bpm = "90"
+    #                     case "Excessively Bossy":
+    #                         bpm = "93"
+    #                     case "One Bad Boss":
+    #                         bpm = "84"
+    #                     case "Zombie Horde":
+    #                         bpm = "84"
+    #                     case "Marching Madness":
+    #                         bpm = "58"
+    #                     case "March Of The Brain Munchers":
+    #                         bpm = "58"
+    #                     case "SUBURBINATION!!!":
+    #                         bpm = "86"
+    #                     case "Splattack!":
+    #                         bpm = "88"
+    #                     case "Science Blaster":
+    #                         bpm = "92"
+    #                     case "Undertow":
+    #                         bpm = "88"
+    #                     case _:
+    #                         bpm = "60"
             
-                #f.message(f"Current song: {song}, BPM: {bpm}")
+    #             #f.message(f"Current song: {song}, BPM: {bpm}")
             
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
+    #             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
                 
-                self.rateLimit = False
+    #             self.rateLimit = False
                 
-        except Exception as e:
-            if "max retries, reason: too many 429 error responses" in e.lower():
-                self.rateLimit = True
-                return
-            else:
-                f.message(f"Error occured while handling BPM: {e}", type="warning")
+    #     except Exception as e:
+    #         if "max retries, reason: too many 429 error responses" in e.lower():
+    #             self.rateLimit = True
+    #             return
+    #         else:
+    #             f.message(f"Error occured while handling BPM: {e}", type="warning")
         
     # def findBPM(self):
     #     try:
@@ -1654,95 +1597,98 @@ class WebApp:
 
         return result_container['result']
 
-    def sendSongDetails(self, song, album, bpm):
+    def sendSongDetails(self, song, album, bpm, duration, timeleft, isPlaying, currentVolume):
         self.socketio.emit('songAlbum', {'message': album})
         self.socketio.emit('songName', {'message': song})
+        self.socketio.emit('volume', {'message': currentVolume})
+        self.socketio.emit('musicStatusV2', {'message': {"playbackStatus": isPlaying, "musicPosition": (duration-timeleft), "duration": duration}})
    
     def mediaStatusChecker(self):
         f.message(f.colourText("Attempting to start Media status checker", "blue"))
-        
-        previousSong : str = ""
         
         while True:
             time.sleep(5)
             
             try:
-                song, album, bpm = self._fetcher.get_current_song_and_bpm()
+                songDetails : SongDetailsDTO = self._mAPI.currentSongDetails()
                 
-                if (previousSong != song):
-                    previousSong = song
+                self.sendSongDetails(songDetails.name, songDetails.album, 0, songDetails.duration, songDetails.timeleft, songDetails.isPlaying, songDetails.currentVolume)
+            except Exception as e:
+                f.message(f"Error fetching current song details: {e}", type="error")
+            
+            # try:
+            #     song, album, bpm = self._fetcher.get_current_song_and_bpm()
+                
+            #     if (previousSong != song):
+            #         previousSong = song
                     
-                    self.sendSongDetails(song, album, bpm)
+            #         
                     
-                    self._dmx.checkForSongTriggers(song)
+            #         self._dmx.checkForSongTriggers(song)
     
-                # self.handleBPM(song)
+            #     # self.handleBPM(song)
             
-            except Exception as e:
-                pass
+            # except Exception as e:
+            #     pass
             
-            try:
-                temp_spotifyStatus, currentPosition, totalDuration = self.runAsyncioInSta(self.getPlayingStatus())
+            # try:
+            #     temp_spotifyStatus, currentPosition, totalDuration = self.runAsyncioInSta(self.getPlayingStatus())
                 
-                if temp_spotifyStatus != self.spotifyStatus:
-                    self.spotifyStatus = temp_spotifyStatus
+            #     if temp_spotifyStatus != self.spotifyStatus:
+            #         self.spotifyStatus = temp_spotifyStatus
                     
-                try:
-                    # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
+            #     try:
+            #         # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
                     
-                    self.socketio.emit('musicStatusV2', {'message': {"playbackStatus": self.spotifyStatus, "musicPosition": currentPosition, "duration": totalDuration}})
+            #         
                     
-                    # response = requests.post(
-                    #     f"http://{self._localIp}:8080/sendMessage",
-                    #     json={
-                    #         "message": {
-                    #             "playbackStatus": self.spotifyStatus,
-                    #             "musicPosition": currentPosition,
-                    #             "duration": totalDuration
-                    #         },
-                    #         "type": "musicStatusV2"
-                    #     }
-                    # )
-                except Exception as e:
-                    f.message(f"Error sending music status message: {e}.", type="error")
+            #         # response = requests.post(
+            #         #     f"http://{self._localIp}:8080/sendMessage",
+            #         #     json={
+            #         #         "message": {
+            #         #             "playbackStatus": self.spotifyStatus,
+            #         #             "musicPosition": currentPosition,
+            #         #             "duration": totalDuration
+            #         #         },
+            #         #         "type": "musicStatusV2"
+            #         #     }
+            #         # )
+            #     except Exception as e:
+            #         f.message(f"Error sending music status message: {e}.", type="error")
                     
-                # if currentPosition and totalDuration:
-                #     try:
-                #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
-                #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
-                #     except Exception as e:
-                #         f.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
+            #     # if currentPosition and totalDuration:
+            #     #     try:
+            #     #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
+            #     #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
+            #     #     except Exception as e:
+            #     #         f.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
                 
-            except Exception as e:
-                f.message(f"Error occured while checking media status: {e}", type="error")
+            # except Exception as e:
+            #     f.message(f"Error occured while checking media status: {e}", type="error")
                 
-                if self.devMode == True:
-                    f.message("Development Mode, ignoring error handling because its dumb", type="warning")
-                    return
-                
-                if str(e) != "an integer is required":
+            #     if str(e) != "an integer is required":
         
-                    f.message("Requesting app restart", type="warning")
+            #         f.message("Requesting app restart", type="warning")
                         
-                    # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
+            #         # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
                     
-                    self.RestartRequested = True
+            #         self.RestartRequested = True
                     
-                    with self.app.app_context():
-                        self._context.db.session.add(RestartRequest(
-                            created_by_service_name = "WebApp - Media Status Checker",
-                            reason = f"Failed to check for media status: {str(e)}"
-                        ))
+            #         with self.app.app_context():
+            #             self._context.db.session.add(RestartRequest(
+            #                 created_by_service_name = "WebApp - Media Status Checker",
+            #                 reason = f"RESTART PC - Failed to check for media status: {str(e)}",
+            #             ))
                     
-                        self._context.db.session.commit()
+            #             self._context.db.session.commit()
                     
-                    # Just makes sure to pause this process, so it doesn't keep logging the same error
-                    time.sleep(60)
+            #         # Just makes sure to pause this process, so it doesn't keep logging the same error
+            #         time.sleep(1800)
                     
-                else:
-                    f.message("Error not fatal, don't care", type="warning")
+            #     else:
+            #         f.message("Error not fatal, don't care", type="warning")
                 
-                    time.sleep(3)                 
+            #         time.sleep(3)                 
         
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         
@@ -1779,14 +1725,14 @@ class WebApp:
                     threading.Thread(target=self.shotConfirmedPacket, args=(decodedData,)).start()
                 
         except Exception as e:
-            f.message(f"Error handling packet: {e}", type="error")
+            f.message(f"Error handling packet: {e}, Packet: {packet}", type="error")
         
     def gameStatusPacket(self, packetData):
         # 4,@015,0 = start
         # 4,@014,0 = end
         
         f.message(f"Game Status Packet: {packetData}, Mode: {packetData[1]}")
-        
+
         if packetData[1] == "@015":
             self.gameStarted()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
@@ -1796,6 +1742,23 @@ class WebApp:
             self.gameEnded()
             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"Game Ended @ {str(datetime.now())}", 'type': "end"})
             #f.message(f"Response: {response.text}")
+            
+        elif "@004" in packetData[1]:
+            # This is a game mode / time change packet, e.g. 4,@004,0 = game mode changed to 0
+            newTime = ""
+            newSoundMode = ""
+            newGameMode = ""
+            
+            values = str(packetData).split("@")
+            for value in values:
+                if "016" in value:
+                    newTime = value.strip("016")
+                elif "017" in value:
+                    newSoundMode = value.strip("017")
+                elif "00" in value:
+                    newGameMode = value.strip("00")
+            
+            f.message(f"Game Mode Changed to {newGameMode} with time {newTime} and sound mode {newSoundMode}")
             
         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{packetData[0]}", 'type': "gameMode"})
         
@@ -1854,13 +1817,47 @@ class WebApp:
             f.message(f"Error updating Gun Scores: {e}", type="error")
             
         #f.message(f"Gun {gunName} has a score of {finalScore} and an accuracy of {accuracy}", type="success")
-        
-        data = f"{gunId},{finalScore},{accuracy}"
-        
-        response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': data, 'type': "gunScores"})
-        
+
     def shotConfirmedPacket(self, packetData):
-        #f.message(f"Shot Confirmed Packet: {packetData}")
+        # f.message(f"Shot Confirmed Packet: {packetData}")
+        
+        shooterGunId = packetData[1]
+        shotGunId = packetData[2]
+        pointForRedTeam = packetData[3]
+        pointForGreenTeam = packetData[4]
+        
+        shotGunName = ""
+        shooterGunName = ""
+        
+        try:
+            with self.app.app_context():
+                shotGunName : str = self._context.Gun.query.filter_by(id=shotGunId).first().name
+                shooterGunName : str = self._context.Gun.query.filter_by(id=shooterGunId).first().name
+        
+        except Exception as e:
+            f.message(f"Error getting gun names: {e}", type="error")
+        
+        f.message(f"{shotGunName} just shot {shooterGunName}")
+        
+        self.socketio.emit("shotConfirmed", {"ShotGun": shotGunId, "ShooterGun": shooterGunId})
+        
+        # if pointForRedTeam > 0:
+        #     self.TeamScores["Red"] += pointForRedTeam
+        # elif pointForGreenTeam > 0:
+        #     self.TeamScores["Green"] += pointForGreenTeam
+        
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '6', '1', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '6', '1', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '10', '9', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '10', '9', '0', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '13', '1', '2', '0', '0', '0', '0\x00']
+
+        # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '13', '1', '2', '0', '0', '0', '0\x00']
+        
         pass
     
     # -----------------| Game Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
@@ -2012,7 +2009,10 @@ class WebApp:
                     self.finalScorePacket([0, 3, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
                     self.finalScorePacket([0, 7, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
                     time.sleep(2)
-        
+            case "play":
+                self._mAPI.loadSong("05 Bug Zap")
+                self._mAPI.play()
+                            
     # -----------------| Utlities |-------------------------------------------------------------------------------------------------------------------------------------------------------- #            
         
     def hexToASCII(self, hexString):

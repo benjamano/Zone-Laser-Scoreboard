@@ -3,7 +3,6 @@ from data.models import *
 
 DashboardBlueprint = Blueprint("Dashboards", __name__)
 
-
 class DashboardAPIController:
     def __init__(self, context):
         self._context : SQLAlchemy = context
@@ -100,21 +99,21 @@ def registerDashboardRoutes(app, context):
     def getDashboards():
         return controller.getDashboards()
 
-    @DashboardBlueprint.route("/api/dashboards/<dashboard_id>", methods=["GET"])
-    def getDashboard(dashboard_id):
-        return controller.getDashboard(dashboard_id)
+    @DashboardBlueprint.route("/api/dashboards/<dashboardId>", methods=["GET"])
+    def getDashboard(dashboardId):
+        return controller.getDashboard(dashboardId)
 
-    @DashboardBlueprint.route("/api/dashboards/<dashboard_id>", methods=["DELETE"])
-    def deleteDashboard(dashboard_id):
-        return controller.deleteDashboard(dashboard_id)
+    @DashboardBlueprint.route("/api/dashboards/<dashboardId>", methods=["DELETE"])
+    def deleteDashboard(dashboardId):
+        return controller.deleteDashboard(dashboardId)
 
     @DashboardBlueprint.route("/api/dashboards", methods=["POST"])
     def addDashboard():
         return controller.addDashboard()
 
-    @DashboardBlueprint.route("/api/dashboards/<dashboard_id>", methods=["PUT"])
-    def updateDashboard(dashboard_id):
-        return controller.updateDashboard(dashboard_id)
+    @DashboardBlueprint.route("/api/dashboards/<dashboardId>", methods=["PUT"])
+    def updateDashboard(dashboardId):
+        return controller.updateDashboard(dashboardId)
     
     @DashboardBlueprint.route("/api/dashboards/widgets/<widgetId>", methods=["DELETE"])
     def deleteDashboardWidget(widgetId):

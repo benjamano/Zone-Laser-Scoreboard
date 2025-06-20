@@ -67,7 +67,10 @@ def showInterface():
     
     def sendGameEndMessage():
         threading.Thread(target=webApp.sendTestPacket(type="end")).start()
-
+        
+    def sendPlayMusicMessage():
+        threading.Thread(target=webApp.sendTestPacket(type="play")).start()
+        
     def showOutputWindow():
         ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 1)
 
@@ -129,6 +132,9 @@ def showInterface():
 
     TurnOffBulkHeadLightsButton = tk.Button(interfaceWindow, text="Turn off Bulkhead lights", command=TurnOffBulkHeadLights)
     TurnOffBulkHeadLightsButton.pack(pady=10)
+    
+    PlayMusicButton = tk.Button(interfaceWindow, text="Play Music", command=sendPlayMusicMessage)
+    PlayMusicButton.pack(pady=10)
     
     RestartPCButton = tk.Button(interfaceWindow, text="Restart PC", command=restartPC)
     RestartPCButton.pack(pady=10)

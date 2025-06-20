@@ -358,7 +358,7 @@ class Supervisor:
             try:
                 if self._context is not None and ise is not None:
                     if ise.severity == 1:
-                        f.message(f"SEVERE EXCEPTION: Logging servere error from {ise.service}\nException f.message: {ise.exception_message}", type="error")
+                        f.message(f"SEVERE EXCEPTION: Logging severe error from {ise.service}. \tException Message: {ise.exception_message}", type="error")
                     else:
                         f.message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
 
