@@ -32,7 +32,7 @@ class MusicAPIController:
         self.songEndEvent = threading.Event()
         self.fullPlaylist = [] # Full playlist for queue playback
         
-        self.setVolume(self._secrets["DefaultVolume"])
+        self.setVolume(self._secrets["DefaultVolume"] if "DefaultVolume" in self._secrets else 50)
         
     def registerMusicRoutes(self, app):
         @MusicBlueprint.route("/api/music/songs", methods=["GET"])

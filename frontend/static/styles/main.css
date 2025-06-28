@@ -528,7 +528,7 @@ html {
 
 .sidebar ul li {
     width: 100%;
-    padding: 0.8rem;
+    padding: 0.92rem;
     border-bottom: 1px solid var(--TBSBGSecondary);
     transition: background-color 0.3s ease, padding 0.3s ease,
         text-align 0.3s ease;

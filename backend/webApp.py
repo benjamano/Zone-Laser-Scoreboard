@@ -150,6 +150,7 @@ class WebApp:
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
         
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
+        f.message(f"Serving Web App at IP: http://{str(self._localIp)}:8080", type="warning")
         
     def getCurrentCommit(self) -> str:
         try:
