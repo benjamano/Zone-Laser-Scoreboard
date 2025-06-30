@@ -101,6 +101,16 @@ function makeResizable(card) {
     footer.appendChild(resizer);
 
     resizer.addEventListener("mousedown", (e) => {
+        // If the user is clicking on a native scrollbar, don't start resizing.
+        const rect = resizer.getBoundingClientRect();
+        if (
+            e.clientX < rect.left - 2 ||
+            e.clientX > rect.right + 2 ||
+            e.clientY < rect.top - 2 ||
+            e.clientY > rect.bottom + 2
+        ) {
+            return;
+        }
         e.preventDefault();
         window.addEventListener("mousemove", resize);
         window.addEventListener("mouseup", stopResize);
@@ -152,7 +162,9 @@ function saveCardConfig() {
             widgets: config,
         }),
         success: function (response) {
-            // loadCardConfig(response.widgets);
+            if (Array.isArray(response.widgets) && response.widgets.some(w => w.id == 0)) {
+                loadCardConfig(response.widgets);
+            }
         },
     });
 
@@ -427,6 +439,9 @@ function loadCardConfig(configStr) {
             case "briefingButtonCard":
                 contentArea = createPlayBriefingCard();
                 break;
+            case "musicQueueCard":
+                contentArea = createMusicQueueCard();
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -524,116 +539,6 @@ function loadOriginalCardLayout() {
             "typeId": "briefingButtonCard",
             "width": ""
         },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 18,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 19,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 20,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 21,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 22,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 23,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 24,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 25,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 26,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 27,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        }
     ]);
 }
 
@@ -1077,6 +982,27 @@ function createPlayBriefingCard() {
     contentArea.innerHTML = `
         <button class="btn btn-outline-primary w-100 h-100 fs-4" onclick="playBriefing();" id="briefingButton">PLAY BRIEFING VIDEO</button>
     `;
+
+    return contentArea;
+}
+
+function createMusicQueueCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("musicQueueCard", "tallWideCard");
+    card.dataset.type = "musicQueueCard";
+
+    contentArea.innerHTML = `
+        <ul class="list-group musicQueueList h-100 rounded-0" id="musicQueueList">
+            <div id='musicQueueHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center">
+                <span class="fs-4">Up Next..</span>
+                <button class="btn btn-outline-secondary" onclick="clearMusicQueue();">Clear Queue</button>
+            </div>
+            <li class="list-group-item d-flex flex-row justify-content-between align-items-start">
+                Loading Queue...
+            </li>
+        </ul>
+    `
 
     return contentArea;
 }

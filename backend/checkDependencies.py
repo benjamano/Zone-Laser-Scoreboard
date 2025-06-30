@@ -54,6 +54,8 @@ class VerifyDependencies:
             "win32con": "win32con",
             "win32com.client": "win32com.client",
             "pythoncom": "pythoncom",
+            "python-vlc": "vlc", # MUST DOWNLOAD VLC MEDIA PLAYER BEFORE RUNNING THIS
+            "pytube": "pytube"
         }
         self.installAll()
 

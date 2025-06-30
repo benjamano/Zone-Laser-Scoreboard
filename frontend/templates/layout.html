@@ -1,570 +1,369 @@
 <!DOCTYPE html>
 <html lang="en" data-bs-theme="dark">
-    <head>
-        <meta charset="UTF-8" />
-        <title>{{SysName}} - {{PageTitle}}</title>
-        <link
-            rel="icon"
-            type="image/x-icon"
-            href="{{ url_for('static', filename='images/favicon.ico') }}" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-        <link
-            href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css"
-            rel="stylesheet"
-            integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7"
-            crossorigin="anonymous" />
-        <script
-            src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js"
-            integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq"
-            crossorigin="anonymous"></script>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-        <link
-            href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap"
-            rel="stylesheet" />
-        <link
-            href="{{ url_for('static', filename='styles/LCARS/lcars-colors.css') }}"
-            rel="stylesheet" />
-        <!-- <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
+	<head>
+		<meta charset="UTF-8" />
+		<title>{{SysName}} - {{PageTitle}}</title>
+		<link rel="icon" type="image/x-icon" href="{{ url_for('static', filename='images/favicon.ico') }}" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+		<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-SgOJa3DmI69IUzQ2PVdRZhwQ+dy64/BUtbMJw1MZ8t5HZApcHrRKUc4W0kG879m7" crossorigin="anonymous" />
+		<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/js/bootstrap.bundle.min.js" integrity="sha384-k6d4wzSIapyDyv1kpU366/PK5hCdSbCRGRCMv+eplOQJWyd1fbcAu9OCUj5zNLiq" crossorigin="anonymous"></script>
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link href="https://fonts.googleapis.com/css2?family=Antonio:wght@400;700&display=swap" rel="stylesheet" />
+		<link href="{{ url_for('static', filename='styles/LCARS/lcars-colors.css') }}" rel="stylesheet" />
+		<!-- <link href="{{ url_for('static', filename='styles/LCARS/lcars-ultra-picard.css') }}" rel="stylesheet">
     <script src="{{ url_for('static', filename='styles/LCARS/jquery-3-7-0.min.js') }}"></script> -->
-        <!-- <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script> -->
-        <script
-            src="https://kit.fontawesome.com/9d35a24d36.js"
-            crossorigin="anonymous"></script>
-        <link
-            href="{{ url_for('static', filename='styles/main.css') }}"
-            rel="stylesheet" />
-        <script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>
-        <script src="{{ url_for('static', filename='scripts/datatableDisplayFunctions.js') }}"></script>
+		<!-- <script src="{{ url_for('static', filename='styles/LCARS/lcars.js') }}"></script> -->
+		<script src="https://kit.fontawesome.com/9d35a24d36.js" crossorigin="anonymous"></script>
+		<link href="{{ url_for('static', filename='styles/main.css') }}" rel="stylesheet" />
+		<script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>
+		<script src="{{ url_for('static', filename='scripts/datatableDisplayFunctions.js') }}"></script>
 
-        <link
-            href="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.2.2/b-3.2.2/b-colvis-3.2.2/b-html5-3.2.2/b-print-3.2.2/cr-2.0.4/date-1.5.5/fc-5.0.4/fh-4.0.1/sb-1.8.2/sl-3.0.0/datatables.min.css"
-            rel="stylesheet"
-            integrity="sha384-3uWBTGR8EF3Rau5R6I5PeTowZlHwH+IGCvl8u/ASspZf8Qn6vTT6oBFlceBvEWYO"
-            crossorigin="anonymous" />
+		<link href="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.2.2/b-3.2.2/b-colvis-3.2.2/b-html5-3.2.2/b-print-3.2.2/cr-2.0.4/date-1.5.5/fc-5.0.4/fh-4.0.1/sb-1.8.2/sl-3.0.0/datatables.min.css" rel="stylesheet" integrity="sha384-3uWBTGR8EF3Rau5R6I5PeTowZlHwH+IGCvl8u/ASspZf8Qn6vTT6oBFlceBvEWYO" crossorigin="anonymous" />
 
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js"
-            integrity="sha384-VFQrHzqBh5qiJIU0uGU5CIW3+OWpdGGJM9LBnGbuIH2mkICcFZ7lPd/AAtI7SNf7"
-            crossorigin="anonymous"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js"
-            integrity="sha384-/RlQG9uf0M2vcTw3CX7fbqgbj/h8wKxw7C3zu9/GxcBPRKOEcESxaxufwRXqzq6n"
-            crossorigin="anonymous"></script>
-        <script
-            src="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.2.2/b-3.2.2/b-colvis-3.2.2/b-html5-3.2.2/b-print-3.2.2/cr-2.0.4/date-1.5.5/fc-5.0.4/fh-4.0.1/sb-1.8.2/sl-3.0.0/datatables.min.js"
-            integrity="sha384-w87dPisG6+Rmv1VTwjCR2Fd/6kZZU4aQCuog0Hgl0Xih3gukzW/XvhiWL4j0M0I2"
-            crossorigin="anonymous"></script>
-    </head>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/pdfmake.min.js" integrity="sha384-VFQrHzqBh5qiJIU0uGU5CIW3+OWpdGGJM9LBnGbuIH2mkICcFZ7lPd/AAtI7SNf7" crossorigin="anonymous"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.7/vfs_fonts.js" integrity="sha384-/RlQG9uf0M2vcTw3CX7fbqgbj/h8wKxw7C3zu9/GxcBPRKOEcESxaxufwRXqzq6n" crossorigin="anonymous"></script>
+		<script src="https://cdn.datatables.net/v/bs5/jq-3.7.0/jszip-3.10.1/dt-2.2.2/b-3.2.2/b-colvis-3.2.2/b-html5-3.2.2/b-print-3.2.2/cr-2.0.4/date-1.5.5/fc-5.0.4/fh-4.0.1/sb-1.8.2/sl-3.0.0/datatables.min.js" integrity="sha384-w87dPisG6+Rmv1VTwjCR2Fd/6kZZU4aQCuog0Hgl0Xih3gukzW/XvhiWL4j0M0I2" crossorigin="anonymous"></script>
+	</head>
 
-    <body>
-        <div id="warningsContainer" class="warning">
-            <h1 id="warningsText"></h1>
-        </div>
+	<body>
+		<div id="warningsContainer" class="warning">
+			<h1 id="warningsText"></h1>
+		</div>
 
-        <div
-            id="notificationContainer"
-            class="notifications cursor-pointer"
-            style="opacity: 0">
-            <div class="p-1 m-4">
-                <span id="notificationList"></span>
-            </div>
-            <div class="progress w-100" style="border-radius: 0px">
-                <div
-                    id="warningProgressBar"
-                    role="progressbar"
-                    style="width: 100%"
-                    class="progress-bar bg-danger"></div>
-            </div>
-        </div>
+		<div id="notificationContainer" class="notifications cursor-pointer" style="opacity: 0">
+			<div class="p-1 m-4">
+				<span id="notificationList"></span>
+			</div>
+			<div class="progress w-100" style="border-radius: 0px">
+				<div id="warningProgressBar" role="progressbar" style="width: 100%" class="progress-bar bg-danger"></div>
+			</div>
+		</div>
 
-        <div class="sidebar" id="sidebar">
-            <ul>
-                <li
-                    class="nav-item closeSidebarButton"
-                    onclick="toggleSidebar();"
-                    role="button">
-                    <a class="nav-link"
-                        ><i
-                            id="toggleSideBarButton"
-                            class="sidebarIcon fas fa-angles-left me-2"></i
-                    ></a>
-                </li>
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/'"
-                    role="button">
-                    <a class="nav-link"
-                        ><i class="fas fa-home sidebarIcon"></i
-                        ><span class="sidebarText">Home</span></a
-                    >
-                </li>
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/managerTools'"
-                    role="button">
-                    <a class="nav-link"
-                        ><i class="fas fa-screwdriver-wrench sidebarIcon"></i
-                        ><span class="sidebarText">Manager Tools</span></a
-                    >
-                </li>
-                <!-- <li class="nav-item" onclick="window.location.href='/scoreboard'" role="button">
+		<div class="sidebar" id="sidebar">
+			<ul>
+				<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
+					<a class="nav-link"><i id="toggleSideBarButton" class="sidebarIcon fas fa-angles-left me-2"></i></a>
+				</li>
+				<li class="nav-item" onclick="window.location.href='/'" role="button">
+					<a class="nav-link" href="/"><i class="fas fa-home sidebarIcon"></i><span class="sidebarText">Home</span></a>
+				</li>
+				<li class="nav-item" onclick="window.location.href='/managerTools'" role="button">
+					<a class="nav-link" href="/managerTools"><i class="fas fa-screwdriver-wrench sidebarIcon"></i><span class="sidebarText">Manager Tools</span></a>
+				</li>
+				<!-- <li class="nav-item" onclick="window.location.href='/scoreboard'" role="button">
 				<a class="nav-link"><i class="fas fa-table-columns sidebarIcon"></i><span class="sidebarText">Scoreboard</span></a>
 			</li> -->
-                <!-- <li class="nav-item" onclick="window.location.href='/statistics'" role="button">
+				<!-- <li class="nav-item" onclick="window.location.href='/statistics'" role="button">
 				<a class="nav-link"><i class="fas fa-chart-column sidebarIcon"></i><span class="sidebarText">Statistics</span></a>
 			</li> -->
-                <!-- <li class="nav-item" onclick="window.location.href='/cameras'" role="button">
+				<!-- <li class="nav-item" onclick="window.location.href='/cameras'" role="button">
 				<a class="nav-link"><i class="fa-solid fa-video sidebarIcon"></i><span class="sidebarText">Cameras</span></a>
 			</li> -->
-                <!-- <li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
+				<!-- <li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
 				<a class="nav-link"><i class="fas fa-regular fa-lightbulb me-2"></i><span class="sidebarText">Patch</span></a>
 			</li> -->
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/status'"
-                    role="button">
-                    <a class="nav-link"
-                        ><i class="fas fa-chart-line sidebarIcon"></i
-                        ><span class="sidebarText">System Status</span></a
-                    >
-                </li>
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/editScene'"
-                    role="button"
-                    onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-regular', 'fa-solid')"
-                    onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-solid', 'fa-regular')">
-                    <a class="nav-link"
-                        ><i class="fa-regular fa-lightbulb sidebarIcon"></i
-                        ><span class="sidebarText">Lighting Controls</span></a
-                    >
-                </li>
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/feedback'"
-                    role="button"
-                    onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-comment', 'fa-comment-dots')"
-                    onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-comment-dots', 'fa-comment')">
-                    <a class="nav-link"
-                        ><i class="fas fa-comment sidebarIcon"></i
-                        ><span class="sidebarText">Leave Feedback</span></a
-                    >
-                </li>
-                <!-- <li class="nav-item" onclick="window.location.href='/experimental'" role="button">
+				<li class="nav-item" onclick="window.location.href='/status'" role="button">
+					<a class="nav-link" href="/status"><i class="fas fa-chart-line sidebarIcon"></i><span class="sidebarText">System Status</span></a>
+				</li>
+				<li class="nav-item" onclick="window.location.href='/editScene'" role="button" onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-regular', 'fa-solid')" onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-solid', 'fa-regular')">
+					<a class="nav-link" href="/editScene"><i class="fa-regular fa-lightbulb sidebarIcon"></i><span class="sidebarText">Lighting Controls</span></a>
+				</li>
+				<li class="nav-item" onclick="window.location.href='/feedback'" role="button" onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-comment', 'fa-comment-dots')" onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-comment-dots', 'fa-comment')">
+					<a class="nav-link" href="/feedback"><i class="fas fa-comment sidebarIcon"></i><span class="sidebarText">Leave Feedback</span></a>
+				</li>
+				<!-- <li class="nav-item" onclick="window.location.href='/experimental'" role="button">
 				<a class="nav-link"><i class="fas fa-flask sidebarIcon"></i><span class="sidebarText">Experimental</span></a>
 			</li> -->
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/settings'"
-                    role="button">
-                    <a class="nav-link"
-                        ><i class="fas fa-gear settingsIcon sidebarIcon"></i
-                        ><span class="sidebarText">Settings</span></a
-                    >
-                </li>
-                <li
-                    class="nav-item"
-                    onclick="window.location.href='/logout'"
-                    role="button"
-                    onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')"
-                    onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">
-                    <a class="nav-link"
-                        ><i
-                            class="fas fa-door-closed logoutIcon sidebarIcon"></i
-                        ><span class="sidebarText">Logout</span></a
-                    >
-                </li>
-            </ul>
-            <div class="sidebar-footer link-light" role="button">
-                Maintained by
-                <a
-                    onclick="openDevToolsPage()"
-                    role="button"
-                    class="text-decoration-none text-white"
-                    >Ben Mercer</a
-                >
-                <br />
-                <span onclick="showReleaseNotes()"
-                    ><small class="text-decoration-underline"
-                        >V {{VersionNo}}</small
-                    >
-                    |
-                    <small class="text-decoration-underline"
-                        >View Release Notes</small
-                    ></span
-                >
-            </div>
-        </div>
+				<li class="nav-item" onclick="window.location.href='/settings'" role="button">
+					<a class="nav-link" href="/settings"><i class="fas fa-gear settingsIcon sidebarIcon"></i><span class="sidebarText">Settings</span></a>
+				</li>
+				<li class="nav-item" onclick="window.location.href='/logout'" role="button" onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')" onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">
+					<a class="nav-link" href="/logout"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>
+				</li>
+			</ul>
+			<div class="sidebar-footer link-light" role="button">
+				Maintained by
+				<a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben Mercer</a>
+				<br />
+				<span onclick="showReleaseNotes()"
+					><small class="text-decoration-underline">V {{VersionNo}}</small>
+					|
+					<small class="text-decoration-underline">View Release Notes</small></span
+				>
+			</div>
+		</div>
 
-        <script>
-            if (localStorage.getItem("sidebarCollapsed") === "true") {
-                $("#sidebar").addClass("collapsed");
-                $("#main").addClass("collapsed");
-                $("#toggleSideBarButton").removeClass("fa-angles-left");
-                $("#toggleSideBarButton").addClass("fa-angles-right");
-            } else {
-                $("#sidebar").removeClass("collapsed");
-                $("#main").removeClass("collapsed");
-                $("#toggleSideBarButton").addClass("fa-angles-left");
-                $("#toggleSideBarButton").removeClass("fa-angles-right");
-            }
-        </script>
+		<script>
+			if (localStorage.getItem("sidebarCollapsed") === "true") {
+				$("#sidebar").addClass("collapsed");
+				$("#main").addClass("collapsed");
+				$("#toggleSideBarButton").removeClass("fa-angles-left");
+				$("#toggleSideBarButton").addClass("fa-angles-right");
+			} else {
+				$("#sidebar").removeClass("collapsed");
+				$("#main").removeClass("collapsed");
+				$("#toggleSideBarButton").addClass("fa-angles-left");
+				$("#toggleSideBarButton").removeClass("fa-angles-right");
+			}
+		</script>
 
-        <div
-            class="modal fade"
-            id="releaseNotesModal"
-            tabindex="-1"
-            aria-labelledby="releaseNotesModalLabel"
-            aria-hidden="true">
-            <div
-                class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-                <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="releaseNotesModalLabel">
-                            Release Notes
-                        </h5>
-                        <button
-                            type="button"
-                            class="btn-close"
-                            data-bs-dismiss="modal"
-                            aria-label="Close"></button>
-                    </div>
-                    <div class="modal-body">
-                        <div
-                            id="ReleaseNotesTxtBox"
-                            style="
-                                height: 70vh;
-                                width: 100%;
-                                resize: none;
-                            "></div>
-                    </div>
-                    <div class="modal-footer">
-                        <button
-                            type="button"
-                            class="btn btn-secondary"
-                            data-bs-dismiss="modal">
-                            Close
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
+		<div class="modal fade" id="releaseNotesModal" tabindex="-1" aria-labelledby="releaseNotesModalLabel" aria-hidden="true">
+			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+				<div class="modal-content">
+					<div class="modal-header">
+						<h5 class="modal-title" id="releaseNotesModalLabel">Release Notes</h5>
+						<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+					</div>
+					<div class="modal-body">
+						<div id="ReleaseNotesTxtBox" style="height: 70vh; width: 100%; resize: none"></div>
+					</div>
+					<div class="modal-footer">
+						<button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+					</div>
+				</div>
+			</div>
+		</div>
 
-        <main id="main">
-            <script>
-                if (localStorage.getItem("sidebarCollapsed") === "true") {
-                    $("#main").addClass("collapsed");
-                } else {
-                    $("#main").removeClass("collapsed");
-                }
-            </script>
+		<main id="main">
+			<script>
+				if (localStorage.getItem("sidebarCollapsed") === "true") {
+					$("#main").addClass("collapsed");
+				} else {
+					$("#main").removeClass("collapsed");
+				}
+			</script>
 
-            {% if "Dev" in Environment %}
-            <div
-                class="top-banner environmentBanner bg-danger text-white text-center py-2">
-                <h5>ENVIRONMENT: {{ Environment }}</h5>
-            </div>
-            {% endif %}
+			{% if "Dev" in Environment %}
+			<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
+				<h5>ENVIRONMENT: {{ Environment }}</h5>
+			</div>
+			{% endif %}
 
-            <div class="">{% block content %}</div>
+			<div class="">{% block content %}</div>
 
-            {% endblock %}
-        </main>
-    </body>
+			{% endblock %}
+		</main>
+	</body>
 
-    <script>
-        var tooltipTriggerList = [].slice.call(
-            document.querySelectorAll('[data-bs-toggle="tooltip"]')
-        );
-        var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
-            return new bootstrap.Tooltip(tooltipTriggerEl);
-        });
+	<script>
+		var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+		var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+			return new bootstrap.Tooltip(tooltipTriggerEl);
+		});
 
-        $(document).ready(function () {
-            localStorage.setItem("SkippedSongsCount", "0");
-            localStorage.setItem("NotifiedAboutSkippedSongs", "0");
+		$(document).ready(function () {
+			localStorage.setItem("SkippedSongsCount", "0");
+			localStorage.setItem("NotifiedAboutSkippedSongs", "0");
 
-            setTimeout(function () {
-                checkForValidPopUps();
-            }, 900000);
+			setTimeout(function () {
+				checkForValidPopUps();
+			}, 900000);
 
-            getCurrentSong();
-        });
+			getCurrentSong();
+		});
 
-        function checkForValidPopUps() {
-            if (parseInt(localStorage.getItem("SkippedSongsCount")) > 6) {
-                createSkippedSongsWarning();
+		function checkForValidPopUps() {
+			if (parseInt(localStorage.getItem("SkippedSongsCount")) > 6) {
+				createSkippedSongsWarning();
 
-                return;
-            }
+				return;
+			}
 
-            const randomNumber = Math.floor(Math.random() * 4);
+			const randomNumber = Math.floor(Math.random() * 4);
 
-            if (randomNumber == 0) {
-                createNotification(
-                    "Did you know you can request new songs to be added? <br> Go to the <a class='link-light' href='feedback'>Feedback page</a> to request a new song addition.",
-                    60000,
-                    "info"
-                );
-            } else if (randomNumber == 1) {
-                createNotification(
-                    "Having issues? <br> Report bugs on the <a href='feedback' class='link-light'>Feedback page</a>.",
-                    60000,
-                    "info"
-                );
-            } else if (randomNumber == 2) {
-                createNotification(
-                    "Want to suggest improvements? <br> Share your ideas on the <a href='feedback' class='link-light'>Feedback page</a>.",
-                    60000,
-                    "info"
-                );
-            } else {
-                createNotification(
-                    "View recent release notes by clicking <a class='text-decoration-underline link-light' onclick='showReleaseNotes()'>here</a> <br> Or by clicking the version number.",
-                    60000,
-                    "info"
-                );
-            }
-        }
+			if (randomNumber == 0) {
+				createNotification("Did you know you can request new songs to be added? <br> Go to the <a class='link-light' href='feedback'>Feedback page</a> to request a new song addition.", 60000, "info");
+			} else if (randomNumber == 1) {
+				createNotification("Having issues? <br> Report bugs on the <a href='feedback' class='link-light'>Feedback page</a>.", 60000, "info");
+			} else if (randomNumber == 2) {
+				createNotification("Want to suggest improvements? <br> Share your ideas on the <a href='feedback' class='link-light'>Feedback page</a>.", 60000, "info");
+			} else {
+				createNotification("View recent release notes by clicking <a class='text-decoration-underline link-light' onclick='showReleaseNotes()'>here</a> <br> Or by clicking the version number.", 60000, "info");
+			}
+		}
 
-        function createSkippedSongsWarning() {
-            var skippedSongs = parseInt(
-                localStorage.getItem("SkippedSongsCount")
-            );
+		function createSkippedSongsWarning() {
+			var skippedSongs = parseInt(localStorage.getItem("SkippedSongsCount"));
 
-            createNotification(
-                "You have skipped " +
-                    skippedSongs +
-                    " songs. <br> Did you know you can request new songs to be added? <br> Go to the <a class='link-dark' href='feedback'>Feedback page</a> to request a new song additon.",
-                120000,
-                "warning"
-            );
+			createNotification("You have skipped " + skippedSongs + " songs. <br> Did you know you can request new songs to be added? <br> Go to the <a class='link-dark' href='feedback'>Feedback page</a> to request a new song additon.", 120000, "warning");
 
-            localStorage.setItem("SkippedSongsCount", "0");
+			localStorage.setItem("SkippedSongsCount", "0");
 
-            return;
-        }
+			return;
+		}
 
-        $(document).ajaxError(function myErrorHandler(
-            event,
-            xhr,
-            ajaxOptions,
-            thrownError
-        ) {
-            createNotification(
-                thrownError +
-                    " - " +
-                    (xhr.responseJSON?.error ||
-                        xhr.responseJSON.description ||
-                        "Unknown error"),
-                30000
-            );
-        });
+		$(document).ajaxError(function myErrorHandler(event, xhr, ajaxOptions, thrownError) {
+			var error = xhr.responseJSON?.error || xhr.responseJSON?.description || xhr.responseText || "Unknown error";
 
-        function toggleSidebar() {
-            if ($("#sidebar").hasClass("collapsed")) {
-                $("#sidebar").removeClass("collapsed");
-                $("#main").removeClass("collapsed");
-                $("#toggleSideBarButton").addClass("fa-angles-left");
-                $("#toggleSideBarButton").removeClass("fa-angles-right");
+			createNotification(thrownError + " - " + error, 30000);
+		});
 
-                localStorage.setItem("sidebarCollapsed", "false");
-            } else {
-                $("#sidebar").addClass("collapsed");
-                $("#main").addClass("collapsed");
-                $("#toggleSideBarButton").removeClass("fa-angles-left");
-                $("#toggleSideBarButton").addClass("fa-angles-right");
+		function toggleSidebar() {
+			if ($("#sidebar").hasClass("collapsed")) {
+				$("#sidebar").removeClass("collapsed");
+				$("#main").removeClass("collapsed");
+				$("#toggleSideBarButton").addClass("fa-angles-left");
+				$("#toggleSideBarButton").removeClass("fa-angles-right");
 
-                localStorage.setItem("sidebarCollapsed", "true");
-            }
-        }
+				localStorage.setItem("sidebarCollapsed", "false");
+			} else {
+				$("#sidebar").addClass("collapsed");
+				$("#main").addClass("collapsed");
+				$("#toggleSideBarButton").removeClass("fa-angles-left");
+				$("#toggleSideBarButton").addClass("fa-angles-right");
 
-        function createWarning(contents) {
-            if (contents == "Restart") {
-                //$("#warningsText").text(contents);
+				localStorage.setItem("sidebarCollapsed", "true");
+			}
+		}
 
-                try {
-                    if (countdownInterval) {
-                        clearInterval(countdownInterval);
-                    }
-                } catch {}
+		function createWarning(contents) {
+			if (contents == "Restart") {
+				//$("#warningsText").text(contents);
 
-                TimeUntilRestart = 60;
+				try {
+					if (countdownInterval) {
+						clearInterval(countdownInterval);
+					}
+				} catch {}
 
-                RestartCountdownInterval = setInterval(function () {
-                    if (TimeUntilRestart <= 0) {
-                        clearInterval(RestartCountdownInterval);
-                        return;
-                    }
+				TimeUntilRestart = 60;
 
-                    TimeUntilRestart--;
+				RestartCountdownInterval = setInterval(function () {
+					if (TimeUntilRestart <= 0) {
+						clearInterval(RestartCountdownInterval);
+						return;
+					}
 
-                    const formattedTime = formatTime(TimeUntilRestart);
-                    $("#warningsText").text(
-                        "warning: System restarting in " +
-                            formattedTime +
-                            " | MUSIC CONTROL WILL NOT BE AVAILABLE DURING THIS PERIOD"
-                    );
-                }, 1000);
-            } else {
-                $("#warningsText").text(contents);
-            }
+					TimeUntilRestart--;
 
-            $("#warningsContainer").css("display", "unset");
-        }
+					const formattedTime = formatTime(TimeUntilRestart);
+					$("#warningsText").text("warning: System restarting in " + formattedTime + " | MUSIC CONTROL WILL NOT BE AVAILABLE DURING THIS PERIOD");
+				}, 1000);
+			} else {
+				$("#warningsText").text(contents);
+			}
 
-        function showNotifications() {
-            $("#notificationContainer").css("opacity", 100);
-        }
+			$("#warningsContainer").css("display", "unset");
+		}
 
-        function hideNotifications() {
-            $("#notificationContainer").css("opacity", 0);
-        }
+		function showNotifications() {
+			$("#notificationContainer").css("opacity", 100);
+		}
 
-        function createNotification(text, coolDown = 7000, type = "error") {
-            $("#notificationList").html(text);
-            $("#warningProgressBar").css("width", "100%");
+		function hideNotifications() {
+            $("#notificationList").html("");
+			$("#notificationContainer").css("opacity", 0);
+			$("#notificationContainer").css("display", "none");
+		}
 
-            $("#notificationContainer").removeClass("bg-success");
-            $("#notificationContainer").removeClass("bg-danger");
-            $("#notificationContainer").removeClass("bg-warning");
-            $("#notificationContainer").removeClass("bg-primary");
-            $("#warningProgressBar").removeClass("bg-success");
-            $("#warningProgressBar").removeClass("bg-danger");
-            $("#warningProgressBar").removeClass("bg-warning");
-            $("#warningProgressBar").removeClass("bg-primary");
-            $("#notificationList").css("color", "white");
+		function createNotification(text, coolDown = 7000, type = "error") {
+			$("#notificationList").html(text);
+			$("#warningProgressBar").css("width", "100%");
+			$("#notificationContainer").css("display", "flex");
 
-            if (type == "error") {
-                $("#notificationContainer").addClass("bg-danger");
-                $("#warningProgressBar").addClass("bg-danger");
-            } else if (type == "success") {
-                $("#notificationContainer").addClass("bg-success");
-                $("#warningProgressBar").addClass("bg-success");
-            } else if (type == "warning") {
-                $("#notificationContainer").addClass("bg-warning");
-                $("#warningProgressBar").addClass("bg-warning");
-                $("#notificationList").css("color", "black");
-            } else if (type == "info") {
-                $("#notificationContainer").addClass("bg-primary");
-                $("#warningProgressBar").addClass("bg-primary");
-            }
+			$("#notificationContainer").removeClass("bg-success");
+			$("#notificationContainer").removeClass("bg-danger");
+			$("#notificationContainer").removeClass("bg-warning");
+			$("#notificationContainer").removeClass("bg-primary");
+			$("#warningProgressBar").removeClass("bg-success");
+			$("#warningProgressBar").removeClass("bg-danger");
+			$("#warningProgressBar").removeClass("bg-warning");
+			$("#warningProgressBar").removeClass("bg-primary");
+			$("#notificationList").css("color", "white");
 
-            showNotifications();
+			if (type == "error") {
+				$("#notificationContainer").addClass("bg-danger");
+				$("#warningProgressBar").addClass("bg-danger");
+			} else if (type == "success") {
+				$("#notificationContainer").addClass("bg-success");
+				$("#warningProgressBar").addClass("bg-success");
+			} else if (type == "warning") {
+				$("#notificationContainer").addClass("bg-warning");
+				$("#warningProgressBar").addClass("bg-warning");
+				$("#notificationList").css("color", "black");
+			} else if (type == "info") {
+				$("#notificationContainer").addClass("bg-primary");
+				$("#warningProgressBar").addClass("bg-primary");
+			}
 
-            $("#warningProgressBar").css(
-                "transition",
-                `width ${coolDown}ms linear`
-            );
-            $("#warningProgressBar").css("width", "0%");
+			showNotifications();
 
-            setTimeout(function () {
-                hideNotifications();
-                $("#warningProgressBar").css("transition", "none");
-                $("#warningProgressBar").css("width", "100%");
-            }, coolDown);
-        }
+			$("#warningProgressBar").css("transition", `width ${coolDown}ms linear`);
+			$("#warningProgressBar").css("width", "0%");
 
-        $("#notificationContainer").on("click", function () {
-            hideNotifications();
-        });
+			setTimeout(function () {
+				hideNotifications();
+				$("#warningProgressBar").css("transition", "none");
+				$("#warningProgressBar").css("width", "100%");
+			}, coolDown);
+		}
 
-        function openDevToolsPage() {
-            var password = prompt("Enter Dev Tools Password:");
-            if (password) {
-                $.ajax({
-                    url: "/api/settings/devtools/requestAccess",
-                    type: "POST",
-                    data: {
-                        password: password,
-                    },
-                    success: function (response) {
-                        if (response) {
-                            window.location.href =
-                                "/settings/devtools?code=" +
-                                encodeURIComponent(response);
-                        } else {
-                            alert("Incorrect Password");
-                        }
-                    },
-                    error: function (xhr, status, error) {
-                        createNotification("Error: " + error, 30000);
-                    },
-                });
-            }
-        }
+		$("#notificationContainer").on("click", function () {
+			hideNotifications();
+		});
 
-        function showReleaseNotes() {
-            //TODO
-            $.ajax({
-                url: "/api/getReleaseNotes",
-                type: "GET",
-                success: function (releaseNotes) {
-                    var currentCommit = "";
+		function openDevToolsPage() {
+			var password = prompt("Enter Dev Tools Password:");
+			if (password) {
+				$.ajax({
+					url: "/api/settings/devtools/requestAccess",
+					type: "POST",
+					data: {
+						password: password,
+					},
+					success: function (response) {
+						if (response) {
+							window.location.href = "/settings/devtools?code=" + encodeURIComponent(response);
+						} else {
+							alert("Incorrect Password");
+						}
+					},
+					error: function (xhr, status, error) {
+						createNotification("Error: " + error, 30000);
+					},
+				});
+			}
+		}
 
-                    $.ajax({
-                        url: "/api/getCurrentCommit",
-                        type: "GET",
-                        success: function (response) {
-                            $("#releaseNotesModalLabel").html(
-                                "Release Notes - Current Running Version: <strong>" +
-                                    response +
-                                    "</strong>"
-                            );
+		function showReleaseNotes() {
+			//TODO
+			$.ajax({
+				url: "/api/getReleaseNotes",
+				type: "GET",
+				success: function (releaseNotes) {
+					var currentCommit = "";
 
-                            currentCommit = response;
+					$.ajax({
+						url: "/api/getCurrentCommit",
+						type: "GET",
+						success: function (response) {
+							$("#releaseNotesModalLabel").html("Release Notes - Current Running Version: <strong>" + response + "</strong>");
 
-                            $("#ReleaseNotesTxtBox").val("");
+							currentCommit = response;
 
-                            releaseNotes.forEach(function (iteratedObject) {
-                                const formattedMessage =
-                                    iteratedObject.commit.message.replace(
-                                        /\n/g,
-                                        "<br>"
-                                    );
-                                const isCurrent =
-                                    currentCommit &&
-                                    iteratedObject.sha
-                                        .slice(0, 7)
-                                        .includes(currentCommit);
-                                const style = isCurrent ? "text-success" : "";
-                                $("#ReleaseNotesTxtBox").append(
-                                    "<div>" +
-                                        "<p><strong>Release: <span class='" +
-                                        style +
-                                        "'>" +
-                                        iteratedObject.sha.slice(0, 7) +
-                                        "</span></p>" +
-                                        "<p><strong>Author:</strong> " +
-                                        iteratedObject.commit.author.name +
-                                        "</p>" +
-                                        "<p><strong>Date:</strong> " +
-                                        new Date(
-                                            iteratedObject.commit.author.date
-                                        ).toLocaleString() +
-                                        "</p>" +
-                                        "<p><strong>Message:</strong> " +
-                                        formattedMessage +
-                                        "</p>" +
-                                        "<hr>" +
-                                        "</div>"
-                                );
-                            });
+							$("#ReleaseNotesTxtBox").val("");
 
-                            $("#releaseNotesModal").modal("show");
-                        },
-                        error: function (xhr, status, error) {
-                            createNotification("Error: " + error, 30000);
-                        },
-                    });
-                },
-                error: function (xhr, status, error) {
-                    createNotification("Error: " + error, 30000);
-                },
-            });
-        }
-    </script>
+							releaseNotes.forEach(function (iteratedObject) {
+								const formattedMessage = iteratedObject.commit.message.replace(/\n/g, "<br>");
+								const isCurrent = currentCommit && iteratedObject.sha.slice(0, 7).includes(currentCommit);
+								const style = isCurrent ? "text-success" : "";
+								$("#ReleaseNotesTxtBox").append("<div>" + "<p><strong>Release: <span class='" + style + "'>" + iteratedObject.sha.slice(0, 7) + "</span></p>" + "<p><strong>Author:</strong> " + iteratedObject.commit.author.name + "</p>" + "<p><strong>Date:</strong> " + new Date(iteratedObject.commit.author.date).toLocaleString() + "</p>" + "<p><strong>Message:</strong> " + formattedMessage + "</p>" + "<hr>" + "</div>");
+							});
+
+							$("#releaseNotesModal").modal("show");
+						},
+						error: function (xhr, status, error) {
+							createNotification("Error: " + error, 30000);
+						},
+					});
+				},
+				error: function (xhr, status, error) {
+					createNotification("Error: " + error, 30000);
+				},
+			});
+		}
+	</script>
 </html>

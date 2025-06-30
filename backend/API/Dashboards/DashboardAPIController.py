@@ -3,7 +3,6 @@ from data.models import *
 
 DashboardBlueprint = Blueprint("Dashboards", __name__)
 
-
 class DashboardAPIController:
     def __init__(self, context):
         self._context : SQLAlchemy = context
@@ -77,10 +76,24 @@ class DashboardAPIController:
                         content = widget.get("content", None),
                         isActive = widget.get("isActive", True),
                     )
+                    
                     self._context.session.add(newWidget)
+                    
+            self._context.session.commit()
+                    
+            widgetIds = [w.get("id") for w in data["widgets"] if w.get("id") is not None]
+            if widgetIds:
+                self._context.session.query(DashboardWidget).filter(
+                    DashboardWidget.categoryId == dashboard.id,
+                    ~DashboardWidget.id.in_(widgetIds)
+                ).update({DashboardWidget.isActive: False})
+            elif 0 not in widgetIds:
+                self._context.session.query(DashboardWidget).filter(
+                    DashboardWidget.categoryId == dashboard.id
+                ).update({DashboardWidget.isActive: False})
 
         self._context.session.commit()
-        return jsonify((self._context.session.query(DashboardCategory).filter_by(id=dashboardId).first()).to_dict()), 200
+        return jsonify((self._context.session.query(DashboardCategory).filter(DashboardCategory.id==dashboardId).first()).to_dict()), 200
 
     def deleteDashboardWidget(self, widgetId):
         widget : DashboardWidget = self._context.session.query(DashboardWidget).filter_by(id=widgetId).first()
@@ -100,21 +113,21 @@ def registerDashboardRoutes(app, context):
     def getDashboards():
         return controller.getDashboards()
 
-    @DashboardBlueprint.route("/api/dashboards/<dashboard_id>", methods=["GET"])
-    def getDashboard(dashboard_id):
-        return controller.getDashboard(dashboard_id)
+    @DashboardBlueprint.route("/api/dashboards/<dashboardId>", methods=["GET"])
+    def getDashboard(dashboardId):
+        return controller.getDashboard(dashboardId)
 
-    @DashboardBlueprint.route("/api/dashboards/<dashboard_id>", methods=["DELETE"])
-    def deleteDashboard(dashboard_id):
-        return controller.deleteDashboard(dashboard_id)
+    @DashboardBlueprint.route("/api/dashboards/<dashboardId>", methods=["DELETE"])
+    def deleteDashboard(dashboardId):
+        return controller.deleteDashboard(dashboardId)
 
     @DashboardBlueprint.route("/api/dashboards", methods=["POST"])
     def addDashboard():
         return controller.addDashboard()
 
-    @DashboardBlueprint.route("/api/dashboards/<dashboard_id>", methods=["PUT"])
-    def updateDashboard(dashboard_id):
-        return controller.updateDashboard(dashboard_id)
+    @DashboardBlueprint.route("/api/dashboards/<dashboardId>", methods=["PUT"])
+    def updateDashboard(dashboardId):
+        return controller.updateDashboard(dashboardId)
     
     @DashboardBlueprint.route("/api/dashboards/widgets/<widgetId>", methods=["DELETE"])
     def deleteDashboardWidget(widgetId):

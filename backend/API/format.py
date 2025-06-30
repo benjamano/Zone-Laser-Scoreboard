@@ -28,7 +28,6 @@ logging.basicConfig(filename=logFilePath, level=logging.DEBUG, filemode="a")
 _dir = os.path.dirname(os.path.realpath(__file__))
 secrets = dotenv_values(_dir.replace("\\backend", "").replace("\\API", "") + "\\.env")
 
-
 class Format:
     def __init__(self, ServiceName=""):
         self.serviceName = ServiceName

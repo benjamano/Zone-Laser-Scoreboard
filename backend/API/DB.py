@@ -9,7 +9,7 @@ from API.Supervisor import Supervisor
 
 f = Format("DBContext")
 class context:
-    def __init__(self, app : Flask, db : SQLAlchemy):
+    def __init__(self, app: Flask, db: SQLAlchemy):
         self.app = app
         self._supervisor = None
         self.db = db
