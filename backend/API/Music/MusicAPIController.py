@@ -25,7 +25,8 @@ class MusicAPIController:
         
         # Queue system variables
         self.queue = deque()  # Main queue for songs
-        self.currentSong = None
+        self.currentSong : Song = None
+        self.currentPlaylist : PlayList = None
         self.queueLock = threading.Lock()  # Thread safety for queue operations
         self.stopRequested = False
         self.playerThread = None
@@ -195,6 +196,17 @@ class MusicAPIController:
         @MusicBlueprint.route("/api/music/getDownloadedSongs", methods=["GET"])
         def getDownloadedSongs(playlistId):
             return jsonify({self.getDownloadedSongs()}), 200
+        
+        @MusicBlueprint.route("/api/music/removeSongFromQueue", methods=["DELETE"])
+        def removeSongFromQueue():
+            data = request.json
+            songId = data.get("songId")
+            if not songId:
+                return jsonify({"error": "Song ID is required"}), 400
+            
+            self.removeFromQueueWithSongId(songId=songId)
+            
+            return jsonify("Success"), 200
             
         app.register_blueprint(MusicBlueprint)
     
@@ -251,6 +263,21 @@ class MusicAPIController:
             self.logError("Clear Queue", e)
             return False
     
+    def removeFromQueueWithSongId(self, songId: int) -> bool:
+        """Remove a song from the queue by its ID."""
+        try:
+            with self.queueLock:
+                queue_list = list(self.queue)
+                for i, song in enumerate(queue_list):
+                    if str(song.id) == str(songId):
+                        queue_list.pop(i)
+                        self.queue = deque(queue_list)
+                        return True
+            return False
+        except Exception as e:
+            self.logError("Remove from Queue by ID", e)
+            return False
+    
     def removeFromQueue(self, position: int) -> bool:
         """Remove song at specific position from queue."""
         try:
@@ -269,7 +296,7 @@ class MusicAPIController:
         """Get and remove the next song from queue. Refill from fullPlaylist if empty."""
         try:
             with self.queueLock:
-                if not self.queue and self.fullPlaylist:
+                if len(self.queue) == 0 and self.fullPlaylist:
                     self.queue.extend(self.fullPlaylist)
                 if self.queue:
                     return self.queue.popleft()
@@ -326,7 +353,7 @@ class MusicAPIController:
                 self.playerThread.join(timeout=2)
             
             self.playerThread = None
-            self.currentSong = None
+            self.currentSong : Song = None
             return True
         except Exception as e:
             self.logError("Stop Queue Playback", e)
@@ -416,6 +443,10 @@ class MusicAPIController:
             if self.queue:
                 self.songEndEvent.set()
                 return True
+            else:
+                self.loadPlaylistToQueue(self.currentPlaylist.id if self.currentPlaylist else 1)
+                self.songEndEvent.set()
+                return True
             return False
         except Exception as e:
             self.logError("Next", e)
@@ -451,6 +482,11 @@ class MusicAPIController:
                 
                 playListSongIds = [song.songId for song in playlistSongs]
                 songs = self._context.session.query(Song).filter(Song.id.in_(playListSongIds)).all()
+                
+                self._context.session.flush()
+                self._context.session.expunge(playlist)
+                
+                self.currentPlaylist = playlist
             
             self.queue.clear()
             
@@ -515,22 +551,77 @@ class MusicAPIController:
     def currentSongDetails(self) -> SongDetailsDTO:
         try:
             if not self.currentSong:
-                return SongDetailsDTO("No song playing", "", 0, 0, False, self.getVolume())
+                return SongDetailsDTO("No song playing", "", "", 0, 0, False, self.getVolume())
                 
-            duration = self.player.get_length() / 1000
-            timeLeft = (duration - self.player.get_time() / 1000) 
+            duration = 0
+            timeLeft = 0
             album = ""
+            artist = ""
+            songName = ""
+            currentSongId = self.currentSong.id
             
             try:
-                media = self.player.get_media()
-                currentSongName = media.get_meta(0) or self.currentSong.name
-                album = media.get_meta(4)
+                media = self.player.get_media()  
+                
+                duration = self.player.get_length() / 1000
+                timeLeft = (duration - self.player.get_time() / 1000) 
+                              
+                metaKeys = {
+                    vlc.Meta.Title: "Title",
+                    vlc.Meta.Artist: "Artist",
+                    vlc.Meta.Album: "Album",
+                    vlc.Meta.Publisher: "Publisher",
+                    vlc.Meta.AlbumArtist: "AlbumArtist",
+                    vlc.Meta.Actors: "Actors",
+                }
+
+                for key, field in metaKeys.items():
+                    value = media.get_meta(key)
+                    if value:
+                        if field == "Title":
+                            songName = value
+                        elif field == "Artist":
+                            artist = value
+                        elif field == "Album":
+                            album = value
+                        elif field == "Publisher" and artist == "":
+                            artist = value
+                        elif field == "AlbumArtist" and artist == "":
+                            artist = value
+                        elif field == "Actors" and artist == "":
+                            artist = value
+                            
             except:
-                currentSongName = self.currentSong.name if self.currentSong else "Unknown"
+                songName = self.currentSong.name if self.currentSong.name else "Unknown"
             
+            with self._app.app_context():
+                songInDB = (
+                    self._context.session
+                    .query(Song)
+                    .filter(Song.id == currentSongId)
+                    .first()
+                )
+                if songInDB:
+                    songInDB.duration = duration
+                    songInDB.album  = album
+                    songInDB.artist = artist
+
+                    self._context.session.flush()
+                    self._context.session.expunge(songInDB)
+                    self._context.session.commit()
+                    
+                    self.currentSong = songInDB
+
+                    with self.queueLock:
+                        for index, queuedSong in enumerate(self.queue):
+                            if queuedSong.id == songInDB.id:
+                                self.queue[index] = songInDB
+                                break
+
             return SongDetailsDTO(
-                name=currentSongName,
+                name=songName,
                 album=album,
+                artist=artist,
                 duration=duration,
                 timeleft=timeLeft,
                 isPlaying=self.player.is_playing() == 1,
@@ -539,7 +630,7 @@ class MusicAPIController:
             
         except Exception as e:
             self.logError("Get Current Song Details", e)
-            return SongDetailsDTO("Error getting song details", "", 0, 0, False, self.getVolume())
+            return SongDetailsDTO("Error getting song details", "", "", 0, 0, False, self.getVolume())
         
     def getSongs(self) -> list[Song]:
         try:

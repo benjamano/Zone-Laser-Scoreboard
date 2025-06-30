@@ -1603,6 +1603,9 @@ class WebApp:
         self.socketio.emit('songName', {'message': song})
         self.socketio.emit('volume', {'message': currentVolume})
         self.socketio.emit('musicStatusV2', {'message': {"playbackStatus": isPlaying, "musicPosition": (duration-timeleft), "duration": duration}})
+        queue = self._mAPI.getQueue()
+        queue_dicts = [song.to_dict() for song in queue]
+        self.socketio.emit('musicQueue', {'queue': queue_dicts})
    
     def mediaStatusChecker(self):
         f.message(f.colourText("Attempting to start Media status checker", "blue"))

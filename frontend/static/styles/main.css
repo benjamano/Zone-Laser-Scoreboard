@@ -668,14 +668,6 @@ main.collapsed {
     padding: 0;
 }
 
-.sidebar ul li {
-    width: 100%;
-    padding: 0.8rem;
-    border-bottom: 1px solid var(--TBSBGSecondary);
-    transition: background-color 0.3s ease, padding 0.3s ease,
-        text-align 0.3s ease;
-}
-
 .nav-item-options {
     display: none;
     border-bottom: none;
@@ -1033,6 +1025,18 @@ label {
     background-color: lightgreen;
 }
 
+.tallWideCard{
+    width: 200px;
+    height: 400px;
+    min-width: 200px !important;
+    min-height: 200px !important;
+    background-color: lightgreen;
+}
+
+.musicQueueCard .cardContent{
+    overflow-y: scroll;
+}
+
 .digitalClock {
     font-family: "Courier New", monospace;
     font-size: 2rem;
@@ -1247,4 +1251,12 @@ label {
 th,
 td{
     text-align: left;
+}
+
+.fs-7{
+    font-size: 0.75rem;
+}
+
+.fs-8{
+    font-size: 0.5rem;
 }

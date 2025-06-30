@@ -64,7 +64,7 @@ class DashboardAPIController:
                     existingWidget.top = widget.get("top", existingWidget.top)
                     existingWidget.typeId = widget.get("type", existingWidget.typeId)
                     existingWidget.content = widget.get("content", existingWidget.content)
-                    existingWidget.isActive = widget.get("isActive", existingWidget.isActive)
+                    existingWidget.isActive = widget.get("isActive", True)
                 else:
                     newWidget = DashboardWidget(
                         categoryId = dashboard.id,
@@ -76,10 +76,24 @@ class DashboardAPIController:
                         content = widget.get("content", None),
                         isActive = widget.get("isActive", True),
                     )
+                    
                     self._context.session.add(newWidget)
+                    
+            self._context.session.commit()
+                    
+            widgetIds = [w.get("id") for w in data["widgets"] if w.get("id") is not None]
+            if widgetIds:
+                self._context.session.query(DashboardWidget).filter(
+                    DashboardWidget.categoryId == dashboard.id,
+                    ~DashboardWidget.id.in_(widgetIds)
+                ).update({DashboardWidget.isActive: False})
+            elif 0 not in widgetIds:
+                self._context.session.query(DashboardWidget).filter(
+                    DashboardWidget.categoryId == dashboard.id
+                ).update({DashboardWidget.isActive: False})
 
         self._context.session.commit()
-        return jsonify((self._context.session.query(DashboardCategory).filter_by(id=dashboardId).first()).to_dict()), 200
+        return jsonify((self._context.session.query(DashboardCategory).filter(DashboardCategory.id==dashboardId).first()).to_dict()), 200
 
     def deleteDashboardWidget(self, widgetId):
         widget : DashboardWidget = self._context.session.query(DashboardWidget).filter_by(id=widgetId).first()

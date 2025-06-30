@@ -171,14 +171,14 @@
                                 Add Music Album Cover
                             </button>
                         </li>
-                        <li>
+                        <!-- <li>
                             <button
                                 class="dropdown-item"
                                 onclick="createMusicNameCard()"
                                 disabled>
                                 Add Music Name (Coming Soon)
                             </button>
-                        </li>
+                        </li> -->
                         <li>
                             <button
                                 class="dropdown-item"
@@ -190,11 +190,18 @@
                         <li>
                             <button
                                 class="dropdown-item"
+                                onclick="createMusicQueueCard()">
+                                Add Song Queue
+                            </button>
+                        </li>
+                        <!-- <li>
+                            <button
+                                class="dropdown-item"
                                 onclick="createMusicBPMCard()"
                                 disabled>
                                 Add BPM Number (Coming Soon)
                             </button>
-                        </li>
+                        </li> -->
                         <li>
                             <button
                                 class="dropdown-item"
@@ -329,16 +336,14 @@
 
                     tab.role = "button";
                     tab.className = "user-select-none";
-                    tab.innerHTML = `<a class="nav-link dashboardTab ${
-                        category.name == "Main" ? "active" : ""
-                    }" id="tab_${category.id}" data-bs-toggle="tab">${
+                    tab.innerHTML = `<a class="nav-link dashboardTab" id="tab_${category.id}" data-bs-toggle="tab">${
                         category.name
                     }</a>`;
                     tab.addEventListener("click", function () {
                         openDashboard(category.id);
                     });
 
-                    if (category.name == "Main") {
+                    if (category.name == "Main" && $(".nav-link.dashboardTab.active").length == 0) {
                         openDashboard(category.id);
                     }
 
@@ -371,7 +376,12 @@
             url: `/api/dashboards/${categoryId}`,
             type: "GET",
             success: function (response) {
-                $(".movableItemsContainer").empty();
+                $(".movableItemsContainer").each(function(index, elem){
+                    $(elem).empty();
+                })
+
+                $(".nav-link.dashboardTab").removeClass("active");
+                $("#tab_" + categoryId).addClass("active");
 
                 loadCardConfig(response.widgets);
             },
@@ -437,21 +447,31 @@
         const fixtures = await response.json();
 
         fixtures.forEach((fixture) => {
-            if (fixture.type.includes("Colorspot575XT")) {
-                console.log(
-                    "Colorspot 575 XT found with name: " + fixture.name
-                );
-            } else if (fixture.type.includes("Colorspot250AT")) {
-                console.log("Colorspot 250 AT found with ID: " + fixture.name);
-            } else if (fixture.type.includes("Colorwash250AT")) {
-                console.log("Colorwash 250 AT found with ID: " + fixture.name);
-            } else if (fixture.type.includes("Dimmer")) {
-                console.log("Dimmer found with ID: " + fixture.name);
+            try{
+                if (fixture.type.includes("Colorspot575XT")) {
+                    console.log(
+                        "Colorspot 575 XT found with name: " + fixture.name
+                    );
+                } else if (fixture.type.includes("Colorspot250AT")) {
+                    console.log("Colorspot 250 AT found with ID: " + fixture.name);
+                } else if (fixture.type.includes("Colorwash250AT")) {
+                    console.log("Colorwash 250 AT found with ID: " + fixture.name);
+                } else if (fixture.type.includes("Dimmer")) {
+                    console.log("Dimmer found with ID: " + fixture.name);
 
-                //createDimmerSlider(fixture);
+                    //createDimmerSlider(fixture);
+                }
+            }
+            catch (error) {
+                console.log("Error processing fixture:", error);
             }
 
             const container = document.getElementById("fixtures-container");
+
+            if (!container) {
+                console.warn("Container with ID 'fixtures-container' not found.");
+                return;
+            }
 
             const fixtureDiv = document.createElement("div");
             fixtureDiv.className = `fixture`;
@@ -565,6 +585,15 @@
     function playBriefing() {
         console.log("Playing Briefing");
         socket.emit("playBriefing");
+    }
+
+    function removeSongFromQueue(songId){
+        $.ajax({
+            url: `/api/music/removeSongFromQueue`,
+            type: "DELETE",
+            contentType: "application/json",
+            data: JSON.stringify({ songId: songId }),
+        });
     }
 </script>
 

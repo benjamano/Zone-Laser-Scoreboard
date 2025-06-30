@@ -274,7 +274,10 @@ class DashboardCategory(db.Model):
             "name": self.name,
             "order": self.order,
             "isActive": self.isActive,
-            "widgets": [widget.to_dict() for widget in DashboardWidget.query.filter_by(categoryId=self.id and DashboardWidget.isActive == True).all()]
+            "widgets": [widget.to_dict() for widget in DashboardWidget.query.filter(
+                DashboardWidget.categoryId == self.id,
+                DashboardWidget.isActive == True
+            ).all()]
         }
         
 class DashboardWidget(db.Model):
@@ -325,6 +328,8 @@ class Song(db.Model):
     youtubeLink = db.Column(db.String(255), nullable=True)
     duration = db.Column(db.Integer, nullable=True)
     isDownloaded = db.Column(db.Boolean, nullable=True)
+    artist = db.Column(db.String(255), nullable=True)
+    album = db.Column(db.String(255), nullable=True)
 
     songs = db.relationship("PlaylistSong", back_populates="song", cascade="all, delete-orphan")
 
@@ -334,7 +339,9 @@ class Song(db.Model):
             "name": self.name,
             "youtubeLink": self.youtubeLink,
             "isDownloaded": self.isDownloaded,
-            "duration": self.duration
+            "duration": self.duration,
+            "artist": self.artist,
+            "album": self.album,
         }
 
 class PlaylistSong(db.Model):
@@ -347,9 +354,10 @@ class PlaylistSong(db.Model):
     song = db.relationship("Song", back_populates="songs")
     
 class SongDetailsDTO():
-    def __init__(self, name, album, duration, timeleft, isPlaying, currentVolume):
+    def __init__(self, name, album, artist, duration, timeleft, isPlaying, currentVolume):
         self.name = name
         self.album = album
+        self.artist = artist
         self.duration = duration
         self.timeleft = timeleft
         self.isPlaying = isPlaying
@@ -359,6 +367,7 @@ class SongDetailsDTO():
         return {
             "name": self.name,
             "album": self.album,
+            "artist": self.artist,
             "duration": self.duration,
             "timeleft": self.timeleft,
             "isPlaying": self.isPlaying,
