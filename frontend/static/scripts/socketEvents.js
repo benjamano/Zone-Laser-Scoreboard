@@ -272,16 +272,26 @@ socket.on("musicStatusV2", function (msg) {
 		// handle error if you want, or leave silent
 	}
 });
-
-socket.on("musicQueue", function (queue){
+let lastMusicQueueHtml = "";
+socket.on("musicQueue", function (queue) {
 	var containers = $(".musicQueueList");
 
-	if (containers.length == 0) {return;}
+	if (containers.length == 0) { return; }
 
-	containers.each(async function(_, container){
-		// $(container).empty();
-
+	containers.each(async function (_, container) {
 		var isContainerLargeEnough = $(container).width() > 300;
+
+		const newSongIds = queue.queue.map(song => song.id);
+
+		const currentSongIds = [];
+		$(container).find("li.list-group-item[data-song-id]").each(function () {
+			const id = $(this).attr("data-song-id");
+			currentSongIds.push(parseInt(id, 10));
+		});
+
+		const idsAreSame = currentSongIds.length === newSongIds.length &&
+			currentSongIds.every((id, idx) => id === newSongIds[idx]);
+		if (idsAreSame) return;
 
 		var contentArr = await Promise.all(queue.queue.map(async song => {
 			var songName = song.name;
@@ -297,13 +307,18 @@ socket.on("musicQueue", function (queue){
 			}
 
 			let albumCoverUrl = "";
-			
-			if (isContainerLargeEnough) {
-				albumCoverUrl = await getAlbumCover(songAlbum);
+
+			try {
+				if (isContainerLargeEnough) {
+					albumCoverUrl = await getAlbumCover(songAlbum);
+				}
+			}
+			catch (err) {
+				albumCoverUrl = "";
 			}
 
 			return `
-				<li class="list-group-item d-flex flex-row justify-content-between align-items-start">
+				<li class="list-group-item d-flex flex-row justify-content-between align-items-start" data-song-id="${song.id}">
 					${isContainerLargeEnough ? `<div class="border-end pe-2">
 						${(isContainerLargeEnough && albumCoverUrl ? `<img src="${albumCoverUrl}" class="rounded mb-1" style="max-width: 50px; max-height: 50px;">` : "")}
 					</div>` : ""}
@@ -321,20 +336,19 @@ socket.on("musicQueue", function (queue){
 			`;
 		}));
 
+		let newHtml;
 		if (isContainerLargeEnough == true) {
-			contentArr = `<div id='musicQueueHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center">
-                <span class="fs-6"><b>Up Next...</b></span>
+			newHtml = `<div id='musicQueueHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center">
+				<span class="fs-6"><b>Up Next...</b></span>
 				<button class="btn btn-outline-secondary d-none" onclick="clearMusicQueue();">Clear Queue</button>
-            </div>` 
-			+ contentArr.join("")
+			</div>` + contentArr.join("");
+		} else {
+			newHtml = contentArr.join("");
+		}
 
-			$(container).html(contentArr)
-		}
-		else{
-			$(container).html(contentArr.join(""))
-		}
+		$(container).html(newHtml);
 	});
-})
+});
 
 function updateProgressBar(currentTime, totalDuration) {
 	const progressBars = $(".musicProgressBar");

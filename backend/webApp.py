@@ -137,7 +137,7 @@ class WebApp:
         
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
-        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app)
+        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir)
         
         self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
         self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker, daemon=True).start()

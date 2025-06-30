@@ -12,13 +12,14 @@ from flask import Blueprint, jsonify, request, Flask
 MusicBlueprint = Blueprint("music", __name__)
 
 class MusicAPIController:
-    def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app : Flask):
+    def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app : Flask, dir):
         self.registerMusicRoutes(app)
         
         self._supervisor = supervisor
         self._context = context
         self._secrets = secrets
         self._app : Flask = app
+        self._dir = dir
         
         self.instance : vlc.Instance = vlc.Instance()
         self.player : vlc.MediaPlayer = self.instance.media_player_new()
@@ -212,9 +213,9 @@ class MusicAPIController:
     
     def getDownloadedSongs(self):
         try:
-            music_dir = "backend/data/music"
+            musiDir = self._dir + "/data/music"
             songs = []
-            for filename in os.listdir(music_dir):
+            for filename in os.listdir(musiDir):
                 if filename.endswith(".mp3") or filename.endswith(".m4a"):
                     song_name = os.path.splitext(filename)[0]
                     song : Song = self._context.session.query(Song).filter(Song.name == song_name).first()
@@ -362,9 +363,9 @@ class MusicAPIController:
     def loadSong(self, song: Song) -> bool:
         try:
             with self._app.app_context():
-                path = f"backend/data/music/{song.name}.mp3"
+                path = self._dir + f"/data/music/{song.name}.mp3"
                 if not os.path.isfile(path):
-                    path = f"backend/data/music/{song.name}.m4a"
+                    path = self._dir + f"/data/music/{song.name}.m4a"
                     if not os.path.isfile(path):
                         song.isDownloaded = False
                         return False
