@@ -970,7 +970,7 @@ label {
     display: flex;
     justify-content: center;
     align-items: center;
-    cursor: grab;
+    /* cursor: grab; */
     position: absolute;
     -webkit-user-select: none;
     user-select: none;
@@ -1005,6 +1005,36 @@ label {
     min-width: 300px !important;
     min-height: 100px !important;
     background-color: transparent;
+}
+
+.musicVolumeSliderCard{
+    min-width: 100px !important;
+    min-height: 100px !important;
+}
+
+.verticalSlider .musicVolumeSlider{
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.verticalSlider .form-range{
+    margin-top: auto;
+    margin-bottom: auto;
+}
+
+.verticalSlider {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+}
+
+.verticalSlider input[type="range"] {
+    transform: rotate(270deg);
 }
 
 .mediumSquareCard {
@@ -1100,6 +1130,10 @@ label {
 
 .cursor-text {
     cursor: text !important;
+}
+
+.cursor-drag {
+    cursor: grab !important;
 }
 
 .resizable {

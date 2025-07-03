@@ -533,6 +533,7 @@ class MusicAPIController:
         
     def setVolume(self, volume: int) -> int:
         try:
+            volume = int(volume)
             if 0 <= volume <= 100:
                 self.player.audio_set_volume(volume)
                 return self.player.audio_get_volume()

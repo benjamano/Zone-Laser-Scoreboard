@@ -489,3 +489,15 @@ function getCurrentSong() {
 		console.error("Error getting current song:", err);
 	}
 }
+
+function setMusicVolume(elem) {
+	socket.emit("setVolume", { volume: $(elem).val() });
+	$(elem).closest('.musicVolumeSlider').find('.volumeValue').text($(elem).val() + "%");
+}
+
+socket.on("musicVolume", function (msg) {
+	$(".volumeControlSlider").each(function(){
+		$(this).val(msg.message);
+		$(this).closest('.musicVolumeSlider').find('.volumeValue').text(msg.message + "%");
+	})
+});

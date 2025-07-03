@@ -1338,6 +1338,10 @@ class WebApp:
             else:
                 #f.message("OBS not connected, cannot play breifing!", type="warning")
                 return jsonify({"status": "error", "message": "OBS not connected, cannot play briefing!"}), 500
+            
+        @self.socketio.on("setVolume")
+        def setVolume(msg):
+            self._mAPI.setVolume(msg.get("volume", 0))
     
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
@@ -1601,7 +1605,7 @@ class WebApp:
     def sendSongDetails(self, song, album, bpm, duration, timeleft, isPlaying, currentVolume):
         self.socketio.emit('songAlbum', {'message': album})
         self.socketio.emit('songName', {'message': song})
-        self.socketio.emit('volume', {'message': currentVolume})
+        self.socketio.emit('musicVolume', {'message': currentVolume})
         self.socketio.emit('musicStatusV2', {'message': {"playbackStatus": isPlaying, "musicPosition": (duration-timeleft), "duration": duration}})
         queue = self._mAPI.getQueue()
         queue_dicts = [song.to_dict() for song in queue]

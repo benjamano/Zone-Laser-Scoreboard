@@ -83,11 +83,12 @@ class DashboardAPIController:
                     
             widgetIds = [w.get("id") for w in data["widgets"] if w.get("id") is not None]
             if widgetIds:
-                self._context.session.query(DashboardWidget).filter(
-                    DashboardWidget.categoryId == dashboard.id,
-                    ~DashboardWidget.id.in_(widgetIds)
-                ).update({DashboardWidget.isActive: False})
-            elif 0 not in widgetIds:
+                if "0" not in widgetIds:
+                    self._context.session.query(DashboardWidget).filter(
+                        DashboardWidget.categoryId == dashboard.id,
+                        ~DashboardWidget.id.in_(widgetIds)
+                    ).update({DashboardWidget.isActive: False})
+            else:
                 self._context.session.query(DashboardWidget).filter(
                     DashboardWidget.categoryId == dashboard.id
                 ).update({DashboardWidget.isActive: False})

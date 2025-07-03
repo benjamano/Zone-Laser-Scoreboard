@@ -10,6 +10,22 @@ function formatTime(seconds) {
         .padStart(2, "0")}:${milliseconds.toString().padStart(3, "0")}`;
 }
 
+function areCardsDraggable(){
+    return !$("#isEditingCheck").hasClass("fa-xmark");
+}
+
+function toggleEditMode(){
+    $("#isEditingCheck").toggleClass("fa-xmark fa-check");
+
+    container.querySelectorAll(".draggableCard").forEach(card => {
+        if (!$("#isEditingCheck").hasClass("fa-xmark")) {
+            card.classList.add("cursor-drag");
+        } else {
+            card.classList.remove("cursor-drag");
+        }
+    });
+}
+
 function createCard() {
     const card = document.createElement("div");
     card.classList.add("draggableCard", "resizable");
@@ -20,6 +36,35 @@ function createCard() {
     card.dataset.id = "widget_0";
 
     card.addEventListener("dragstart", (e) => {
+        if (areCardsDraggable() == false){
+            e.preventDefault();
+            return;
+        }
+
+        // Prevent drag if starting on a range input (slider)
+        if (e.target.tagName === "INPUT" && e.target.type === "range") {
+            e.preventDefault();
+            return;
+        }
+        // Prevent drag if starting on a native scrollbar
+        const rect = card.getBoundingClientRect();
+        const scrollbarThreshold = 16; // typical scrollbar width
+        // Check right edge (vertical scrollbar)
+        if (
+            e.clientX > rect.right - scrollbarThreshold &&
+            e.clientX <= rect.right
+        ) {
+            e.preventDefault();
+            return;
+        }
+        // Check bottom edge (horizontal scrollbar)
+        if (
+            e.clientY > rect.bottom - scrollbarThreshold &&
+            e.clientY <= rect.bottom
+        ) {
+            e.preventDefault();
+            return;
+        }
         e.dataTransfer.setData(
             "text/plain",
             JSON.stringify({
@@ -103,6 +148,13 @@ function makeResizable(card) {
     resizer.addEventListener("mousedown", (e) => {
         // If the user is clicking on a native scrollbar, don't start resizing.
         const rect = resizer.getBoundingClientRect();
+        // Prevent resizing if the target is a range input (slider)
+        if (
+            e.target.tagName === "input" &&
+            e.target.type === "range"
+        ) {
+            return;
+        }
         if (
             e.clientX < rect.left - 2 ||
             e.clientX > rect.right + 2 ||
@@ -129,6 +181,9 @@ function makeResizable(card) {
             ) * GRID_SIZE;
         card.style.width = `${Math.max(GRID_SIZE, newWidth)}px`;
         card.style.height = `${Math.max(GRID_SIZE, newHeight)}px`;
+
+        const resizeEvent = new Event("resize", { bubbles: true });
+        card.dispatchEvent(resizeEvent);
     }
 
     function stopResize() {
@@ -162,7 +217,7 @@ function saveCardConfig() {
             widgets: config,
         }),
         success: function (response) {
-            if (Array.isArray(response.widgets) && response.widgets.some(w => w.id == 0)) {
+            if (config.some(w => w.id == "0")) {
                 loadCardConfig(response.widgets);
             }
         },
@@ -441,6 +496,9 @@ function loadCardConfig(configStr) {
                 break;
             case "musicQueueCard":
                 contentArea = createMusicQueueCard();
+                break;
+            case "musicVolumeSliderCard":
+                contentArea = createMusicVolumeSliderCard();
                 break;
             default:
                 contentArea = addSmallCard();
@@ -1003,6 +1061,51 @@ function createMusicQueueCard(){
             </li>
         </ul>
     `
+
+    return contentArea;
+}
+
+function checkIfVolumeCardIsTall(card) {
+    if (card.offsetHeight > card.offsetWidth) {
+        card.classList.add("verticalSlider");
+        const slider = card.querySelector('input[type="range"]');
+        if (slider) {
+            slider.style.width = (card.querySelector('#volumeSliderContainer').offsetHeight) + "px";
+        }
+    } else {
+        card.classList.remove("verticalSlider");
+        const slider = card.querySelector('input[type="range"]');
+        if (slider) {
+            slider.style.width = "";
+        }
+    }
+}
+
+function createMusicVolumeSliderCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("musicVolumeSliderCard", "smallWideCard");
+    card.dataset.type = "musicVolumeSliderCard";
+
+    card.addEventListener("resize", function (e) {
+        checkIfVolumeCardIsTall(card);
+    });
+
+    // $(card).closest(""))
+
+    contentArea.innerHTML = `
+        <div class="musicVolumeSlider p-2">
+            <label for="volumeControl" class="form-label text-center">Music Volume</label>
+            <div id="volumeSliderContainer" class="h-100 d-flex">
+                <input type="range" class="form-range volumeControlSlider" id="volumeControl" min="0" max="100" value="0" oninput="setMusicVolume(this);">
+            </div>
+            <label class="volumeValue form-label text-center" class="text-center">0%</label>
+        </div>
+    `;
+
+    setTimeout(() => {
+        checkIfVolumeCardIsTall(card);
+    }, 50);
 
     return contentArea;
 }

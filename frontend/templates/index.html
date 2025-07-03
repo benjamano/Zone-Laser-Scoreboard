@@ -37,6 +37,12 @@
                             >Delete</a
                         >
                     </li>
+                    <li>
+                        <a class="dropdown-item" id="tabEdit" role="button" onclick="toggleEditMode();">
+                            Edit Mode
+                            <span id="isEditingCheck" class="fas fa-xmark"></span>
+                        </a>
+                    </li>
                 </ul>
             </li>
 
@@ -182,9 +188,8 @@
                         <li>
                             <button
                                 class="dropdown-item"
-                                onclick="createMusicVolumeSliderCard()"
-                                disabled>
-                                Add Volume Slider (Coming Soon)
+                                onclick="createMusicVolumeSliderCard()">
+                                Add Volume Slider
                             </button>
                         </li>
                         <li>
