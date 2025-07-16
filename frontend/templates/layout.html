@@ -42,6 +42,7 @@
 			</div>
 		</div>
 
+		{% if PageTitle != "Onboarding" %}
 		<div class="sidebar" id="sidebar">
 			<ul>
 				<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
@@ -95,6 +96,8 @@
 				>
 			</div>
 		</div>
+
+		{% endif %}
 
 		<script>
 			if (localStorage.getItem("sidebarCollapsed") === "true") {

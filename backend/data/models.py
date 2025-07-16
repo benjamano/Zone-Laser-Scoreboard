@@ -373,3 +373,16 @@ class SongDetailsDTO():
             "isPlaying": self.isPlaying,
             "currentVolume": self.currentVolume
         }
+        
+class SystemControls(db.Model):
+    __tablename__ = 'SystemControls'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    value = db.Column(db.String(100), nullable=False)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "value": self.value
+        }

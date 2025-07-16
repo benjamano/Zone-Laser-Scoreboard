@@ -1,0 +1,355 @@
+{% extends "layout.html" %} {% block content %}
+
+<div class="card">
+    <!-- <div class="card-header">
+        Welcome to Zone Laser Scoreboard!
+    </div> -->
+    <div class="card-body">
+        <div class="px-4 py-5 my-5 text-center">
+            <div id="getStarted">
+                <h1 class="display-5 fw-bold">Let's get started</h1>
+                <p class="fs-4">This is the first time you have run Zone Laser Scoreboard, so we need to set some things up</p>
+                <button class="btn btn-primary btn-lg" type="button" onclick="$('#getStarted').hide(); $('#selectServices').show()">Start Setup</button>
+            </div>
+            <div class="row align-items-center" id="selectServices" style="display: none;">
+                <div class="col-lg-7 text-center text-lg-start">
+                    <h1 class="display-5 fw-bold lh-1 mb-3">Enable and Disable Services</h1>
+                    <p class="col-10 fs-4 mb-0">Please select the services you want to enable</p>
+                    <p class="col-10 fs-5 mb-0">Some required services cannot be disabled</p>
+                    <p class="col-10 fs-5">These can be changed at any time later</p>
+                </div>
+                <div class="col-10 mx-auto col-lg-5">
+                    <form id="serviceForm" class="p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
+                        <div class="form-check mb-3 w-100">
+                            <input class="form-check-input" type="checkbox" id="enableMusic" name="enableMusic" checked>
+                            <label class="form-check-label" for="enableMusic">Music Control <span class="fas fa-info-circle intBlue ms-1" data-bs-toggle="tooltip" title="Enable the built-in music player, this will give you access to playlists, pausing and unpausing as well as other features."></span></label>
+                        </div>
+                        <div class="form-check mb-3 w-100">
+                            <input class="form-check-input" type="checkbox" id="enableEmails" name="enableEmails" checked>
+                            <label class="form-check-label" for="enableEmails">Gmail Email Sending <span class="fas fa-info-circle intBlue ms-1" data-bs-toggle="tooltip" title="Add the Gmail email sending system, this requires some additional setup so is included here."></span></label>
+                        </div>
+                        <div class="form-check mb-3 w-100">
+                            <input class="form-check-input" type="checkbox" id="enableDMX" name="enableDMX" checked>
+                            <label class="form-check-label" for="enableDMX">DMX and Lighting Control <span class="fas fa-info-circle intBlue ms-1" data-bs-toggle="tooltip" title="Enable the integrated DMX / Lighting control system, it allows you to control lighting from an existing DMX lighting network."></span></label>
+                        </div>
+                        <div class="form-check mb-3 w-100">
+                            <input class="form-check-input" type="checkbox" id="enablePacketSniffing" name="enablePacketSniffing" checked>
+                            <label class="form-check-label" for="enablePacketSniffing">Zone Packet Sniffing <span class="fas fa-info-circle intBlue ms-1" data-bs-toggle="tooltip" title="The main part of this whole software, you will need to do some additional setting up to start recieving packets from the ZONE controller."></span></label>
+                        </div>
+                        <div class="form-check mb-4 w-100">
+                            <input class="form-check-input" type="checkbox" id="enableOBS" name="enableOBS" checked>
+                            <label class="form-check-label" for="enableOBS">OBS Control <span class="fas fa-info-circle intBlue ms-1" data-bs-toggle="tooltip" title="Allow the software to control the running OBS instance on this system."></span></label>
+                        </div>
+                        <button class="w-100 btn btn-lg btn-primary" type="button" onclick="startSettingUpOptions();">Complete</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Service Setup -->
+
+            <div class="setupServiceOptions" id="startMusicSetup" style="display: none;">
+                <div class="row align-items-center">
+                    <div class="col-lg-7 text-center text-lg-start">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Music Setup</h1>
+                        <p class="col-10 fs-4 mb-0">This feature is new and will have changes as well as new features added over time</p>
+                        <p class="col-10 fs-5 mb-0">Heres some info that you may find useful</p>
+                    </div>
+                    <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
+                        <h3 class="fw-bold fs-6 col-12">To add your own music into the system:</h3>
+                        <ul class="">
+                            <li>Drag and drop music files into the <code>~/backend/data/music</code> folder</li>
+                            <li class="mb-3">Use the <code>MusicDownloader.py</code> python file inside the <code>~/backend/API/Music</code> folder</li>
+                            <li class="">You can use playlists - create, edit and delete them on the <code>Settings</code> page</li>
+                            <li class="">You can play, pause, skip, restart and go to the previous song using the controls on the index page</li>
+                        </ul>
+
+                        <button class="w-100 btn btn-lg btn-primary mt-3" type="button" onclick="finishMusicSetup();">Continue Onboarding</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setupServiceOptions" id="startDMXSetup" style="display: none;">
+                <div class="row align-items-center">
+                    <div class="col-lg-7 text-center text-lg-start h-100 mt-4 mb-auto">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">DMX Setup</h1>
+                        <p class="col-10 fs-4 mb-0">This feature will be changed overtime, as well as get new features added over time</p>
+                        <p class="col-10 fs-5 mb-0">Theres something we need to setup before this service can start</p>
+                    </div>
+                    <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
+                        <h3 class="fw-bold fs-5 col-12 mb-4">The DMX service is currently <span class="text-danger" id="isDMXServiceRunning">not running</span></h3>
+
+                        <p class="col-12 mb-1 fs-6">You can start the service by clicking the button below, this will attempt to start the service and then you can continue with the setup</p>
+                        <p class="col-12 mb-1 fs-6">For the service to work, you must have a valid <b>Open DMX</b> dongle connected to the system, and the <b>libusb-win32</b> driver installed for the adaptor.</p>
+                        <p class="col-12 mb-1 fs-6">I recommend using the <a href="https://zadig.akeo.ie/">Zadig tool</a> to install the correct driver for your adaptor</p>
+                        <p class="col-12 mb-3 fs-6">If you don't have a dongle, either purchase one like <a href="https://amzn.eu/d/fD1oizE">this</a> or just skip this step by pressing the continue button.</p>
+
+                        <button class="w-50 btn btn-outline-primary mb-3" id="startDMXServiceButton" onclick="tryStartDMXService();">Try to start the DMX service</button>
+
+                        <button class="w-100 btn btn-lg btn-primary mt-3" type="button" onclick="finishDMXSetup();">Continue Onboarding</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setupServiceOptions" id="startpacketSniffingSetup" style="display: none;">
+                <div class="row align-items-center">
+                    <div class="col-lg-7 text-center text-lg-start h-100 mt-4 mb-auto">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Zone Scoreboard Setup</h1>
+                        <p class="col-10 fs-4 mb-0">Enabling this feature allows for this software to track evrything about a current laser tag game</p>
+                        <p class="col-10 fs-5 mb-0">Theres a couple things we need to setup before this service can start</p>
+                    </div>
+                    <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
+                        <p>Before we can start this service, I need the Local IP address of the <b>ZONE Control box</b></p>
+                        <p>The software can't work this out (yet), so you'll need to find this out yourself, here are some tips to help you along:</p>
+                        <ul class="list-group-numbered">
+                            <li>Make sure you are directly connected to the Zone system's local network, there should be a network switch that the ANDROID Box and ZONE Control box are both connected to</li>
+                            <li>Next, download <a href="https://www.wireshark.org/">Wireshark</a> and open the <code>Local Area Connection</code> section.</li>
+                            <li>Start a capture, and then press the start button on the Control box to start a game, you should see a bunch of different packets suddenly be sent from the control box's IP, note that IPv4 down.</li>
+                        </ul>
+                        
+                        <div class="form-group">
+                            <label for="zoneControllerIP" class="form-label mt-3">ZONE Control Box Local IPv4 Address (e.g. 192.168.2.60)</label>
+                            <input type="text" class="form-control mb-3" id="zoneControllerIP" placeholder="192:168:xxx:xxx" aria-label="ZONE Control Box IP Address" aria-describedby="zoneControllerIPHelp" value="192.168.2.60">
+                        </div>
+
+                        <button class="btn btn-outline-primary" id="testZoneConnetionButton" onclick="waitingForZonePacket=true; $('#testZoneConnetionButton').text('Please start a game, Waiting...')">Test Zone Connection</button>
+
+                        <div class="card zonePacketsRecievedCard" id="zonePacketsRecievedCard" style="display:none;">
+                            <div class="card-header">Recieved Packets</div>
+                            <div class="card-body">
+                                <div class="px-4 py-2 mt-2 mb-4" id="zonePacketsRecieved"></div>
+                            </div>
+                        </div>
+
+                        <button class="w-100 btn btn-lg btn-primary mt-3" type="button" onclick="finishZoneSetup();">Continue Onboarding</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="setupServiceOptions" id="startEmailSetup" style="display: none;">
+                <div class="row align-items-center">
+                    <div class="col-lg-7 text-center text-lg-start h-100 mt-4 mb-auto">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">Gmail Emailing Setup</h1>
+                        <p class="col-10 fs-4 mb-0">Enabling this feature allows you to send email templates from a Gmail account</p>
+                        <p class="col-10 fs-5 mb-0">I will need some details before this feature can be enabled</p>
+                    </div>
+                    <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
+                        <p class="mb-1">To send emails from this software, I need a <code>Gmail App Password</code>, which is NOT your account's password and can be created <a>here</a></p>
+                        <p class="mb-1">As well as your Gmail account email, just enter those details in the text boxes below or press the Continue to skip this step</p>
+
+                        <form class="mx-2 my-4 px-2 py-4 border rounded-3">
+                            <div class="row">
+                                <div class="form-group col-6">
+                                    <label class="form-label">Account Email</label>
+                                    <input type="text" placeholder="benjamano12@gmail.com" id="gmailAccountEmail">
+                                </div>
+                                <div class="form-group col-6">
+                                    <label class="form-label">App Password</label>
+                                    <input type="text" id="gmailAppPassword">
+                                </div>
+                            </div>
+                            <button class="btn btn-outline-primary mt-2" id="submitATestEmailBtn" onclick="trySendATestEmail();">Submit and Send a test email</button>
+                        </form>
+
+                        <button class="w-100 btn btn-lg btn-primary mt-3" type="button" onclick="finishEmailSetup();">Continue Onboarding</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    var tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+    var tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+    var featureDetails = {};
+    var optionsToSetup = {};
+
+    var waitingForZonePacket = false;
+
+
+    //FINNALLY, RUNNING AS SERVER OR ON MY PC
+
+    function completeOnboarding(){
+        $.ajax({
+            url: `/api/init/enableAndDisableFeatures`,
+            type: "POST",
+            contentType: "application/json",
+            data: {
+                enableMusic: $('#enableMusic').is(':checked'),
+                enableDMX: $('#enableDMX').is(':checked'),
+                enablePacketSniffing: $('#enablePacketSniffing').is(':checked'),
+                enableEmailing: $('#enableEmails').is(':checked')
+            },
+            success: function(response) {
+                window.location.href = "/";
+            },
+        });
+    }
+
+    function startSettingUpOptions(){
+        $("#selectServices").hide();
+        $(".setupServiceOptions").hide();
+
+        if (optionsToSetup == {} || optionsToSetup == null || optionsToSetup == undefined || Object.keys(optionsToSetup).length == 0){
+            optionsToSetup.enableMusic = $('#enableMusic').is(':checked');
+            optionsToSetup.enableDMX = $('#enableDMX').is(':checked');
+            optionsToSetup.enablePacketSniffing = $('#enablePacketSniffing').is(':checked');
+            optionsToSetup.enableEmails = $('#enableEmails').is(':checked');
+            optionsToSetup.enableOBS = $('#enableOBS').is(':checked');
+
+            featureDetails = {
+                enableMusic: { enable: false },
+                enableDMX: { enable: false },
+                enablePacketSniffing: { enable: false },
+                enableEmails: { enable: false },
+                enableOBS: { enable: false }
+            };
+        }
+
+        if (optionsToSetup.enableMusic == true){
+            $("#startMusicSetup").show();
+        }
+        else if (optionsToSetup.enableDMX == true){
+            $.ajax({
+                url: `/api/supervisor/startDMXService`,
+                type: "POST",
+                contentType: "application/json",
+                success: function(response) {
+                    if (response.message.includes("FAILED")){
+                        $("#isDMXServiceRunning").text("not running");
+                        $("#isDMXServiceRunning").removeClass("text-success").addClass("text-danger");
+                        return;
+                    }
+                    else{
+                        $("#isDMXServiceRunning").text("running");
+                        $("#isDMXServiceRunning").removeClass("text-danger").addClass("text-success");
+
+                        $("#startDMXServiceButton").attr("disabled", true);
+                        $("#startDMXServiceButton").text("DMX Service Started Successfully!");
+                    }
+                },
+            });
+
+            $("#startDMXSetup").show();
+        }
+        else if (optionsToSetup.enablePacketSniffing == true){
+            $("#startPacketSniffingSetup").show();
+
+            optionsToSetup.enablePacketSniffing = false;
+        }
+        else if (optionsToSetup.enableEmails == true){
+            $("#startEmailSetup").show();
+
+            optionsToSetup.enableEmails = false;
+        }
+        else if (optionsToSetup.enableOBS == true){
+            $("#startOBSSetup").show();
+
+            optionsToSetup.enableOBS = false;
+        }
+
+        console.log("Options to setup: ", optionsToSetup);
+    }
+
+    function finishMusicSetup(){
+        optionsToSetup.enableMusic = false;
+
+        featureDetails.enableMusic = {
+            enable: true,
+        };
+
+        startSettingUpOptions();
+    }
+
+    function tryStartDMXService(){
+        $.ajax({
+            url: `/api/supervisor/startDMXService`,
+            type: "POST",
+            contentType: "application/json",
+            success: function(response) {
+                if (response.message.includes("FAILED")){
+                    $("#isDMXServiceRunning").text("not running");
+                    $("#isDMXServiceRunning").removeClass("text-success").addClass("text-danger");
+
+                    $("#startDMXServiceButton").attr("disabled", false);
+                    $("#startDMXServiceButton").html(response.message);
+                    return;
+                }
+                else{
+                    $("#isDMXServiceRunning").text("running");
+                    $("#isDMXServiceRunning").removeClass("text-danger").addClass("text-success");
+
+                    $("#startDMXServiceButton").attr("disabled", true);
+                    $("#startDMXServiceButton").text("DMX Service Started Successfully!");
+                }
+            },
+        });
+    }
+
+    function finishDMXSetup(){
+        optionsToSetup.enableDMX = false;
+
+        if ($("#isDMXServiceRunning").text() == "not running"){
+            featureDetails.enableDMX = {
+                enable: false,
+            };
+        }
+        else{
+            featureDetails.enableDMX = {
+                enable: true,
+            };
+        }
+
+        startSettingUpOptions();
+    }
+
+    function finishZoneSetup(){
+        optionsToSetup.enablePacketSniffing = false;
+
+        featureDetails.enablePacketSniffing = {
+            enable: true,
+            zoneControllerIP: $("#zoneControllerIP").val()
+        };
+
+        startSettingUpOptions();
+    }
+
+    $(document).on("zonePacketRecieved", function(event, msg){
+        if (waitingForZonePacket == true){
+            waitingForZonePacket = false;
+
+            $("#testZoneConnetionButton").attr("disabled", true);
+            $("#testZoneConnetionButton").text("ZONE Connection Successful! I received a packet from the ZONE Control Box, you can now continue with the setup");
+        }
+
+        $("#zonePacketsRecievedCard").show();
+
+        $("#zonePacketsRecieved").append(`<p clas='mb-1'>${msg}</p>`)
+    });
+
+    function trySendATestEmail(){
+        var email = $("#gmailAccountEmail").val();
+        var password = $("#gmailAppPassword").val();
+
+        $.ajax({
+            url: `/api/email/sendTestEmail`,
+            type: "POST",
+            contentType: "application/json",
+            data: {
+                EmailAddress: email,
+                AppPassword: password
+            },
+            success: function(response) {
+                if (response.message.includes("FAILED")){
+                    $("#submitATestEmailBtn").html(response.message);
+                }
+                else{
+                    $("#submitATestEmailBtn").html("Test email sent to the Gmail account's Inbox sucsessfully!")
+                }
+            },
+        });
+    }
+</script>
+
+{% endblock %}

@@ -92,9 +92,9 @@ class Supervisor:
                         pass
                     
                     response = requests.post(
-                        f"http://{self._webApp._localIp}:8080/sendf.message",
+                        f"http://{self._webApp._localIp}:8080/sendmessage",
                         json={
-                            "f.message": {
+                            "message": {
                                 "ramPercentage": ramUsagePercent,
                                 "ramValue": ramUsageValue,
                                 "gpu": gpuUsage,
@@ -172,7 +172,7 @@ class Supervisor:
                     # Check DMX Connection
                     if self._dmx != None and self.hasSevereErrorOccurred("dmx"):
                         f.message("DMX Connection Error", type="error")
-                        threading.Thread(target=self.__resetDMXConnection(), daemon=True).start()
+                        threading.Thread(target=self.resetDMXConnection(), daemon=True).start()
                 except Exception as e:
                     f.message(f"Error occured while checking DMX status: {e}", type="error")
                     
@@ -274,7 +274,7 @@ class Supervisor:
     def __resetOBSConnection(self):
         self._obs.resetConnection()
         
-    def __resetDMXConnection(self):
+    def resetDMXConnection(self):
         self._dmx.resetConnection()
         
     def __restartPC(self, reason: str):

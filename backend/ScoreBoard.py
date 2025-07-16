@@ -39,7 +39,7 @@ def startIcon():
 
     try:
         dir = os.path.dirname(os.path.realpath(__file__))
-        iconImage = loadCustomImage(fr"{dir}\images\SmallLogo.png")
+        iconImage = loadCustomImage(fr"{dir}\..\frontend\static\images\SmallLogo.png")
         
         icon = pystray.Icon('Laser Tag Scoreboard', icon=iconImage, menu=menu)
         threading.Thread(target=icon.run).start()

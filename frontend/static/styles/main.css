@@ -146,6 +146,10 @@ html {
     animation: color 2s alternate linear;
 }
 
+.intBlue{
+    color: var(--bs-primary);
+}
+
 .editSceneContainer {
     margin-top: 0;
     padding: 0rem;
@@ -547,14 +551,14 @@ html {
     text-decoration: none;
 }
 
-main {
+/* main {
     margin-left: 12vw;
     transition: margin-left 0.3s ease;
 }
 
 main.collapsed {
     margin-left: 4vw;
-}
+} */
 
 .closeSidebarButton {
     text-align: end;
@@ -1299,4 +1303,9 @@ td{
 
 .fs-8{
     font-size: 0.5rem;
+}
+
+.zonePacketsRecievedCard{
+    background-color: black;
+    color: white
 }

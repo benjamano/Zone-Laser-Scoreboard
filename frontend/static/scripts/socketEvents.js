@@ -57,8 +57,14 @@ socket.on("start", function (msg) {
 
 			messageDiv.innerHTML += '<p class="text-success">' + msg.message + "</p>";
 		} catch (err) {}
+
+		$(document).trigger("gameStarted", [msg]);
 	} catch (err) {}
 });
+
+socket.on("zonePacket", function(msg){
+	$(document).trigger("zonePacketRecieved", [msg.data]);
+})
 
 socket.on("obsStatus", function (msg) {
 	try {

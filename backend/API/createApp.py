@@ -8,6 +8,7 @@ from data.models import db
 from API.DB import context as DBContext
 from API.format import Format
 from API.Dashboards.DashboardAPIController import registerDashboardRoutes
+from API.Initialisation.InitialisationAPIController import registerInitialisationRoutes
 
 f = Format("Create App")
 
@@ -46,5 +47,6 @@ def createApp(appOnly = False):
     f.message(f.colourText("Setting up routes..." ,"Blue"))
     
     registerDashboardRoutes(app, db_context.db)
+    registerInitialisationRoutes(app, db_context.db)
 
     return app, socketio, db_context

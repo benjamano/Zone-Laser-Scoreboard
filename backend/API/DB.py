@@ -27,6 +27,7 @@ class context:
         self.FixtureChannelValue = FixtureChannelValue
         self.PatchedFixtures = PatchedFixture
         self.InternalServerError = InternalServerError
+        self.SystemControls = SystemControls
         
         self.fixtureProfiles = {
                 "dimmer": {
@@ -330,6 +331,8 @@ class context:
                     self.Insert(self.Gun(name="Hawk", defaultColor="Green"))
                     self.Insert(self.Gun(name="Hyper", defaultColor="Green"))
                     self.Insert(self.Gun(name="Inferno", defaultColor="Green"))
+                    
+                    self.Insert(self.SystemControls(name="isInitialised", value=0))
                     
                     with self.app.app_context():
                         for fixture_name, channels in self.fixtureProfiles.items():

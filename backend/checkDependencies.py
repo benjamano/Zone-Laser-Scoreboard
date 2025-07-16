@@ -6,6 +6,7 @@ class VerifyDependencies:
     def __init__(self):
         self.packages = {
             "flask": "flask",
+            # "flask[async]": "flask[async]",
             "flask_sqlalchemy": "flask_sqlalchemy",
             "waitress": "waitress",
             "scapy": "scapy",

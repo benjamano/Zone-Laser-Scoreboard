@@ -34,3 +34,23 @@ class EmailsAPIController:
             return True
         except Exception:
             raise
+        
+    def SendTestEmail(self, Email, AppPassword):
+        msg = MIMEMultipart()
+        msg["From"] = formataddr((self.senderName, Email))
+        msg["To"] = Email.strip().strip("\n")
+        msg["Subject"] = "Test Email From Zone Scoreboard!".strip().strip("\n")
+        msg.attach(MIMEText("If you can read this, the email system has worked perfectly! Woo!", "html"))
+        # msg.attach(MIMEText(body, 'plain'))
+        # msg.add_header('X-Priority', '1')
+
+        try:
+            server = smtplib.SMTP("smtp.gmail.com", 587)
+            server.starttls()
+            server.login(Email, AppPassword)
+            server.sendmail(Email, Email, msg.as_string())
+            server.quit()
+            
+            return True
+        except Exception:
+            raise

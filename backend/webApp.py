@@ -8,12 +8,6 @@ from datetime import timedelta
 from werkzeug.exceptions import HTTPException
 import subprocess
 
-try:
-    import winrt.windows.media.control as wmc
-except Exception as e:
-    print("Failed to import winrt.windows.media.control ", e)
-    input("Press any key to exit...")
-
 from API.format import Format
 from API.BPM import MediaBPMFetcher
 from API.DMXControl import dmx
@@ -23,6 +17,7 @@ from API.Supervisor import Supervisor
 from API.Emails import EmailsAPIController
 from API.Feedback.feedback import RequestAndFeedbackAPIController
 from API.Music.MusicAPIController import MusicAPIController
+from API.Initialisation.InitialisationAPIController import InitialisationAPIController
 from data.models import *
 from API.createApp import createApp
 
@@ -75,7 +70,7 @@ class WebApp:
         self._dmx : dmx = None
         self._context : context = None
         self.app : Flask = None
-        self._eAPI : EmailsAPIController = None
+        self._eAPI : EmailsAPIController.EmailsAPIController = None
         self._fAPI : RequestAndFeedbackAPIController = None
         self._mAPI : MusicAPIController = None
         # END INIT
@@ -117,7 +112,8 @@ class WebApp:
             self._localIp = s.getsockname()[0]
             s.close()
         except Exception as e:
-            f.message(f"Error finding local IP: {e}")
+            f.message(f"Error finding local IP: {e}", type="error")
+            raise
         
     def start(self):
         f.message("Running on Commit: " + f.colourText(f"{self.getCurrentCommit()}", "green"), type="info")
@@ -126,6 +122,18 @@ class WebApp:
         ctypes.windll.kernel32.SetConsoleTitleW("Zone Laser Scoreboard")
         
         self.app, self.socketio, self._context = createApp() 
+        
+        f.message(f.colourText("Running Database Migrations", "green"), type="info")
+        
+        try:
+            with self.app.app_context():
+                from API.getApp import runMigrations
+
+                runMigrations()
+        except Exception as e:
+            f.message(f"Error running migrations: {e}", type="error")
+            
+        f.message(f.colourText("Finished Running Database Migrations", "green"), type="info")
 
         self._getLocalIp()
         self.setupRoutes()
@@ -138,6 +146,7 @@ class WebApp:
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
         self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir)
+        self._iAPI = InitialisationAPIController(self._context.db)
         
         self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
         self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker, daemon=True).start()
@@ -219,13 +228,21 @@ class WebApp:
         #     return render_template("error.html", message="Page not found")
         
         @self.app.context_processor
-        def inject_global_vars():
+        def injectGlobalVariables():
             return dict(
                 SysName=self.SysName,
                 VersionNo=self.VersionNumber,
                 PageTitle=getattr(g, 'PageTitle', ""),
                 Environment=secrets["Environment"]
         )
+
+        @self.app.before_request
+        def beforeRequest():
+            isInitialised : bool = (self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()).value == 1
+            
+            if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
+                # f.message("System not initialised, redirecting to initialisation page", type="error")
+                return redirect("/init/onboarding")
 
         @self.app.errorhandler(HTTPException)
         def handle_exception(e):
@@ -1271,6 +1288,26 @@ class WebApp:
             logging.shutdown()
             os.kill(os.getpid(), signal.SIGTERM)
             
+        @self.app.route('/api/supervisor/startDMXService', methods=["POST"])
+        def startDMXService():
+            try:
+                self._supervisor.resetDMXConnection()
+                
+                return jsonify({"message": "DMX service started successfully"}), 200
+            except Exception as e:
+                return jsonify({"message": "FAILED to start DMX Service:<br>" + str(e)}), 200
+            
+        @self.app.route('/api/email/sendTestEmail', methods=["POST"])
+        def sendTestEmail():
+            try:
+                data = request.get_data()
+                
+                self._eAPI.SendTestEmail(data["emailAddress"], data["appPassword"])
+                
+                return jsonify({"message": "Test Email Sent Sucessfully!"}), 200
+            except Exception as e:
+                return jsonify({"message": "FAILED to send Test Email:<br>" + str(e)}), 200
+            
         @self.socketio.on('connect')
         def handleConnect():            
             emit('response', {'message': 'Connected to server'})
@@ -1711,6 +1748,9 @@ class WebApp:
                 
                 decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
                 #f.message(f"Decoded Data: {decodedData}")
+                
+                with self.app.app_context:
+                    self.socketio.emit("zonePacket", {"data": decodedData})
                 
                 if decodedData[0] == "1":
                     # A timing packet is being transmitted as the Event Type = 31 (Hex) = 1
