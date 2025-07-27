@@ -64,7 +64,7 @@ class WebApp:
         self.DevToolsRefreshCount = 5
         # END INIT
            
-        # INIT DEPENDANCIES
+        # INIT DEPENDENCIES
         self._supervisor : Supervisor = None
         self._obs : OBS = None
         self._dmx : dmx = None
@@ -73,6 +73,7 @@ class WebApp:
         self._eAPI : EmailsAPIController.EmailsAPIController = None
         self._fAPI : RequestAndFeedbackAPIController = None
         self._mAPI : MusicAPIController = None
+        self.socketio : SocketIO = None
         # END INIT
                 
         pyautogui.FAILSAFE = False
@@ -93,7 +94,7 @@ class WebApp:
                 cli = sys.modules['flask.cli']
                 cli.show_server_banner = lambda *x: None
 
-                self.socketio.run(self.app, host=self._localIp, port=8080, debug=self.devMode, use_reloader=False)
+                self.socketio.run(self.app, host=self._localIp, port=8080, debug=self.devMode, use_reloader=False, allow_unsafe_werkzeug=True)
                 
                 if self.devMode == True:
                     self.app.debug = True
@@ -181,7 +182,7 @@ class WebApp:
             f.message(f"Error starting DMX Connection: {e}", type="error")
             return
         
-        if self._dmx.isConnected() == True:
+        if self._dmx.isConnected():
             try:
                 f.message("Registering Red Bulk-Head Lights", type="info")
                 
@@ -238,11 +239,15 @@ class WebApp:
 
         @self.app.before_request
         def beforeRequest():
-            isInitialised : bool = (self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()).value == 1
-            
-            if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
-                # f.message("System not initialised, redirecting to initialisation page", type="error")
-                return redirect("/init/onboarding")
+            if "/static/" not in request.full_path and request.method.upper() == "GET":
+                isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
+                isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
+
+                if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
+                    # f.message("System not initialised, redirecting to initialisation page", type="error")
+                    return redirect("/init/onboarding")
+
+            return None
 
         @self.app.errorhandler(HTTPException)
         def handle_exception(e):
@@ -1300,9 +1305,23 @@ class WebApp:
         @self.app.route('/api/email/sendTestEmail', methods=["POST"])
         def sendTestEmail():
             try:
-                data = request.get_data()
+                email = request.form["EmailAddress"]
+                password = request.form["AppPassword"]
                 
-                self._eAPI.SendTestEmail(data["emailAddress"], data["appPassword"])
+                self._eAPI.SendTestEmail(email, password)
+                
+                return jsonify({"message": "Test Email Sent Sucessfully!"}), 200
+            except Exception as e:
+                return jsonify({"message": "FAILED to send Test Email:<br>" + str(e)}), 200
+            
+        @self.app.route('/api/obs/tryConnect', methods=["POST"])
+        def tryConnectToOBS():
+            try:
+                IpAddress = request.form["IpAddress"]
+                Password = request.form["Password"]
+                Port = request.form["Port"]
+                
+                self._obs.tryConnect(IpAddress, Port, Password)
                 
                 return jsonify({"message": "Test Email Sent Sucessfully!"}), 200
             except Exception as e:

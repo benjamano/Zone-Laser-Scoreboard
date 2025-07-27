@@ -261,3 +261,9 @@ class OBS:
             self._supervisor.logInternalServerError(ise)
             
             return False
+        
+    def tryConnect(self, IpAddress : str, Port : int, Password : str):
+        try:
+            self.obs = obs.ReqClient(host=IpAddress, port=Port, password=Password, timeout=3)
+        except Exception as e:
+            raise

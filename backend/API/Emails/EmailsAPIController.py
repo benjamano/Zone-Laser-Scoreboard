@@ -40,7 +40,7 @@ class EmailsAPIController:
         msg["From"] = formataddr((self.senderName, Email))
         msg["To"] = Email.strip().strip("\n")
         msg["Subject"] = "Test Email From Zone Scoreboard!".strip().strip("\n")
-        msg.attach(MIMEText("If you can read this, the email system has worked perfectly! Woo!", "html"))
+        msg.attach(MIMEText("If you can read this, the email system has worked perfectly! Woo!<hr>Sent from the Zone Laser Scoreboard", "html"))
         # msg.attach(MIMEText(body, 'plain'))
         # msg.add_header('X-Priority', '1')
 

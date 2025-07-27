@@ -42,77 +42,6 @@
 			</div>
 		</div>
 
-		{% if PageTitle != "Onboarding" %}
-		<div class="sidebar" id="sidebar">
-			<ul>
-				<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
-					<a class="nav-link"><i id="toggleSideBarButton" class="sidebarIcon fas fa-angles-left me-2"></i></a>
-				</li>
-				<li class="nav-item" onclick="window.location.href='/'" role="button">
-					<a class="nav-link" href="/"><i class="fas fa-home sidebarIcon"></i><span class="sidebarText">Home</span></a>
-				</li>
-				<li class="nav-item" onclick="window.location.href='/managerTools'" role="button">
-					<a class="nav-link" href="/managerTools"><i class="fas fa-screwdriver-wrench sidebarIcon"></i><span class="sidebarText">Manager Tools</span></a>
-				</li>
-				<!-- <li class="nav-item" onclick="window.location.href='/scoreboard'" role="button">
-				<a class="nav-link"><i class="fas fa-table-columns sidebarIcon"></i><span class="sidebarText">Scoreboard</span></a>
-			</li> -->
-				<!-- <li class="nav-item" onclick="window.location.href='/statistics'" role="button">
-				<a class="nav-link"><i class="fas fa-chart-column sidebarIcon"></i><span class="sidebarText">Statistics</span></a>
-			</li> -->
-				<!-- <li class="nav-item" onclick="window.location.href='/cameras'" role="button">
-				<a class="nav-link"><i class="fa-solid fa-video sidebarIcon"></i><span class="sidebarText">Cameras</span></a>
-			</li> -->
-				<!-- <li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
-				<a class="nav-link"><i class="fas fa-regular fa-lightbulb me-2"></i><span class="sidebarText">Patch</span></a>
-			</li> -->
-				<li class="nav-item" onclick="window.location.href='/status'" role="button">
-					<a class="nav-link" href="/status"><i class="fas fa-chart-line sidebarIcon"></i><span class="sidebarText">System Status</span></a>
-				</li>
-				<li class="nav-item" onclick="window.location.href='/editScene'" role="button" onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-regular', 'fa-solid')" onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-solid', 'fa-regular')">
-					<a class="nav-link" href="/editScene"><i class="fa-regular fa-lightbulb sidebarIcon"></i><span class="sidebarText">Lighting Controls</span></a>
-				</li>
-				<li class="nav-item" onclick="window.location.href='/feedback'" role="button" onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-comment', 'fa-comment-dots')" onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-comment-dots', 'fa-comment')">
-					<a class="nav-link" href="/feedback"><i class="fas fa-comment sidebarIcon"></i><span class="sidebarText">Leave Feedback</span></a>
-				</li>
-				<!-- <li class="nav-item" onclick="window.location.href='/experimental'" role="button">
-				<a class="nav-link"><i class="fas fa-flask sidebarIcon"></i><span class="sidebarText">Experimental</span></a>
-			</li> -->
-				<li class="nav-item" onclick="window.location.href='/settings'" role="button">
-					<a class="nav-link" href="/settings"><i class="fas fa-gear settingsIcon sidebarIcon"></i><span class="sidebarText">Settings</span></a>
-				</li>
-				<li class="nav-item" onclick="window.location.href='/logout'" role="button" onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')" onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">
-					<a class="nav-link" href="/logout"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>
-				</li>
-			</ul>
-			<div class="sidebar-footer link-light" role="button">
-				Maintained by
-				<a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben Mercer</a>
-				<br />
-				<span onclick="showReleaseNotes()"
-					><small class="text-decoration-underline">V {{VersionNo}}</small>
-					|
-					<small class="text-decoration-underline">View Release Notes</small></span
-				>
-			</div>
-		</div>
-
-		{% endif %}
-
-		<script>
-			if (localStorage.getItem("sidebarCollapsed") === "true") {
-				$("#sidebar").addClass("collapsed");
-				$("#main").addClass("collapsed");
-				$("#toggleSideBarButton").removeClass("fa-angles-left");
-				$("#toggleSideBarButton").addClass("fa-angles-right");
-			} else {
-				$("#sidebar").removeClass("collapsed");
-				$("#main").removeClass("collapsed");
-				$("#toggleSideBarButton").addClass("fa-angles-left");
-				$("#toggleSideBarButton").removeClass("fa-angles-right");
-			}
-		</script>
-
 		<div class="modal fade" id="releaseNotesModal" tabindex="-1" aria-labelledby="releaseNotesModalLabel" aria-hidden="true">
 			<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
 				<div class="modal-content">
@@ -130,25 +59,106 @@
 			</div>
 		</div>
 
-		<main id="main">
-			<script>
-				if (localStorage.getItem("sidebarCollapsed") === "true") {
-					$("#main").addClass("collapsed");
-				} else {
-					$("#main").removeClass("collapsed");
-				}
-			</script>
+		<div class="container-fluid">
+			<div class="row">
+				<div class="col-auto p-0">
+					{% if PageTitle != "Onboarding" %}
+						<div class="sidebar h-100" id="sidebar">
+							<ul style="margin-bottom: 44vh;">
+								<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
+									<a class="nav-link"><i id="toggleSideBarButton" class="sidebarIcon fas fa-angles-left me-2"></i></a>
+								</li>
+								<li class="nav-item" onclick="window.location.href='/'" role="button">
+									<a class="nav-link" href="/"><i class="fas fa-home sidebarIcon"></i><span class="sidebarText">Home</span></a>
+								</li>
+								<li class="nav-item" onclick="window.location.href='/managerTools'" role="button">
+									<a class="nav-link" href="/managerTools"><i class="fas fa-screwdriver-wrench sidebarIcon"></i><span class="sidebarText">Manager Tools</span></a>
+								</li>
+								<!-- <li class="nav-item" onclick="window.location.href='/scoreboard'" role="button">
+								<a class="nav-link"><i class="fas fa-table-columns sidebarIcon"></i><span class="sidebarText">Scoreboard</span></a>
+							</li> -->
+								<!-- <li class="nav-item" onclick="window.location.href='/statistics'" role="button">
+								<a class="nav-link"><i class="fas fa-chart-column sidebarIcon"></i><span class="sidebarText">Statistics</span></a>
+							</li> -->
+								<!-- <li class="nav-item" onclick="window.location.href='/cameras'" role="button">
+								<a class="nav-link"><i class="fa-solid fa-video sidebarIcon"></i><span class="sidebarText">Cameras</span></a>
+							</li> -->
+								<!-- <li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
+								<a class="nav-link"><i class="fas fa-regular fa-lightbulb me-2"></i><span class="sidebarText">Patch</span></a>
+							</li> -->
+								<li class="nav-item" onclick="window.location.href='/status'" role="button">
+									<a class="nav-link" href="/status"><i class="fas fa-chart-line sidebarIcon"></i><span class="sidebarText">System Status</span></a>
+								</li>
+								<li class="nav-item" onclick="window.location.href='/editScene'" role="button" onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-regular', 'fa-solid')" onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-solid', 'fa-regular')">
+									<a class="nav-link" href="/editScene"><i class="fa-regular fa-lightbulb sidebarIcon"></i><span class="sidebarText">Lighting Controls</span></a>
+								</li>
+								<li class="nav-item" onclick="window.location.href='/feedback'" role="button" onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-comment', 'fa-comment-dots')" onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-comment-dots', 'fa-comment')">
+									<a class="nav-link" href="/feedback"><i class="fas fa-comment sidebarIcon"></i><span class="sidebarText">Leave Feedback</span></a>
+								</li>
+								<!-- <li class="nav-item" onclick="window.location.href='/experimental'" role="button">
+								<a class="nav-link"><i class="fas fa-flask sidebarIcon"></i><span class="sidebarText">Experimental</span></a>
+							</li> -->
+								<li class="nav-item" onclick="window.location.href='/settings'" role="button">
+									<a class="nav-link" href="/settings"><i class="fas fa-gear settingsIcon sidebarIcon"></i><span class="sidebarText">Settings</span></a>
+								</li>
+								<li class="nav-item" onclick="window.location.href='/logout'" role="button" onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')" onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">
+									<a class="nav-link" href="/logout"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>
+								</li>
+							</ul>
 
-			{% if "Dev" in Environment %}
-			<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
-				<h5>ENVIRONMENT: {{ Environment }}</h5>
+							<div class="sidebar-footer link-light" role="button">
+								Maintained by
+								<a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben Mercer</a>
+								<br />
+								<span onclick="showReleaseNotes()"
+									><small class="text-decoration-underline">V {{VersionNo}}</small>
+									|
+									<small class="text-decoration-underline">View Release Notes</small></span
+								>
+							</div>
+
+							<hr>
+						</div>
+
+					<script>
+						if (localStorage.getItem("sidebarCollapsed") === "true") {
+							$("#sidebar").addClass("collapsed");
+							$("#main").addClass("collapsed");
+							$("#toggleSideBarButton").removeClass("fa-angles-left");
+							$("#toggleSideBarButton").addClass("fa-angles-right");
+						} else {
+							$("#sidebar").removeClass("collapsed");
+							$("#main").removeClass("collapsed");
+							$("#toggleSideBarButton").addClass("fa-angles-left");
+							$("#toggleSideBarButton").removeClass("fa-angles-right");
+						}
+					</script>
+
+					{% endif %}
+
+				</div>
+
+				<div class="col p-0" style="overflow-y: clip;">
+					<script>
+						if (localStorage.getItem("sidebarCollapsed") === "true") {
+							$("#main").addClass("collapsed");
+						} else {
+							$("#main").removeClass("collapsed");
+						}
+					</script>
+
+					{% if "Dev" in Environment %}
+					<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
+						<h5>ENVIRONMENT: {{ Environment }}</h5>
+					</div>
+					{% endif %}
+
+					<div class="">{% block content %}</div>
+
+					{% endblock %}
+				</div>
 			</div>
-			{% endif %}
-
-			<div class="">{% block content %}</div>
-
-			{% endblock %}
-		</main>
+		</div>
 	</body>
 
 	<script>
