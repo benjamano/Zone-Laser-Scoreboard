@@ -32,6 +32,15 @@ function toggleEditMode(){
             resizer.classList.add("hide");
         }
     });
+
+    if ($("#isEditingCheck").hasClass("fa-xmark")) {
+        $("#addCardDropdown").addClass("hide");
+        $("#clearAllCardsbtn").addClass("hide");
+    } else {
+        $("#addCardDropdown").removeClass("hide");
+        $("#clearAllCardsbtn").removeClass("hide");
+
+    }
 }
 
 function createCard() {
@@ -1153,3 +1162,12 @@ document.getElementById("deleteCardOption")
             document.getElementById("customContextMenu").style.display = "none";
         }
     });
+
+if (areCardsDraggable() === false) {
+    $("#addCardDropdown").addClass("hide");
+    $("#clearAllCardsbtn").addClass("hide");
+} else {
+    $("#addCardDropdown").removeClass("hide");
+    $("#clearAllCardsbtn").removeClass("hide");
+
+}
