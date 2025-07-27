@@ -1,25 +1,37 @@
+import asyncio
+import ctypes
+import json
+import logging
+import pyautogui
+import random
+import requests
+import signal
+import socket
 import string
-from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for, Blueprint
-from flask_socketio import SocketIO, emit
-import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time, sys
-from scapy.all import sniff, IP
-from dotenv import dotenv_values
-from datetime import timedelta
-from werkzeug.exceptions import HTTPException
 import subprocess
+import sys
+import threading
+import time
+from datetime import timedelta
 
-from API.format import Format
+from dotenv import dotenv_values
+from flask import render_template, request, jsonify, redirect, g
+from flask_socketio import SocketIO, emit
+from scapy.all import sniff, IP
+from werkzeug.exceptions import HTTPException
+
 from API.BPM import MediaBPMFetcher
-from API.DMXControl import dmx
 from API.DB import *
-from API.OBS import OBS
-from API.Supervisor import Supervisor
+from API.DMXControl import dmx
 from API.Emails import EmailsAPIController
 from API.Feedback.feedback import RequestAndFeedbackAPIController
-from API.Music.MusicAPIController import MusicAPIController
 from API.Initialisation.InitialisationAPIController import InitialisationAPIController
-from data.models import *
+from API.Music.MusicAPIController import MusicAPIController
+from API.OBS import OBS
+from API.Supervisor import Supervisor
 from API.createApp import createApp
+from API.format import Format
+from data.models import *
 
 # MainBlueprint = Blueprint("Main", __name__)
 
@@ -239,7 +251,7 @@ class WebApp:
 
         @self.app.before_request
         def beforeRequest():
-            if "/static/" not in request.full_path and request.method.upper() == "GET":
+            if "/static/" not in request.full_path and "/api/" not in request.full_path and request.method.upper() == "GET":
                 isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
                 isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
 

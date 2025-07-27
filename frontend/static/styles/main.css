@@ -616,7 +616,6 @@ main.collapsed {
     color: white;
     z-index: 999;
     transition: width 0.3s ease;
-    padding-bottom: 3rem;
 }
 
 .sidebar.collapsed .sidebar-footer {
@@ -1260,7 +1259,7 @@ label {
 }
 
 .card:not(.card .card) {
-    margin: 1rem;
+    margin-top: 1rem;
 }
 
 th,

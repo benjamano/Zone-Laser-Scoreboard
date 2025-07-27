@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-bs-theme="dark">
+<html lang="en" data-bs-theme="dark" style="overflow: hidden;">
 	<head>
 		<meta charset="UTF-8" />
 		<title>{{SysName}} - {{PageTitle}}</title>
@@ -61,10 +61,10 @@
 
 		<div class="container-fluid">
 			<div class="row">
-				<div class="col-auto p-0">
+				<div class="col-auto p-0" style="overflow-y: hidden; height: 100vh;">
 					{% if PageTitle != "Onboarding" %}
 						<div class="sidebar h-100" id="sidebar">
-							<ul style="margin-bottom: 44vh;">
+							<ul style="margin-bottom: 45vh;">
 								<li class="nav-item closeSidebarButton" onclick="toggleSidebar();" role="button">
 									<a class="nav-link"><i id="toggleSideBarButton" class="sidebarIcon fas fa-angles-left me-2"></i></a>
 								</li>
@@ -101,9 +101,9 @@
 								<li class="nav-item" onclick="window.location.href='/settings'" role="button">
 									<a class="nav-link" href="/settings"><i class="fas fa-gear settingsIcon sidebarIcon"></i><span class="sidebarText">Settings</span></a>
 								</li>
-								<li class="nav-item" onclick="window.location.href='/logout'" role="button" onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')" onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">
-									<a class="nav-link" href="/logout"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>
-								</li>
+								{#								<li class="nav-item" onclick="window.location.href='/logout'" role="button" onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')" onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">#}
+								{#									<a class="nav-link" href="/logout"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>#}
+								{#								</li>#}
 							</ul>
 
 							<div class="sidebar-footer link-light" role="button">
@@ -117,7 +117,7 @@
 								>
 							</div>
 
-							<hr>
+							{#							<hr>#}
 						</div>
 
 					<script>
@@ -138,24 +138,26 @@
 
 				</div>
 
-				<div class="col p-0" style="overflow-y: clip;">
-					<script>
-						if (localStorage.getItem("sidebarCollapsed") === "true") {
-							$("#main").addClass("collapsed");
-						} else {
-							$("#main").removeClass("collapsed");
-						}
-					</script>
+				<div class="col p-0" style="max-height: 100vh; overflow-y: scroll;">
+					<div>
+						<script>
+							if (localStorage.getItem("sidebarCollapsed") === "true") {
+								$("#main").addClass("collapsed");
+							} else {
+								$("#main").removeClass("collapsed");
+							}
+						</script>
 
-					{% if "Dev" in Environment %}
-					<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
-						<h5>ENVIRONMENT: {{ Environment }}</h5>
+						{% if "Dev" in Environment %}
+							<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
+								<h5>ENVIRONMENT: {{ Environment }}</h5>
+							</div>
+						{% endif %}
+
+						<div class="{% if 'Home' not in PageTitle %}px-3{% endif %}">
+							{% block content %}{% endblock %}
+						</div>
 					</div>
-					{% endif %}
-
-					<div class="">{% block content %}</div>
-
-					{% endblock %}
 				</div>
 			</div>
 		</div>
