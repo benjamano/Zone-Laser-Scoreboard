@@ -24,6 +24,14 @@ function toggleEditMode(){
             card.classList.remove("cursor-drag");
         }
     });
+
+    container.querySelectorAll(".resizer").forEach(resizer => {
+        if (!$("#isEditingCheck").hasClass("fa-xmark")) {
+            resizer.classList.remove("hide");
+        } else {
+            resizer.classList.add("hide");
+        }
+    });
 }
 
 function createCard() {
@@ -36,7 +44,7 @@ function createCard() {
     card.dataset.id = "widget_0";
 
     card.addEventListener("dragstart", (e) => {
-        if (areCardsDraggable() == false){
+        if (areCardsDraggable() === false) {
             e.preventDefault();
             return;
         }
@@ -120,10 +128,7 @@ function observeResizable(card) {
         });
     });
     observer.observe(card, { attributes: true });
-    if (
-        card.classList.contains("resizable") &&
-        !card.dataset.resizableAttached
-    ) {
+    if (card.classList.contains("resizable") && !card.dataset.resizableAttached) {
         makeResizable(card);
         card.dataset.resizableAttached = "true";
     }
@@ -144,6 +149,10 @@ function makeResizable(card) {
     resizer.style.cursor = "se-resize";
 
     footer.appendChild(resizer);
+
+    if (areCardsDraggable() === false) {
+        resizer.classList.add("hide");
+    }
 
     resizer.addEventListener("mousedown", (e) => {
         // If the user is clicking on a native scrollbar, don't start resizing.

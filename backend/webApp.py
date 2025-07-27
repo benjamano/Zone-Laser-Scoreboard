@@ -2,9 +2,7 @@ import asyncio
 import ctypes
 import json
 import logging
-import pyautogui
 import random
-import requests
 import signal
 import socket
 import string
@@ -14,6 +12,8 @@ import threading
 import time
 from datetime import timedelta
 
+import pyautogui
+import requests
 from dotenv import dotenv_values
 from flask import render_template, request, jsonify, redirect, g
 from flask_socketio import SocketIO, emit
@@ -245,6 +245,7 @@ class WebApp:
             return dict(
                 SysName=self.SysName,
                 VersionNo=self.VersionNumber,
+                PageDescription=getattr(g, 'PageDescription', ""),
                 PageTitle=getattr(g, 'PageTitle', ""),
                 Environment=secrets["Environment"]
         )
