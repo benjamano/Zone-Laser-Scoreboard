@@ -250,18 +250,17 @@ class WebApp:
                 Environment=secrets["Environment"]
         )
 
-        @self.app.before_request
-        def beforeRequest():
-            return None
-            if "/static/" not in request.full_path and "/api/" not in request.full_path and request.method.upper() == "GET":
-                isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
-                isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
-
-                if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
-                    # f.message("System not initialised, redirecting to initialisation page", type="error")
-                    return redirect("/init/onboarding")
-
-            return None
+        # @self.app.before_request
+        # def beforeRequest():
+        #     if "/static/" not in request.full_path and "/api/" not in request.full_path and request.method.upper() == "GET":
+        #         isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
+        #         isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
+        #
+        #         if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
+        #             # f.message("System not initialised, redirecting to initialisation page", type="error")
+        #             return redirect("/init/onboarding")
+        #
+        #     return None
 
         @self.app.errorhandler(HTTPException)
         def handle_exception(e):
