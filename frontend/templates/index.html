@@ -312,7 +312,7 @@
 
 <script>
     window.onload = function () {
-        if (controlSpotify == true) {
+		if (controlSpotify === true) {
             $("#spotifyPlaybackStatus").text("ON");
         } else {
             $("#spotifyPlaybackStatus").text("OFF");
@@ -323,9 +323,9 @@
         let currentTimeLeft;
         let countdownInterval;
 
-        console.log(
-            "LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com"
-        );
+		{#console.log(#}
+		{#    "LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com"#}
+		{#);#}
 
         getDashboardCategories();
     };
