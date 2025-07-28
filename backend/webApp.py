@@ -252,6 +252,7 @@ class WebApp:
 
         @self.app.before_request
         def beforeRequest():
+            return None
             if "/static/" not in request.full_path and "/api/" not in request.full_path and request.method.upper() == "GET":
                 isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
                 isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
