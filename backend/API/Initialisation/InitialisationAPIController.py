@@ -14,11 +14,6 @@ class InitialisationAPIController:
             return jsonify({"message": "System already initialised"}), 400
         
         return render_template("Onboarding/onboarding.html"), 200
-    
-    def enableAndDisableFeatures(self, data : list):
-        for key, value in data.enumerate():
-            pass
-        return
 
 def registerInitialisationRoutes(app, context):
     controller = InitialisationAPIController(context)
@@ -28,6 +23,42 @@ def registerInitialisationRoutes(app, context):
         g.PageTitle = "Onboarding"
         
         return controller.start_onboarding()
+    
+    @InitialisationBlueprint.route("/api/init/completeOnboarding", methods=["POST"])
+    def completeOnboarding():
+        try:
+            features = request.get_json()
+            
+            for featureName, featureConfig in features.items():
+                for key, value in featureConfig.items():
+                    controlName = f"{featureName[0].upper()}{featureName[1:]}" if key == "enable" else key[0].upper() + key[1:]
+
+                    if isinstance(value, bool):
+                        value = int(value)
+
+                    control = controller._context.session.query(SystemControls).filter(SystemControls.name == controlName).first()
+
+                    if control:
+                        control.value = str(value)
+                    else:
+                        control = SystemControls(name=controlName, value=str(value))
+                        controller._context.session.add(control)
+
+                    controller._context.session.commit()
+                    
+            isInitialised = controller._context.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
+            if not isInitialised:
+                isInitialised = SystemControls(name="isInitialised", value="1")
+                controller._context.session.add(isInitialised)
+                
+                controller._context.session.commit()
+            else:
+                isInitialised.value = "1"
+                controller._context.session.commit()
+            
+            return jsonify({"message": "Onboarding completed successfully"}), 200
+        except Exception as e:
+            return jsonify({"error": str(e)}), 500
     
     @InitialisationBlueprint.route("/init/enableAndDisableFeatures", methods=["POST"])
     def enableAndDisableFeatures():        

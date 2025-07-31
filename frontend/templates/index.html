@@ -285,7 +285,8 @@
 
                 <button
                     class="btn btn-secondary me-2 mb-2"
-                    onclick="clearAllCards()">
+					onclick="clearAllCards()"
+					id="clearAllCardsbtn">
                     Clear All Cards
                 </button>
 
@@ -301,13 +302,13 @@
     </div>
 </nav>
 
-<div class="p-2">
+<div class="p-0">
 
 	<div class="movableItemsContainer"></div>
 
 </div>
 
-<script src="/static/scripts/draggableCards.js"></script>
+	<script src="/static/scripts/draggableCards.js" async></script>
 
 <script>
     window.onload = function () {

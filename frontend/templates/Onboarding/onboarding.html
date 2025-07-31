@@ -10,6 +10,7 @@
                 <h1 class="display-5 fw-bold">Let's get started</h1>
                 <p class="fs-4">This is the first time you have run Zone Laser Scoreboard, so we need to set some things up</p>
                 <button class="btn btn-primary btn-lg" type="button" onclick="$('#getStarted').hide(); $('#selectServices').show()">Start Setup</button>
+                <!-- <button class="btn btn-outline-primary btn-lg" type="button" onclick="skipOnboarding()">Skip</button> -->
             </div>
             <div class="row align-items-center" id="selectServices" style="display: none;">
                 <div class="col-lg-7 text-center text-lg-start">
@@ -40,7 +41,7 @@
                             <input class="form-check-input" type="checkbox" id="enableOBS" name="enableOBS" checked>
                             <label class="form-check-label" for="enableOBS">OBS Control <span class="fas fa-info-circle intBlue ms-1" data-bs-toggle="tooltip" title="Allow the software to control the running OBS instance on this system."></span></label>
                         </div>
-                        <button class="w-100 btn btn-lg btn-primary" type="button" onclick="startSettingUpOptions();">Complete</button>
+                        <button class="w-100 btn btn-lg btn-primary" type="button" onclick="startSettingUpOptions();">Continue</button>
                     </form>
                 </div>
             </div>
@@ -98,14 +99,12 @@
                         <p class="col-10 fs-5 mb-0">Theres a couple things we need to setup before this service can start</p>
                     </div>
                     <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
-                        <p>Before we can start this service, I need the Local IP address of the <b>ZONE Control box</b></p>
+                        <p><u>Before we can start this service, I need the Local IP address of the <b>ZONE Control box</b></u></p>
                         <p>The software can't work this out (yet), so you'll need to find this out yourself, here are some tips to help you along:</p>
-                        <ul class="list-group-numbered">
-                            <li>Make sure you are directly connected to the Zone system's local network, there should be a network switch that the ANDROID Box and ZONE Control box are both connected to</li>
-                            <li>Next, download <a href="https://www.wireshark.org/">Wireshark</a> and open the <code>Local Area Connection</code> section.</li>
-                            <li>Start a capture, and then press the start button on the Control box to start a game, you should see a bunch of different packets suddenly be sent from the control box's IP, note that IPv4 down.</li>
-                        </ul>
-                        
+                        <p class="mb-1 col-12">Make sure you are directly connected to the Zone system's local network, there should be a network switch that the ANDROID Box and ZONE Control box are both connected to.</p>
+                        <p class="mb-1 col-12">Next, download <a href="https://www.wireshark.org/">Wireshark</a> and open the <code>Local Area Connection</code> section.</p>
+                        <p class="mb-0 col-12">Start a capture, and then press the start button on the Control box to start a game, you should see a bunch of different packets suddenly be sent from the control box's IP, note that IPv4 down.</p>
+
                         <div class="form-group">
                             <label for="zoneControllerIP" class="form-label mt-3">ZONE Control Box Local IPv4 Address (e.g. 192.168.2.60)</label>
                             <input type="text" class="form-control mb-3" id="zoneControllerIP" placeholder="192:168:xxx:xxx" aria-label="ZONE Control Box IP Address" aria-describedby="zoneControllerIPHelp" value="192.168.2.60">
@@ -133,25 +132,71 @@
                         <p class="col-10 fs-5 mb-0">I will need some details before this feature can be enabled</p>
                     </div>
                     <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
-                        <p class="mb-1">To send emails from this software, I need a <code>Gmail App Password</code>, which is NOT your account's password and can be created <a>here</a></p>
+                        <p class="mb-1">To send emails from this software, I need a <code>Gmail App Password</code>, which is NOT your account's password and can be created <a href="https://myaccount.google.com/apppasswords">here</a></p>
                         <p class="mb-1">As well as your Gmail account email, just enter those details in the text boxes below or press the Continue to skip this step</p>
 
-                        <form class="mx-2 my-4 px-2 py-4 border rounded-3">
+                        <form class="mx-2 my-4 p-4 border rounded-3 col-10">
                             <div class="row">
                                 <div class="form-group col-6">
                                     <label class="form-label">Account Email</label>
-                                    <input type="text" placeholder="benjamano12@gmail.com" id="gmailAccountEmail">
+                                    <input type="text" class="form-control" placeholder="benjamano12@gmail.com" value="benjamano12@gmail.com" id="gmailAccountEmail">
                                 </div>
                                 <div class="form-group col-6">
                                     <label class="form-label">App Password</label>
-                                    <input type="text" id="gmailAppPassword">
+                                    <input type="text" class="form-control" id="gmailAppPassword">
                                 </div>
                             </div>
-                            <button class="btn btn-outline-primary mt-2" id="submitATestEmailBtn" onclick="trySendATestEmail();">Submit and Send a test email</button>
+                            <div class="row">
+                                <div class="col-6">
+                                    <button class="btn btn-outline-primary mt-2 col-12" id="submitATestEmailBtn" onclick="trySendATestEmail();">Submit and Send a Test Email</button>
+                                </div>
+                            </div>
                         </form>
 
                         <button class="w-100 btn btn-lg btn-primary mt-3" type="button" onclick="finishEmailSetup();">Continue Onboarding</button>
                     </div>
+                </div>
+            </div>
+
+            <div class="setupServiceOptions" id="startOBSSetup" style="display: none;">
+                <div class="row align-items-center">
+                    <div class="col-lg-7 text-center text-lg-start h-100 mt-4 mb-auto">
+                        <h1 class="display-5 fw-bold lh-1 mb-3">OBS Setup</h1>
+                        <p class="col-10 fs-4 mb-0">To setup OBS, the device running the OBS instance must have the <code>OBS Web-Socket</code> extension installed and enabled</p>
+                        <p class="col-10 fs-4 mb-0">You can set it up to use a password for authentication but it isn't required</p>
+                    </div>
+                    <div class="col-10 mx-auto col-lg-5 p-4 p-md-5 border rounded-3 bg-body-tertiary d-flex flex-column align-items-center text-start">
+                        <form class="mx-2 my-4 p-4 border rounded-3 col-10">
+                            <div class="row">
+                                <div class="form-group col-6">
+                                    <label class="form-label">IP Address</label>
+                                    <input type="text" class="form-control" placeholder="192.168.1.20" id="obsWebIpAddress">
+                                </div>
+                                <div class="form-group col-6">
+                                    <label class="form-label">Port (Default: 4455)</label>
+                                    <input type="text" class="form-control" value="4455" placeholder="4455 (Default)" id="obsWebPort">
+                                </div>
+                                <div class="form-group col-6">
+                                    <label class="form-label">Password (Optional)</label>
+                                    <input type="text" class="form-control" id="obsWebPassword">
+                                </div>
+                                <div class="col-6">
+                                    <button class="btn btn-outline-primary mt-2 col-12" id="tryToConnectToOBSbtn" onclick="tryConnectToOBS();">Try to connect to OBS with these details</button>
+                                </div>
+                            </div>
+                        </form>
+
+                        <button class="w-100 btn btn-lg btn-primary mt-3" type="button" onclick="finishOBSSetup();">Continue Onboarding</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="finished" style="display: none;">
+                <div class="d-flex justify-content-center align-items-end" id="loadingAnimation" style="display: none;">
+                    <span class="fs-4">Saving</span>
+                    <div class="spinner-grow text-white ms-2 mb-1 pulse-sequence" role="status" style="width: 1rem; height: 1rem;"></div>
+                    <div class="spinner-grow text-white ms-1 mb-1 pulse-sequence" role="status" style="width: 1rem; height: 1rem;"></div>
+                    <div class="spinner-grow text-white ms-1 mb-1 pulse-sequence" role="status" style="width: 1rem; height: 1rem;"></div>
                 </div>
             </div>
         </div>
@@ -171,16 +216,13 @@
     //FINNALLY, RUNNING AS SERVER OR ON MY PC
 
     function completeOnboarding(){
+        $("#finished").show();
+
         $.ajax({
-            url: `/api/init/enableAndDisableFeatures`,
+            url: `/api/init/completeOnboarding`,
             type: "POST",
             contentType: "application/json",
-            data: {
-                enableMusic: $('#enableMusic').is(':checked'),
-                enableDMX: $('#enableDMX').is(':checked'),
-                enablePacketSniffing: $('#enablePacketSniffing').is(':checked'),
-                enableEmailing: $('#enableEmails').is(':checked')
-            },
+            data: JSON.stringify(featureDetails),
             success: function(response) {
                 window.location.href = "/";
             },
@@ -234,7 +276,7 @@
             $("#startDMXSetup").show();
         }
         else if (optionsToSetup.enablePacketSniffing == true){
-            $("#startPacketSniffingSetup").show();
+            $("#startpacketSniffingSetup").show();
 
             optionsToSetup.enablePacketSniffing = false;
         }
@@ -249,6 +291,9 @@
             $("#startOBSSetup").show();
 
             optionsToSetup.enableOBS = false;
+        }
+        else {
+            completeOnboarding();
         }
 
         console.log("Options to setup: ", optionsToSetup);
@@ -292,17 +337,10 @@
     function finishDMXSetup(){
         optionsToSetup.enableDMX = false;
 
-        if ($("#isDMXServiceRunning").text() == "not running"){
-            featureDetails.enableDMX = {
-                enable: false,
-            };
-        }
-        else{
-            featureDetails.enableDMX = {
-                enable: true,
-            };
-        }
-
+        featureDetails.enableDMX = {
+            enable: true,
+        };
+        
         startSettingUpOptions();
     }
 
@@ -312,6 +350,33 @@
         featureDetails.enablePacketSniffing = {
             enable: true,
             zoneControllerIP: $("#zoneControllerIP").val()
+        };
+
+        startSettingUpOptions();
+    }
+
+    function finishEmailSetup(){
+        optionsToSetup.enableEmails = false;
+
+        featureDetails.enableEmails = {
+            enable: true,
+            senderEmail: $("#gmailAccountEmail").val(),
+            appPassword: $("#gmailAppPassword").val()
+        };
+
+        startSettingUpOptions();
+    }
+
+    function finishOBSSetup(){
+        // Set the preffered monitor to show on
+
+        optionsToSetup.enableOBS = false;
+        
+        featureDetails.enableOBS = {
+            enable: true,
+            obsIp: $("#obsWebIpAddress").val(),
+            obsPort: $("#obsWebPort").val(),
+            obsPassword: $("#obsWebPassword").val()
         };
 
         startSettingUpOptions();
@@ -331,13 +396,14 @@
     });
 
     function trySendATestEmail(){
+        event.preventDefault();
+
         var email = $("#gmailAccountEmail").val();
         var password = $("#gmailAppPassword").val();
 
         $.ajax({
             url: `/api/email/sendTestEmail`,
             type: "POST",
-            contentType: "application/json",
             data: {
                 EmailAddress: email,
                 AppPassword: password
@@ -346,8 +412,34 @@
                 if (response.message.includes("FAILED")){
                     $("#submitATestEmailBtn").html(response.message);
                 }
-                else{
-                    $("#submitATestEmailBtn").html("Test email sent to the Gmail account's Inbox sucsessfully!")
+                else {
+                    $("#submitATestEmailBtn").html("Test email sent to the Gmail account's Inbox sucessfully!")
+                }
+            },
+        });
+    }
+
+    function tryConnectToOBS(){
+        event.preventDefault();
+
+        var obsIp = $("#obsWebIpAddress").val();
+        var obsPassword = $("#obsWebPassword").val();
+        var port = $("#obsWebPort").val();
+
+        $.ajax({
+            url: `/api/obs/tryConnect`,
+            type: "POST",
+            data: {
+                IpAddress: obsIp,
+                Password: obsPassword,
+                Port: port
+            },
+            success: function(response) {
+                if (response.message.includes("FAILED")){
+                    $("#tryToConnectToOBSbtn").html(response.message);
+                }
+                else {
+                    $("#tryToConnectToOBSbtn").html("An OBS Web-Socket connection was established sucessfully!")
                 }
             },
         });

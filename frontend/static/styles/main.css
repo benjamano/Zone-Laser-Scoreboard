@@ -489,25 +489,11 @@ html {
     background-color: var(--primary-gray);
 }
 
-.sidebar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 100%;
-    width: 12vw;
-    background-color: var(--TBSBGPrimary);
-    color: white;
-    z-index: 999;
-    transition: width 0.3s ease;
-}
-
-.sidebar.collapsed {
-    width: 3vw;
-}
-
 .sidebarText {
     opacity: 1;
     transition: opacity 0.3s ease;
+    color: #d4d4d4;
+    text-decoration: none;
 }
 
 .sidebar.collapsed .sidebarText {
@@ -544,11 +530,6 @@ html {
 
 .sidebar ul li:hover {
     background-color: var(--TBSHover);
-}
-
-.sidebar ul li a {
-    color: white;
-    text-decoration: none;
 }
 
 /* main {
@@ -627,7 +608,6 @@ main.collapsed {
 }
 
 .sidebar {
-    position: fixed;
     top: 0;
     left: 0;
     height: 100%;
@@ -636,7 +616,6 @@ main.collapsed {
     color: white;
     z-index: 999;
     transition: width 0.3s ease;
-    padding-bottom: 3rem;
 }
 
 .sidebar.collapsed .sidebar-footer {
@@ -644,7 +623,8 @@ main.collapsed {
 }
 
 .sidebar-footer {
-    position: absolute;
+    margin-bottom: 0;
+    margin-top: auto;
     bottom: 0;
     width: 100%;
     text-align: center;
@@ -655,11 +635,6 @@ main.collapsed {
 
 .sidebar.collapsed {
     width: 4vw;
-}
-
-.sidebarText {
-    opacity: 1;
-    transition: opacity 0.3s ease;
 }
 
 .sidebar.collapsed .sidebarText {
@@ -691,11 +666,6 @@ main.collapsed {
 
 .sidebar ul li:hover {
     background-color: var(--TBSHover);
-}
-
-.sidebar ul li a {
-    color: white;
-    text-decoration: none;
 }
 
 .closeSidebarButton {
@@ -1289,7 +1259,7 @@ label {
 }
 
 .card:not(.card .card) {
-    margin: 1rem;
+    margin-top: 1rem;
 }
 
 th,
@@ -1308,4 +1278,26 @@ td{
 .zonePacketsRecievedCard{
     background-color: black;
     color: white
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.2;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+.pulse-sequence:nth-child(2) {
+    animation: pulse 1.3s infinite 0.2s;
+}
+.pulse-sequence:nth-child(3) {
+    animation: pulse 1.3s infinite 0.4s;
+}
+.pulse-sequence:nth-child(4) {
+    animation: pulse 1.3s infinite 0.6s;
+}
+
+.hide {
+    display: none;
 }

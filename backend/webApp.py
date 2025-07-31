@@ -1,25 +1,37 @@
+import asyncio
+import ctypes
+import json
+import logging
+import random
+import signal
+import socket
 import string
-from flask import Flask, render_template, request, jsonify, redirect, g, session, url_for, Blueprint
-from flask_socketio import SocketIO, emit
-import os, signal, ctypes, datetime, socket, requests, psutil, webbrowser, asyncio, pyautogui, random, logging, json, threading, time, sys
-from scapy.all import sniff, IP
-from dotenv import dotenv_values
-from datetime import timedelta
-from werkzeug.exceptions import HTTPException
 import subprocess
+import sys
+import threading
+import time
+from datetime import timedelta
 
-from API.format import Format
+import pyautogui
+import requests
+from dotenv import dotenv_values
+from flask import render_template, request, jsonify, redirect, g
+from flask_socketio import SocketIO, emit
+from scapy.all import sniff, IP
+from werkzeug.exceptions import HTTPException
+
 from API.BPM import MediaBPMFetcher
-from API.DMXControl import dmx
 from API.DB import *
-from API.OBS import OBS
-from API.Supervisor import Supervisor
+from API.DMXControl import dmx
 from API.Emails import EmailsAPIController
 from API.Feedback.feedback import RequestAndFeedbackAPIController
-from API.Music.MusicAPIController import MusicAPIController
 from API.Initialisation.InitialisationAPIController import InitialisationAPIController
-from data.models import *
+from API.Music.MusicAPIController import MusicAPIController
+from API.OBS import OBS
+from API.Supervisor import Supervisor
 from API.createApp import createApp
+from API.format import Format
+from data.models import *
 
 # MainBlueprint = Blueprint("Main", __name__)
 
@@ -64,7 +76,7 @@ class WebApp:
         self.DevToolsRefreshCount = 5
         # END INIT
            
-        # INIT DEPENDANCIES
+        # INIT DEPENDENCIES
         self._supervisor : Supervisor = None
         self._obs : OBS = None
         self._dmx : dmx = None
@@ -73,6 +85,7 @@ class WebApp:
         self._eAPI : EmailsAPIController.EmailsAPIController = None
         self._fAPI : RequestAndFeedbackAPIController = None
         self._mAPI : MusicAPIController = None
+        self.socketio : SocketIO = None
         # END INIT
                 
         pyautogui.FAILSAFE = False
@@ -93,7 +106,7 @@ class WebApp:
                 cli = sys.modules['flask.cli']
                 cli.show_server_banner = lambda *x: None
 
-                self.socketio.run(self.app, host=self._localIp, port=8080, debug=self.devMode, use_reloader=False)
+                self.socketio.run(self.app, host=self._localIp, port=8080, debug=self.devMode, use_reloader=False, allow_unsafe_werkzeug=True)
                 
                 if self.devMode == True:
                     self.app.debug = True
@@ -181,7 +194,7 @@ class WebApp:
             f.message(f"Error starting DMX Connection: {e}", type="error")
             return
         
-        if self._dmx.isConnected() == True:
+        if self._dmx.isConnected():
             try:
                 f.message("Registering Red Bulk-Head Lights", type="info")
                 
@@ -232,17 +245,22 @@ class WebApp:
             return dict(
                 SysName=self.SysName,
                 VersionNo=self.VersionNumber,
+                PageDescription=getattr(g, 'PageDescription', ""),
                 PageTitle=getattr(g, 'PageTitle', ""),
                 Environment=secrets["Environment"]
         )
 
         @self.app.before_request
         def beforeRequest():
-            isInitialised : bool = (self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()).value == 1
-            
-            if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
-                # f.message("System not initialised, redirecting to initialisation page", type="error")
-                return redirect("/init/onboarding")
+            if "/static/" not in request.full_path and "/api/" not in request.full_path and request.method.upper() == "GET":
+                isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
+                isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
+
+                if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
+                    # f.message("System not initialised, redirecting to initialisation page", type="error")
+                    return redirect("/init/onboarding")
+
+            return None
 
         @self.app.errorhandler(HTTPException)
         def handle_exception(e):
@@ -1300,9 +1318,23 @@ class WebApp:
         @self.app.route('/api/email/sendTestEmail', methods=["POST"])
         def sendTestEmail():
             try:
-                data = request.get_data()
+                email = request.form["EmailAddress"]
+                password = request.form["AppPassword"]
                 
-                self._eAPI.SendTestEmail(data["emailAddress"], data["appPassword"])
+                self._eAPI.SendTestEmail(email, password)
+                
+                return jsonify({"message": "Test Email Sent Sucessfully!"}), 200
+            except Exception as e:
+                return jsonify({"message": "FAILED to send Test Email:<br>" + str(e)}), 200
+            
+        @self.app.route('/api/obs/tryConnect', methods=["POST"])
+        def tryConnectToOBS():
+            try:
+                IpAddress = request.form["IpAddress"]
+                Password = request.form["Password"]
+                Port = request.form["Port"]
+                
+                self._obs.tryConnect(IpAddress, Port, Password)
                 
                 return jsonify({"message": "Test Email Sent Sucessfully!"}), 200
             except Exception as e:
