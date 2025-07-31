@@ -392,7 +392,13 @@ class MusicAPIController:
         self.player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, end_callback)
         
         self.songEndEvent.wait()
-    
+        
+    def fadeVolumeFrom(self, start : int, end : int):
+        for vol in range(start, end):
+            self.setVolume(vol)
+            print(f"Raised volume to {vol}")
+            time.sleep(0.1)
+                
     def play(self) -> bool:
         try:
             if not self.player.get_media():
@@ -404,6 +410,7 @@ class MusicAPIController:
             
             if not self.player.is_playing():
                 self.player.play()
+                self.fadeVolumeFrom(0, 100)
             return True
         except Exception as e:
             self.logError("Play", e)
