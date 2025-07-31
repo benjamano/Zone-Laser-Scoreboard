@@ -55,13 +55,14 @@ try:
         s.connect(("8.8.8.8", 80))
         localIp = s.getsockname()[0]
         s.close()
+        
+        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+            if s.connect_ex((localIp, 8080)) == 0:
+                print(f"Port 8080 is already in use on {localIp}")
+                raise RuntimeError("Port in use. Exiting application.")
+            
     except Exception as e:
         print(f"Error finding local IP: {e}")
-    
-    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-        if s.connect_ex((localIp, 8080)) == 0:
-            print(f"Port 8080 is already in use on {localIp}")
-            raise RuntimeError("Port in use. Exiting application.")
     
     VerifyDependencies()
     
