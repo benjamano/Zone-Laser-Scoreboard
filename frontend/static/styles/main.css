@@ -243,7 +243,7 @@ html {
     /* border: none !important; */
     background-color: #ffffff09;
     box-shadow: none;
-    outline: 0px;
+    outline: 0;
 }
 
 body {
@@ -269,7 +269,7 @@ body {
     height: 100%;
     background-size: cover;
     background-position: center;
-    filter: brightness(0.6) blur(0.5px);
+    filter: brightness(0.6) blur(1px);
 }
 
 #musicPlaying {
@@ -312,7 +312,6 @@ html {
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
-    width: 100%;
     -webkit-user-select: none;
     -ms-user-select: none;
     user-select: none;
@@ -378,9 +377,7 @@ html {
     position: fixed;
     top: 0;
     margin: 0;
-    padding: 0.2rem;
     background-color: #972100;
-    z-index: 999;
     width: 100%;
     display: none;
     animation: fadeInOut 2s ease-in-out infinite;
@@ -504,11 +501,27 @@ html {
 
 .sidebar.collapsed .sidebarText {
     opacity: 0;
-    font-size: 0px;
+    font-size: 0;
+    display: none;
 }
 
-.sidebar.collapse .sidebarIcon {
+.sidebar.collapsed .sidebarIcon {
     margin-right: 0 !important;
+}
+
+.sidebar.collapsed .profileAndCollapseButtonContainer {
+    flex-direction: column !important;
+    align-content: center !important;
+    flex-wrap: nowrap !important;
+    align-items: center !important;
+}
+
+.profileAndCollapseButtonContainer {
+    display: flex;
+}
+
+.sidebar.collapsed .nav-link {
+    text-align: center;
 }
 
 .sidebarIcon {
@@ -522,9 +535,9 @@ html {
     padding: 0;
 }
 
-.sidebar ul li {
+.sidebar ul li .content {
     width: 100%;
-    padding: 0.92rem;
+    padding: 1rem 0.8rem;
     border-bottom: 1px solid var(--TBSBGSecondary);
     transition: background-color 0.3s ease, padding 0.3s ease,
         text-align 0.3s ease;
@@ -546,10 +559,6 @@ html {
 main.collapsed {
     margin-left: 4vw;
 } */
-
-.closeSidebarButton {
-    text-align: end;
-}
 
 .sceneTitleText {
     background: none;
@@ -656,10 +665,7 @@ main.collapsed {
 .nav-item-options {
     display: none;
     border-bottom: none;
-    padding: 0;
-    padding-left: 1rem;
-    padding-top: 0.5rem;
-    padding-bottom: 0.5rem;
+    padding: 0.5rem 0 0.5rem 1rem;
 }
 
 .sidebar li.nav-item.active .nav-item-options {
@@ -739,7 +745,7 @@ main.collapsed {
     table-layout: fixed;
 }
 
-.gunScoreTable th{
+.gunScoreTable th {
     width: 25%;
     font-size: 1rem;
 }
@@ -992,12 +998,12 @@ label {
     background-color: transparent;
 }
 
-.musicVolumeSliderCard{
+.musicVolumeSliderCard {
     min-width: 100px !important;
     min-height: 100px !important;
 }
 
-.verticalSlider .musicVolumeSlider{
+.verticalSlider .musicVolumeSlider {
     height: 100%;
     display: flex;
     flex-direction: column;
@@ -1016,7 +1022,7 @@ label {
     appearance: none;
 }
 
-.verticalSlider .form-range{
+.verticalSlider .form-range {
     margin-top: auto;
     margin-bottom: auto;
 }
@@ -1057,7 +1063,7 @@ label {
     background-color: lightgreen;
 }
 
-.tallWideCard{
+.tallWideCard {
     width: 200px;
     height: 400px;
     min-width: 200px !important;
@@ -1065,7 +1071,7 @@ label {
     background-color: lightgreen;
 }
 
-.musicQueueCard .cardContent{
+.musicQueueCard .cardContent {
     overflow-y: scroll;
 }
 
@@ -1265,6 +1271,7 @@ label {
 .customContextMenu ul:hover {
     filter: brightness(1.4);
 }
+
 /*  */
 
 .invisibleTextBox {
@@ -1293,19 +1300,19 @@ label {
 }
 
 th,
-td{
+td {
     text-align: left;
 }
 
-.fs-7{
+.fs-7 {
     font-size: 0.75rem;
 }
 
-.fs-8{
+.fs-8 {
     font-size: 0.5rem;
 }
 
-.zonePacketsRecievedCard{
+.zonePacketsRecievedCard {
     background-color: black;
     color: white
 }
@@ -1318,12 +1325,15 @@ td{
         opacity: 1;
     }
 }
+
 .pulse-sequence:nth-child(2) {
     animation: pulse 1.3s infinite 0.2s;
 }
+
 .pulse-sequence:nth-child(3) {
     animation: pulse 1.3s infinite 0.4s;
 }
+
 .pulse-sequence:nth-child(4) {
     animation: pulse 1.3s infinite 0.6s;
 }
@@ -1346,4 +1356,21 @@ td{
 
 .table-dark td, .table-dark th {
     background-color: var(--TBSBGDarkSecondary) !important;
+}
+
+.w-100 {
+    width: 100% !important;
+}
+
+.w-50 {
+    width: 50% !important;
+}
+
+.h-100 {
+    height: 100% !important;
+}
+
+.w-50 {
+    height: 50% !important;
+}
 }

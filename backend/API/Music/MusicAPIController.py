@@ -1,15 +1,14 @@
-from collections import deque
-
 import os
 import threading
 import time
+from collections import deque
+
 import vlc
 from API.Supervisor import Supervisor
 from data.models import *
+from data.models import Song, PlayList
 from flask import Blueprint, jsonify, request, Flask
 from flask_sqlalchemy import SQLAlchemy
-
-from backend.data.models import Song, PlayList
 
 MusicBlueprint = Blueprint("music", __name__)
 
