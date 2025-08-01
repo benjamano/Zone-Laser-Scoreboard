@@ -1,23 +1,26 @@
-from data.models import *
-from API.Supervisor import Supervisor
-from flask_sqlalchemy import SQLAlchemy
-
-import vlc, os, threading, time
 from collections import deque
 
-from pytube import YouTube, Search
-
+import os
+import threading
+import time
+import vlc
+from API.Supervisor import Supervisor
+from data.models import *
 from flask import Blueprint, jsonify, request, Flask
+from flask_sqlalchemy import SQLAlchemy
+
+from backend.data.models import Song, PlayList
 
 MusicBlueprint = Blueprint("music", __name__)
 
 class MusicAPIController:
-    def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app : Flask, dir):
+    def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app: Flask, dir, dmx):
         self.registerMusicRoutes(app)
         
         self._supervisor = supervisor
         self._context = context
         self._secrets = secrets
+        self._dmx = dmx
         self._app : Flask = app
         self._dir = dir
         
@@ -26,8 +29,8 @@ class MusicAPIController:
         
         # Queue system variables
         self.queue = deque()  # Main queue for songs
-        self.currentSong : Song = None
-        self.currentPlaylist : PlayList = None
+        self.currentSong: Song = Song()
+        self.currentPlaylist: PlayList = PlayList()
         self.queueLock = threading.Lock()  # Thread safety for queue operations
         self.stopRequested = False
         self.playerThread = None
@@ -387,7 +390,8 @@ class MusicAPIController:
         
         def end_callback(event):
             self.songEndEvent.set()
-        
+            self._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
+
         self.player.event_manager().event_detach(vlc.EventType.MediaPlayerEndReached)
         self.player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, end_callback)
         
@@ -398,33 +402,33 @@ class MusicAPIController:
             self.setVolume(vol)
             print(f"Raised volume to {vol}")
             time.sleep(0.01)
-            
+
     def fadeVolumeTo(self, volume : int):
         currentVolume : int = self.getVolume()
-        
+
         if currentVolume == volume:
             return
-        
+
         step = 1 if volume > currentVolume else -1
         for vol in range(currentVolume, volume, step):
             self.setVolume(vol)
-            print(f"Set volume to {vol}")
-            time.sleep(0.01)
-            
+            # print(f"Set volume to {vol}")
+            time.sleep(0.02)
+
         self.setVolume(volume)
-            
+
         return
                 
     def play(self) -> bool:
         try:
-            if not self.player.get_media():
-                if self.queue:
-                    return self.startQueuePlayback()
-                else:
-                    self.loadPlaylistToQueue(1)
-                    self.startQueuePlayback()
-            
             if not self.player.is_playing():
+                if not self.player.get_media():
+                    if self.queue:
+                        return self.startQueuePlayback()
+                    else:
+                        self.loadPlaylistToQueue(1)
+                        self.startQueuePlayback()
+
                 self.player.play()
                 self.fadeVolumeTo(100)
             return True

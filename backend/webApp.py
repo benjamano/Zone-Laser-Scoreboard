@@ -158,7 +158,7 @@ class WebApp:
         
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
-        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir)
+        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
         self._iAPI = InitialisationAPIController(self._context.db)
         
         self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
@@ -342,8 +342,9 @@ class WebApp:
         @self.app.route("/settings/devtools/")
         def settings_devtools():
             otp = request.args.get("code")
-            
-            if ((otp == None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0) and self.devMode == False):
+
+            if (
+                    otp is None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0) and self.devMode == False:
                 self.DevToolsOTP = ""
                 return render_template("error.html", message="Access Denied")
             
@@ -1214,7 +1215,7 @@ class WebApp:
 
         @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
         def setSceneSongTrigger():
-            if self._dmx == None or self._dmx.isConnected() == False:
+            if self._dmx is None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
             
             try:
