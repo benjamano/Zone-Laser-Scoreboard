@@ -49,7 +49,7 @@
             <div class="d-flex ms-auto flex-wrap align-items-center float-end">
                 <div class="dropdown d-inline-block me-2 mb-2">
                     <button
-                        class="btn btn-danger dropdown-toggle"
+						class="btn btn-outline-light dropdown-toggle"
                         type="button"
                         id="helpDropdown"
                         data-bs-toggle="dropdown"
@@ -284,14 +284,22 @@
 				</div> -->
 
                 <button
-                    class="btn btn-secondary me-2 mb-2"
+					class="btn btn-outline-light me-2 mb-2"
 					onclick="clearAllCards()"
 					id="clearAllCardsbtn">
                     Clear All Cards
                 </button>
 
-                <button
-                    class="btn btn-outline-primary me-2 mb-2"
+				<a
+					class="btn btn-outline-light me-2 mb-2"
+					href="/feedback"
+					type="button"
+					id="addSongsToPlaylistBtn">
+					ADD NEW SONGS TO THE PLAYLIST
+				</a>
+
+				<button
+					class="btn btn-outline-light me-2 mb-2"
                     onclick="playBriefing();"
                     type="button"
                     id="playBriefingBtn">

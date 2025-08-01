@@ -328,14 +328,14 @@ socket.on("musicQueue", function (queue) {
 					${isContainerLargeEnough ? `<div class="border-end pe-2">
 						${(isContainerLargeEnough && albumCoverUrl ? `<img src="${albumCoverUrl}" class="rounded mb-1" style="max-width: 50px; max-height: 50px;">` : "")}
 					</div>` : ""}
-					<div class="d-flex flex-column align-items-start flex-grow-1 overflow-hidden ${isContainerLargeEnough ? "ps-2" : ""}">
+					<div class="d-flex flex-column align-items-start flex-grow-1 overflow-hidden text-muted ${isContainerLargeEnough ? "ps-2" : ""}">
 						<p class="mb-1 text-truncate w-100">
 							<u><strong>${songName}</strong></u>
 						</p>	
 						<p class="mb-1 text-truncate w-100 fs-7">
 							${(songArtist != "" && songArtist != null ? songArtist + " - " + songAlbum : songAlbum)}
 						</p>
-						${(formattedDuration ? `<p class="text-muted mb-1 fs-7">(${formattedDuration})</p>` : "")}
+						${(formattedDuration ? `<p class="mb-1 fs-7">(${formattedDuration})</p>` : "")}
 					</div>
 					<button class="btn btn-close btn-close-white ms-2" onclick="removeSongFromQueue('${song.id}')"></button>
 				</li>

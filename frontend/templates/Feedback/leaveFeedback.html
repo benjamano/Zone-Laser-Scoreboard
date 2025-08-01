@@ -34,6 +34,8 @@
                     </div>
                 </div>
 
+				<hr>
+
                 <div id="songSubmissionFormTemplate" style="display: none;">
                     <div class="row">
                         <div class="form-group col-6">
@@ -162,78 +164,78 @@
             </div>
 
             <div class="card-footer">
-                <button type="submit" onclick="submitForm();" class="btn btn-success">Submit</button>
+				<button type="submit" onclick="submitForm();" class="btn btn-outline-success">Submit</button>
             </div>
         </form>
     </div>
 </div>
 
-<div class="card">
-
-    <div class="card-header">View Submissions</div>
-
-    <div class="card-body">
-
-        <div class="btn-group col-4" role="group" aria-label="Basic example">
-            <button type="button" id="featureRequestViewButton" onclick="openFeatureRequestsViewer()" class="btn btn-secondary col-4">Feature Requests</button>
-            <button type="button" id="bugReportViewButton" onclick="openBugReportsViewer()" class="btn btn-secondary col-4">Bug Reports</button>
-            <button type="button" id="songRequestViewButton" onclick="openSongRequestsViewer()" class="btn btn-secondary col-4">Song Requests</button>
-        </div>
-
-        <div id="FeatureRequestContainer" class="collapse hide">
-            <table id="FeatureRequestTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">Request ID</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">Use Case</th>
-                        <th scope="col">Expected Benefits</th>
-                        <th scope="col">Details</th>
-                        <th scope="col">Submitter Name</th>
-                        <th scope="col">Created At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-
-        <div id="BugReportContainer" class="collapse hide">
-            <table id="BugReportTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">Request ID</th>
-                        <th scope="col">Description</th>
-                        <th scope="col">When It Occurs</th>
-                        <th scope="col">Expected Behavior</th>
-                        <th scope="col">Steps to Reproduce</th>
-                        <th scope="col">Submitter Name</th>
-                        <th scope="col">Created At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-        <div id="SongRequestsContainer" class="collapse hide">
-            <table id="SongRequestTable" class="table table-striped">
-                <thead>
-                    <tr>
-                        <th scope="col">Request ID</th>
-                        <th scope="col">Song Name</th>
-                        <th scope="col">Naughty Words</th>
-                        <th scope="col">Submitter Name</th>
-                        <th scope="col">Created At</th>
-                    </tr>
-                </thead>
-                <tbody>
-                </tbody>
-            </table>
-        </div>
-
-    </div>
-
-</div>
+	{#<div class="card">#}
+	{##}
+	{#    <div class="card-header">View Submissions</div>#}
+	{##}
+	{#    <div class="card-body">#}
+	{##}
+	{#        <div class="btn-group col-4" role="group" aria-label="Basic example">#}
+	{#            <button type="button" id="featureRequestViewButton" onclick="openFeatureRequestsViewer()" class="btn btn-outline-secondary col-4">Feature Requests</button>#}
+	{#            <button type="button" id="bugReportViewButton" onclick="openBugReportsViewer()" class="btn btn-outline-secondary col-4">Bug Reports</button>#}
+	{#            <button type="button" id="songRequestViewButton" onclick="openSongRequestsViewer()" class="btn btn-outline-secondary col-4">Song Requests</button>#}
+	{#        </div>#}
+	{##}
+	{#        <div id="FeatureRequestContainer" class="collapse hide">#}
+	{#            <table id="FeatureRequestTable" class="table table-striped">#}
+	{#                <thead>#}
+	{#                    <tr>#}
+	{#                        <th scope="col">Request ID</th>#}
+	{#                        <th scope="col">Description</th>#}
+	{#                        <th scope="col">Use Case</th>#}
+	{#                        <th scope="col">Expected Benefits</th>#}
+	{#                        <th scope="col">Details</th>#}
+	{#                        <th scope="col">Submitter Name</th>#}
+	{#                        <th scope="col">Created At</th>#}
+	{#                    </tr>#}
+	{#                </thead>#}
+	{#                <tbody>#}
+	{#                </tbody>#}
+	{#            </table>#}
+	{#        </div>#}
+	{##}
+	{#        <div id="BugReportContainer" class="collapse hide">#}
+	{#            <table id="BugReportTable" class="table table-striped">#}
+	{#                <thead>#}
+	{#                    <tr>#}
+	{#                        <th scope="col">Request ID</th>#}
+	{#                        <th scope="col">Description</th>#}
+	{#                        <th scope="col">When It Occurs</th>#}
+	{#                        <th scope="col">Expected Behavior</th>#}
+	{#                        <th scope="col">Steps to Reproduce</th>#}
+	{#                        <th scope="col">Submitter Name</th>#}
+	{#                        <th scope="col">Created At</th>#}
+	{#                    </tr>#}
+	{#                </thead>#}
+	{#                <tbody>#}
+	{#                </tbody>#}
+	{#            </table>#}
+	{#        </div>#}
+	{#        <div id="SongRequestsContainer" class="collapse hide">#}
+	{#            <table id="SongRequestTable" class="table table-striped">#}
+	{#                <thead>#}
+	{#                    <tr>#}
+	{#                        <th scope="col">Request ID</th>#}
+	{#                        <th scope="col">Song Name</th>#}
+	{#                        <th scope="col">Naughty Words</th>#}
+	{#                        <th scope="col">Submitter Name</th>#}
+	{#                        <th scope="col">Created At</th>#}
+	{#                    </tr>#}
+	{#                </thead>#}
+	{#                <tbody>#}
+	{#                </tbody>#}
+	{#            </table>#}
+	{#        </div>#}
+	{##}
+	{#    </div>#}
+	{##}
+	{#</div>#}
 
 <div class="card">
 

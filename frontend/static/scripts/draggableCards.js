@@ -918,7 +918,7 @@ function createMusicControlsCard() {
     card.dataset.type = "musicControlsCard";
 
     contentArea.innerHTML = `
-    <div class="musicControls">
+    <div class="musicControls bg-dark">
         <i role="button" onclick="restartSong()" class="fa-solid fa-backward musicControlsButton" title='Previous'></i>
         <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play musicControlsButton pausePlayMusicButton" title='Pause / Unpause'></i>
         <i role="button" onclick="nextSong()" class="fa-solid fa-forward musicControlsButton" title = 'Next'></i>
@@ -1056,7 +1056,7 @@ function createPlayBriefingCard() {
     card.dataset.type = "briefingButtonCard";
 
     contentArea.innerHTML = `
-        <button class="btn btn-outline-primary w-100 h-100 fs-4" onclick="playBriefing();" id="briefingButton">PLAY BRIEFING VIDEO</button>
+        <button class="btn btn-outline-light w-100 h-100 fs-4" onclick="playBriefing();" id="briefingButton">PLAY BRIEFING VIDEO</button>
     `;
 
     return contentArea;

@@ -421,8 +421,8 @@ class WebApp:
             self.DevToolsOTP = ""
             
             g.PageTitle = "Leave Feedback"
-            
-            return render_template("feedback/leaveFeedback.html")
+
+            return render_template("Feedback/leaveFeedback.html")
         
         @self.app.route("/api/feedback/getFeatureRequests", methods=["GET"])
         def feedback_getFeatureRequests():
@@ -527,8 +527,9 @@ class WebApp:
                     requestId = self._fAPI.processSongRequest(songName, naughtyWords, submitter)
                 else:
                     return {"error": "Unknown Type"}, 400
-                
-                f.messagesendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}", f"{type} Feedback Submitted")
+
+                f.sendEmail(f"{type} Feedback submitted by {submitter} with request ID {requestId}",
+                            f"{type} Feedback Submitted")
 
                 return {"id": requestId}, 200
             
@@ -536,13 +537,13 @@ class WebApp:
                 ise : InternalServerError = InternalServerError()
                 
                 ise.service = "api"
-                ise.exception_message = str(f"Error submitting feedback: {e}, Traceback: {e.__traceback__}")
+                ise.exception_message = str(f"Error submitting Feedback: {e}, Traceback: {e.__traceback__}")
                 ise.process = "API: Submit Feedback"
                 ise.severity = "2"
                 
                 self._supervisor.logInternalServerError(ise)
-                
-                return jsonify({"error": f"Error submitting feedback: {e}"}), 500
+
+                return jsonify({"error": f"Error submitting Feedback: {e}"}), 500
         
         @self.app.route("/statistics")
         def statistics():

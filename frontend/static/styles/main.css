@@ -9,12 +9,18 @@
     --bs-danger: #bb313e;
 
     --TBSHover: var(--primary-gray);
-    --TBSBGPrimary: #1f2532;
+    --TBSBGPrimary: black;
     --TBSBGSecondary: var(--medium-dark-gray);
     --TSBBGLight: var(--light-gray);
     --TBSBGExtraLight: #9ea5ba1a;
-    --TBSBGDark: #10101273;
+    --TBSBGDark: #101012;
+    --TBSBGDarkSecondary: #19191c;
     --contextMenu: #5e6473;
+    --TBSOutline: #29292d
+}
+
+.bg-dark {
+    background-color: var(--TBSBGDark) !important;
 }
 
 html {
@@ -872,6 +878,11 @@ main.collapsed {
 label {
     opacity: 0.7;
     font-size: 1rem;
+    margin-bottom: 0.2rem;
+}
+
+.form-check {
+    user-select: none;
 }
 
 .songTriggerSelector {
@@ -896,7 +907,7 @@ label {
 
 .backgroundServiceStatus {
     padding: 1rem;
-    background-color: var(--bs-dark);
+    background-color: var(--TBSBGDarkSecondary);
     border-radius: 0.7rem;
     display: flex;
     flex-direction: column;
@@ -994,6 +1005,17 @@ label {
     justify-content: space-between;
 }
 
+.volumeControlSlider::-webkit-slider-thumb {
+    background: white;
+    border: none;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    cursor: pointer;
+    -webkit-appearance: none;
+    appearance: none;
+}
+
 .verticalSlider .form-range{
     margin-top: auto;
     margin-bottom: auto;
@@ -1078,7 +1100,7 @@ label {
     width: 100%;
     height: 100%;
     align-content: center;
-    background-color: #1a1a29;
+    background-color: var(--TBSBGDark);
     aspect-ratio: 1;
 }
 
@@ -1155,6 +1177,10 @@ label {
     scale: 1.05;
 }
 
+.musicProgressBar {
+    background-color: white;
+}
+
 .form-group .btn-group .btn {
     margin-top: 0.3rem !important;
 }
@@ -1217,6 +1243,10 @@ label {
 
 .hover:hover {
     filter: brightness(1);
+}
+
+.hover {
+    transition: filter 0.2s ease;
 }
 
 .resourceUtilisationChart {
@@ -1300,4 +1330,20 @@ td{
 
 .hide {
     display: none;
+}
+
+.navbar {
+    background-color: var(--TBSBGPrimary) !important;
+}
+
+.card-header, .card-body, .card-footer {
+    background-color: var(--TBSBGDark) !important;
+}
+
+.card {
+    border-color: var(--TBSOutline) !important;
+}
+
+.table-dark td, .table-dark th {
+    background-color: var(--TBSBGDarkSecondary) !important;
 }
