@@ -1,21 +1,20 @@
-from typing import TYPE_CHECKING
-from subprocess import Popen
-
-import requests
-import psutil
-import GPUtil
-from API.format import Format
-import threading, datetime
-from datetime import datetime, timedelta, time
-import time as _time
+import datetime
 import os
-from data.models import *
-from flask import Flask
-import pygetwindow as gw
-import win32gui
-import win32con
+import threading
+import time as _time
+from datetime import datetime, timedelta, time
+from typing import TYPE_CHECKING
+
+import GPUtil
+import psutil
 import pythoncom
 import win32com.client
+import win32con
+import win32gui
+from API.format import Format
+from data.models import *
+from flask import Flask
+from flask_socketio import SocketIO
 
 f = Format("Supervisor")
 
@@ -32,6 +31,7 @@ class Supervisor:
         self._obs = None
         self._dmx = None
         self._context = None
+        self._socket = None
         self._app = None
         self._webApp = None
         self.devMode = False
@@ -44,8 +44,9 @@ class Supervisor:
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
         threading.Thread(target=self.__processResourceUtilisation, daemon=True).start()
         threading.Thread(target=self.setOtherDependencies, daemon=True).start()
-    
-    def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None):
+
+    def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None,
+                        socket=None):
         if obs is not None:
             self._obs: "_OBS" = obs
         if dmx is not None:
@@ -57,6 +58,8 @@ class Supervisor:
             self.devMode = webApp.devMode
         if webApp is not None:
             self._app: Flask = webApp.app
+        if socket is not None:
+            self._socket: SocketIO = socket
             
     def setOtherDependencies(self):
         while self._context == None:
@@ -90,17 +93,16 @@ class Supervisor:
                             gpuUsage = gpus[0].load * 100
                     except:
                         pass
-                    
-                    response = requests.post(
-                        f"http://{self._webApp._localIp}:8080/sendmessage",
-                        json={
+
+                    self._socket.emit(
+                        'resourceUtilisation',
+                        {
                             "message": {
                                 "ramPercentage": ramUsagePercent,
                                 "ramValue": ramUsageValue,
                                 "gpu": gpuUsage,
                                 "cpu": cpuUsage
-                            },
-                            "type": "resourceUtilisation"
+                            }
                         }
                     )
 

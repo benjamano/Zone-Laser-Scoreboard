@@ -168,8 +168,9 @@ class WebApp:
         self.sniffingThread = threading.Thread(target=self.startSniffing, daemon=True).start()
 
         self._eAPI = EmailsAPIController.EmailsAPIController(secrets["GmailAppPassword"] if secrets["GmailAppPassword"] is not None else "", secrets["GmailSenderEmail"] if secrets["GmailSenderEmail"] is not None else "", secrets["GmailSenderDisplayName"] if secrets["GmailSenderDisplayName"] is not None else "")
-        
-        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self)
+
+        self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self,
+                                         socket=self.socketio)
         
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         f.message(f"Serving Web App at IP: http://{str(self._localIp)}:8080", type="warning")
