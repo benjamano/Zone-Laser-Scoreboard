@@ -397,7 +397,23 @@ class MusicAPIController:
         for vol in range(start, end):
             self.setVolume(vol)
             print(f"Raised volume to {vol}")
-            time.sleep(0.1)
+            time.sleep(0.01)
+            
+    def fadeVolumeTo(self, volume : int):
+        currentVolume : int = self.getVolume()
+        
+        if currentVolume == volume:
+            return
+        
+        step = 1 if volume > currentVolume else -1
+        for vol in range(currentVolume, volume, step):
+            self.setVolume(vol)
+            print(f"Set volume to {vol}")
+            time.sleep(0.01)
+            
+        self.setVolume(volume)
+            
+        return
                 
     def play(self) -> bool:
         try:
@@ -410,7 +426,7 @@ class MusicAPIController:
             
             if not self.player.is_playing():
                 self.player.play()
-                self.fadeVolumeFrom(0, 100)
+                self.fadeVolumeTo(100)
             return True
         except Exception as e:
             self.logError("Play", e)
@@ -419,6 +435,7 @@ class MusicAPIController:
     def pause(self) -> bool:
         try:
             if self.player.is_playing():
+                self.fadeVolumeTo(0)
                 self.player.pause()
             return True
         except Exception as e:
@@ -428,6 +445,7 @@ class MusicAPIController:
     def stop(self) -> bool:
         try:
             if self.player.is_playing():
+                self.fadeVolumeTo(0)
                 self.player.stop()
             return True
         except Exception as e:
