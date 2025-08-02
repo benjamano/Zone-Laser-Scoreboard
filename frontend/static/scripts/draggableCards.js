@@ -559,7 +559,7 @@ function loadOriginalCardLayout() {
                 "left": "0px",
                 "top": "700px",
                 "typeId": "timeRemainingCard",
-                "width": "1800px"
+                "width": "1700px"
             },
             {
                 "categoryId": 1,
@@ -570,7 +570,7 @@ function loadOriginalCardLayout() {
                 "left": "0px",
                 "top": "600px",
                 "typeId": "musicControlsCard",
-                "width": "1800px"
+                "width": "1700px"
             },
             {
                 "categoryId": 1,
@@ -592,7 +592,7 @@ function loadOriginalCardLayout() {
                 "left": "0px",
                 "top": "800px",
                 "typeId": "digitalClockCard",
-                "width": "1800px"
+                "width": "1700px"
             },
             {
                 "categoryId": 1,
@@ -626,6 +626,17 @@ function loadOriginalCardLayout() {
                 "top": "200px",
                 "typeId": "briefingButtonCard",
                 "width": ""
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "300px",
+                "id": 35,
+                "isActive": true,
+                "left": "1700px",
+                "top": "600px",
+                "typeId": "musicVolumeSliderCard",
+                "width": "100px"
             }
         ]
     );
