@@ -2,6 +2,7 @@ import os
 import threading
 import time
 from collections import deque
+from datetime import datetime
 
 import vlc
 from API.Supervisor import Supervisor
@@ -9,6 +10,8 @@ from data.models import *
 from data.models import Song, PlayList
 from flask import Blueprint, jsonify, request, Flask
 from flask_sqlalchemy import SQLAlchemy
+
+from backend.data.models import InternalServerError
 
 MusicBlueprint = Blueprint("music", __name__)
 
@@ -389,7 +392,16 @@ class MusicAPIController:
         
         def end_callback(event):
             self.songEndEvent.set()
-            self._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
+            try:
+                self._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
+            except Exception as e:
+                self._supervisor.logInternalServerError(ise=InternalServerError(
+                    exception_message=e,
+                    timestamp=datetime.now(),
+                    process="Check for DMX song triggers when song changes",
+                    service="Music API",
+                    severity=2
+                ))
 
         self.player.event_manager().event_detach(vlc.EventType.MediaPlayerEndReached)
         self.player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, end_callback)
