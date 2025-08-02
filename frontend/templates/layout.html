@@ -72,7 +72,6 @@
 	</div>
 </div>
 
-
 <div class="modal fade" id="loginModal" tabindex="-1" aria-labelledby="loginModal"
 	aria-hidden="true">
 	<div class="modal-dialog">
@@ -96,7 +95,10 @@
 				<a href="/feedback?type=newAccount" class="link-light text-muted">No Account?</a>
 			</div>
 			<div class="modal-footer">
-				<button type="button" class="btn btn-outline-light col-12" data-bs-dismiss="modal">Login</button>
+				<button type="button" id="loginButton" class="btn btn-outline-light col-12" onclick="login()">
+					Login
+					<i class="fas ms-1"></i>
+				</button>
 			</div>
 		</div>
 	</div>
@@ -110,8 +112,13 @@
 					<ul style="margin-bottom: 48vh;">
 						<li class="nav-item">
 							<div class="content profileAndCollapseButtonContainer">
-								<div class="col-6 p-0 mb-1" role="button" onclick="$('#loginModal').modal('show');">
-									<a class="nav-link"><i class="sidebarIcon fa-regular fa-circle-user"></i></a>
+								<div class="col-6 p-0 mb-1" role="button" onclick="handleLoginClick();">
+									{% if IsLoggedIn == True %}
+										<a class="nav-link"><i id="profileStatusIcon" class="sidebarIcon fas fa-circle-user"></i></a>
+									{% endif %}
+									{% if IsLoggedIn == False %}
+										<a class="nav-link"><i id="profileStatusIcon" class="sidebarIcon fa-regular fa-circle-user"></i></a>
+									{% endif %}
 								</div>
 								<div class="col-6 p-0 closeSidebarButton" onclick="toggleSidebar();" role="button">
 									<a class="nav-link"><i id="toggleSideBarButton" class="sidebarIcon fas fa-angles-left"></i></a>
@@ -408,12 +415,11 @@
 	}
 
 	function showReleaseNotes() {
-		//TODO
 		$.ajax({
 			url: "/api/getReleaseNotes",
 			type: "GET",
 			success: function(releaseNotes) {
-				var currentCommit = "";
+				let currentCommit = "";
 
 				$.ajax({
 					url: "/api/getCurrentCommit",
@@ -438,11 +444,65 @@
 						createNotification("Error: " + error, 30000);
 					}
 				});
-			},
-			error: function(xhr, status, error) {
-				createNotification("Error: " + error, 30000);
 			}
 		});
+	}
+
+	function login() {
+		const username = $("#loginUsername").val();
+		const password = $("#loginPassword").val();
+
+		const button = $("#loginButton");
+		const buttonIcon = button.find("i");
+		const profileStatusIcon = $("#profileStatusIcon");
+
+		button.attr("disabled", true);
+		button.toggleClass("btn-outline-light btn-outline-secondary");
+
+		buttonIcon.toggleClass("fa-spin").toggleClass("fa-spinner");
+
+		$.ajax({
+			url: "/api/accounts/login",
+			type: "POST",
+			data: {
+				username: username,
+				password: password
+			},
+			success: function() {
+				profileStatusIcon.toggleClass("fa-regular fas");
+
+				$("#loginModal").modal("hide");
+			},
+			complete: function() {
+				button.attr("disabled", false);
+				button.toggleClass("btn-outline-light btn-outline-secondary");
+
+				buttonIcon.toggleClass("fa-spin").toggleClass("fa-spinner");
+			}
+		});
+	}
+
+	function logout() {
+		const profileStatusIcon = $("#profileStatusIcon");
+
+		profileStatusIcon.toggleClass("fa-spin").toggleClass("fa-spinner fa-circle-user");
+
+		$.ajax({
+			url: "/api/accounts/logout",
+			type: "POST",
+			success: function() {
+				profileStatusIcon.toggleClass("fa-spin").toggleClass("fa-spinner fa-circle-user");
+				profileStatusIcon.toggleClass("fa-regular fas");
+			}
+		});
+	}
+
+	function handleLoginClick() {
+		if ($("#profileStatusIcon").hasClass("fa-regular")) {
+			$("#loginModal").modal("show");
+		} else {
+			logout();
+		}
 	}
 </script>
 </html>

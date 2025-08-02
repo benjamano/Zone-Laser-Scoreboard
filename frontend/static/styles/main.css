@@ -33,6 +33,10 @@ html {
     overflow-x: hidden;
 }
 
+textarea {
+    background-color: var(--TBSBGDarkSecondary);
+}
+
 .card {
     background-color: var(--medium-dark-gray);
     color: #ffffff;

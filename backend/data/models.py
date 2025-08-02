@@ -1,6 +1,7 @@
-from flask_sqlalchemy import SQLAlchemy
 from dataclasses import dataclass, asdict
 from datetime import datetime
+
+from flask_sqlalchemy import SQLAlchemy
 
 db = SQLAlchemy()
 
@@ -385,4 +386,42 @@ class SystemControls(db.Model):
             "id": self.id,
             "name": self.name,
             "value": self.value
+        }
+
+
+class User(db.Model):
+    __tablename__ = 'Users'
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(200), nullable=False)
+    password = db.Column(db.String(200), nullable=False)
+    createDate = db.Column(db.DateTime, nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.username,
+            # "password": self.password,
+            "createDate": self.createDate.isoformat() if self.createDate else None,
+            "isActive": self.isActive
+        }
+
+
+class UserAuthToken(db.Model):
+    __tablename__ = 'UserAuthTokens'
+    id = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
+    token = db.Column(db.String(200), nullable=False)
+    expiryDate = db.Column(db.DateTime, nullable=False)
+    createDate = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "userId": self.userId,
+            "token": self.token,
+            "expiryDate": self.expiry,
+            "createDate": self.createDate,
+            "isActive": self.isActive
         }
