@@ -1783,8 +1783,8 @@ class WebApp:
                 
                 decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
                 #f.message(f"Decoded Data: {decodedData}")
-                
-                with self.app.app_context:
+
+                with self.app.app_context():
                     self.socketio.emit("zonePacket", {"data": decodedData})
                 
                 if decodedData[0] == "1":
