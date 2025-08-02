@@ -16,7 +16,13 @@
     --TBSBGDark: #101012;
     --TBSBGDarkSecondary: #19191c;
     --contextMenu: #5e6473;
-    --TBSOutline: #29292d
+    --TBSOutline: #29292d;
+    --TBSTextPrimary: #cbcbcb;
+    --TBSTextSecondary: #5e6473;
+}
+
+.text-muted {
+    text-decoration-color: RGBA(var(--bs-secondary-color), var(--bs-link-underline-opacity, 1)) !important;
 }
 
 .bg-dark {
@@ -367,10 +373,6 @@ html {
     height: 25px;
     background: #252525;
     cursor: pointer;
-}
-
-.label {
-    margin-top: 10px;
 }
 
 .warning {
@@ -754,6 +756,7 @@ main.collapsed {
     width: 25%;
     font-size: 1rem;
     text-align: center;
+    padding: 0;
 }
 
 .gunScoreTableHeader {
@@ -762,7 +765,7 @@ main.collapsed {
 
 .gunScoreTableHeader td {
     background-color: var(--TBSBGSecondary);
-    padding: 0.5rem;
+    padding: 0.3rem;
 }
 
 .contextMenu {
@@ -882,9 +885,10 @@ main.collapsed {
 }
 
 label {
-    opacity: 0.7;
     font-size: 1rem;
     margin-bottom: 0.2rem;
+    /*margin-top: 10px;*/
+    color: var(--TBSTextPrimary);
 }
 
 .form-check {

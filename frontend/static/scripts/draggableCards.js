@@ -537,85 +537,98 @@ function loadCardConfig(configStr) {
 }
 
 function loadOriginalCardLayout() {
-    loadCardConfig([
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "600px",
-            "id": 1,
-            "isActive": true,
-            "left": "0px",
-            "top": "0px",
-            "typeId": "scoreBoardCard",
-            "width": "1600px"
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "100px",
-            "id": 2,
-            "isActive": true,
-            "left": "0px",
-            "top": "700px",
-            "typeId": "timeRemainingCard",
-            "width": "1800px"
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "100px",
-            "id": 3,
-            "isActive": true,
-            "left": "0px",
-            "top": "600px",
-            "typeId": "musicControlsCard",
-            "width": "1800px"
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "200px",
-            "id": 4,
-            "isActive": true,
-            "left": "1600px",
-            "top": "400px",
-            "typeId": "albumCoverCard",
-            "width": "200px"
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "100px",
-            "id": 5,
-            "isActive": true,
-            "left": "0px",
-            "top": "800px",
-            "typeId": "digitalClockCard",
-            "width": "1800px"
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "200px",
-            "id": 6,
-            "isActive": true,
-            "left": "1600px",
-            "top": "0px",
-            "typeId": "analogueClockCard",
-            "width": "200px"
-        },
-        {
-            "categoryId": 1,
-            "content": null,
-            "height": "",
-            "id": 17,
-            "isActive": true,
-            "left": "1600px",
-            "top": "200px",
-            "typeId": "briefingButtonCard",
-            "width": ""
-        },
-    ]);
+    loadCardConfig(
+        [
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "600px",
+                "id": 1,
+                "isActive": true,
+                "left": "0px",
+                "top": "0px",
+                "typeId": "scoreBoardCard",
+                "width": "1300px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "100px",
+                "id": 2,
+                "isActive": true,
+                "left": "0px",
+                "top": "700px",
+                "typeId": "timeRemainingCard",
+                "width": "1800px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "100px",
+                "id": 3,
+                "isActive": true,
+                "left": "0px",
+                "top": "600px",
+                "typeId": "musicControlsCard",
+                "width": "1800px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "200px",
+                "id": 4,
+                "isActive": true,
+                "left": "1600px",
+                "top": "400px",
+                "typeId": "albumCoverCard",
+                "width": "200px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "100px",
+                "id": 5,
+                "isActive": true,
+                "left": "0px",
+                "top": "800px",
+                "typeId": "digitalClockCard",
+                "width": "1800px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "200px",
+                "id": 6,
+                "isActive": true,
+                "left": "1600px",
+                "top": "0px",
+                "typeId": "analogueClockCard",
+                "width": "200px"
+            },
+            {
+                "categoryId": 1,
+                "content": "-----------------| NOTES |------------------\n---------------------------------------------\nWrite Notes about Gun Problems or other Notes for other Staff to read\n---------------------------------------------\n",
+                "height": "600px",
+                "id": 33,
+                "isActive": true,
+                "left": "1300px",
+                "top": "0px",
+                "typeId": "textAreaCard",
+                "width": "300px"
+            },
+            {
+                "categoryId": 1,
+                "content": null,
+                "height": "",
+                "id": 34,
+                "isActive": true,
+                "left": "1600px",
+                "top": "200px",
+                "typeId": "briefingButtonCard",
+                "width": ""
+            }
+        ]
+    );
 }
 
 function deleteCard(card) {
@@ -1115,9 +1128,10 @@ function createMusicVolumeSliderCard(){
         <div class="musicVolumeSlider p-2">
             <label for="volumeControl" class="form-label text-center">Music Volume</label>
             <div id="volumeSliderContainer" class="h-100 d-flex">
+                <div class="sliderFill" id="sliderFillVolume"></div>
                 <input type="range" class="form-range volumeControlSlider" id="volumeControl" min="0" max="100" value="0" oninput="setMusicVolume(this);">
             </div>
-            <label class="volumeValue form-label text-center" class="text-center">0%</label>
+            <label class="volumeValue form-label text-center text-center">0%</label>
         </div>
     `;
 
@@ -1140,7 +1154,7 @@ let currentCard = null;
 
 container.addEventListener("contextmenu", function (e) {
     const card = e.target.closest(".draggableCard");
-    if (card) {
+    if (card && areCardsDraggable() === true) {
         e.preventDefault();
         currentCard = card;
         const customMenu = document.getElementById("customContextMenu");

@@ -1,19 +1,19 @@
-import os, json
-from os import walk
-from PyDMXControl.controllers import OpenDMXController
-from PyDMXControl.profiles.Generic import Custom, Dimmer
-from flask import Flask
-            
-from data.models import *
-from API.format import Format
-from API.DB import context as dbContext
-from API.Supervisor import Supervisor
-
+import datetime
+import json
+import os
+import socket
 import threading
 import time
+from os import walk
+
 import requests
-import socket
-import datetime
+from API.DB import context as dbContext
+from API.Supervisor import Supervisor
+from API.format import Format
+from PyDMXControl.controllers import OpenDMXController
+from PyDMXControl.profiles.Generic import Custom, Dimmer
+from data.models import *
+from flask import Flask
 from flask_socketio import SocketIO
 
 format = Format("DMX")
@@ -791,8 +791,8 @@ class dmx:
             return scenes
 
     def __startScene(self, scene : DMXScene, stopEvent):  
-        try: 
-            if self.isConnected() == False:
+        try:
+            if not self.isConnected():
                 return 200
             
             if len(scene.events) == 0:
@@ -815,7 +815,7 @@ class dmx:
                         )
                         
                         return 200
-                    if (scene.duration == 0):
+                    if scene.duration == 0:
                         self.socket.emit(
                             'dmxSceneStopped',
                             {'sceneId': scene.id},
@@ -823,7 +823,7 @@ class dmx:
                         
                         return
                     for channel in event.channels:
-                        if (self._dmx != None):
+                        if self._dmx != None:
                             try:
                                 fixture_id = int(channel["fixture"])
                                 fixture = self._dmx.get_fixture(fixture_id)
