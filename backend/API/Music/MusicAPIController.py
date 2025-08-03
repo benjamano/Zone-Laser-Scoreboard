@@ -14,6 +14,7 @@ from flask_sqlalchemy import SQLAlchemy
 from backend.data.models import InternalServerError
 
 MusicBlueprint = Blueprint("music", __name__)
+f = Format("Music")
 
 class MusicAPIController:
     def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app: Flask, dir, dmx):
