@@ -577,7 +577,7 @@ class WebApp:
             return render_template("ManagerTools/managerTools.html")
 
         def checkLoginStatus() -> bool:
-            currentToken: str = session["System_AccountAuthToken"]
+            currentToken: str = session.get("System_AccountAuthToken")
 
             if currentToken is not None:
                 FoundUserAuthToken: UserAuthToken = self._context.db.session.query(UserAuthToken).filter_by(token=currentToken).first()
