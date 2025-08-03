@@ -593,7 +593,7 @@ class WebApp:
         def accounts_login():
             currentToken: str = session.get("System_AccountAuthToken")
 
-            if currentToken is not None:
+            if currentToken:
                 return jsonify({}), 200
 
             username: str = request.form.get("username", "")
