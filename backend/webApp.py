@@ -591,7 +591,7 @@ class WebApp:
 
         @self.app.route("/api/accounts/login", methods=["POST"])
         def accounts_login():
-            currentToken: str = session["System_AccountAuthToken"]
+            currentToken: str = session.get("System_AccountAuthToken")
 
             if currentToken is not None:
                 return jsonify({}), 200
