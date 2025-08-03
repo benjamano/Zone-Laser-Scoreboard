@@ -579,7 +579,7 @@ class WebApp:
         def checkLoginStatus() -> bool:
             currentToken: str = session.get("System_AccountAuthToken")
 
-            if currentToken is not None:
+            if currentToken:
                 FoundUserAuthToken: UserAuthToken = self._context.db.session.query(UserAuthToken).filter_by(token=currentToken).first()
 
                 if FoundUserAuthToken is not None and FoundUserAuthToken.expiryDate > datetime.now():
