@@ -635,7 +635,7 @@ class WebApp:
 
         @self.app.route("/api/accounts/logout", methods=["POST"])
         def accounts_logout():
-            currentToken: str = session["System_AccountAuthToken"]
+            currentToken: str = session.get("System_AccountAuthToken")
 
             FoundUserAuthToken: UserAuthToken = self._context.db.session.query(UserAuthToken).filter_by(
                 token=currentToken).first()
