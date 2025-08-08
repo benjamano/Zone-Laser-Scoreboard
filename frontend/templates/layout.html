@@ -109,7 +109,7 @@
 		<div class="col-auto p-0" style="overflow-y: hidden; height: 100vh;">
 			{% if PageTitle != "Onboarding" %}
 				<div class="sidebar h-100" id="sidebar">
-					<ul style="margin-bottom: 48vh;">
+					<ul style="margin-bottom: 42vh;">
 						<li class="nav-item">
 							<div class="content profileAndCollapseButtonContainer">
 								<div class="col-6 p-0 mb-1" role="button" onclick="handleLoginClick();">
@@ -184,11 +184,11 @@
 						<a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben
 							Mercer</a>
 						<br/>
-						<span onclick="showReleaseNotes()"
-						><small class="text-decoration-underline">V {{ VersionNo }}</small>
-									|
-									<small class="text-decoration-underline">View Release Notes</small></span
-						>
+						<span onclick="showReleaseNotes()">
+							<small class="text-decoration-underline">V {{ VersionNo }}</small>
+							|
+							<small class="text-decoration-underline">View Release Notes</small>
+						</span>
 					</div>
 
 					{#							<hr>#}
