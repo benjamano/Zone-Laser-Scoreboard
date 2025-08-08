@@ -161,7 +161,6 @@ class WebApp:
 
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
-        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
         self._iAPI = InitialisationAPIController(self._context.db)
 
         self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
@@ -170,13 +169,15 @@ class WebApp:
         self.dmxThread = threading.Thread(target=self.setUpDMX, daemon=True).start()
         self.sniffingThread = threading.Thread(target=self.startSniffing, daemon=True).start()
 
+        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
+
         self._eAPI = EmailsAPIController.EmailsAPIController(
             secrets["GmailAppPassword"] if secrets["GmailAppPassword"] is not None else "",
             secrets["GmailSenderEmail"] if secrets["GmailSenderEmail"] is not None else "",
             secrets["GmailSenderDisplayName"] if secrets["GmailSenderDisplayName"] is not None else "")
 
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self,
-            socket=self.socketio)
+            socket=self.socketio, mApi=self._mAPI)
 
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         f.message(f"Serving Web App at IP: http://{str(self._localIp)}:8080", type="warning")
@@ -588,6 +589,12 @@ class WebApp:
             session["System_AccountAuthToken"] = None
 
             return False
+
+        @self.app.route("/music")
+        def music():
+            g.PageTitle = "Benify"
+
+            return render_template("/Music/musicControls.html")
 
         @self.app.route("/api/accounts/login", methods=["POST"])
         def accounts_login():
@@ -1764,27 +1771,29 @@ class WebApp:
 
         return result_container['result']
 
-    def sendSongDetails(self, song, album, bpm, duration, timeleft, isPlaying, currentVolume):
-        self.socketio.emit('songAlbum', {'message': album})
-        self.socketio.emit('songName', {'message': song})
-        self.socketio.emit('musicVolume', {'message': currentVolume})
+    def sendSongDetails(self, songDetails):
+        self.socketio.emit('songAlbum', {'message': songDetails.album})
+        self.socketio.emit('songName', {'message': {"name": songDetails.name, "id": songDetails.songId}})
+        self.socketio.emit('musicVolume', {'message': songDetails.currentVolume})
         self.socketio.emit('musicStatusV2', {
-            'message': {"playbackStatus": isPlaying, "musicPosition": (duration - timeleft), "duration": duration}})
+            'message': {"playbackStatus": songDetails.isPlaying, "musicPosition": (songDetails.duration - songDetails.timeleft), "duration": songDetails.duration}})
         queue = self._mAPI.getQueue()
         queue_dicts = [song.to_dict() for song in queue]
         self.socketio.emit('musicQueue', {'queue': queue_dicts})
+        self.socketio.emit('songBpm', {"message": songDetails.bpm})
+        self.socketio.emit('songArtist', {"message": songDetails.artist})
+        self.socketio.emit('playlist', {"playlist": songDetails.playlist.to_dict() if songDetails.playlist else ""})
 
     def mediaStatusChecker(self):
         f.message(f.colourText("Attempting to start Media status checker", "blue"))
 
         while True:
-            time.sleep(1)
+            time.sleep(0.1)
 
             try:
                 songDetails: SongDetailsDTO = self._mAPI.currentSongDetails()
 
-                self.sendSongDetails(songDetails.name, songDetails.album, 0, songDetails.duration, songDetails.timeleft,
-                    songDetails.isPlaying, songDetails.currentVolume)
+                self.sendSongDetails(songDetails)
             except Exception as e:
                 f.message(f"Error fetching current song details: {e}", type="error")
 

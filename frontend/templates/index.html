@@ -298,6 +298,7 @@
 	</div>
 
 	<script src="/static/scripts/draggableCards.js" async></script>
+	<script src="/static/scripts/musicBeat.js" async></script>
 
 	<script>
 		window.onload = function() {
@@ -551,8 +552,6 @@
 		}
 
 		function toggleMusic() {
-			$("#pauseplayButton").toggleClass("fa-circle-play fa-circle-pause");
-
 			socket.emit("toggleMusic");
 		}
 
@@ -590,6 +589,7 @@
 				data: JSON.stringify({ songId: songId })
 			});
 		}
+
 	</script>
 
 	<script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>

@@ -944,7 +944,9 @@ function createMusicControlsCard() {
     contentArea.innerHTML = `
     <div class="musicControls bg-dark">
         <i role="button" onclick="restartSong()" class="fa-solid fa-backward musicControlsButton" title='Previous'></i>
-        <i role="button" id="pauseplayButton" onclick="toggleMusic()" class="fa-regular fa-circle-play musicControlsButton pausePlayMusicButton" title='Pause / Unpause'></i>
+        <button onclick="toggleMusic()" class="btn btn-light rounded-circle" style="width: 40px; height: 40px;">
+            <i class="fas fa-play pausePlayMusicButton"></i>
+        </button>
         <i role="button" onclick="nextSong()" class="fa-solid fa-forward musicControlsButton" title = 'Next'></i>
         <div style="flex-grow: 1; height: 10px; background-color: #555; border-radius: 10px; overflow: hidden; margin-left: 10px; position: relative; width: 10rem;">
             <div id="progressBar" class="musicProgressBar" style="height: 100%; width: 0; background-color: #1db954;"></div>
@@ -962,9 +964,8 @@ function createMusicAlbumCard() {
 
     contentArea.innerHTML = `
     <div class="albumContainer" id="album-container">
-        <span class="playingSongText" id="musicPlaying"></span>
-        <div id="album-cover" style="width: 100%; height: 100%;"></div>
-    </div>`;
+        <img src="" style="width: 100%; border-radius: 3%;" alt="Album Cover">
+    </img>`;
     return contentArea;
 }
 
@@ -1093,14 +1094,16 @@ function createMusicQueueCard(){
     card.dataset.type = "musicQueueCard";
 
     contentArea.innerHTML = `
-        <ul class="list-group musicQueueList h-100 rounded-0" id="musicQueueList">
+        <ul class="list-group rounded-0 w-100 h-100" id="musicQueueList">
             <div id='musicQueueHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center">
                 <span class="fs-4">Up Next..</span>
-                <button class="btn btn-outline-secondary" onclick="clearMusicQueue();">Clear Queue</button>
+<!--                <button class="btn btn-outline-secondary" onclick="clearMusicQueue();">Clear Queue</button>-->
             </div>
-            <li class="list-group-item d-flex flex-row justify-content-between align-items-start">
-                Loading Queue...
-            </li>
+            <div class="musicQueueList" style="overflow-y: scroll; max-height: 230px">
+                <li class="list-group-item d-flex flex-row justify-content-between align-items-start">
+                    Loading Queue...
+                </li>
+            </div>
         </ul>
     `
 

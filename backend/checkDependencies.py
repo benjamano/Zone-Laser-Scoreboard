@@ -1,6 +1,7 @@
+import importlib
 import subprocess
 import sys
-import importlib
+
 
 class VerifyDependencies:
     def __init__(self):
@@ -56,7 +57,11 @@ class VerifyDependencies:
             "win32com.client": "win32com.client",
             "pythoncom": "pythoncom",
             "python-vlc": "vlc", # MUST DOWNLOAD VLC MEDIA PLAYER BEFORE RUNNING THIS
-            "pytube": "pytube"
+            "pytube": "pytube",
+            "librosa": "librosa",
+            "soundfile": "soundfile",
+            "joblib": "joblib",
+            "pydub": "pydub"
         }
         self.installAll()
 

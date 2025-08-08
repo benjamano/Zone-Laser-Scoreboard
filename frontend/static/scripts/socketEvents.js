@@ -1,5 +1,6 @@
 var controlSpotify = true;
 var gamePlayingStatus = "stopped";
+var isMusicPlaying = false;
 
 var lastBPM = 0;
 var totalDuration = 0;
@@ -212,23 +213,57 @@ socket.on("songAlbum", async function (albumName) {
 			const imageUrl = await getAlbumCover(albumName.message);
 
 			if (imageUrl) {
-				document.getElementById("album-cover").style.backgroundImage = "url(" + imageUrl + ")";
+				$(".albumContainer").each(function(i, elem) {
+					$(elem).find("img").attr("src", imageUrl);
+				});
 			}
 		}
 	} catch (err) {}
+})
+
+var previousArtist = "";
+
+socket.on("songArtist", async function(songArtist) {
+	try {
+		if (songArtist.message !== previousArtist) {
+			$(".playingSongAlbumText").text(songArtist.message);
+
+			previousArtist = songArtist.message;
+		}
+	} catch (err) {
+	}
 });
+
+let previousSongName = "";
 
 socket.on("songName", function (msg) {
 	try {
 		// console.log(msg.message);
 
-		if (msg.message == "No media playing") {
-		} else {
-			$("#currentPlayingSongForTrigger").val(msg.message.split(" - ")[1] + " - " + msg.message.split(" - ")[0]);
-			$("#musicPlaying").text(msg.message);
+		if (msg.message.name == "No media playing") {
+
+		} else if (msg.message !== previousSongName) {
+			$("#currentPlayingSongForTrigger").val(msg.message.name.split(" - ")[1] + " - " + msg.message.name.split(" - ")[0]);
+			$(".playingSongTextValue").text(msg.message.name);
 			$("#setThisSongAsBindButton").show();
+
+			$(".songListRow ").addClass("bg-transparent").removeClass("bg-success");
+			if (currentPlaylistId == $(".nav-link.dashboardTab.fadeFont.active").attr("id").replace("tab_", "")) {
+				$("[data-song-id='" + msg.message.id + "'].songListRow").removeClass("bg-transparent").addClass("bg-success");
+			}
+
+			previousSongName = msg.message.name;
 		}
 	} catch (err) {}
+});
+
+let currentPlaylistId = 0;
+
+socket.on("playlist", function(msg) {
+	try {
+		currentPlaylistId = msg.playlist.id;
+	} catch (err) {
+	}
 });
 
 socket.on("createWarning", function (msg) {
@@ -258,22 +293,26 @@ socket.on("musicStatusV2", function (msg) {
 
 		if (msg.playbackStatus == true) {
 			gamePlayingStatus = "playing";
-			$(".pausePlayMusicButton").removeClass("fa-circle-play").addClass("fa-circle-pause");
+			isMusicPlaying = true;
+			$(".pausePlayMusicButton").removeClass("fa-play").addClass("fa-pause");
 		} else {
 			gamePlayingStatus = "stopped";
-			$(".pausePlayMusicButton").removeClass("fa-circle-pause").addClass("fa-circle-play");
+			isMusicPlaying = false;
+			$(".pausePlayMusicButton").removeClass("fa-pause").addClass("fa-play");
 		}
 
-		const durationDiff = Math.abs(msg.musicPosition - (currentTime ?? 0));
-		if (durationDiff > 10 || currentTime == 0) {
-			if (msg.musicPosition !== undefined) {
-				currentTime = msg.musicPosition;
-			}
-
-			totalDuration = msg.duration;
-
-			updateProgressBar(currentTime, totalDuration);
+		if (msg.musicPosition !== undefined) {
+			currentTime = msg.musicPosition;
 		}
+
+		totalDuration = msg.duration;
+
+		updateProgressBar(currentTime, totalDuration);
+
+		// // const durationDiff = Math.abs(msg.musicPosition - (currentTime ?? 0));
+		// if (durationDiff > 10 || currentTime == 0) {
+		//
+		// }
 	} catch (err) {
 		// handle error if you want, or leave silent
 	}
@@ -285,7 +324,23 @@ socket.on("musicQueue", function (queue) {
 	if (containers.length == 0) { return; }
 
 	containers.each(async function (_, container) {
-		var isContainerLargeEnough = $(container).width() > 300;
+		let newHtml = "";
+
+		let isContainerLargeEnough = $(container).width() > 300;
+
+		if (queue.queue.length === 0) {
+			$(container).html(`
+			<li class="list-group-item d-flex flex-row justify-content-between align-items-start">
+				<div class="d-flex flex-column align-items-start flex-grow-1 overflow-hidden text-muted">
+					<p class="mb-1 text-truncate w-100">
+						<u>No songs in Queue!</u>
+					</p>	
+				</div>
+			</li>
+			`);
+
+			return;
+		}
 
 		const newSongIds = queue.queue.map(song => song.id);
 
@@ -342,12 +397,8 @@ socket.on("musicQueue", function (queue) {
 			`;
 		}));
 
-		let newHtml;
 		if (isContainerLargeEnough == true) {
-			newHtml = `<div id='musicQueueHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center">
-				<span class="fs-6"><b>Up Next...</b></span>
-				<button class="btn btn-outline-secondary d-none" onclick="clearMusicQueue();">Clear Queue</button>
-			</div>` + contentArr.join("");
+			newHtml = contentArr.join("");
 		} else {
 			newHtml = contentArr.join("");
 		}
@@ -359,6 +410,8 @@ socket.on("musicQueue", function (queue) {
 function updateProgressBar(currentTime, totalDuration) {
 	const progressBars = $(".musicProgressBar");
 	const timeLeftDisplays = $(".timeLeft");
+	const totalTimeDisplays = $(".totalSongTime");
+	const currentTimeDisplays = $(".currentSongTime");
 
 	if (musicTimeInterval) {
 		clearInterval(musicTimeInterval);
@@ -375,13 +428,23 @@ function updateProgressBar(currentTime, totalDuration) {
 
 		progressBars.css("width", progressPercent + "%");
 
+		let minutesLeft = "";
+		let secondsLeft = "";
+		let timeString = "";
+
 		const timeLeft = totalDuration - (internalCurrentTime + elapsedSeconds);
+
 		if (timeLeft >= 0) {
-			const minutesLeft = Math.floor(timeLeft / 60);
-			const secondsLeft = Math.floor(timeLeft % 60);
-			const timeString = `-${minutesLeft}:${secondsLeft < 10 ? "0" : ""}${secondsLeft}`;
+			minutesLeft = Math.floor(timeLeft / 60);
+			secondsLeft = Math.floor(timeLeft % 60);
+			timeString = `-${minutesLeft}:${secondsLeft < 10 ? "0" : ""}${secondsLeft}`;
 			timeLeftDisplays.text(timeString);
 		}
+
+		minutesLeft = Math.floor(totalDuration / 60);
+		secondsLeft = Math.floor(totalDuration % 60);
+		timeString = `${minutesLeft}:${secondsLeft < 10 ? "0" : ""}${secondsLeft}`;
+		totalTimeDisplays.text(timeString);
 
 		if (elapsedSeconds >= 1) {
 			internalCurrentTime += Math.floor(elapsedSeconds);
@@ -501,9 +564,18 @@ function setMusicVolume(elem) {
 	$(elem).closest('.musicVolumeSlider').find('.volumeValue').text($(elem).val() + "%");
 }
 
+function setMusicVolumeWithNumber(value) {
+	socket.emit("setVolume", { volume: value });
+}
+
 socket.on("musicVolume", function (msg) {
 	$(".volumeControlSlider").each(function(){
 		$(this).val(msg.message);
 		$(this).closest('.musicVolumeSlider').find('.volumeValue').text(msg.message + "%");
+		if (msg.message === 0) {
+			$(".volumeToggleIcon").removeClass("fa-volume-up").addClass("fa-volume-off");
+		} else {
+			$(".volumeToggleIcon").addClass("fa-volume-up").removeClass("fa-volume-off");
+		}
 	})
 });

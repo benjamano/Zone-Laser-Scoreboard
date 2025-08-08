@@ -2,16 +2,14 @@
 YouTube Music Downloader with Album Metadata
 Downloads songs from YouTube as MP3 files and adds album information to metadata.
 
-Yes this was made by claude, yes im proud of it, yes i am lazy
+Yes this was made by claude, yes i am lazy
 """
 
 import os
 import sys
 from pathlib import Path
 from typing import List, Dict, Optional
-import yt_dlp
-from mutagen.mp3 import MP3
-from mutagen.id3 import ID3, TIT2, TPE1, TALB, TDRC, TCON
+
 
 class YouTubeMusicDownloader:
     """Downloads music from YouTube and manages metadata."""
@@ -237,7 +235,8 @@ def main():
     """Example usage of the YouTube Music Downloader."""
     
     # Configuration
-    download_folder = "backend/data/music"  # Change this to your preferred folder
+    download_folder = "backend/data/music"
+    download_folder = os.path.abspath(os.path.join("..", download_folder))
     
     # Specify FFmpeg path if it's not in your system PATH
     # Since FFmpeg is working in your terminal, try None first, then the path if needed

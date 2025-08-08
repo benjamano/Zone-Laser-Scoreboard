@@ -34,6 +34,7 @@ class Supervisor:
         self._socket = None
         self._app = None
         self._webApp = None
+        self._mApi = None
         self.devMode = False
         self._services = ["db", "obs", "dmx", "api"] # Should add MUSIC as an option here
         self.expectedProcesses = ["Spotify.exe", "obs64"]
@@ -46,7 +47,7 @@ class Supervisor:
         threading.Thread(target=self.setOtherDependencies, daemon=True).start()
 
     def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None,
-                        socket=None):
+            socket=None, mApi=None):
         if obs is not None:
             self._obs: "_OBS" = obs
         if dmx is not None:
@@ -60,6 +61,8 @@ class Supervisor:
             self._app: Flask = webApp.app
         if socket is not None:
             self._socket: SocketIO = socket
+        if mApi is not None:
+            self._mApi = mApi
             
     def setOtherDependencies(self):
         while self._context == None:
@@ -213,7 +216,12 @@ class Supervisor:
                   
             if now >= time(21, 0, 0) or now <= time(10, 0, 0):
                 self.executePendingRestarts()
-                
+
+            try:
+                self._mApi.lookForSongsWith0BPM()
+            except Exception as e:
+                f.message(f"Error occurred while looking for songs to get a BPM for: {e}", type="error")
+
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)
             #     f.message(p)

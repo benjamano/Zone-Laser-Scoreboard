@@ -19,6 +19,8 @@
     --TBSOutline: #29292d;
     --TBSTextPrimary: #cbcbcb;
     --TBSTextSecondary: #5e6473;
+
+    --beat-duration: 1000ms;
 }
 
 .text-muted {
@@ -103,6 +105,10 @@ textarea {
     border-color: var(--light-gray);
 }
 
+.dashboardTab.fadeFont {
+    animation: fadeFont 1s infinite alternate cubic-bezier(0.54, -0.25, 1, 1.23);
+}
+
 .dmxScene.selected {
     /* background-color: var(--light-gray); */
     border-color: var(--light-gray);
@@ -114,6 +120,15 @@ textarea {
     }
     to {
         background-color: var(--light-gray);
+    }
+}
+
+@keyframes fadeFont {
+    from {
+        color: white;
+    }
+    to {
+        color: lightslategrey;
     }
 }
 
@@ -266,11 +281,6 @@ body {
     height: 100%;
 }
 
-.albumContainer {
-    width: 100%;
-    height: 100%;
-}
-
 #album-cover {
     position: absolute;
     top: 0;
@@ -280,10 +290,6 @@ body {
     background-size: cover;
     background-position: center;
     filter: brightness(0.6) blur(1px);
-}
-
-#musicPlaying {
-    font-size: 0.7rem;
 }
 
 #album-container p,
@@ -1160,7 +1166,7 @@ label {
     align-content: end;
     padding: 0.5rem;
     display: block;
-    font-size: 1rem !important;
+    font-size: 1rem;
     text-align: left;
 }
 
@@ -1381,4 +1387,67 @@ td {
 .w-50 {
     height: 50% !important;
 }
+
+/*body.beat {*/
+/*    filter: brightness(1.2);*/
+/*}*/
+
+body {
+    transition: filter 0.1s ease;
+}
+
+.sidebarIcon.swing-left {
+    animation: swing-left var(--beat-duration) infinite ease-in-out;
+}
+
+.sidebarIcon.swing-right {
+    animation: swing-right var(--beat-duration) infinite ease-in-out;
+}
+
+@keyframes swing-left {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(-40deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+@keyframes swing-right {
+    0% {
+        transform: rotate(0deg);
+    }
+    50% {
+        transform: rotate(40deg);
+    }
+    100% {
+        transform: rotate(0deg);
+    }
+}
+
+/*.beat-pulse {*/
+/*	animation: pulse 0.2s ease-in-out;*/
+/*}*/
+
+/*@keyframes pulse {*/
+/*	0% { transform: scale(1); }*/
+/*	50% { transform: scale(1.05); }*/
+/*	100% { transform: scale(1); }*/
+/*}*/
+
+.bg-transparent td {
+    background-color: transparent !important;
+}
+
+.albumContainer {
+    display: flex;
+    justify-content: center;
+}
+
+.musicControlsPage.musicQueueList, .musicControlsPage .list-group-item {
+    /*background-color: transparent !important;*/
+    border: none;
 }

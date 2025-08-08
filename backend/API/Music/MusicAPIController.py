@@ -4,12 +4,22 @@ import time
 from collections import deque
 from datetime import datetime
 
+import librosa
 import vlc
 from API.Supervisor import Supervisor
 from API.format import Format
 from data.models import *
 from flask import Blueprint, jsonify, request, Flask
 from flask_sqlalchemy import SQLAlchemy
+# librosa.load
+from pydub import AudioSegment
+
+from backend.data.models import Song
+
+# import joblib
+# from joblib.externals.loky.backend import context
+# get_context = context.get_context
+# from concurrent.futures.process import _MAX_WINDOWS_WORKERS
 
 MusicBlueprint = Blueprint("music", __name__)
 f = Format("Music")
@@ -30,13 +40,14 @@ class MusicAPIController:
         
         # Queue system variables
         self.queue = deque()  # Main queue for songs
-        self.currentSong: Song = Song()
+        self.currentSong: Song = None
         self.currentPlaylist: PlayList = PlayList()
         self.queueLock = threading.Lock()  # Thread safety for queue operations
         self.stopRequested = False
         self.playerThread = None
         self.songEndEvent = threading.Event()
         self.fullPlaylist = [] # Full playlist for queue playback
+        self.IsGettingBPM = False
         
         self.setVolume(self._secrets["DefaultVolume"] if "DefaultVolume" in self._secrets else 50)
         
@@ -58,7 +69,20 @@ class MusicAPIController:
         @MusicBlueprint.route("/api/music/songs/<songId>", methods=["PUT"])
         def updateSong(songId):
             return jsonify(self.updateSong(songId).to_dict()), 200
-        
+
+        @MusicBlueprint.route("/api/music/songs/<songId>/play", methods=["POST"])
+        def playSong(songId):
+            SongToPlay: Song = self._context.session.query(Song).filter(Song.id == songId).first()
+
+            self.loadSong(SongToPlay)
+            self.play(fadeAudio=False)
+
+            return jsonify({"status": "success"}), 200
+
+        @MusicBlueprint.route("/api/music/currentPlaylist", methods=["GET"])
+        def getCurrentPlaylist():
+            return jsonify(self.currentPlaylist.id), 200
+
         @MusicBlueprint.route("/api/music/queue", methods=["GET"])
         def getQueue():
             return jsonify([song.to_dict() for song in self.getQueue()]), 200
@@ -331,8 +355,6 @@ class MusicAPIController:
                         time.sleep(1)
                         continue
 
-                    self.currentSong = next_song
-
                     if self.loadSong(next_song):
                         self.play()
                         self.waitForSongEnd()
@@ -375,11 +397,15 @@ class MusicAPIController:
                         return False
                 
                 song.isDownloaded = True
+                # song.name = str(song.name).strip("(Official Video)").strip("(Official Music Video)").strip("(Official Lyric Video)").strip("(Official Audio)").strip("(Radio Edit)").strip("(Audio)").strip("[Lyrics]")
+
+                self.currentSong = song
                     
                 self._context.session.commit()
                 
             media = self.instance.media_new(path)
             self.player.set_media(media)
+
             return True
         except Exception as e:
             self.logError("Load Song", e)
@@ -391,16 +417,6 @@ class MusicAPIController:
         
         def end_callback(event):
             self.songEndEvent.set()
-            try:
-                self._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
-            except Exception as e:
-                self._supervisor.logInternalServerError(ise=InternalServerError(
-                    exception_message=e,
-                    timestamp=datetime.now(),
-                    process="Check for DMX song triggers when song changes",
-                    service="Music API",
-                    severity=2
-                ))
 
         self.player.event_manager().event_detach(vlc.EventType.MediaPlayerEndReached)
         self.player.event_manager().event_attach(vlc.EventType.MediaPlayerEndReached, end_callback)
@@ -428,8 +444,8 @@ class MusicAPIController:
         self.setVolume(volume)
 
         return
-                
-    def play(self) -> bool:
+
+    def play(self, fadeAudio=True) -> bool:
         try:
             if not self.player.is_playing():
                 if not self.player.get_media():
@@ -440,7 +456,21 @@ class MusicAPIController:
                         self.startQueuePlayback()
 
                 self.player.play()
-                self.fadeVolumeTo(100)
+                if fadeAudio:
+                    self.fadeVolumeTo(100)
+
+            try:
+                self._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
+            except Exception as e:
+                if "Prod" in self._secrets["Environment"]:
+                    self._supervisor.logInternalServerError(ise=InternalServerError(
+                        exception_message=str(e),
+                        timestamp=datetime.now(),
+                        process="Check for DMX song triggers when song changes",
+                        service="Music API",
+                        severity=2
+                    ))
+
             return True
         except Exception as e:
             self.logError("Play", e)
@@ -592,7 +622,7 @@ class MusicAPIController:
     def currentSongDetails(self) -> SongDetailsDTO:
         try:
             if not self.currentSong:
-                return SongDetailsDTO("No song playing", "", "", 0, 0, False, self.getVolume())
+                return SongDetailsDTO(0, "No song playing", "", "", 0, 0, False, self.getVolume(), None, 0)
                 
             duration = 0
             timeLeft = 0
@@ -650,8 +680,8 @@ class MusicAPIController:
                     self._context.session.flush()
                     self._context.session.expunge(songInDB)
                     self._context.session.commit()
-                    
-                    self.currentSong = songInDB
+
+                    # self.currentSong = songInDB
 
                     with self.queueLock:
                         for index, queuedSong in enumerate(self.queue):
@@ -660,18 +690,21 @@ class MusicAPIController:
                                 break
 
             return SongDetailsDTO(
+                songId=currentSongId,
                 name=songName,
                 album=album,
                 artist=artist,
                 duration=duration,
                 timeleft=timeLeft,
                 isPlaying=self.player.is_playing() == 1,
-                currentVolume=self.getVolume()
+                currentVolume=self.getVolume(),
+                bpm=self.getSongBPM(currentSongId),
+                playlist=self.currentPlaylist
             )
             
         except Exception as e:
             self.logError("Get Current Song Details", e)
-            return SongDetailsDTO("Error getting song details", "", "", 0, 0, False, self.getVolume())
+            return SongDetailsDTO(0, "Error getting song details", "", "", 0, 0, False, None, self.getVolume())
         
     def getSongs(self) -> list[Song]:
         try:
@@ -851,3 +884,106 @@ class MusicAPIController:
             ))
             
             return False
+
+    def getSongBPM(self, songId: int) -> float:
+        with self._app.app_context():
+            if songId == self.currentSong.id and self.currentSong.bpm is not None:
+                return self.currentSong.bpm
+
+            foundSong: Song = self._context.session.query(Song).filter(Song.id == songId).first()
+            if not foundSong:
+                return 0
+
+            if foundSong.bpm not in [None, ""]:
+                return foundSong.bpm
+
+            return 0
+
+    def lookForSongsWith0BPM(self):
+        if self.IsGettingBPM:
+            return
+
+        with self._app.app_context():
+            SongToAnalyse: Song = self._context.session.query(Song).filter(Song.bpm == None, Song.isDownloaded == True).first()
+
+            if SongToAnalyse == None:
+                return
+
+            def bpm_callback(bpm, name):
+                if bpm > 0:
+                    SongToUpdate: Song = self._context.session.query(Song).filter(Song.id == SongToAnalyse.id).first()
+
+                    SongToUpdate.bpm = bpm
+                    self._context.session.commit()
+                else:
+                    f.message(f"Failed to calculate BPM for {name}", "error")
+
+            thread = threading.Thread(target=self.__getSongBPM, args=(SongToAnalyse.id, bpm_callback))
+            thread.name = f"BPM Calculation Running - {SongToAnalyse.id}"
+            thread.daemon = True
+            thread.start()
+
+        return
+
+    def __getSongBPM(self, songId: int, callback=None) -> float:
+        self.IsGettingBPM = True
+        try:
+            with self._app.app_context():
+                FoundSong = self._context.session.query(Song).filter(Song.id == songId).first()
+                if FoundSong is None:
+                    return 0
+
+                f.message(f"Calculating BPM for: {FoundSong.name}")
+
+                def convertToWav(input_path: str) -> str:
+                    output_path = input_path.replace(".m4a", ".mp3")
+                    if not os.path.exists(output_path):
+                        audio = AudioSegment.from_file(input_path)
+                        audio.export(output_path, format="wav")
+                    return output_path
+
+                def getBpm(filePath):
+                    try:
+                        filePath = convertToWav(filePath)
+                        y, sr = librosa.load(filePath, duration=5, offset=30)
+                        tempo, _ = librosa.beat.beat_track(y=y, sr=sr)
+
+                        return float(tempo)
+                    except Exception as e:
+                        f.message(f"Error analyzing BPM for {filePath}: {e}", type="error")
+                        return 0
+
+                start = time.time()
+
+                songPath = f"{self._dir}\\data\\music\\{FoundSong.name}.mp3"
+
+                if not os.path.exists(songPath):
+                    f.message(f"Path doesnt exist for {songPath}"), "warning"
+                    with self._app.app_context():
+                        SongToUpdate: Song = self._context.session.query(Song).filter(Song.id == FoundSong.id).first()
+
+                        SongToUpdate.isDownloaded = False
+                        self._context.session.commit()
+
+                    return 0
+
+                bpm = getBpm(songPath.replace('\\', "/"))
+
+                count = 0
+                for filename in os.listdir(f"{self._dir}\\data\\music"):
+                    if filename.lower().endswith(".wav"):
+                        fullPath = os.path.join(f"{self._dir}\\data\\music", filename)
+                        try:
+                            os.remove(fullPath)
+                            count += 1
+                        except Exception as e:
+                            f.message(f"Couldn't delete {fullPath}: {e}", "error")
+
+                f.message(f"Took {time.time() - start:.3f} seconds to calculate bpm of {bpm}")
+
+                if callback:
+                    callback(bpm, FoundSong.name)
+
+                return bpm
+        finally:
+            self.IsGettingBPM = False

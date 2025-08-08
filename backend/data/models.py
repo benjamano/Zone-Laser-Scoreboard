@@ -319,7 +319,6 @@ class PlayList(db.Model):
         return {
             "id": self.id,
             "name": self.name,
-            "songs": [ps.song.to_dict() for ps in self.songs if ps.isActive]
         }
 
 class Song(db.Model):
@@ -331,6 +330,7 @@ class Song(db.Model):
     isDownloaded = db.Column(db.Boolean, nullable=True)
     artist = db.Column(db.String(255), nullable=True)
     album = db.Column(db.String(255), nullable=True)
+    bpm = db.Column(db.Float, nullable=True)
 
     songs = db.relationship("PlaylistSong", back_populates="song", cascade="all, delete-orphan")
 
@@ -343,6 +343,7 @@ class Song(db.Model):
             "duration": self.duration,
             "artist": self.artist,
             "album": self.album,
+            "bpm": self.bpm
         }
 
 class PlaylistSong(db.Model):
@@ -355,7 +356,8 @@ class PlaylistSong(db.Model):
     song = db.relationship("Song", back_populates="songs")
     
 class SongDetailsDTO():
-    def __init__(self, name, album, artist, duration, timeleft, isPlaying, currentVolume):
+    def __init__(self, songId, name, album, artist, duration, timeleft, isPlaying, currentVolume, playlist, bpm=0):
+        self.songId = songId
         self.name = name
         self.album = album
         self.artist = artist
@@ -363,16 +365,21 @@ class SongDetailsDTO():
         self.timeleft = timeleft
         self.isPlaying = isPlaying
         self.currentVolume = currentVolume
+        self.bpm = bpm
+        self.playlist = playlist
 
     def to_dict(self):
         return {
+            "songId": self.songId,
             "name": self.name,
             "album": self.album,
             "artist": self.artist,
             "duration": self.duration,
             "timeleft": self.timeleft,
             "isPlaying": self.isPlaying,
-            "currentVolume": self.currentVolume
+            "currentVolume": self.currentVolume,
+            "bpm": self.bpm,
+            "playlist": self.playlist.to_dict(),
         }
         
 class SystemControls(db.Model):
