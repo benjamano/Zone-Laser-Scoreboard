@@ -1510,6 +1510,10 @@ class WebApp:
         def setVolume(msg):
             self._mAPI.setVolume(msg.get("volume", 0))
 
+        @self.socketio.on("seekSong")
+        def seekSong(msg):
+            self._mAPI.seek(msg["location"])
+
         @self.app.route('/sendMessage', methods=['POST'])
         def sendMessage():
             try:

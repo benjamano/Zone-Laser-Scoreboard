@@ -445,6 +445,25 @@ class MusicAPIController:
 
         return
 
+    def seek(self, location: int) -> bool:
+        try:
+            if not self.player.get_media():
+                self.logError("Seek", "No media loaded to seek.")
+                return False
+
+            total_ms = self.player.get_length()
+            if total_ms <= 0:
+                self.logError("Seek", "Media duration is unknown or zero.")
+                return False
+
+            percentage = max(0, min(location, 100))
+
+            self.player.set_time(int((percentage / 100) * total_ms))
+            return True
+        except Exception as e:
+            self.logError("Seek", e)
+            return False
+
     def play(self, fadeAudio=True) -> bool:
         try:
             if not self.player.is_playing():

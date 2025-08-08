@@ -82,7 +82,7 @@
 					<div class="mt-2">
 						<div class="d-flex align-items-center gap-2">
 							<small class="text-muted timeLeft">0:00</small>
-							<div class="progress flex-grow-1" style="height: 5px;">
+							<div role="button" class="progress flex-grow-1" style="height: 5px;">
 								<div class="progress-bar bg-light musicProgressBar" id="progressBar" style="width: 0%"></div>
 							</div>
 							<small class="text-muted totalSongTime">0:00</small>
@@ -247,6 +247,16 @@
 				data: JSON.stringify({ songId: songId })
 			});
 		}
+
+		$("#progressBar").parent().on("click", function(e) {
+			let barWidth = $(this).width();
+			let clickX = e.offsetX;
+
+			let percentage = (clickX / barWidth) * 100;
+
+			socket.emit("seekSong", { location: percentage });
+		});
+
 	</script>
 
 {% endblock %}
