@@ -14,8 +14,6 @@ from flask_sqlalchemy import SQLAlchemy
 # librosa.load
 from pydub import AudioSegment
 
-from backend.data.models import Song
-
 # import joblib
 # from joblib.externals.loky.backend import context
 # get_context = context.get_context
