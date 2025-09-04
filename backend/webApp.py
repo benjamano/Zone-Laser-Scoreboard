@@ -93,7 +93,7 @@ class WebApp:
 
     # -----------------| Starting Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
-    def startFlask(self):
+    def startFlask(self, ready_event: threading.Event):
         f.message(f.colourText("Attempting to start Flask Server", "green"))
 
         try:
@@ -102,22 +102,30 @@ class WebApp:
                     f.message(f"Port 8080 is already in use on {self._localIp}", type="error")
                     raise RuntimeError("Port in use. Exiting application.")
 
-                log = logging.getLogger('werkzeug')
-                log.disabled = True
-                cli = sys.modules['flask.cli']
-                cli.show_server_banner = lambda *x: None
+            log = logging.getLogger('werkzeug')
+            log.disabled = True
+            cli = sys.modules['flask.cli']
+            cli.show_server_banner = lambda *x: None
 
-                self.socketio.run(self.app, host=self._localIp, port=8080, debug=self.devMode, use_reloader=False,
-                    allow_unsafe_werkzeug=True)
+            ready_event.set()
 
-                if self.devMode == True:
-                    self.app.debug = True
+            self.socketio.run(
+                self.app,
+                host=self._localIp,
+                port=8080,
+                debug=self.devMode,
+                use_reloader=False,
+                allow_unsafe_werkzeug=True
+            )
 
         except Exception as e:
-            f.message(f"Fatal! {e}")
+            f.message(f"Fatal! {e}", type="error")
             raise
 
-        f.message(f"Web App hosted on IP" + f.colourText(f"http://{self._localIp}:8080", "blue"), type="success")
+        f.message(
+            f"Web App hosted on IP " + f.colourText(f"http://{self._localIp}:8080", "blue"),
+            type="success"
+        )
 
     def _getLocalIp(self) -> str:
         try:
@@ -152,25 +160,29 @@ class WebApp:
         f.message(f.colourText("Finished Running Database Migrations", "green"), type="info")
 
         self._getLocalIp()
+        
         self.setupRoutes()
+        
+        flaskIsReady = threading.Event()
+        self.flaskThread = threading.Thread(target=self.startFlask, args=(flaskIsReady,), daemon=True)
+        self.flaskThread.start()
 
+        flaskIsReady.wait()
+        f.message(f"{f.colourText("Flask Web Server has Started!", "green")}", type="success")
+
+        self.connectToOBS()
+        self.setUpDMX()
+        self.startSniffing()
+        
         self._supervisor = Supervisor()
 
         while self._supervisor == None:
             time.sleep(1)
 
+        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
         self._iAPI = InitialisationAPIController(self._context.db)
-
-        self.flaskThread = threading.Thread(target=self.startFlask, daemon=True).start()
-        self.mediaStatusCheckerThread = threading.Thread(target=self.mediaStatusChecker, daemon=True).start()
-        self.obsThread = threading.Thread(target=self.connectToOBS, daemon=True).start()
-        self.dmxThread = threading.Thread(target=self.setUpDMX, daemon=True).start()
-        self.sniffingThread = threading.Thread(target=self.startSniffing, daemon=True).start()
-
-        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
-
         self._eAPI = EmailsAPIController.EmailsAPIController(
             secrets["GmailAppPassword"] if secrets["GmailAppPassword"] is not None else "",
             secrets["GmailSenderEmail"] if secrets["GmailSenderEmail"] is not None else "",
@@ -178,6 +190,12 @@ class WebApp:
 
         self._supervisor.setDependencies(obs=self._obs, dmx=self._dmx, db=self._context, webApp=self,
             socket=self.socketio, mApi=self._mAPI)
+        
+        mediaCheckerIsReady = threading.Event()
+        threading.Thread(target=self.mediaStatusChecker, args=(mediaCheckerIsReady,), daemon=True).start()
+        
+        mediaCheckerIsReady.wait()
+        f.message(f"{f.colourText('Music Status Checker has started!', 'green')}", type="success")
 
         f.sendEmail(f"Web App started at {str(datetime.now())}", "APP STARTED")
         f.message(f"Serving Web App at IP: http://{str(self._localIp)}:8080", type="warning")
@@ -1837,8 +1855,10 @@ class WebApp:
         self.socketio.emit('songArtist', {"message": songDetails.artist})
         self.socketio.emit('playlist', {"playlist": songDetails.playlist.to_dict() if songDetails.playlist else ""})
 
-    def mediaStatusChecker(self):
+    def mediaStatusChecker(self, ready_event: threading.Event):
         f.message(f.colourText("Starting Media status checker", "blue"))
+        
+        ready_event.set()
 
         while True:
             if self._mAPI is None:
