@@ -52,19 +52,19 @@
                                 <ul class="list-group list-group-flush fs-7 p-0" id="patchAFixtureList" style="max-height: 15vh; overflow-y: scroll;">
                                     <li class="list-group-item p-2 px-3">
                                         <div class="row">
-                                            <span class="col" data-fixture-type="Dimmer" data-channels="1">Dimmer</span>
+                                            <span class="col" data-fixture-type-id="1" data-fixture-type="Dimmer" data-channels="1">Dimmer</span>
                                             <span role="button" class="col-auto border-start add-fixture-btn"><i class="fas fa-plus-circle text-success"></i></span>
                                         </div>
                                     </li>
                                     <li class="list-group-item p-2 px-3">
                                         <div class="row">
-                                            <span class="col" data-fixture-type="Colorspot 250 AT, Mode 3" data-channels="16">Colorspot 250 AT, M3</span>
+                                            <span class="col" data-fixture-type-id="3" data-fixture-type="Colorspot 250 AT, Mode 3" data-channels="16">Colorspot 250 AT, M3</span>
                                             <span role="button" class="col-auto border-start add-fixture-btn"><i class="fas fa-plus-circle text-success"></i></span>
                                         </div>
                                     </li>
                                     <li class="list-group-item p-2 px-3">
                                         <div class="row">
-                                            <span class="col" data-fixture-type="Colorwash 250 AT, Mode 3" data-channels="12">Colorwash 250 AT, M3</span>
+                                            <span class="col"  data-fixture-type-id="4" data-fixture-type="Colorwash 250 AT, Mode 3" data-channels="12">Colorwash 250 AT, M3</span>
                                             <span role="button" class="col-auto border-start add-fixture-btn"><i class="fas fa-plus-circle text-success"></i></span>
                                         </div>
                                     </li>
@@ -439,9 +439,10 @@
             e.preventDefault();
             const fixtureSpan = $(this).siblings('.col');
             const fixtureType = fixtureSpan.data('fixture-type');
+            const fixtureTypeId = fixtureSpan.data('fixture-type-id');
             const channelCount = parseInt(fixtureSpan.data('channels'));
-            
-            addFixture(fixtureType, channelCount);
+
+            addFixture(fixtureTypeId, channelCount, fixtureTypeId);
         });
 
         $(document).on('mousedown', '.patched-fixture', function(e) {
@@ -470,7 +471,7 @@
         });
     }
 
-    function addFixture(fixtureType, channelCount) {
+    function addFixture(fixtureType, channelCount, fixtureTypeId) {
         const firstAvailable = findFirstAvailableChannel(channelCount);
         if (firstAvailable === -1) {
             alert('No available channels for this fixture size');
@@ -478,15 +479,12 @@
         }
 
         const newFixture = {
-            id: Date.now(),
             name: fixtureType,
             channels: `${firstAvailable}->${firstAvailable + channelCount - 1} (${channelCount} channels)`,
             startChannel: firstAvailable,
-            channelCount: channelCount
+            channelCount: channelCount,
+            fixtureTypeId: fixtureTypeId
         };
-
-        patchedFixtures.push(newFixture);
-        updatePatchedFixturesDisplay();
 
         savePatchedFixture(newFixture);
     }
@@ -634,7 +632,15 @@
     function savePatchedFixture(fixture) {
         console.log('Saving new fixture:', fixture);
 
-        // TODO
+        $.ajax({
+            url: "/api/dmx/patchFixture",
+            type: "POST",
+            data: fixture,
+            success: function (response) {
+                fetchFixtures();
+                getPatchedFixtures();
+            },
+        });
     }
 
     function updatePatchedFixture(fixture) {
@@ -644,8 +650,15 @@
     }
 
     function removePatchedFixture(fixtureId){
-        patchedFixtures = patchedFixtures.filter(fixture => fixture.id !== fixtureId);
-        updatePatchedFixturesDisplay();
+        $.ajax({
+            url: "/api/dmx/unPatchFixture",
+            type: "POST",
+            data: { fixtureId: fixtureId },
+            success: function (response) {
+                fetchFixtures();
+                getPatchedFixtures();
+            },
+        });
     }
 
     function showPatchPanel(){

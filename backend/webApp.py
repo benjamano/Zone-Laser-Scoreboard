@@ -1120,7 +1120,7 @@ class WebApp:
                 if not fixtureId or not newName:
                     return jsonify({"error": "Invalid input"}), 400
 
-                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureId).first()
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(id=fixtureId).first()
 
                 if not patchedFixture:
                     return jsonify({"error": "Patched fixture not found"}), 404
@@ -1140,7 +1140,40 @@ class WebApp:
 
                 self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to update fixture name: {e}"}), 500
+            
+        @self.app.route("/api/dmx/unPatchFixture", methods=["POST"])
+        def dmx_unPatchFixture():
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
 
+            try:
+                fixtureId = request.form.get("fixtureId")
+
+                if not fixtureId:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(id=fixtureId).first()
+
+                if not patchedFixture:
+                    return jsonify({"error": "Patched fixture not found"}), 404
+                
+                self._dmx.unPatchFixture(patchedFixture.id)
+                
+                self._context.db.session.delete(patchedFixture)
+                self._context.db.session.commit()
+
+                return jsonify({"message": "Fixture unpatched successfully"})
+            except Exception as e:
+                ise: InternalServerError = InternalServerError()
+
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to unpatch fixture: {e}")
+                ise.process = "API: Unpatch DMX Fixture"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to unpatch fixture: {e}"}), 500
+            
         @self.app.route("/api/dmx/createScene", methods=["POST"])
         def createDMXScene():
             if self._dmx == None or self._dmx.isConnected() == False:
@@ -1468,6 +1501,56 @@ class WebApp:
                 ise.service = "api"
                 ise.exception_message = f"Failed to get scenes with keyboard triggers: {e}"
                 ise.process = "API: Get Scenes With Keyboard Triggers"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": ise.exception_message}), 500
+            
+        @self.app.route("/api/dmx/patchFixture", methods=["POST"])
+        def dmx_patchFixture():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                fixtureId = request.form.get("id")
+                name = request.form.get("name")
+                fixtureTypeId = request.form.get("fixtureTypeId")
+                startChannel = request.form.get("startChannel")
+                channelCount = request.form.get("channelCount")
+                
+                dmxControllerId = 0
+                dmxControllerId = self._dmx.registerFixtureUsingTypeId(name, fixtureTypeId, startChannel)
+
+                with self.app.app_context():
+                    fixture: PatchedFixture = self._context.db.session.query(PatchedFixture).filter_by(id=fixtureId).first()
+                    if not fixture:
+                        fixture = PatchedFixture(
+                            fixtureName=name,
+                            dmxStartAddress=int(startChannel),
+                            dmxEndAddress=int(startChannel) + int(channelCount) - 1,
+                            fixtureId=fixtureTypeId,
+                            dmxControllerFixtureId=dmxControllerId
+                        )
+
+                        self._context.db.session.add(fixture)
+                        self._context.db.session.commit()
+                        return jsonify({"success": "Fixture created successfully"}), 201
+
+                    fixture.fixtureName = name
+                    fixture.fixtureId = fixtureTypeId
+                    fixture.dmxStartAddress = startChannel
+                    fixture.dmxEndAddress = startChannel + int(channelCount) - 1
+                    fixture.dmxControllerFixtureId = dmxControllerId
+
+                    self._context.db.session.commit()
+
+                return jsonify({"success": "Fixture patched successfully"}), 200
+
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to patch fixture: {e}"
+                ise.process = "API: Patch Fixture"
                 ise.severity = "3"
 
                 self._supervisor.logInternalServerError(ise)

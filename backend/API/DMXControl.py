@@ -78,7 +78,29 @@ class dmx:
         self.fixtureGroups[groupName].append(fixture)
         
         return self.fixtureGroups[groupName]
-        
+    
+    def unPatchFixture(self, fixtureId):
+        try:
+            with self.app.app_context():
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(id=fixtureId).first()
+                if patchedFixture:
+                    fixtureIdToUnpatch = patchedFixture.dmxControllerFixtureId
+                    
+                    if fixtureIdToUnpatch != 0:
+                        fixture = self.getFixtureById(fixtureIdToUnpatch)
+                        
+                        if fixture != None:
+                            self._dmx.del_fixture(fixtureIdToUnpatch)
+                    return True
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error unpatching fixture: {e}")
+            ise.process = "DMX: Unpatch Fixture"
+            ise.severity = "1"
+            self._supervisor.logInternalServerError(ise)
+        return False
+
     def registerDimmerFixture(self, displayName):
         try:
             fixture = None
@@ -164,7 +186,7 @@ class dmx:
                         self._context.db.session.commit()
                 
                 try:
-                    for channel in self.fixtureProfiles[fixtureType.lower()]:
+                    for channel in self.fixtureProfiles[fixtureTypeId]:
                         fixture._register_channel(channel)
                 except Exception as e:
                     pass
@@ -184,6 +206,49 @@ class dmx:
             self._supervisor.logInternalServerError(ise)
             
             return
+        
+    def registerFixtureUsingTypeId(self, displayName, fixtureTypeId, startChannel):
+        try:
+            fixture = None
+            try:
+                fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=displayName))
+                setattr(self, displayName, fixture)
+            except Exception as e:
+                pass
+            
+            with self.app.app_context():
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureTypeId, fixtureName=displayName, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
+
+                if patchedFixture == None:
+                    self._context.db.session.add(PatchedFixture(
+                        fixtureName = displayName,
+                        fixtureId = fixtureTypeId,
+                        dmxControllerFixtureId = fixture.id if fixture != None else 0,
+                        dmxStartAddress = startChannel,
+                        dmxEndAddress= len(self.getFixtureTypeChannels(fixtureTypeId)) + startChannel - 1,
+                    ))
+
+                    self._context.db.session.commit()
+            
+            try:
+                for channel in self.fixtureProfiles[fixtureTypeId.lower()]:
+                    fixture._register_channel(channel)
+            except Exception as e:
+                pass
+
+            return patchedFixture.id if patchedFixture != None else 0
+
+        except Exception as e:
+            ise : InternalServerError = InternalServerError()
+                
+            ise.service = "dmx"
+            ise.exception_message = str(f"Error registering fixture using type id '{fixtureTypeId}': {e}")
+            ise.process = "DMX: Register Fixture Using Type"
+            ise.severity = "1"
+            
+            self._supervisor.logInternalServerError(ise)
+            
+            return 0
         
     def registerChannel(self, fixtureName, channelName):
         try:
