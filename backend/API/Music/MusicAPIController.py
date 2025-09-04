@@ -9,6 +9,7 @@ import vlc
 from API.Supervisor import Supervisor
 from API.format import Format
 from data.models import *
+from API.Music.MusicDownloader import YouTubeMusicDownloader
 from flask import Blueprint, jsonify, request, Flask
 from flask_sqlalchemy import SQLAlchemy
 # librosa.load
@@ -32,6 +33,8 @@ class MusicAPIController:
         self._dmx = dmx
         self._app : Flask = app
         self._dir = dir
+
+        self.MusicDownloader = YouTubeMusicDownloader()
         
         self.instance : vlc.Instance = vlc.Instance()
         self.player : vlc.MediaPlayer = self.instance.media_player_new()
@@ -45,7 +48,8 @@ class MusicAPIController:
         self.playerThread = None
         self.songEndEvent = threading.Event()
         self.fullPlaylist = [] # Full playlist for queue playback
-        self.IsGettingBPM = False
+        self.isGettingBPM = False
+        self.isDownloadingASong = False
         
         self.setVolume(self._secrets["DefaultVolume"] if "DefaultVolume" in self._secrets else 50)
         
@@ -750,6 +754,7 @@ class MusicAPIController:
                 name= data["name"] if data["name"] is not None else "New Song",
                 youtubeLink = data["songUrl"] if "songUrl" in data else None,
             )
+
             self._context.session.add(newSong)
             self._context.session.commit()
             
@@ -916,8 +921,42 @@ class MusicAPIController:
 
             return 0
 
+    def lookForSongsToDownload(self):
+        try:
+            if self.isDownloadingASong:
+                return
+
+            with self._app.app_context():
+                SongToDownload: Song = self._context.session.query(Song).filter(Song.isDownloaded == False).first()
+
+                if SongToDownload == None:
+                    SongToDownload = self._context.session.query(Song).filter(Song.isDownloaded == None).first()
+
+                if SongToDownload == None:
+                    return
+
+                self.isDownloadingASong = True
+
+                self.MusicDownloader.search_and_download(SongToDownload.name, SongToDownload.album, SongToDownload.artist)
+
+                SongDownloaded: Song = self._context.session.query(Song).filter(Song.id == SongToDownload.id).first()
+
+                SongDownloaded.isDownloaded = True
+
+                self._context.session.commit()
+
+                self.isDownloadingASong = False
+        except Exception as e:
+            self._supervisor.logInternalServerError(InternalServerError(
+                exception_message = str(e),
+                timestamp = datetime.now(),
+                process = "Music API - Look For Songs to Download",
+                service = "Music API",
+                severity = 2
+            ))
+
     def lookForSongsWith0BPM(self):
-        if self.IsGettingBPM:
+        if self.isGettingBPM:
             return
 
         with self._app.app_context():

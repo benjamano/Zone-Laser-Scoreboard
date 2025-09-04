@@ -28,7 +28,9 @@ class context:
         self.PatchedFixtures = PatchedFixture
         self.InternalServerError = InternalServerError
         self.SystemControls = SystemControls
-        
+        self.Permission = Permission
+        self.User = User
+
         self.fixtureProfiles = {
                 "dimmer": {
                     "Dimmer": list(range(0, 255)),
@@ -279,9 +281,7 @@ class context:
             }
 
         self.__createDatabase()
-        
-    #def setDependancies
-    
+
     def getFixtureProfiles(self):
         return self.fixtureProfiles
     
@@ -307,6 +307,14 @@ class context:
     def __seedDBData(self):
         try:
             with self.app.app_context():
+                if not self.Permission.query.first():
+                    self.Insert(self.Permission(name="Admin", isActive=True))
+                    self.SaveChanges()
+
+                if not self.User.query.first():
+                    self.Insert(self.User(username="Admin", password="1234", createDate=datetime.now(), isActive=True))
+                    self.SaveChanges()
+
                 if not self.Gun.query.first() and not self.Player.query.first():
                     f.message("Empty DB Found! Seeding Data....", type="warning")
                     
@@ -363,9 +371,8 @@ class context:
                     self.SaveChanges()
                     
                     f.message("Data seeded successfully", type="success")
-                else:
-                    f.message("Data already exists, skipping seeding.", type="info")
         except Exception as e:
+            f.message(f"Error occurred when seeding data: {str(e)}", type="error")
             pass
     
     def Insert(self, object):
@@ -382,7 +389,7 @@ class context:
         with self.app.app_context():
             try:
                 self.db.session.commit()
-                f.message("Changes committed.", type="success")
+                # f.message("Changes committed.", type="success")
             except Exception as e:
                 self.db.session.rollback()
                 

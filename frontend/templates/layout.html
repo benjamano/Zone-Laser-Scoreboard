@@ -108,9 +108,9 @@
 	<div class="row">
 		<div class="col-auto p-0" style="overflow-y: hidden; height: 100vh;">
 			{% if PageTitle != "Onboarding" %}
-				<div class="sidebar h-100" id="sidebar">
-					<ul style="margin-bottom: 42vh;">
-						<li class="nav-item">
+				<div class="sidebar" id="sidebar">
+					<ul>
+						<li class="nav-item sidebarItem showAlways">
 							<div class="content profileAndCollapseButtonContainer">
 								<div class="col-6 p-0 mb-1" role="button" onclick="handleLoginClick();">
 									{% if IsLoggedIn == True %}
@@ -125,15 +125,15 @@
 								</div>
 							</div>
 						</li>
-						<li class="nav-item" onclick="window.location.href='/'" role="button">
+						<li class="nav-item sidebarItem showAlways" onclick="window.location.href='/'" role="button">
 							<a class="nav-link content" href="/"><i class="fas fa-home sidebarIcon"></i><span
 								class="sidebarText">Home</span></a>
 						</li>
-						<li class="nav-item" onclick="window.location.href='/music'" role="button">
+						<li class="nav-item sidebarItem showAlways" onclick="window.location.href='/music'" role="button">
 							<a class="nav-link content" href="/music"><i class="fas fa-music sidebarIcon"></i><span
 								class="sidebarText">Music</span></a>
 						</li>
-						<li class="nav-item" onclick="window.location.href='/managerTools'" role="button">
+						<li class="nav-item sidebarItem" onclick="window.location.href='/managerTools'" role="button">
 							<a class="nav-link content" href="/managerTools"><i
 								class="fas fa-screwdriver-wrench sidebarIcon"></i><span class="sidebarText">Manager Tools</span></a>
 						</li>
@@ -149,40 +149,32 @@
 						<!-- <li class="nav-item" onclick="window.location.href='/patchPanel'" role="button">
                         <a class="nav-link"><i class="fas fa-regular fa-lightbulb me-2"></i><span class="sidebarText">Patch</span></a>
                     </li> -->
-						<li class="nav-item" onclick="window.location.href='/status'" role="button">
+						<li class="nav-item sidebarItem" onclick="window.location.href='/status'" role="button">
 							<a class="nav-link content" href="/status"><i
 								class="fas fa-chart-line sidebarIcon"></i><span class="sidebarText">System Status</span></a>
 						</li>
-						<li class="nav-item" onclick="window.location.href='/editScene'" role="button"
+						<li class="nav-item sidebarItem" onclick="window.location.href='/editScene'" role="button"
 							onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-regular', 'fa-solid')"
 							onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-solid', 'fa-regular')">
 							<a class="nav-link content" href="/editScene"><i
 								class="fa-regular fa-lightbulb sidebarIcon"></i><span class="sidebarText">Lighting Controls</span></a>
 						</li>
-						<li class="nav-item" onclick="window.location.href='/Feedback'" role="button"
+						<li class="nav-item sidebarItem showAlways" onclick="window.location.href='/Feedback'" role="button"
 							onmouseover="this.querySelector('.sidebarIcon').classList.replace('fa-comment', 'fa-comment-dots')"
 							onmouseout="this.querySelector('.sidebarIcon').classList.replace('fa-comment-dots', 'fa-comment')">
 							<a class="nav-link content" href="/feedback"><i
 								class="fas fa-comment sidebarIcon"></i><span
 								class="sidebarText">Leave Feedback</span></a>
 						</li>
-						<!-- <li class="nav-item" onclick="window.location.href='/experimental'" role="button">
-                        <a class="nav-link"><i class="fas fa-flask sidebarIcon"></i><span class="sidebarText">Experimental</span></a>
-                    </li> -->
-						<li class="nav-item" onclick="window.location.href='/settings'" role="button">
+						<li class="nav-item sidebarItem" onclick="window.location.href='/settings'" role="button">
 							<a class="nav-link content" href="/settings"><i
 								class="fas fa-gear settingsIcon sidebarIcon"></i><span
 								class="sidebarText">Settings</span></a>
 						</li>
-						{#								<li class="nav-item" onclick="window.location.href='/logout'" role="button" onmouseover="this.querySelector('.logoutIcon').classList.replace('fa-door-closed', 'fa-door-open')" onmouseout="this.querySelector('.logoutIcon').classList.replace('fa-door-open', 'fa-door-closed')">#}
-						{#									<a class="nav-link" href="/logout"><i class="fas fa-door-closed logoutIcon sidebarIcon"></i><span class="sidebarText">Logout</span></a>#}
-						{#								</li>#}
 					</ul>
 
 					<div class="sidebar-footer link-light" role="button">
-						Maintained by
-						<a onclick="openDevToolsPage()" role="button" class="text-decoration-none text-white">Ben
-							Mercer</a>
+						System Maintained by Ben Mercer
 						<br/>
 						<span onclick="showReleaseNotes()">
 							<small class="text-decoration-underline">V {{ VersionNo }}</small>
@@ -212,23 +204,25 @@
 
 		</div>
 
-		<div class="col p-0" style="max-height: 100vh; overflow-y: scroll;">
-			<div>
-				<script>
-					if (localStorage.getItem("sidebarCollapsed") === "true") {
-						$("#main").addClass("collapsed");
-					} else {
-						$("#main").removeClass("collapsed");
-					}
-				</script>
-
-				{% if "Dev" in Environment %}
-					<div class="top-banner environmentBanner bg-danger text-white text-center py-2">
-						<h5>ENVIRONMENT: {{ Environment }}</h5>
-					</div>
-				{% endif %}
-
-				<div class="{% if 'Home' not in PageTitle %}px-3{% endif %}">
+		<div class="col p-0" style="height: 100vh; overflow-y: hidden; display: flex; flex-direction: column;">
+			<script>
+				if (localStorage.getItem("sidebarCollapsed") === "true") {
+					$("#main").addClass("collapsed");
+				} else {
+					$("#main").removeClass("collapsed");
+				}
+			</script>
+		
+			{% if "Dev" in Environment %}
+			<div class="flex-shrink-0">
+				<div class="top-banner environmentBanner bg-danger text-white text-center py-1">
+					<h6>ENVIRONMENT: {{ Environment }}</h6>
+				</div>
+			</div>
+			{% endif %}
+		
+			<div class="flex-grow-1" style="min-height: 0; overflow-y: auto;">
+				<div class="{% if 'Home' not in PageTitle %}px-0{% endif %} h-100 d-flex flex-column">
 					{% block content %}{% endblock %}
 				</div>
 			</div>
@@ -252,6 +246,7 @@
 		}, 900000);
 
 		getCurrentSong();
+		getMyPermissions();
 	});
 
 	function checkForValidPopUps() {
@@ -439,7 +434,7 @@
 							const formattedMessage = iteratedObject.commit.message.replace(/\n/g, "<br>");
 							const isCurrent = currentCommit && iteratedObject.sha.slice(0, 7).includes(currentCommit);
 							const style = isCurrent ? "text-success" : "";
-							$("#ReleaseNotesTxtBox").append("<div>" + "<p><strong>Release: <span class='" + style + "'>" + iteratedObject.sha.slice(0, 7) + "</span></p>" + "<p><strong>Author:</strong> " + iteratedObject.commit.author.name + "</p>" + "<p><strong>Date:</strong> " + new Date(iteratedObject.commit.author.date).toLocaleString() + "</p>" + "<p><strong>Message:</strong> " + formattedMessage + "</p>" + "<hr>" + "</div>");
+							$("#ReleaseNotesTxtBox").append("<div>" + "<p><strong>Release: <span class='" + style + "'>" + iteratedObject.sha.slice(0, 7) + "</strong><span></p>" + "<p><strong>Author:</strong> " + iteratedObject.commit.author.name + "</p>" + "<p><strong>Date:</strong> " + new Date(iteratedObject.commit.author.date).toLocaleString() + "</p>" + "<p><strong>Message: </strong>" + formattedMessage + "</p>" + "<hr>" + "</div>");
 						});
 
 						$("#releaseNotesModal").modal("show");
@@ -475,7 +470,11 @@
 			success: function() {
 				profileStatusIcon.toggleClass("fa-regular fas");
 
+				createNotification("Logged in Successfully!", 5000, "success");
+
 				$("#loginModal").modal("hide");
+
+				getMyPermissions();
 			},
 			complete: function() {
 				button.attr("disabled", false);
@@ -497,6 +496,8 @@
 			success: function() {
 				profileStatusIcon.toggleClass("fa-spin").toggleClass("fa-spinner fa-circle-user");
 				profileStatusIcon.toggleClass("fa-regular fas");
+
+				getMyPermissions();
 			}
 		});
 	}
@@ -508,5 +509,25 @@
 			logout();
 		}
 	}
+
+	async function getMyPermissions() {
+		$(".nav-item.sidebarItem:not(.showAlways)").hide();
+
+		$.ajax({
+			url: `/api/accounts/getMyPermissions`,
+			type: "GET",
+			contentType: "application/json",
+			success: function(response) {
+				if (response.some(p => p.permissionId === 1)) {
+					$(".nav-item.sidebarItem").show();
+				}
+
+				$(document).trigger('permissionsChange', response);
+
+				return response
+			}
+		});
+	}
+
 </script>
 </html>

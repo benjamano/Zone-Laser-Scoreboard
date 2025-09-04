@@ -37,7 +37,7 @@ class Supervisor:
         self._mApi = None
         self.devMode = False
         self._services = ["db", "obs", "dmx", "api"] # Should add MUSIC as an option here
-        self.expectedProcesses = ["Spotify.exe", "obs64"]
+        self.expectedProcesses = ["obs64"]
         self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
         f.message(f.colourText(f"Supervisor Started! Starting Background Processes...", "green"), type="info")
@@ -146,9 +146,7 @@ class Supervisor:
                             if not processFound:
                                 try:
                                     f.message(f"Process {processName} not found, starting it..", type="warning")
-                                    if processName.lower() == "spotify":
-                                        os.startfile(f"{self._dir}\\appShortcuts\\Spotify.lnk")
-                                    elif processName.lower() == "obs64":
+                                    if processName.lower() == "obs64":
                                         self.__resetOBSConnection()
                                 except Exception as e:
                                     f.message(f"Error starting process {processName}: {e}", type="error")
@@ -221,6 +219,8 @@ class Supervisor:
                 self._mApi.lookForSongsWith0BPM()
             except Exception as e:
                 f.message(f"Error occurred while looking for songs to get a BPM for: {e}", type="error")
+
+            self._mApi.lookForSongsToDownload()
 
             # try:
             #     p = Popen("/update.bat", cwd=self._dir)

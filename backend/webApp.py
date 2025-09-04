@@ -60,7 +60,7 @@ class WebApp:
 
         # LOAD SYSTEM VARIABLES
         self.SysName = "TBS"
-        self.VersionNumber = "1.3"
+        self.VersionNumber = "1.5"
         # END LOAD
 
         # INIT ALL OTHER VARIABLES
@@ -654,6 +654,22 @@ class WebApp:
 
             return jsonify({}), 200
 
+        @self.app.route("/api/accounts/getMyPermissions", methods=["GET"])
+        def accounts_getMyPermissions():
+            currentToken: str = session.get("System_AccountAuthToken")
+
+            FoundUserAuthToken: UserAuthToken = self._context.db.session.query(UserAuthToken).filter_by(
+                token=currentToken).first()
+
+            if FoundUserAuthToken is None:
+                return jsonify({}), 200
+
+            UserId: int = FoundUserAuthToken.userId
+
+            Permissions = self._context.db.session.query(UserPermission).filter_by(userId=UserId).all()
+
+            return jsonify([up.to_dict() for up in Permissions]), 200
+
         def managerTools_VerifyAuthCookie(cookie: str) -> bool:
             try:
                 if cookie is None or cookie == "":
@@ -1066,6 +1082,39 @@ class WebApp:
 
                 self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to end scene: {e}"}), 500
+
+        @self.app.route("/api/dmx/updatePatchedFixtureName", methods=["POST"])
+        def updatePatchedFixtureName():
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                fixtureId = request.form.get("fixtureId")
+                newName = request.form.get("name")
+
+                if not fixtureId or not newName:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureId).first()
+
+                if not patchedFixture:
+                    return jsonify({"error": "Patched fixture not found"}), 404
+
+                patchedFixture.fixtureName = newName
+                
+                self._context.db.session.commit()
+
+                return jsonify({"newName": newName})
+            except Exception as e:
+                ise: InternalServerError = InternalServerError()
+
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to update fixture name: {e}")
+                ise.process = "API: Update DMX Fixture Name"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to update fixture name: {e}"}), 500
 
         @self.app.route("/api/dmx/createScene", methods=["POST"])
         def createDMXScene():
@@ -1789,9 +1838,12 @@ class WebApp:
         self.socketio.emit('playlist', {"playlist": songDetails.playlist.to_dict() if songDetails.playlist else ""})
 
     def mediaStatusChecker(self):
-        f.message(f.colourText("Attempting to start Media status checker", "blue"))
+        f.message(f.colourText("Starting Media status checker", "blue"))
 
         while True:
+            if self._mAPI is None:
+                time.sleep(10)
+
             time.sleep(0.1)
 
             try:

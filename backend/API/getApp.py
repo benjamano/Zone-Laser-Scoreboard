@@ -19,7 +19,9 @@ from alembic import command
 import os
 
 def runMigrations():
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'migrations'))
-    alembic_cfg = Config(os.path.join(base_dir, 'alembic.ini'))
+    return
 
-    command.upgrade(alembic_cfg, 'head')
+    # base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'migrations'))
+    # alembic_cfg = Config(os.path.join(base_dir, 'alembic.ini'))
+    #
+    # command.upgrade(alembic_cfg, 'head')

@@ -308,7 +308,9 @@ class dmx:
                 try:
                     thread, stopEvent = self.runningScenes[sceneId]
                 except KeyError:
+                    thread.join()
                     return
+                
                 stopEvent.set() 
                 format.message(f"Scene {sceneId} stopped", "info")
                 
@@ -379,6 +381,9 @@ class dmx:
         
     def turnOffAllChannels(self):
         try:
+            if (self._dmx == None or self.isConnected() == False):
+                return
+            
             fixtures = self.getRegisteredFixtures()
             
             for fixture in fixtures.items():
@@ -408,7 +413,7 @@ class dmx:
             newSceneEvent = self._context.DMXSceneEvent(
                 name="New Event", 
                 duration=0, 
-                updateDate=datetime.datetime.now(), 
+                updateDate=datetime.now(), 
                 sceneID=sceneId)
             
             self._context.db.session.add(newSceneEvent)
@@ -455,7 +460,7 @@ class dmx:
         Fixtures = []
         try:
             with self.app.app_context():
-                registeredFixtures : list[PatchedFixture] = self._context.PatchedFixtures.query.all()
+                registeredFixtures : list[PatchedFixture] = self._context.PatchedFixtures.query.order_by(PatchedFixture.dmxStartAddress).all()
                 
                 for registeredFixture in registeredFixtures:            
                     fixture : Fixture = self._context.Fixture.query.filter_by(id = registeredFixture.fixtureId).first()
@@ -463,7 +468,7 @@ class dmx:
                     if (registeredFixture.dmxControllerFixtureId == 0):
                         fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
                         fixtureDict = fixtureDTO[0].to_dict()
-                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": (registeredFixture.dmxEndAddress - registeredFixture.dmxStartAddress)})
+                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": str(registeredFixture.dmxStartAddress) + "->" + str(registeredFixture.dmxEndAddress) + f" ({str(registeredFixture.dmxEndAddress - registeredFixture.dmxStartAddress)})"})
                     else:
                         DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)
                         

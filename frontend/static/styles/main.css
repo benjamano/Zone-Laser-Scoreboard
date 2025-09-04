@@ -19,8 +19,25 @@
     --TBSOutline: #29292d;
     --TBSTextPrimary: #cbcbcb;
     --TBSTextSecondary: #5e6473;
+    --TBSHoverOutline: 
 
     --beat-duration: 1000ms;
+}
+
+.min-h-100 {
+    min-height: 100%;
+}
+
+.bg-body{
+    background-color: var(--TBSBGDark) !important;
+}
+
+.bg-body-secondary{
+    background-color: var(--TBSBGDarkSecondary) !important;
+}
+
+.card-header.collapsed{
+    border-bottom: 0;
 }
 
 .text-muted {
@@ -40,9 +57,13 @@ textarea {
 }
 
 .card {
-    background-color: var(--medium-dark-gray);
+    background-color: transparent;
     color: #ffffff;
     margin-bottom: 1rem;
+}
+
+.card-header{
+    user-select: none;
 }
 
 .dmxScene {
@@ -56,8 +77,6 @@ textarea {
     border: 3px solid transparent;
     padding: 0.5rem;
     box-sizing: border-box;
-    width: 8.5rem;
-    height: 3.8rem;
 }
 
 .dmxAddScene {
@@ -79,7 +98,7 @@ textarea {
 .sceneSettingContainer {
     display: flex;
     height: 100%;
-    flex-direction: column;
+    flex-direction: row;
     justify-content: flex-end;
     align-items: center;
     margin-left: 0.5rem;
@@ -334,7 +353,8 @@ html {
 }
 
 .fixture {
-    padding-right: 1vw;
+    padding: 1rem;
+    padding-bottom: 0;
     text-align: center;
     border: none;
     display: flex;
@@ -355,6 +375,8 @@ html {
     justify-content: center;
     align-items: center;
     width: auto;
+    margin-right: 1rem;
+    margin-left: 1rem;
 }
 
 .fixtureChannel {
@@ -368,12 +390,12 @@ html {
 
 .slider {
     -webkit-appearance: none;
-    width: 15vh;
+    width: 24vh;
     height: 0.35vw;
-    background: #d3d3d3;
+    background: #555555;
     outline: none;
     -webkit-transform: rotate(-90deg);
-    margin-bottom: 3rem;
+    margin-bottom: 6rem;
 }
 
 .slider::-webkit-slider-thumb {
@@ -442,7 +464,7 @@ html {
 }
 
 .valueLabel {
-    margin-top: 1.5vh;
+    margin-top: 1.8vh;
     font-size: 1.7rem;
 }
 
@@ -643,6 +665,9 @@ main.collapsed {
     color: white;
     z-index: 999;
     transition: width 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    padding-bottom: 1rem;
 }
 
 .sidebar.collapsed .sidebar-footer {
@@ -1144,6 +1169,10 @@ label {
     cursor: not-allowed !important;
 }
 
+.cursor-edit{
+    cursor: text;
+}
+
 .cursor-text {
     cursor: text !important;
 }
@@ -1267,6 +1296,18 @@ label {
 
 .hover {
     transition: filter 0.2s ease;
+}
+
+.hover-fast:not(:hover) {
+    filter: brightness(0.8);
+}
+
+.hover-fast:hover {
+    filter: brightness(1.2);
+}
+
+.hover-fast{
+    transition: filter 0.05s ease;
 }
 
 .resourceUtilisationChart {
@@ -1450,4 +1491,48 @@ body {
 .musicControlsPage.musicQueueList, .musicControlsPage .list-group-item {
     /*background-color: transparent !important;*/
     border: none;
+}
+
+.dragging-source {
+    opacity: 0.5;
+}
+
+.dragging {
+    cursor: move !important;
+}
+
+#patchPanelFixturesContainer[data-drop-valid="true"] {
+    background-color: rgba(40, 167, 69, 0.1);
+}
+
+#patchPanelFixturesContainer[data-drop-valid="false"] {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+.patched-fixture {
+    user-select: none;
+    transition: opacity 0.2s;
+}
+
+.patched-fixture:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.list-group-hover .list-group-item:hover{
+    filter: brightness(1.2);
+}
+
+.list-group-item.active{
+    color: white;
+    background-color: var(--TBSHover);
+    border: none !important;
+}
+
+.card-header *{
+    opacity: 85%;
+}
+
+.highlight {
+    filter: brightness(1.2) !important;
 }

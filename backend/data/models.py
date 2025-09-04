@@ -432,3 +432,33 @@ class UserAuthToken(db.Model):
             "createDate": self.createDate,
             "isActive": self.isActive
         }
+
+class Permission(db.Model):
+    __tablename__ = 'Permissions'
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "isActive": self.isActive
+        }
+
+class UserPermission(db.Model):
+    __tablename__ = 'UserPermissions'
+    id = db.Column(db.Integer, primary_key=True)
+    userId = db.Column(db.Integer, db.ForeignKey('Users.id'), nullable=False)
+    permissionId = db.Column(db.Integer, db.ForeignKey('Permissions.id'), nullable=False)
+    createDate = db.Column(db.DateTime, nullable=False, default=datetime.now)
+    isActive = db.Column(db.Boolean, nullable=False, default=True)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "userId": self.userId,
+            "permissionId": self.permissionId,
+            "createDate": self.createDate.isoformat() if self.createDate else None,
+            "isActive": self.isActive
+        }
