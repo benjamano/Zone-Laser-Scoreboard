@@ -25,8 +25,6 @@ f = Format("Music")
 
 class MusicAPIController:
     def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app: Flask, dir, dmx):
-        self.registerMusicRoutes(app)
-        
         self._supervisor = supervisor
         self._context = context
         self._secrets = secrets

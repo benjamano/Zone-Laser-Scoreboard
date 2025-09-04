@@ -163,6 +163,14 @@ class WebApp:
         
         self.setupRoutes()
         
+        self._supervisor = Supervisor()
+
+        while self._supervisor == None:
+            time.sleep(1)
+        
+        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
+        self._mAPI.registerMusicRoutes(self.app)
+        
         flaskIsReady = threading.Event()
         self.flaskThread = threading.Thread(target=self.startFlask, args=(flaskIsReady,), daemon=True)
         self.flaskThread.start()
@@ -173,15 +181,12 @@ class WebApp:
         self.connectToOBS()
         self.setUpDMX()
         
+        f.message("Starting packet sniffer...")
         sniffingIsReady = threading.Event()
         threading.Thread(target=self.startSniffing, args=(sniffingIsReady,), daemon=True).start()
+        sniffingIsReady.wait()
+        f.message(f"{f.colourText('Packet sniffer has started!', 'green')}", type="success")
 
-        self._supervisor = Supervisor()
-
-        while self._supervisor == None:
-            time.sleep(1)
-
-        self._mAPI = MusicAPIController(self._supervisor, self._context.db, secrets, self.app, self._dir, self._dmx)
         self._fetcher = MediaBPMFetcher()
         self._fAPI = RequestAndFeedbackAPIController(self._context.db)
         self._iAPI = InitialisationAPIController(self._context.db)
@@ -1611,7 +1616,6 @@ class WebApp:
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
     def startSniffing(self, ready_event: threading.Event):
-        f.message("Starting packet sniffer...")
         try:
             ready_event.set()
             sniff(prn=self.packetCallback, store=False,
