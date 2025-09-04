@@ -1847,9 +1847,10 @@ class WebApp:
             time.sleep(0.1)
 
             try:
-                songDetails: SongDetailsDTO = self._mAPI.currentSongDetails()
+                if self._mAPI is not None:
+                    songDetails: SongDetailsDTO = self._mAPI.currentSongDetails()
 
-                self.sendSongDetails(songDetails)
+                    self.sendSongDetails(songDetails)
             except Exception as e:
                 f.message(f"Error fetching current song details: {e}", type="error")
 
