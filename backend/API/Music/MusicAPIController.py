@@ -479,7 +479,7 @@ class MusicAPIController:
                     self.fadeVolumeTo(100)
 
             try:
-                self._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
+                self._supervisor._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
             except Exception as e:
                 if "Prod" in self._secrets["Environment"]:
                     self._supervisor.logInternalServerError(ise=InternalServerError(
