@@ -172,8 +172,10 @@ class WebApp:
 
         self.connectToOBS()
         self.setUpDMX()
-        self.startSniffing()
         
+        sniffingIsReady = threading.Event()
+        threading.Thread(target=self.startSniffing, args=(sniffingIsReady,), daemon=True).start()
+
         self._supervisor = Supervisor()
 
         while self._supervisor == None:
@@ -1608,9 +1610,10 @@ class WebApp:
 
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
-    def startSniffing(self):
+    def startSniffing(self, ready_event: threading.Event):
         f.message("Starting packet sniffer...")
         try:
+            ready_event.set()
             sniff(prn=self.packetCallback, store=False,
                 iface=self.ETHERNET_INTERFACE if self.devMode != "true" else None)
         except Exception as e:
