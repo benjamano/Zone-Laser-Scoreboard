@@ -15,7 +15,7 @@ except Exception as e:
     input("Press enter to exit")
     
 print("Web App Status Checker Started, hiding console")
-ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
+# ctypes.windll.user32.ShowWindow(ctypes.windll.kernel32.GetConsoleWindow(), 0)
 
 tries = 0
     
