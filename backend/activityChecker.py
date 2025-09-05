@@ -45,7 +45,7 @@ while True:
         else:
             tries += 1
             if tries == 3:
-                subprocess.Popen(["python", fr"{dir}\runPython.bat"], creationflags=subprocess.CREATE_NEW_CONSOLE)
+                subprocess.Popen([fr"{dir}\runPython.bat"], creationflags=subprocess.CREATE_NEW_CONSOLE)
             elif tries > 12:
                 os.system("shutdown /r /t 1")
                 tries = 0
