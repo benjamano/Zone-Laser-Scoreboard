@@ -186,7 +186,7 @@ class dmx:
                         self._context.db.session.commit()
                 
                 try:
-                    for channel in self.fixtureProfiles[fixtureTypeId]:
+                    for channel in self.fixtureProfiles[fixtureType.lower()]:
                         fixture._register_channel(channel)
                 except Exception as e:
                     pass
