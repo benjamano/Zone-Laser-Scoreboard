@@ -518,11 +518,13 @@
 			type: "GET",
 			contentType: "application/json",
 			success: function(response) {
-				if (response.some(p => p.permissionId === 1)) {
-					$(".nav-item.sidebarItem").show();
+				if (response.length != 0 && response != null && response != {} && response != [] && response != undefined && response.length != undefined){
+					if (response.some(p => p.permissionId === 1)) {
+						$(".nav-item.sidebarItem").show();
+					}
 				}
 
-				$(document).trigger('permissionsChange', response);
+				$(document).trigger('permissionsChange', [response]);
 
 				return response
 			}

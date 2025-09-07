@@ -3,7 +3,10 @@
     <div class="col-10 d-flex flex-column">
         <div>
             {% if IsLoggedIn == True %}
-            <div class="border-bottom">
+                <div class="border-bottom" style="display: block;" id="dmxControls">
+            {% else %}
+                <div class="border-bottom" style="display: none;" id="dmxControls">
+            {% endif %}
                 <div class="border-bottom p-2 text-center">
                     <div id="patchPanel" style="display: none;">
                         <div class="d-flex justify-content-between align-items-center">
@@ -33,7 +36,6 @@
                     </div>
                 </div>
             </div>
-            {% endif %}
         </div>
 
         <div id="patchPanelContainer" class="h-50" style="display: none;">
@@ -339,8 +341,14 @@
         });
     }
 
-    $(document).on("permissionsChange", function(data){
+    $(document).on("permissionsChange", function(event, data){
         console.log(data);
+
+        $("#dmxControls").hide();
+
+        if (data.some(p => p.permissionId === 1)) {
+            $("#dmxControls").show();
+        }
     })
 
     function toggleEditMode(){
