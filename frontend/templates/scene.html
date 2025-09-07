@@ -274,6 +274,7 @@
                     return new bootstrap.Tooltip(tooltipTriggerEl);
                 });
         
+                checkDMXPermissions();
                 fetchDMXChannelValues();
             },
         });
@@ -341,15 +342,26 @@
         });
     }
 
+    var permissions = [];
+
     $(document).on("permissionsChange", function(event, data){
         console.log(data);
+        permissions = data;
 
-        $("#dmxControls").hide();
-
-        if (data.some(p => p.permissionId === 1)) {
-            $("#dmxControls").show();
-        }
+        checkDMXPermissions();
     })
+
+    function checkDMXPermissions(){
+        $("#dmxControls").hide();
+        $(".slider").prop("disabled", true);
+        $(".slider").addClass("cursor-no"); 
+
+        if (permissions.some(p => p.permissionId === 1)) {
+            $("#dmxControls").show();
+            $(".slider").prop("disabled", false);
+            $(".slider").removeClass("cursor-no");
+        }
+    }
 
     function toggleEditMode(){
         const button = $("#toggleLiveModeBtn");
