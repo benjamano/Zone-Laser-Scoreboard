@@ -186,7 +186,7 @@ class dmx:
                         self._context.db.session.commit()
                 
                 try:
-                    for channel in self.fixtureProfiles[fixtureType.lower()]:
+                    for channel in self.fixtureProfiles[fixtureTypeId]:
                         fixture._register_channel(channel)
                 except Exception as e:
                     pass
@@ -207,37 +207,43 @@ class dmx:
             
             return
         
-    def registerFixtureUsingTypeId(self, displayName, fixtureTypeId, startChannel):
+    def registerFixtureUsingTypeId(self, displayName, fixtureTypeId, startChannel) -> int:
         try:
-            fixture = None
-            try:
-                fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=displayName))
-                setattr(self, displayName, fixture)
-            except Exception as e:
-                pass
-            
             with self.app.app_context():
-                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureTypeId, fixtureName=displayName, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
+                fixture = None
+                patchedFixture: PatchedFixture= None
+                try:
+                    fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=displayName))
+                    setattr(self, displayName, fixture)
+                except Exception as e:
+                    pass
+                
+                with self.app.app_context():
+                    patchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureTypeId, fixtureName=displayName, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
 
-                if patchedFixture == None:
-                    self._context.db.session.add(PatchedFixture(
-                        fixtureName = displayName,
-                        fixtureId = fixtureTypeId,
-                        dmxControllerFixtureId = fixture.id if fixture != None else 0,
-                        dmxStartAddress = startChannel,
-                        dmxEndAddress= len(self.getFixtureTypeChannels(fixtureTypeId)) + startChannel - 1,
-                    ))
+                    if patchedFixture == None:
+                        self._context.db.session.add(PatchedFixture(
+                            fixtureName = displayName,
+                            fixtureId = fixtureTypeId,
+                            dmxControllerFixtureId = fixture.id if fixture != None else 0,
+                            dmxStartAddress = startChannel,
+                            dmxEndAddress= len(self.getFixtureTypeChannels(fixtureTypeId)) + startChannel - 1,
+                        ))
 
-                    self._context.db.session.commit()
-            
-            try:
-                for channel in self.fixtureProfiles[fixtureTypeId.lower()]:
-                    fixture._register_channel(channel)
-            except Exception as e:
-                pass
+                        self._context.db.session.commit()
+                    else:
+                        patchedFixture.dmxControllerFixtureId = fixture.id if fixture != None else 0
+                        patchedFixture.dmxStartAddress = startChannel
+                        patchedFixture.dmxEndAddress = len(self.getFixtureTypeChannels(fixtureTypeId)) + startChannel - 1
+                        self._context.db.session.commit()
+                
+                    try:
+                        for channel in self.fixtureProfiles[fixtureTypeId]:
+                            fixture._register_channel(channel)
+                    except Exception as e:
+                        pass
 
-            return patchedFixture.id if patchedFixture != None else 0
-
+                    return patchedFixture.id if patchedFixture != None else 0
         except Exception as e:
             ise : InternalServerError = InternalServerError()
                 

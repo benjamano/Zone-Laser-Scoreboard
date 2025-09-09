@@ -32,10 +32,10 @@ class context:
         self.User = User
 
         self.fixtureProfiles = {
-                "dimmer": {
+                1: {
                     "Dimmer": list(range(0, 255)),
                 },
-                "colorspot575xt": {
+                2: {
                     "Pan": list(range(0, 255)),
                     "Tilt": list(range(0, 255)),
                     "Pan_Fine": list(range(0, 255)),
@@ -125,7 +125,7 @@ class context:
                     },
                     "Dimmer": list(range(0, 255)),
                 },
-                "colorspot250at": {
+                3: {
                     "Pan": list(range(0, 255)),
                     "Pan_Fine": list(range(0, 255)),
                     "Tilt": list(range(0, 255)),
@@ -226,7 +226,7 @@ class context:
                     "Dimmer": list(range(0, 255)),
                     "Dimmer_Fine": list(range(0, 255)),
                 },
-                "colorwash250at": {
+                4: {
                     "Pan": list(range(0, 255)),
                     "Pan_Fine": list(range(0, 255)),
                     "Tilt": list(range(0, 255)),

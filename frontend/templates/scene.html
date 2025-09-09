@@ -646,7 +646,18 @@
     function onFixtureMoved(fixture, oldChannel, newChannel) {
         console.log(`Fixture "${fixture.name}" moved from channel ${oldChannel} to ${newChannel}`);
         
-        // TODO
+        $.ajax({
+            url: "/api/dmx/updatePatchedFixtureAddress",
+            type: "POST",
+            data: {
+                fixtureId: fixture.id,
+                startAddress: newChannel
+            },
+            success: function (response) {
+                fetchFixtures();
+                getPatchedFixtures();
+            },
+        });
     }
 
     function savePatchedFixture(fixture) {

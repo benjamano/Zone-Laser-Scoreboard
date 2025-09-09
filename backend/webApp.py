@@ -1141,6 +1141,43 @@ class WebApp:
                 self._supervisor.logInternalServerError(ise)
                 return jsonify({"error": f"Failed to update fixture name: {e}"}), 500
             
+        @self.app.post("/api/dmx/updatePatchedFixtureAddress")
+        def dmx_updatePatchedFixtureAddress():
+            if self._dmx == None or self._dmx.isConnected() == False:
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                fixtureId = request.form.get("fixtureId")
+                newAddress = request.form.get("startAddress", type=int)
+
+                if not fixtureId or not newAddress:
+                    return jsonify({"error": "Invalid input"}), 400
+
+                patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(id=fixtureId).first()
+
+                if not patchedFixture:
+                    return jsonify({"error": "Patched fixture not found"}), 404
+                
+                patchedFixture.dmxStartAddress = newAddress
+                patchedFixture.dmxEndAddress = len(self._dmx.getFixtureTypeChannels(patchedFixture.fixtureId)) + newAddress - 1
+
+                self._context.db.session.commit()
+                
+                self._dmx.unPatchFixture(patchedFixture.id)
+                self._dmx.registerFixtureUsingTypeId(patchedFixture.fixtureName, patchedFixture.fixtureId, patchedFixture.dmxStartAddress)
+
+                return jsonify({"newAddress": newAddress})
+            except Exception as e:
+                ise: InternalServerError = InternalServerError()
+
+                ise.service = "api"
+                ise.exception_message = str(f"Failed to update fixture address: {e}")
+                ise.process = "API: Update DMX Fixture Address"
+                ise.severity = "3"
+
+                self._supervisor.logInternalServerError(ise)
+                return jsonify({"error": f"Failed to update fixture address: {e}"}), 500
+            
         @self.app.route("/api/dmx/unPatchFixture", methods=["POST"])
         def dmx_unPatchFixture():
             if self._dmx == None or self._dmx.isConnected() == False:
