@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laser Tag Results</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Orbitron', 'Arial Black', sans-serif;
+            background: #000;
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            position: relative;
+        }
+
+        .game-screen {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background: 
+                radial-gradient(ellipse at center, rgba(0, 255, 255, 0.1) 0%, transparent 70%),
+                linear-gradient(45deg, transparent 49%, rgba(0, 255, 255, 0.03) 49%, rgba(0, 255, 255, 0.03) 51%, transparent 51%),
+                linear-gradient(-45deg, transparent 49%, rgba(255, 0, 255, 0.03) 49%, rgba(255, 0, 255, 0.03) 51%, transparent 51%);
+            background-size: 100% 100%, 50px 50px, 50px 50px;
+            animation: backgroundPulse 4s ease-in-out infinite;
+        }
+
+        @keyframes backgroundPulse {
+            0%, 100% { 
+                background-size: 100% 100%, 50px 50px, 50px 50px;
+                filter: hue-rotate(0deg);
+            }
+            50% { 
+                background-size: 120% 120%, 60px 60px, 60px 60px;
+                filter: hue-rotate(30deg);
+            }
+        }
+
+        .hud-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                linear-gradient(to right, rgba(0, 255, 255, 0.1) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0, 255, 255, 0.1) 1px, transparent 1px);
+            background-size: 100px 100px;
+            animation: hudPulse 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+
+        @keyframes hudPulse {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 0.6; }
+        }
+
+        .laser-beam {
+            position: absolute;
+            height: 3px;
+            border-radius: 2px;
+            box-shadow: 
+                0 0 10px currentColor,
+                0 0 20px currentColor,
+                0 0 30px currentColor;
+            animation: shootLaser 2s linear infinite;
+        }
+
+        .laser-red {
+            background: linear-gradient(90deg, transparent, #ff0040, #ff0040, transparent);
+            color: #ff0040;
+        }
+
+        .laser-blue {
+            background: linear-gradient(90deg, transparent, #00a0ff, #00a0ff, transparent);
+            color: #00a0ff;
+        }
+
+        .laser-green {
+            background: linear-gradient(90deg, transparent, #00ff40, #00ff40, transparent);
+            color: #00ff40;
+        }
+
+        .laser-purple {
+            background: linear-gradient(90deg, transparent, #a040ff, #a040ff, transparent);
+            color: #a040ff;
+        }
+
+        @keyframes shootLaser {
+            0% {
+                left: -200px;
+                width: 0;
+            }
+            20% {
+                width: 200px;
+            }
+            80% {
+                width: 200px;
+            }
+            100% {
+                left: 100vw;
+                width: 0;
+            }
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+
+        @keyframes particleFloat {
+            0% {
+                opacity: 1;
+                transform: scale(1) translate(0, 0);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0) translate(var(--dx), var(--dy));
+            }
+        }
+
+        .results-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+            z-index: 100;
+        }
+
+        .main-text {
+            font-size: clamp(2rem, 8vw, 8rem);
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-bottom: 20px;
+            opacity: 0;
+            transform: scale(0.5) rotateY(90deg);
+            animation: textBlastIn 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+            animation-delay: 1s;
+        }
+
+        .sub-text {
+            font-size: clamp(1rem, 3vw, 3rem);
+            font-weight: 700;
+            letter-spacing: 0.05em;
+            opacity: 0;
+            transform: translateY(50px);
+            animation: subTextSlide 1s ease-out forwards;
+            animation-delay: 2s;
+        }
+
+        @keyframes textBlastIn {
+            0% {
+                opacity: 0;
+                transform: scale(0.5) rotateY(90deg);
+                filter: blur(10px);
+            }
+            50% {
+                opacity: 1;
+                transform: scale(1.2) rotateY(0deg);
+                filter: blur(2px);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1) rotateY(0deg);
+                filter: blur(0);
+            }
+        }
+
+        @keyframes subTextSlide {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .glow-text {
+            text-shadow: 
+                0 0 5px currentColor,
+                0 0 5px currentColor,
+                0 0 5px currentColor,
+                0 0 5px currentColor,
+                0 0 5px currentColor;
+            animation: intenseGlow 2s ease-in-out infinite alternate;
+        }
+
+        @keyframes intenseGlow {
+            from {
+                text-shadow: 
+                    0 0 5px currentColor,
+                    0 0 10px currentColor,
+                    0 0 15px currentColor,
+                    0 0 20px currentColor,
+                    0 0 35px currentColor;
+            }
+            to {
+                text-shadow: 
+                    0 0 10px currentColor,
+                    0 0 20px currentColor,
+                    0 0 30px currentColor,
+                    0 0 40px currentColor,
+                    0 0 70px currentColor;
+            }
+        }
+
+        .color-red { color: #ff0040; }
+        .color-blue { color: #00a0ff; }
+        .color-green { color: #00ff40; }
+        .color-purple { color: #a040ff; }
+        .color-cyan { color: #00ffff; }
+        .color-yellow { color: #ffff00; }
+
+        .energy-blast {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 300px;
+            height: 300px;
+            transform: translate(-50%, -50%);
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.8) 0%, transparent 70%);
+            border-radius: 50%;
+            opacity: 0;
+            animation: energyBlast 1.5s ease-out;
+            animation-delay: 1s;
+            pointer-events: none;
+        }
+
+        @keyframes energyBlast {
+            0% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0);
+            }
+            30% {
+                opacity: 1;
+                transform: translate(-50%, -50%) scale(1.5);
+            }
+            100% {
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(3);
+            }
+        }
+
+        .corner-effects {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .corner-beam {
+            position: absolute;
+            width: 200px;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            box-shadow: 0 0 10px #00ffff;
+        }
+
+        .corner-beam.top-left {
+            top: 10%;
+            left: 5%;
+            animation: cornerSweep 3s ease-in-out infinite;
+        }
+
+        .corner-beam.bottom-right {
+            bottom: 10%;
+            right: 5%;
+            animation: cornerSweep 3s ease-in-out infinite reverse;
+            animation-delay: 1.5s;
+        }
+
+        @keyframes cornerSweep {
+            0%, 100% { 
+                opacity: 0.3;
+                transform: scaleX(0.5);
+            }
+            50% { 
+                opacity: 1;
+                transform: scaleX(1.5);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="game-screen">
+        <div class="hud-overlay"></div>
+        
+        <div class="corner-effects">
+            <div class="corner-beam top-left"></div>
+            <div class="corner-beam bottom-right"></div>
+        </div>
+
+        <div class="results-container">
+            <div class="energy-blast"></div>
+            <div class="main-text glow-text color-cyan" id="mainText"></div>
+            <div class="sub-text glow-text color-yellow" id="subText"></div>
+        </div>
+    </div>
+
+    <script>
+        class LaserTagResults {
+            constructor() {
+                this.colors = ['red', 'blue', 'green', 'purple'];
+                this.textColors = ['red', 'blue', 'green', 'purple', 'cyan', 'yellow'];
+                this.init();
+            }
+
+            init() {
+                this.createLaserBeams();
+                this.createParticleSystem();
+                this.startAnimationLoop();
+            }
+
+            createLaserBeams() {
+                setInterval(() => {
+                    this.shootLaser();
+                }, 800 + Math.random() * 1200);
+
+                // Initial burst of lasers
+                setTimeout(() => {
+                    for(let i = 0; i < 5; i++) {
+                        setTimeout(() => this.shootLaser(), i * 200);
+                    }
+                }, 500);
+            }
+
+            shootLaser() {
+                const laser = document.createElement('div');
+                const color = this.colors[Math.floor(Math.random() * this.colors.length)];
+                
+                laser.className = `laser-beam laser-${color}`;
+                laser.style.top = Math.random() * 80 + 10 + '%';
+                laser.style.transform = `rotate(${(Math.random() - 0.5) * 20}deg)`;
+                
+                document.querySelector('.game-screen').appendChild(laser);
+
+                // Create trailing particles
+                this.createLaserTrail(laser, color);
+
+                setTimeout(() => {
+                    if (laser.parentNode) {
+                        laser.parentNode.removeChild(laser);
+                    }
+                }, 2000);
+            }
+
+            createLaserTrail(laser, color) {
+                const trailInterval = setInterval(() => {
+                    if (!laser.parentNode) {
+                        clearInterval(trailInterval);
+                        return;
+                    }
+
+                    const rect = laser.getBoundingClientRect();
+                    const particle = document.createElement('div');
+                    particle.className = 'particle';
+                    
+                    const colors = {
+                        red: '#ff0040',
+                        blue: '#00a0ff',
+                        green: '#00ff40',
+                        purple: '#a040ff'
+                    };
+
+                    particle.style.background = colors[color];
+                    particle.style.boxShadow = `0 0 10px ${colors[color]}`;
+                    particle.style.left = rect.left + Math.random() * rect.width + 'px';
+                    particle.style.top = rect.top + rect.height / 2 + 'px';
+                    particle.style.setProperty('--dx', (Math.random() - 0.5) * 100 + 'px');
+                    particle.style.setProperty('--dy', (Math.random() - 0.5) * 100 + 'px');
+                    particle.style.animation = 'particleFloat 1s ease-out forwards';
+
+                    document.body.appendChild(particle);
+
+                    setTimeout(() => {
+                        if (particle.parentNode) {
+                            particle.parentNode.removeChild(particle);
+                        }
+                    }, 1000);
+                }, 50);
+
+                setTimeout(() => clearInterval(trailInterval), 2000);
+            }
+
+            createParticleSystem() {
+                setInterval(() => {
+                    for(let i = 0; i < 3; i++) {
+                        setTimeout(() => {
+                            this.createRandomParticle();
+                        }, i * 100);
+                    }
+                }, 2000);
+            }
+
+            createRandomParticle() {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                
+                const colors = ['#ff0040', '#00a0ff', '#00ff40', '#a040ff', '#00ffff', '#ffff00'];
+                const color = colors[Math.floor(Math.random() * colors.length)];
+                
+                particle.style.background = color;
+                particle.style.boxShadow = `0 0 15px ${color}`;
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particle.style.setProperty('--dx', (Math.random() - 0.5) * 200 + 'px');
+                particle.style.setProperty('--dy', (Math.random() - 0.5) * 200 + 'px');
+                particle.style.animation = 'particleFloat 2s ease-out forwards';
+
+                document.querySelector('.game-screen').appendChild(particle);
+
+                setTimeout(() => {
+                    if (particle.parentNode) {
+                        particle.parentNode.removeChild(particle);
+                    }
+                }, 2000);
+            }
+
+            startAnimationLoop() {
+                this.restartMainAnimation();
+                // // Restart main animation every 6 seconds
+                // setInterval(() => {
+                //     this.restartMainAnimation();
+                // }, 6000);
+            }
+
+            restartMainAnimation() {
+                const mainText = document.getElementById('mainText');
+                const subText = document.getElementById('subText');
+                
+                // Reset animations
+                mainText.style.animation = 'none';
+                subText.style.animation = 'none';
+                
+                setTimeout(() => {
+                    mainText.style.animation = 'textBlastIn 1.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards';
+                    subText.style.animation = 'subTextSlide 1s ease-out forwards';
+                    subText.style.animationDelay = '1s';
+                }, 100);
+
+                // Create energy blast
+                const blast = document.querySelector('.energy-blast');
+                blast.style.animation = 'none';
+                setTimeout(() => {
+                    blast.style.animation = 'energyBlast 1.5s ease-out';
+                }, 100);
+            }
+
+            // Public methods for changing text content
+            setMainText(text, colorClass = 'color-cyan') {
+                const mainText = document.getElementById('mainText');
+                mainText.textContent = text;
+                mainText.className = `main-text glow-text ${colorClass}`;
+            }
+
+            setSubText(text, colorClass = 'color-yellow') {
+                const subText = document.getElementById('subText');
+                subText.textContent = text;
+                subText.className = `sub-text glow-text ${colorClass}`;
+            }
+
+            // Preset configurations
+            showTeamWin(teamName, teamColor = 'red') {
+                this.setMainText(`${teamName.toUpperCase()} WINS!`, `color-${teamColor}`);
+                // this.setSubText('VICTORY ACHIEVED', 'color-yellow');
+            }
+
+            showPlayerScore(playerName, score) {
+                this.setMainText(`${playerName.toUpperCase()}`, 'color-cyan');
+                this.setSubText(`SCORED ${score} POINTS!`, 'color-green');
+            }
+
+            showGameOver() {
+                this.setMainText('GAME OVER', 'color-red');
+                this.setSubText('MISSION COMPLETE', 'color-blue');
+            }
+        }
+
+        // URL Parameter Handler
+        function getUrlParams() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                mainText: urlParams.get('mainText'),
+                subText: urlParams.get('subText'),
+                mainColor: urlParams.get('mainColor') || 'cyan',
+                subColor: urlParams.get('subColor') || 'yellow',
+                teamName: urlParams.get('teamName'),
+                teamColor: urlParams.get('teamColor') || 'red',
+                playerName: urlParams.get('playerName'),
+                score: urlParams.get('score'),
+                mode: urlParams.get('mode') // 'team', 'player', or 'custom'
+            };
+        }
+
+        // Initialize the results screen
+        const resultsScreen = new LaserTagResults();
+        const params = getUrlParams();
+
+        // Apply URL parameters if they exist
+        if (params.mode === 'team' && params.teamName) {
+            resultsScreen.showTeamWin(params.teamName, params.teamColor);
+        } else if (params.mode === 'player' && params.playerName && params.score) {
+            resultsScreen.showPlayerScore(params.playerName, params.score);
+        } else if (params.mainText) {
+            // Custom text mode
+            resultsScreen.setMainText(params.mainText, `color-${params.mainColor}`);
+            if (params.subText) {
+                resultsScreen.setSubText(params.subText, `color-${params.subColor}`);
+            }
+        } else {
+            
+
+            // Default demo mode - cycle through different results every 8 seconds
+            //const demoResults = [
+            //    () => resultsScreen.showTeamWin('Red Team', 'red'),
+                // () => resultsScreen.showTeamWin('Blue Team', 'blue'),
+                // () => resultsScreen.showPlayerScore('CHAOS', 7430),
+                // () => resultsScreen.showPlayerScore('VIPER', 6890),
+                // () => resultsScreen.setMainText('PERFECT GAME!', 'color-purple'),
+            // ];
+
+            // let currentDemo = 0;
+            // setInterval(() => {
+            //     demoResults[currentDemo]();
+            //     currentDemo = (currentDemo + 1) % demoResults.length;
+            // }, 8000);
+        }
+
+        // Example URLs you can use:
+        // /?mainText=This Is An Announcement
+        // /?mainText=MISSION COMPLETE&subText=All Targets Eliminated&mainColor=green&subColor=blue
+        // /?mode=team&teamName=Alpha Squad&teamColor=blue
+        // /?mode=player&playerName=SHADOWHAWK&score=9999
+    </script>
+</body>
+</html>

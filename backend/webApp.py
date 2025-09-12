@@ -462,6 +462,14 @@ class WebApp:
             g.PageTitle = "Leave Feedback"
 
             return render_template("Feedback/leaveFeedback.html")
+        
+        @self.app.route("/dynamicRendering/gameResults")
+        def dynamicRendering_gameResults():
+            self.DevToolsOTP = ""
+
+            g.PageTitle = "Game Results"
+
+            return render_template("DynamicRendering/gameResults.html")
 
         @self.app.route("/api/feedback/getFeatureRequests", methods=["GET"])
         def feedback_getFeatureRequests():
