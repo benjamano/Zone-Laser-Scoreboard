@@ -2,6 +2,7 @@ from dataclasses import dataclass, asdict
 from datetime import datetime
 
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy import ForeignKeyConstraint
 
 db = SQLAlchemy()
 
@@ -102,32 +103,40 @@ class DMXSceneEvent(db.Model):
 
 class DMXScene(db.Model):
     __tablename__ = 'dmxscene'
+
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(60), nullable=False)
     duration = db.Column(db.Integer, nullable=False)
-    updateDate = db.Column(db.DateTime, nullable=True)
-    createDate = db.Column(db.DateTime, nullable=False)
+    update_date = db.Column(db.DateTime, nullable=True)
+    create_date = db.Column(db.DateTime, nullable=True, default=datetime.now)
     repeat = db.Column(db.Boolean, nullable=False)
     flash = db.Column(db.Boolean, nullable=False)
     keyboard_keybind = db.Column(db.String(15), nullable=True)
-    song_keybind = db.Column(db.String(15), nullable=True)
+    song_id = db.Column(db.Integer, nullable=True)
     game_event_keybind = db.Column(db.String(15), nullable=True)
+
+    __table_args__ = (
+        ForeignKeyConstraint(
+            ["song_id"], ["Songs.id"], name="fk_dmxscene_song_id_songs_id"
+        ),
+    )
+
     events = db.relationship("DMXSceneEvent", back_populates="scene", lazy=True)
-    
+
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "duration": self.duration,
-            "updateDate": self.updateDate.isoformat() if self.updateDate else None,
-            "createDate": self.createDate.isoformat(),
+            "updateDate": self.update_date.isoformat() if self.update_date else None,
+            "createDate": self.create_date.isoformat(),
             "repeat": self.repeat,
             "flash": self.flash,
             "keyboard_keybind": self.keyboard_keybind,
-            "song_keybind": self.song_keybind,
+            "songId": self.song_id,
             "game_event_keybind": self.game_event_keybind,
         }
-
+        
 class DMXSceneEventChannel(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     eventID = db.Column(db.Integer, db.ForeignKey("dmxsceneevent.id"), nullable=False)

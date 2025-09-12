@@ -110,6 +110,24 @@
                     <span><i class="fas fa-cog me-2" id="sceneSettingsIcon"></i>Scene Settings</span>
                 </div> 
                 <div class="card-body h-100 collapse" id="sceneSettingsCollapse">
+                    <div class="col-12">
+                        <div class="form-group" id="keyboardTriggerContainer">
+                            <label for="keyboardTrigger">Keyboard Trigger</label>
+                            <input role="button" type="text" id="keyboardTrigger" class="form-control" placeholder="Click To Set" readonly>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-group" id="selectSongTriggerContainer">
+                            <label for="selectSongTrigger">Select Song Trigger</label>
+                            <input role="button" type="text" id="selectSongTrigger" onclick="setThisSongAsKeybind();" class="form-control" placeholder="Click To Set To Current Song" readonly>
+                            <span class="d-none" id="currentSongId"></span>
+                            <span class="d-none" id="currentSongName"></span>
+                        </div>
+                    </div>
+
+                    <hr>
+
                     <div class="col-12 d-flex justify-content-between user-select-none mb-1">
                         <label for="sceneFlashToggle"><i class="fas fa-bolt me-2 opacity-75"></i>Flash</label>
                         <input onchange="toggleSceneFlashMode();" type="checkbox" id="sceneFlashToggle" class="form-check-input" disabled>
@@ -145,6 +163,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <div id="dragGhost" style="display: none; position: fixed; pointer-events: none; z-index: 1000; background: rgba(0,123,255,0.8); color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px;"></div>
@@ -431,12 +450,12 @@
                                         <i class="fas fa-rotate-right" 
                                         id="${name}_repeatBtn" 
                                         style="display:${repeat ? "block" : "none"}"></i>
-                                        <p class="triggerIcon" 
+                                        <span class="triggerIcon" 
                                         id="${name}_keyboardTrigger" 
                                         style="display:${scene.keyboard_keybind ? "block" : "none"}; 
                                                 background-color:${scene.keyboard_keybind ? "revert-layer" : "transparent"};">
                                         ${scene.keyboard_keybind || ""}
-                                        </p>
+                                        </span>
                                     </div>
                                 </div>
                             </div>
@@ -887,6 +906,50 @@
                 stopScene(scene.id);
             }
         });
+
+        $("#keyboardTrigger")
+        .off("keydown")
+        .on("keydown", function (e) {
+            e.preventDefault();
+            var key = e.key;
+
+            if (key === "Escape") {
+                $(this).attr("placeholder", "Click to set keybind");
+
+                return;
+            } else if (key == "Home") {
+                $(this).attr("placeholder", "Invalid Key!");
+
+                return;
+            }
+
+            var sceneId = getActiveSceneId();
+
+            $("#" + sceneId + "_keyboardTrigger").text(
+                key.toUpperCase()
+            );
+
+            $(this).attr("placeholder", key.toUpperCase());
+
+            $("#" + sceneId + "_keyboardTrigger").css({
+                display: "block",
+                color: "white",
+                "background-color": "revert-layer",
+            });
+
+            $.ajax({
+                url: "/api/dmx/setSceneKeybind",
+                type: "POST",
+                data: {
+                    sceneId: sceneId,
+                    keybind: key.toUpperCase(),
+                },
+            });
+        });
+
+        $("#keyboardTrigger").on("click", function () {
+            $(this).attr("placeholder", "Press Any Key...").focus().select();
+        });
     }
 
     function formatDMXSceneDuration(duration) {
@@ -1004,8 +1067,8 @@
                 $("#addNewSceneEventBtn").show();
                 $("#selectedSceneControls").show();
                 $("#addNewSceneEventButton").show();
-                $("#currentPlayingKeybindForTriggerValue").text("");
-                $("#currentPlayingSongForTriggerValue").text("");
+                $("#keyboardTrigger").attr("placeholder", "");
+                $("#selectSongTrigger").attr("placeholder", "");
                 $('#sceneStepsCollapse').collapse('show');
                 $("#editSceneContainer").show();
                 $("#sceneEventContainer").empty();
@@ -1017,14 +1080,13 @@
                 $("#sceneLoopToggle").prop("disabled", false);
 
                 $("#sceneName").val(response.name);
-                $("#currentPlayingKeybindForTriggerValue").text(response.keyboard_keybind);
-                $("#currentPlayingSongForTriggerValue").text(response.song_keybind);
+                $("#keyboardTrigger").attr("placeholder", response.keyboard_keybind);
+                $("#selectSongTrigger").attr("placeholder", response.song_keybind);
                 $("#" + scene.id + "_SceneBtn").addClass("selected");
                 $("#" + scene.id + "_Visibleduration").text(formatDMXSceneDuration(scene.duration));
                 $("#" + scene.id + "_duration").text(scene.duration);
                 $("#sceneLoopToggle").prop("checked", scene.repeat);
                 $("#sceneFlashToggle").prop("checked", scene.flash);
-                $("#currentPlayingSongForTriggerValue").text(scene.songKeybind);
                 $("#triggerKeybindClick").text(scene.keyboardKeybind);
 
                 if (Array.isArray(scene.events)) {
@@ -1368,67 +1430,6 @@
         visibleDuration.text(formatDMXSceneDuration(duration.text()));
     }
 
-    function getKeyboardTriggers() {
-        $.ajax({
-            url: "/api/dmx/getScenesWithKeyboardTriggers",
-            type: "GET",
-            success: function (response) {
-                sceneKeyTriggers = response;
-
-                setupEventListeners();
-            },
-        });
-    }
-
-    function startKeybindRecording() {
-        $("#triggerKeybindClick").val("Press a key to set keybind");
-        $("#triggerKeybindClick")
-            .off("keydown")
-            .on("keydown", function (e) {
-                e.preventDefault();
-                var key = e.key;
-
-                if (key === "Escape") {
-                    $(this).val("Click to set keybind");
-
-                    return;
-                } else if (key == "Home") {
-                    $("#triggerKeybindClick").val("Invalid Key!");
-
-                    return;
-                }
-                $(this).val("Click to set keybind");
-
-                $("#currentPlayingKeybindForTriggerValue").text(
-                    key.toUpperCase()
-                );
-
-                $(this).off("keydown");
-
-                var sceneId = getActiveSceneId();
-
-                $.ajax({
-                    url: "/api/dmx/setSceneKeybind",
-                    type: "POST",
-                    data: {
-                        sceneId: sceneId,
-                        keybind: key.toUpperCase(),
-                    },
-                    success: function (response) {
-                        $("#" + sceneId + "_keyboardTrigger").text(
-                            key.toUpperCase()
-                        );
-
-                        $("#" + sceneId + "_keyboardTrigger").css({
-                            display: "block",
-                            color: "white",
-                            "background-color": "revert-layer",
-                        });
-                    },
-                });
-            });
-    }
-
     function toggleSceneFlashMode() {
         var activeSceneId = getActiveSceneId();
 
@@ -1497,6 +1498,45 @@
             },
         });
     }
+
+    function getKeyboardTriggers() {
+        $.ajax({
+            url: "/api/dmx/getScenesWithKeyboardTriggers",
+            type: "GET",
+            success: function (response) {
+                sceneKeyTriggers = response;
+
+                setupEventListeners();
+            },
+        });
+    }
+
+    function setThisSongAsKeybind() {
+        var sceneId = getActiveSceneId();
+        var songId = $("#currentSongId").text();
+        var songName = $("#currentSongName").text();
+
+        if (sceneId == null || sceneId == "" || songId == null || songId == "" || songId === 0) {
+            return;
+        }
+
+        $.ajax({
+            url: "/api/dmx/setSceneSongTrigger",
+            type: "POST",
+            data: {
+                sceneId: sceneId,
+                songId: songId,
+            },
+            success: function (response) {
+                $("#selectSongTrigger").attr("placeholder", songName);
+            },
+        });
+    }
+
+    socket.on("songName", function (msg) {
+        $("#currentSongId").text(msg.message.id);
+        $("#currentSongName").text(msg.message.name);
+    });
 </script>
 
 
@@ -1854,27 +1894,6 @@
             data: { sceneId: sceneId },
             error: function (xhr) {
                 console.error("Failed to stop scene:", xhr.responseText);
-            },
-        });
-    }
-
-    function setThisSongAsKeybind() {
-        var sceneId = getActiveSceneId();
-        var songName = $("#currentPlayingSongForTrigger").val();
-
-        if (sceneId == null || sceneId == "" || songName == null || songName == "") {
-            return;
-        }
-
-        $.ajax({
-            url: "/api/dmx/setSceneSongTrigger",
-            type: "POST",
-            data: {
-                sceneId: sceneId,
-                songName: songName,
-            },
-            success: function (response) {
-                $("#currentPlayingSongForTriggerValue").text(songName);
             },
         });
     }

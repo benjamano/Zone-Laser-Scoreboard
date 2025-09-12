@@ -479,7 +479,7 @@ class MusicAPIController:
                     self.fadeVolumeTo(100)
 
             try:
-                self._supervisor._dmx.checkForSongTriggers(self.currentSong.name if self.currentSong.name else "")
+                self._supervisor._dmx.checkForSongTriggers(self.currentSong.id if self.currentSong.id else 0)
             except Exception as e:
                 if "Prod" in self._secrets["Environment"]:
                     self._supervisor.logInternalServerError(ise=InternalServerError(
@@ -567,8 +567,8 @@ class MusicAPIController:
                 playlistSongs = self._context.session.query(PlaylistSong).filter(
                     PlaylistSong.playlistId == playlistId,
                     PlaylistSong.isActive == True
-                ).all()
-                
+                ).order_by(PlaylistSong.songId).all()
+
                 playListSongIds = [song.songId for song in playlistSongs]
                 songs = self._context.session.query(Song).filter(Song.id.in_(playListSongIds)).all()
                 
@@ -589,7 +589,7 @@ class MusicAPIController:
         
     def getPlaylistSongs(self, playListId: int) -> list[Song]:
         try:
-            playlistSongs = self._context.session.query(PlaylistSong).filter(PlaylistSong.playlistId == playListId).filter(PlaylistSong.isActive == True).all()
+            playlistSongs = self._context.session.query(PlaylistSong).filter(PlaylistSong.playlistId == playListId).filter(PlaylistSong.isActive == True).order_by(PlaylistSong.songId).all()
             if not playlistSongs:
                 return []
             

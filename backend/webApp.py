@@ -1454,24 +1454,23 @@ class WebApp:
                 return jsonify({"error": ise.exception_message}), 500
 
         @self.app.route("/api/dmx/setSceneSongTrigger", methods=["POST"])
-        def setSceneSongTrigger():
+        def dmx_setSceneSongTrigger():
             if self._dmx is None or self._dmx.isConnected() == False:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
-
                 sceneId = request.form.get("sceneId")
-                songName = request.form.get("songName")
+                songId = request.form.get("songId")
 
-                if not sceneId or not songName:
-                    return jsonify({"error": "sceneId and songName are required"}), 400
+                if not sceneId or not songId:
+                    return jsonify({"error": "sceneId and songId are required"}), 400
 
                 with self.app.app_context():
-                    scene: DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    scene: DMXScene = self._context.db.session.query(DMXScene).filter_by(id=sceneId).first()
                     if not scene:
                         return jsonify({"error": "Scene not found"}), 404
 
-                    scene.song_keybind = songName
+                    scene.songId = songId
 
                     self._context.db.session.commit()
 

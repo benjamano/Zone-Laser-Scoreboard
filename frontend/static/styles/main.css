@@ -100,7 +100,7 @@ textarea {
     height: 100%;
     flex-direction: row;
     justify-content: flex-end;
-    align-items: center;
+    align-items: baseline;
     margin-left: 0.5rem;
     font-size: 0.7rem;
     opacity: 0.6;
@@ -1336,10 +1336,11 @@ label {
 }
 
 .triggerIcon {
-    width: 1rem;
-    height: 1.4rem;
+    width: 0.8rem;
+    height: 1rem;
     display: flex;
     justify-content: center;
+    text-align: center;
     align-items: center;
     background: var(--TSBBGLight);
     margin-bottom: 0;

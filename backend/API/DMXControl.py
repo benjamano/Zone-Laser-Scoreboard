@@ -50,10 +50,10 @@ class dmx:
 
     # Setters
     
-    def checkForSongTriggers(self, songName):
+    def checkForSongTriggers(self, songId):
         try:
             with self.app.app_context():
-                scenes : list[DMXScene] = self._context.DMXScene.query.filter_by(song_keybind=songName).all()
+                scenes : list[DMXScene] = self._context.db.session.query(DMXScene).filter_by(song_id=songId).all()
                 if len(scenes) > 0:
                     for scene in scenes:
                         self.startScene(scene.id)
@@ -632,18 +632,18 @@ class dmx:
         )
     # Processing
     
-    def __mapToDMXSceneDTO(self, scene):
+    def __mapToDMXSceneDTO(self, scene : DMXScene):
         DMXScene = [
             self._context.DMXSceneDTO(
                 id=scene.id,
                 name=scene.name,
                 duration=scene.duration,
-                updateDate=scene.updateDate,
-                createDate=scene.createDate,
+                updateDate=scene.update_date,
+                createDate=scene.create_date,
                 flash=scene.flash,
                 repeat=scene.repeat,
                 keyboard_keybind=scene.keyboard_keybind,
-                song_keybind=scene.song_keybind,
+                song_keybind=scene.song_id,
                 game_event_keybind=scene.game_event_keybind,
                 events=[
                     self._context.DMXSceneEventDTO(
@@ -742,17 +742,19 @@ class dmx:
                 return None
 
             if return_dto:
+                songName = self._context.db.session.query(Song).filter_by(id=scene.song_id).first().name if scene.song_id else scene.song_id
+                
                 return self._context.DMXSceneDTO(
                     id=scene.id,
                     name=scene.name,
                     duration=scene.duration,
-                    updateDate=scene.updateDate,
-                    createDate=scene.createDate,
+                    updateDate=scene.update_date,
+                    createDate=scene.create_date,
                     repeat=scene.repeat,
                     flash=scene.flash,
-                    keyboard_keybind = scene.keyboard_keybind,
-                    song_keybind = scene.song_keybind,
-                    game_event_keybind = scene.game_event_keybind,
+                    keyboard_keybind=scene.keyboard_keybind,
+                    song_keybind= songName,
+                    game_event_keybind=scene.game_event_keybind,
                     events=[
                         self._context.DMXSceneEventDTO(
                             id=event.id,
