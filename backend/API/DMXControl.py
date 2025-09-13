@@ -55,7 +55,7 @@ class dmx:
             with self.app.app_context():
                 fixturesToPatch: list[PatchedFixture] = self._context.db.session.query(PatchedFixture).all()
                 for fixture in fixturesToPatch:
-                    self.registerCustomFixture(fixture.fixtureName, fixture.fixtureId, self.getFixtureTypeChannels(fixture.fixtureId), fixture.dmxStartAddress)
+                    self.registerFixtureUsingType(fixture.fixtureName, fixture.fixtureId, fixture.dmxStartAddress)
                     # if fixture.fixtureId == 1:
                     #     self.registerDimmerFixture(fixture.fixtureName)
                     # else:
@@ -168,7 +168,7 @@ class dmx:
             ise.severity = "1"
             
             self._supervisor.logInternalServerError(ise)
-            return None
+            raise
         
     def registerFixtureUsingType(self, displayName, fixtureType, startChannel):
         try:
