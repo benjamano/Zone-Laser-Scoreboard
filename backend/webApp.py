@@ -241,7 +241,7 @@ class WebApp:
             try:
                 f.message("Registering ColorWash 250 AT", type="info")
 
-                patchedFixture = self._dmx.registerFixtureUsingType("ColorWash 250 AT", "colorwash250at", 43)
+                patchedFixture = self._dmx.registerFixtureUsingType("ColorWash 250 AT", 4, 43)
                 self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
 
             except Exception as e:
@@ -250,7 +250,7 @@ class WebApp:
             try:
                 f.message("Registering ColorSpot 250 AT ", type="info")
 
-                patchedFixture = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", "colorspot250at", 10)
+                patchedFixture = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", 3, 10)
                 self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
 
             except Exception as e:

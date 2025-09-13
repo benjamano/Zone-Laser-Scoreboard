@@ -161,7 +161,7 @@ class dmx:
         
     def registerFixtureUsingType(self, displayName, fixtureType, startChannel):
         try:
-            if str(fixtureType).lower() in self.fixtureProfiles:
+            if int(fixtureType) in self.fixtureProfiles:
                 fixture = None
                 try:
                     fixture = self._dmx.add_fixture(Custom(channels=0, start_channel=startChannel, name=displayName))
@@ -169,24 +169,22 @@ class dmx:
                 except Exception as e:
                     pass
                 
-                fixtureTypeId = self.getFixtureTypeIdFromName(fixtureType)
-                
                 with self.app.app_context():
-                    patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureTypeId, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
+                    patchedFixture : PatchedFixture = self._context.PatchedFixtures.query.filter_by(fixtureId=fixtureType, dmxControllerFixtureId=(fixture.id if fixture != None else 0)).first()
                     
                     if patchedFixture == None:
                         self._context.db.session.add(PatchedFixture(
                             fixtureName = displayName,
-                            fixtureId = fixtureTypeId,
+                            fixtureId = fixtureType,
                             dmxControllerFixtureId = fixture.id if fixture != None else 0,
                             dmxStartAddress = startChannel,
-                            dmxEndAddress= len(self.getFixtureTypeChannels(fixtureTypeId)) + startChannel - 1,
+                            dmxEndAddress= len(self.getFixtureTypeChannels(fixtureType)) + startChannel - 1,
                         ))
 
                         self._context.db.session.commit()
                 
                 try:
-                    for channel in self.fixtureProfiles[fixtureTypeId]:
+                    for channel in self.fixtureProfiles[fixtureType]:
                         fixture._register_channel(channel)
                 except Exception as e:
                     pass
@@ -536,17 +534,31 @@ class dmx:
                 for registeredFixture in registeredFixtures:            
                     fixture : Fixture = self._context.Fixture.query.filter_by(id = registeredFixture.fixtureId).first()
                     
-                    if (registeredFixture.dmxControllerFixtureId == 0):
+                    if fixture == None:
+                        continue
+                    
+                    if registeredFixture.dmxControllerFixtureId == 0:
                         fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
                         fixtureDict = fixtureDTO[0].to_dict()
                         Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": str(registeredFixture.dmxStartAddress) + "->" + str(registeredFixture.dmxEndAddress) + f" ({str(registeredFixture.dmxEndAddress - registeredFixture.dmxStartAddress)})"})
                     else:
                         DMXFixture = self.getFixtureById(registeredFixture.dmxControllerFixtureId)
                         
-                        fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
-                        fixtureDict = fixtureDTO[0].to_dict()
-                        Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": DMXFixture.channel_usage})
+                        if DMXFixture == None:
+                            continue
                         
+                        try:
+                            fixtureDTO = self.__mapToFixtureDTO(fixture, registeredFixture.id)
+                            fixtureDict = fixtureDTO[0].to_dict()
+                            Fixtures.append({"fixture": fixtureDict, "name": registeredFixture.fixtureName, "id": registeredFixture.id, "channels": DMXFixture.channel_usage})
+                        except Exception as e:
+                            ise : InternalServerError = InternalServerError()
+                            ise.service = "dmx"
+                            ise.exception_message = str(f"Error mapping fixture DTO for fixture Id: '{registeredFixture.id}': {e}")
+                            ise.process = "DMX: Map Fixture DTO"
+                            ise.severity = "2"
+                            self._supervisor.logInternalServerError(ise)
+
         except Exception as e:
             ise : InternalServerError = InternalServerError()
                 
@@ -556,7 +568,7 @@ class dmx:
             ise.severity = "1"
             
             self._supervisor.logInternalServerError(ise)
-            return []
+            return Fixtures
         
         return Fixtures
     def getRegisteredFixtures(self):
@@ -667,7 +679,7 @@ class dmx:
         
         return DMXScene
     
-    def __mapToFixtureDTO(self, fixture, fixtureId = None):
+    def __mapToFixtureDTO(self, fixture : Fixture, fixtureId = None):
         return [
             self._context.FixtureDTO(
                 id=fixture.id,
@@ -690,7 +702,7 @@ class dmx:
                                 "name": value.name,
                                 "icon": value.icon
                             }
-                            for value in self._context.FixtureChannelValue.query.filter_by(channelID=channel.id).all()
+                            for value in self._context.FixtureChannelValue.query.filter_by(channelID=(channel.id if channel != None else 0)).all()
                         ]
                     )
                     for channel in self._context.FixtureChannel.query.filter_by(fixtureID=fixture.id).all()
