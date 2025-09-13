@@ -139,7 +139,7 @@ class WebApp:
             f.message(f"Error finding local IP: {e}", type="error")
             raise
 
-    def start(self):
+    async def start(self):
         f.message("Running on Commit: " + f.colourText(f"{self.getCurrentCommit()}", "green"), type="info")
         f.message(f"Starting Web App at {str(datetime.now())}", type="warning")
 
@@ -179,8 +179,8 @@ class WebApp:
         f.message(f"{f.colourText("Flask Web Server has Started!", "green")}", type="success")
 
         self.connectToOBS()
-        self.setUpDMX()
-        
+        await self.setUpDMX()
+
         f.message("Starting packet sniffer...")
         sniffingIsReady = threading.Event()
         threading.Thread(target=self.startSniffing, args=(sniffingIsReady,), daemon=True).start()
@@ -217,44 +217,46 @@ class WebApp:
         return ""
 
 
-    def setUpDMX(self):
+    async def setUpDMX(self):
         # Requires USB to DMX with driver version of "libusb-win32"
 
         f.message(f.colourText("Setting up DMX Connection", "green"), type="info")
 
         try:
             self._dmx = dmx(self._context, self._supervisor, self.socketio, self.app, self.devMode)
+            if self._dmx != None:
+                await self._dmx.registerPatchedFixtures()
 
         except Exception as e:
             f.message(f"Error starting DMX Connection: {e}", type="error")
             return
 
         if self._dmx.isConnected():
-            try:
-                f.message("Registering Red Bulk-Head Lights", type="info")
+            # try:
+            #     f.message("Registering Red Bulk-Head Lights", type="info")
 
-                self.BulkHeadLights = self._dmx.registerDimmerFixture("Bulk-Head Lights")
+            #     self.BulkHeadLights = self._dmx.registerDimmerFixture("Bulk-Head Lights")
 
-            except Exception as e:
-                f.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
+            # except Exception as e:
+            #     f.message(f"Error registering Red Bulk-Head Lights: {e}", type="error")
 
-            try:
-                f.message("Registering ColorWash 250 AT", type="info")
+            # try:
+            #     f.message("Registering ColorWash 250 AT", type="info")
 
-                patchedFixture = self._dmx.registerFixtureUsingType("ColorWash 250 AT", 4, 43)
-                self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
+            #     patchedFixture = self._dmx.registerFixtureUsingType("ColorWash 250 AT", 4, 43)
+            #     self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
 
-            except Exception as e:
-                f.message(f"Error registering ColorWash 250 AT: {e}", type="error")
+            # except Exception as e:
+            #     f.message(f"Error registering ColorWash 250 AT: {e}", type="error")
 
-            try:
-                f.message("Registering ColorSpot 250 AT ", type="info")
+            # try:
+            #     f.message("Registering ColorSpot 250 AT ", type="info")
 
-                patchedFixture = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", 3, 10)
-                self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
+            #     patchedFixture = self._dmx.registerFixtureUsingType("ColorSpot 250 AT", 3, 10)
+            #     self._dmx.addFixtureToGroup(patchedFixture, "Moving Heads")
 
-            except Exception as e:
-                f.message(f"Error registering ColorSpot 250 AT: {e}", type="error")
+            # except Exception as e:
+            #     f.message(f"Error registering ColorSpot 250 AT: {e}", type="error")
 
             self.DMXConnected = True
 

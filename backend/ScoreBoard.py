@@ -1,5 +1,7 @@
 # import eventlet
 # eventlet.monkey_patch() 
+import asyncio
+
 try:
     from checkDependencies import VerifyDependencies
     import os
@@ -79,7 +81,10 @@ try:
     
     format.message("User Interface starting")
     
-    threading.Thread(target=ui.startUI).run()
+    def run_ui():
+        asyncio.run(ui.startUI())
+
+    threading.Thread(target=run_ui).start()
 
 except Exception as e:
     print(f"An error occurred: {e}\nLine No: {e.__traceback__.tb_lineno}\nStack Trace: {e.__traceback__.tb_frame}")

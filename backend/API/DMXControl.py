@@ -50,9 +50,20 @@ class dmx:
 
     # Setters
     
+    async def registerPatchedFixtures(self):
+        if self.isConnected() == True:
+            with self.app.app_context():
+                fixturesToPatch: list[PatchedFixture] = self._context.db.session.query(PatchedFixture).all()
+                for fixture in fixturesToPatch:
+                    self.registerCustomFixture(fixture.fixtureName, fixture.fixtureId, self.getFixtureTypeChannels(fixture.fixtureId), fixture.dmxStartAddress)
+                    # if fixture.fixtureId == 1:
+                    #     self.registerDimmerFixture(fixture.fixtureName)
+                    # else:
+                        
+
     def checkForSongTriggers(self, songId):
         try:
-            with self.app.app_context():
+            with self.app.app_context():    
                 scenes : list[DMXScene] = self._context.db.session.query(DMXScene).filter_by(song_id=songId).all()
                 if len(scenes) > 0:
                     for scene in scenes:

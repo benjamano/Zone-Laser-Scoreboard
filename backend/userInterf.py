@@ -7,10 +7,10 @@ import os
 import requests
 import socket
 
-def startUI():
+async def startUI():
     global root, progress, startApp, revealUI
 
-    def startApp():
+    async def startApp():
         # progress.start()
         # progress["value"] = 0
         # for i in range(5, 0, -1):
@@ -18,7 +18,7 @@ def startUI():
         #     root.update()
         #     time.sleep(1)
         root.destroy()
-        startWebApp()
+        await startWebApp()
 
     def revealUI():
         root.deiconify()
@@ -36,9 +36,9 @@ def startUI():
     progress.pack(pady=20)
 
     root.geometry("300x200")
-    
-    startApp()
-    
+
+    await startApp()
+
     root.mainloop()
 
 def showInterface():
@@ -145,11 +145,11 @@ def showInterface():
     interfaceWindow.geometry("600x700")
     interfaceWindow.mainloop()
 
-def startWebApp():
+async def startWebApp():
     from webApp import WebApp
     
     global webApp
     
     webApp = WebApp()
     
-    webApp.start()
+    await webApp.start()
