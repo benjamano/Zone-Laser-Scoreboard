@@ -2167,7 +2167,7 @@ class WebApp:
         # f.message(f"Team Score Packet: {packetData}")
 
         teamId = str(packetData[1])
-        teamScore = str(packetData[2])
+        teamScore = int(packetData[2])
 
         if teamId == "0":
             teamId = "Red"
@@ -2245,10 +2245,10 @@ class WebApp:
 
         self.socketio.emit("shotConfirmed", {"ShotGun": shotGunId, "ShooterGun": shooterGunId})
 
-        # if pointForRedTeam > 0:
-        #     self.TeamScores["Red"] += pointForRedTeam
-        # elif pointForGreenTeam > 0:
-        #     self.TeamScores["Green"] += pointForGreenTeam
+        if pointForRedTeam > 0:
+            self.TeamScores["Red"] = int(self.TeamScores["Red"]) + pointForRedTeam
+        elif pointForGreenTeam > 0:
+            self.TeamScores["Green"] = int(self.TeamScores["Green"]) + pointForGreenTeam
 
         # 2025-06-07 17:08:25 | Info : Shot Confirmed Packet: ['5', '6', '1', '0', '0', '0', '0', '0\x00']
 
@@ -2271,6 +2271,10 @@ class WebApp:
             return
 
         f.newline()
+        
+        self.currentGameId = self._context.createNewGame()
+
+        f.message(f"Created new game with Id {self.currentGameId}")
 
         try:
             self.socketio.emit('start', {'message': f"Game Started @ {str(datetime.now())}"})
@@ -2285,10 +2289,6 @@ class WebApp:
         self.GunScores = {}
         self.TeamScores = {}
         self.endOfDay = False
-
-        self.currentGameId = self._context.createNewGame()
-
-        f.message(f"Created new game with Id {self.currentGameId}")
 
         if self._obs != None:
             self._obs.switchScene("Laser Scores")
@@ -2309,57 +2309,34 @@ class WebApp:
         f.message(f"Game ended at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
 
         try:
-            if self.currentGameId != 0:
-                winningPlayer = ""
-                winningTeam = ""
+            winningPlayer = ""
+            winningTeam = ""
+            
+            if self.GunScores != {}:
+                winningPlayer = max(self.GunScores.items(), key=lambda x: x[1])
+            if self.TeamScores != {}:
+                winningTeam = max(self.TeamScores.items(), key=lambda x: x[1])
 
-                try:
-                    winningPlayer = max(self.GunScores.items(), key=lambda x: x[1])[0]
-                except Exception as e:
-                    f.message(f"Error getting winning player: {e}", type="error")
+            if winningPlayer != "" and winningTeam != "" and self.currentGameId != 0:
+                self._context.updateGame(self.currentGameId, endTime=datetime.now(), winningPlayer=winningPlayer[0], winningTeam=winningTeam[0])
+                
+                with self.app.app_context():
+                    for gunId, score in self.GunScores.items():
+                        gamePlayer: GamePlayer = self._context.GamePlayer.query.filter_by(
+                            gameId=self.currentGameId).filter_by(gunId=gunId).first()
 
-                try:
-                    winningTeam = max(self.TeamScores.items(), key=lambda x: x[1])[0]
-                except Exception as e:
-                    f.message(f"Error getting winning team: {e}", type="error")
+                        if gamePlayer != None:
+                            gamePlayer.score = score
+                            gamePlayer.accuracy = 0
 
-                if winningPlayer != "" and winningTeam != "" and self._obs != None:
-                    # self._obs.showWinners(str(winningPlayer), str(winningTeam))
-                    pass
+                        else:
+                            gamePlayer: GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score,
+                                accuracy=0)
+                            self._context.addGamePlayer(gamePlayer)
 
-                self._context.updateGame(self.currentGameId, endTime=datetime.now(), winningPlayer=winningPlayer,
-                    winningTeam=winningTeam)
+                        f.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
 
-            # f.message(f"Set Current Game's End Time to {datetime.now()}, ID: {self.currentGameId}")
-
-        except Exception as e:
-            ise: InternalServerError = InternalServerError()
-
-            ise.service = "webapp"
-            ise.exception_message = str(f"Failed To Switch To Winners Screen: {e}")
-            ise.process = "WebApp: Switch To Winners Screen"
-            ise.severity = "2"
-
-            self._supervisor.logInternalServerError(ise)
-
-        try:
-            with self.app.app_context():
-                for gunId, score in self.GunScores.items():
-                    gamePlayer: GamePlayer = self._context.GamePlayer.query.filter_by(
-                        gameId=self.currentGameId).filter_by(gunId=gunId).first()
-
-                    if gamePlayer != None:
-                        gamePlayer.score = score
-                        gamePlayer.accuracy = 0
-
-                    else:
-                        gamePlayer: GamePlayer = GamePlayer(gameId=self.currentGameId, gunId=gunId, score=score,
-                            accuracy=0)
-                        self._context.addGamePlayer(gamePlayer)
-
-                    f.message(f"Adding gun id: {gunId}'s score: {score} into game id of {self.currentGameId}")
-
-                self._context.SaveChanges()
+                    self._context.SaveChanges()
 
                 self.currentGameId = 0
 
@@ -2372,19 +2349,33 @@ class WebApp:
             ise.severity = "3"
 
             self._supervisor.logInternalServerError(ise)
+            
+        try:
+            self.showWinners()
+        except Exception as e:
+            ise: InternalServerError = InternalServerError()
 
-    # try:
-    #     self._supervisor.executePendingRestarts()
+            ise.service = "webapp"
+            ise.exception_message = str(f"Failed To Switch To Winners Screen: {e}")
+            ise.process = "WebApp: Switch To Winners Screen"
+            ise.severity = "2"
 
-    # except Exception as e:
-    #     ise : InternalServerError = InternalServerError()
+            self._supervisor.logInternalServerError(ise)
+            
+    def showWinners(self):
+        winningTeam = ""
+        winningPlayer = ""
+    
+        if self.GunScores != {}:
+            winningPlayer = max(self.GunScores.items(), key=lambda x: x[1])
+        if self.TeamScores != {}:
+            winningTeam = max(self.TeamScores.items(), key=lambda x: x[1])
 
-    #     ise.service = "webapp"
-    #     ise.exception_message = str(f"Failed to check for requested restart: {e}")
-    #     ise.process = "WebApp: Check for requested restarts"
-    #     ise.severity = "1"
+        if self._obs != None:
+            with self.app.app_context():
+                winningGun: Gun = self._context.db.session.query(Gun).filter_by(id=winningPlayer[0]).first()
 
-    #     self._supervisor.logInternalServerError(ise)
+                self._obs.showWinners(winningGun.name, winningPlayer[1], winningTeam[0], winningTeam[1])
 
     # -------------------------------------------------------------------------| Testing |----------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -2416,6 +2407,8 @@ class WebApp:
                 for i in range(120, 110, -2):
                     self.timingPacket([0, 0, 0, i])
                     self.finalScorePacket([0, 1, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
+                    self.teamScorePacket([0, 0, random.randint(1, 100)])
+                    self.teamScorePacket([0, 2, random.randint(1, 100)])
                     self.finalScorePacket([0, 3, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
                     self.finalScorePacket([0, 7, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
                     time.sleep(2)

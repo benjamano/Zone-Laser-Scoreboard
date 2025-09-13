@@ -470,14 +470,14 @@
             }
 
             // Preset configurations
-            showTeamWin(teamName, teamColor = 'red') {
+            showTeamWin(teamName, teamColor = 'red', score) {
                 this.setMainText(`${teamName.toUpperCase()} WINS!`, `color-${teamColor}`);
-                // this.setSubText('VICTORY ACHIEVED', 'color-yellow');
+                this.setSubText(`WITH ${score} POINTS!`, `color-${teamColor}`);
             }
 
             showPlayerScore(playerName, score) {
-                this.setMainText(`${playerName.toUpperCase()}`, 'color-cyan');
-                this.setSubText(`SCORED ${score} POINTS!`, 'color-green');
+                this.setMainText(`Gun ${playerName.toUpperCase()} WINS!`, 'color-cyan');
+                this.setSubText(`WITH ${score} POINTS!`, 'color-green');
             }
 
             showGameOver() {
@@ -508,7 +508,7 @@
 
         // Apply URL parameters if they exist
         if (params.mode === 'team' && params.teamName) {
-            resultsScreen.showTeamWin(params.teamName, params.teamColor);
+            resultsScreen.showTeamWin(params.teamName, params.teamColor, params.score);
         } else if (params.mode === 'player' && params.playerName && params.score) {
             resultsScreen.showPlayerScore(params.playerName, params.score);
         } else if (params.mainText) {

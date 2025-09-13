@@ -27,7 +27,7 @@ class OBS:
             self._dir = self._supervisor.getDir()
             
             self.obs = obs.ReqClient(host=OBSSERVERIP, port=OBSSERVERPORT, password=OBSSERVERPASSWORD, timeout=3)
-            
+
             if self.obs != None:
                 format.message("Successfully Connected to OBS", type="success")
             else:
@@ -105,19 +105,55 @@ class OBS:
                 self._supervisor.logInternalServerError(ise)
             
             return False
-            
-    def showWinners(self, playerName:str, teamName:str) -> bool:
+
+    def showWinners(self, winningGunName: Gun, gunScore : int, teamName: str, teamScore : int) -> bool:
         """
         Displays the winning player's name on the OBS output.
         """
         try:
-            with open(fr"{self._dir}\data\display\WinningPlayer.txt", "w") as f:
-                f.write(f"The Winning Team Is {teamName}!\n")
-                f.write(f"And the Winning Player Is\n")
-                f.write(f"{playerName}!")
+            # with open(fr"{self._dir}\data\display\WinningPlayer.txt", "w") as f:
+            #     f.write(f"The Winning Team Is {teamName}!\n")
+            #     f.write(f"And the Winning Player Is\n")
+            #     f.write(f"{playerName}!")
             
-            self.switchScene("Winners")
+            # self.switchScene("Winners")
             
+            self.switchScene("DynamicRendering")
+            
+            self.obs.set_input_settings(
+                name="DynamicRenderingBrowser",
+                settings={"url": f"http://{self._supervisor._webApp._localIp}:8080/dynamicRendering/gameResults?mainText=Game%20Over!"},
+                overlay=True
+            )
+
+            time.sleep(7)
+            
+            self.obs.set_input_settings(
+                name="DynamicRenderingBrowser",
+                settings={"url": f"http://{self._supervisor._webApp._localIp}:8080/dynamicRendering/gameResults?mode=team&teamName={teamName}%20Team&teamColor={teamName.lower()}&score={teamScore}"},
+                overlay=True
+            )
+
+            time.sleep(7)
+
+            self.obs.set_input_settings(
+                name="DynamicRenderingBrowser",
+                settings={"url": f"http://{self._supervisor._webApp._localIp}:8080/dynamicRendering/gameResults?mode=player&playerName={winningGunName}&score={gunScore}"},
+                overlay=True
+            )
+            
+            time.sleep(7)
+            
+            self.obs.set_input_settings(
+                name="DynamicRenderingBrowser",
+                settings={"url": f"http://{self._supervisor._webApp._localIp}:8080/dynamicRendering/gameResults?mainText=Please%20Return%20to%20the%20Starting%20Area"},
+                overlay=True
+            )
+
+            time.sleep(20)
+
+            self.switchScene("Laser Scores")
+                        
             return True
         except Exception as e:
             ise : InternalServerError = InternalServerError()
