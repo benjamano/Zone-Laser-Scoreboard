@@ -32,6 +32,7 @@ from API.Supervisor import Supervisor
 from API.createApp import createApp
 from API.format import Format
 from data.models import *
+from utils.networkUtils import *
 
 # MainBlueprint = Blueprint("Main", __name__)
 
@@ -127,18 +128,6 @@ class WebApp:
             type="success"
         )
 
-    def _getLocalIp(self) -> str:
-        try:
-            # Create a dummy socket connection to find the local IP address
-            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-            s.connect(("8.8.8.8", 80))
-            self._localIp = s.getsockname()[0]
-            s.close()
-            return self._localIp
-        except Exception as e:
-            f.message(f"Error finding local IP: {e}", type="error")
-            raise
-
     async def start(self):
         f.message("Running on Commit: " + f.colourText(f"{self.getCurrentCommit()}", "green"), type="info")
         f.message(f"Starting Web App at {str(datetime.now())}", type="warning")
@@ -159,7 +148,7 @@ class WebApp:
 
         f.message(f.colourText("Finished Running Database Migrations", "green"), type="info")
 
-        self._getLocalIp()
+        self._localIp = get_local_ip()
         
         self.setupRoutes()
         
@@ -2229,8 +2218,8 @@ class WebApp:
 
         shooterGunId = packetData[1]
         shotGunId = packetData[2]
-        pointForRedTeam = packetData[3]
-        pointForGreenTeam = packetData[4]
+        pointForRedTeam = int(packetData[3])
+        pointForGreenTeam = int(packetData[4])
 
         shotGunName = ""
         shooterGunName = ""
