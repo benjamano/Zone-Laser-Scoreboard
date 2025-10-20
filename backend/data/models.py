@@ -113,7 +113,7 @@ class DMXScene(db.Model):
     flash = db.Column(db.Boolean, nullable=False)
     keyboard_keybind = db.Column(db.String(15), nullable=True)
     song_id = db.Column(db.Integer, nullable=True)
-    game_event_keybind = db.Column(db.String(15), nullable=True)
+    game_event_id = db.Column(db.Integer, db.ForeignKey("gameEventType.id"), nullable=True)
 
     __table_args__ = (
         ForeignKeyConstraint(
@@ -134,7 +134,7 @@ class DMXScene(db.Model):
             "flash": self.flash,
             "keyboard_keybind": self.keyboard_keybind,
             "songId": self.song_id,
-            "game_event_keybind": self.game_event_keybind,
+            "game_event_id": self.game_event_id,
         }
         
 class DMXSceneEventChannel(db.Model):
@@ -143,6 +143,18 @@ class DMXSceneEventChannel(db.Model):
     fixture = db.Column(db.String(100), nullable=False)
     channel = db.Column(db.String(100), nullable=False)
     value = db.Column(db.Integer, nullable=False)
+    
+class GameEventType(db.Model):
+    __tablename__ = 'gameEventType'
+    
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), nullable=False)
+    
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name
+        }
 
 class Fixture(db.Model):
     id = db.Column(db.Integer, primary_key=True)

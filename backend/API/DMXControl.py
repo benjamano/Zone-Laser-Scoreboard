@@ -36,7 +36,6 @@ class dmx:
         self.devMode = devmode
 
         self.runningScenes = {}
-        # self.fixtures = {}
         self.scenes = {}
         self.fixtureGroups = {}
         self.fixtureProfiles = self._context.getFixtureProfiles()
@@ -56,10 +55,6 @@ class dmx:
                 fixturesToPatch: list[PatchedFixture] = self._context.db.session.query(PatchedFixture).all()
                 for fixture in fixturesToPatch:
                     self.registerCustomFixture(fixture.fixtureName, fixture.fixtureId, self.getFixtureTypeChannels(fixture.fixtureId), fixture.dmxStartAddress)
-                    # if fixture.fixtureId == 1:
-                    #     self.registerDimmerFixture(fixture.fixtureName)
-                    # else:
-                        
 
     def checkForSongTriggers(self, songId):
         try:
