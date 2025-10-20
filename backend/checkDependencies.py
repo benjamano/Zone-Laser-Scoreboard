@@ -61,7 +61,9 @@ class VerifyDependencies:
             "librosa": "librosa",
             "soundfile": "soundfile",
             "joblib": "joblib",
-            "pydub": "pydub"
+            "pydub": "pydub",
+            "yt_dlp": "yt_dlp",
+            "mutagen": "mutagen",
         }
         self.installAll()
 

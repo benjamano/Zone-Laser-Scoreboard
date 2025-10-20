@@ -163,7 +163,7 @@ class dmx:
             ise.severity = "1"
             
             self._supervisor.logInternalServerError(ise)
-            return None
+            raise
         
     def registerFixtureUsingType(self, displayName, fixtureType, startChannel):
         try:

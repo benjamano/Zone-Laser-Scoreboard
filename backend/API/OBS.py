@@ -268,7 +268,7 @@ class OBS:
                     except Exception as e:
                         pass
                         
-            time.sleep(2)
+            time.sleep(5)
             
             try:
                 os.startfile(f"{self._dir}\\appShortcuts\\OBS.lnk", arguments='--disable-shutdown-check')
@@ -278,7 +278,7 @@ class OBS:
                 
                 return False
             
-            time.sleep(10)
+            time.sleep(20)
             
             self.obs = None
             self.obs = self.obs = obs.ReqClient(host=self.IP, port=self.PORT, password=self.PASSWORD, timeout=3)
