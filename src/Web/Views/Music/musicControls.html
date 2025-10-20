@@ -1,0 +1,262 @@
+{% extends "layout.html" %} {% block content %}
+	<div class="d-flex flex-column" style="height: 94.7vh;">
+		<div class="row flex-grow-1" style="min-height: 0;">
+			<div class="col-9">
+				<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+					<ul class="navbar-nav p-0 nav nav-tabs w-100">
+						<div id="tabContainer" class="d-flex"></div>
+					</ul>
+				</nav>
+				<div style="height: calc(100vh - 140px); overflow-y: auto;">
+					<table class="table table-dark table-hover w-100 table-borderless bg-transparent">
+						<thead class="sticky-top">
+						<tr>
+							<th class="col-5 bg-dark">Title</th>
+							<th class="col-2 bg-dark">Artist</th>
+							<th class="col-2 bg-dark">Album</th>
+							<th class="col-2 bg-dark">Length</th>
+							<th class="col-1 bg-dark">BPM</th>
+						</tr>
+						</thead>
+						<tbody id="songListTable"></tbody>
+					</table>
+				</div>
+			</div>
+			<div class="col-3">
+				<div class="d-flex flex-column align-items-center justify-content-start py-4 px-4 bg-dark h-100">
+					<div class="d-flex flex-column align-items-start gap-3 w-100 px-2">
+						<div class="albumContainer col-12">
+							<img src="" style="width: 100%; border-radius: 3%;" alt="Album Cover">
+						</div>
+						<div>
+							<p style="line-height: 30px;" class="playingSongTextValue fs-3 fw-bold m-0"></p>
+							<p class="playingSongAlbumText fs-5 fw-light text-muted"></p>
+						</div>
+					</div>
+					<ul class="list-group w-100 musicControlsPage" id="musicQueueList">
+						<div id='musicQueueHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center">
+							<span class="fs-4">Up Next..</span>
+							{#							<button class="btn btn-outline-secondary" onclick="clearMusicQueue();">Clear Queue</button>#}
+						</div>
+						<div class="musicQueueList" style="overflow-y: scroll; max-height: 230px">
+							<li class="list-group-item d-flex flex-row justify-content-between align-items-start">
+								Loading Queue...
+							</li>
+						</div>
+					</ul>
+				</div>
+			</div>
+		</div>
+
+		<div class="bg-dark border-top border-secondary p-3" style="min-height: 80px; z-index: 999;">
+			<div class="row align-items-center">
+				<div class="col-3">
+					<div class="d-flex align-items-center">
+						<div class="albumContainer me-3">
+							<img src="" style="width: 60px; border-radius: 3%;" alt="Album Cover">
+						</div>
+						<div>
+							<div class="text-white fw-semibold playingSongTextValue">Song Title</div>
+							<div class="text-muted small playingSongAlbumText">Artist Name</div>
+						</div>
+					</div>
+				</div>
+				<div class="col-6">
+					<div class="d-flex justify-content-center align-items-center gap-3">
+						{#                        <button class="btn btn-link text-white p-1" id="shuffleBtn">#}
+						{#                            <i class="fas fa-random"></i>#}
+						{#                        </button>#}
+						<button onclick="restartSong()" class="btn btn-link text-white p-1">
+							<i class="fas fa-step-backward"></i>
+						</button>
+						<button onclick="toggleMusic()" class="btn btn-light rounded-circle" style="width: 40px; height: 40px;">
+							<i class="fas fa-play pausePlayMusicButton"></i>
+						</button>
+						<button onclick="nextSong()" class="btn btn-link text-white p-1" id="nextBtn">
+							<i class="fas fa-step-forward"></i>
+						</button>
+						{#                        <button class="btn btn-link text-white p-1" id="repeatBtn">#}
+						{#                            <i class="fas fa-redo"></i>#}
+						{#                        </button>#}
+					</div>
+					<div class="mt-2">
+						<div class="d-flex align-items-center gap-2">
+							<small class="text-muted timeLeft">0:00</small>
+							<div role="button" class="progress flex-grow-1" style="height: 5px;">
+								<div class="progress-bar bg-light musicProgressBar" id="progressBar" style="width: 0%"></div>
+							</div>
+							<small class="text-muted totalSongTime">0:00</small>
+						</div>
+					</div>
+				</div>
+				<div class="col-3">
+					<div class="d-flex justify-content-end align-items-center gap-2">
+						{#                        <button class="btn btn-link text-white p-1" id="queueBtn">#}
+						{#                            <i class="fas fa-list"></i>#}
+						{#                        </button>#}
+						<i class="fas fa-volume-up text-white volumeToggleIcon" role="button" onclick="toggleVolume()"></i>
+						<input type="range" class="form-range volumeControlSlider" id="volumeControl" style="width: 50%" min="0" max="100" value="0" oninput="setMusicVolume(this);">
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<script src="/wwwroot/scripts/musicBeat.js" async></script>
+
+	<script>
+		$(document).ready(function() {
+			getAllSongs();
+			getPlaylists();
+
+			getPlayingPlaylist();
+			setInterval(getPlayingPlaylist, 10000);
+		});
+
+		function renderSongs(songList) {
+			const table = $("#songListTable");
+
+			table.empty();
+
+			let newRows = "";
+
+			songList.forEach(function(song) {
+				newRows += "<tr id='songRow_" + song.id + "' data-playlist-id='" + song.playlistId + "' data-song-id='" + song.id + "' class='bg-transparent songListRow' role='button' onclick='selectSong(this)'>";
+				newRows += "<td>" + song.name + "</td>";
+				newRows += "<td>" + (song.artist === null ? "" : song.artist) + "</td>";
+				newRows += "<td>" + (song.album === null ? "" : song.album) + "</td>";
+				newRows += "<td>" + Math.round(song.duration / 60) + ":" + String(Math.round(song.duration % 60)).padStart(2, "0") + "</td>";
+				newRows += "<td>" + Math.round(song.bpm) + "</td>";
+				newRows += "</tr>";
+			});
+
+			table.append(newRows);
+		}
+
+		function getAllSongs() {
+			$.ajax({
+				url: "/api/music/songs",
+				type: "GET",
+				success: function(songList) {
+					renderSongs(songList);
+				}
+			});
+		}
+
+		function getPlaylistSongs(playListId) {
+			const table = $("#songListTable");
+
+			$.ajax({
+				url: "/api/music/playlists/" + playListId + "/songs",
+				type: "GET",
+				success: function(songList) {
+					renderSongs(songList);
+				}
+			});
+		}
+
+		function getPlaylists() {
+			const tabContainer = $("#tabContainer");
+			$.ajax({
+				url: "/api/music/playlists",
+				type: "GET",
+				success: function(playlists) {
+					tabContainer.empty();
+
+					const tab = document.createElement("li");
+
+					tab.role = "button";
+					tab.className = "user-select-none";
+					tab.innerHTML = `<a class="nav-link active dashboardTab" data-bs-toggle="tab">All</a>`;
+					tab.addEventListener("click", function() {
+						getAllSongs();
+					});
+
+					tabContainer.append(tab);
+
+					playlists.forEach((playlist) => {
+						const tab = document.createElement("li");
+
+						tab.role = "button";
+						tab.className = "user-select-none";
+						tab.innerHTML = `<a class="nav-link dashboardTab" id="tab_${playlist.id}" data-bs-toggle="tab">${playlist.name}</a>`;
+						tab.addEventListener("click", function() {
+							getPlaylistSongs(playlist.id);
+						});
+
+						tabContainer.append(tab);
+					});
+				}
+			});
+		}
+
+		function getPlayingPlaylist() {
+			$.ajax({
+				url: "/api/music/currentPlaylist",
+				type: "GET",
+				success: function(playlistId) {
+					$(".dashboardTab").removeClass("fadeFont");
+					$("#tab_" + playlistId).addClass("fadeFont");
+				}
+			});
+		}
+
+		function toggleMusic() {
+			socket.emit("toggleMusic");
+		}
+
+		function nextSong() {
+			let songsSkipped = localStorage.getItem("SkippedSongsCount");
+			localStorage.setItem(
+				"SkippedSongsCount",
+				`${(parseInt(songsSkipped) + 1).toString()}`
+			);
+
+			socket.emit("nextSong");
+		}
+
+		function restartSong() {
+			socket.emit("restartSong");
+		}
+
+		function toggleVolume() {
+			const value = $(".volumeControlSlider").val();
+
+			if (value === "0") {
+				setMusicVolumeWithNumber(75);
+			} else {
+				setMusicVolumeWithNumber(0);
+			}
+		}
+
+		function selectSong(row) {
+			const songId = $(row).attr("data-song-id");
+
+			$.ajax({
+				url: `/api/music/songs/${songId}/play`,
+				type: "POST",
+				contentType: "application/json"
+			});
+		}
+
+		function removeSongFromQueue(songId) {
+			$.ajax({
+				url: `/api/music/removeSongFromQueue`,
+				type: "DELETE",
+				contentType: "application/json",
+				data: JSON.stringify({ songId: songId })
+			});
+		}
+
+		$("#progressBar").parent().on("click", function(e) {
+			let barWidth = $(this).width();
+			let clickX = e.offsetX;
+
+			let percentage = (clickX / barWidth) * 100;
+
+			socket.emit("seekSong", { location: percentage });
+		});
+
+	</script>
+
+{% endblock %}

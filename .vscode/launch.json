@@ -8,7 +8,7 @@
             "name": "Python Debugger: Current File",
             "type": "debugpy",
             "request": "launch",
-            "program": "${workspaceFolder}/backend/ScoreBoard.py",
+            "program": "${workspaceFolder}/src/ScoreBoard.py",
             // "console": "externalTerminal",
             "console": "integratedTerminal",
             "justMyCode": false,

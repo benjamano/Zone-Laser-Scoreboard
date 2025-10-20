@@ -1,0 +1,597 @@
+{% extends "layout.html" %} {% block content %}
+
+	<div id="customContextMenu" class="customContextMenu">
+		<ul class="list-unstyled mb-0" style="padding: 0; margin: 0">
+			<li id="deleteCardOption" style="cursor: pointer">Delete Card</li>
+		</ul>
+	</div>
+
+	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+		<div class="container-fluid p-0">
+			<ul class="navbar-nav p-0 nav nav-tabs w-100">
+				<div id="tabContainer" class="d-flex"></div>
+				<li class="nav-item dropdown user-select-none">
+					<a class="nav-link dropdown-toggle" data-bs-toggle="dropdown" role="button">Options</a>
+					<ul class="dropdown-menu">
+						<li>
+							<a class="dropdown-item" id="tabNew" role="button" onclick="addNewCategory();">Add New</a>
+						</li>
+						<li>
+							<a class="dropdown-item" id="tabRename" role="button">Rename Existing</a>
+						</li>
+						<li>
+							<a class="dropdown-item" id="tabDelete" role="button">Delete</a>
+						</li>
+						<li>
+							<a class="dropdown-item" id="tabEdit" role="button" onclick="toggleEditMode();">
+								Edit Mode
+								<span id="isEditingCheck" class="fas fa-xmark"></span>
+							</a>
+						</li>
+					</ul>
+				</li>
+
+				<div class="d-flex ms-auto flex-wrap align-items-center float-end">
+					<div class="dropdown d-inline-block me-2 mb-2">
+						<button class="btn btn-outline-light dropdown-toggle" type="button" id="helpDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+							Help
+						</button>
+						<ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="helpDropdown">
+							<li class="dropdown-item">
+								- Add Cards using the "Add Card" dropdown
+							</li>
+							<li class="dropdown-item">
+								- Drag cards by clicking and holding the card
+							</li>
+							<li class="dropdown-item">
+								- Resize the card by dragging the bottom right
+							</li>
+							<li class="dropdown-item">
+								- Delete the card by right-clicking the card
+							</li>
+							<li class="dropdown-item">
+								- Card positions save, reload the page and see!
+							</li>
+							<li class="dropdown-item">
+								- To request a card addition, suggest it in the
+								feedback section
+							</li>
+							<li class="dropdown-item">- More Cards coming soon!</li>
+						</ul>
+					</div>
+
+					<div class="dropdown d-inline-block me-2 mb-2">
+						<button class="btn btn-outline-light dropdown-toggle" type="button" id="addCardDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+							Add Card
+						</button>
+						<ul
+							class="dropdown-menu dropdown-menu-dark"
+							aria-labelledby="addCardDropdown">
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createTextAreaCard()">
+									Add Text Entry
+								</button>
+							</li>
+							<li>
+								<hr class="dropdown-divider"/>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createTimeRemainingCard()">
+									Add Timeleft
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="addScoreBoardCard()">
+									Add Scoreboard
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createRedTeamScoreCard()">
+									Add Red Team Scores
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createGreenTeamScoreCard()">
+									Add Green Team Scores
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createWinningPlayerCard()"
+									disabled>
+									Add Winning Player (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createWinningRedPlayerCard()"
+									disabled>
+									Add Winning Red Player (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createWinningGreenPlayerCard()"
+									disabled>
+									Add Winning Green Player (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createWinningTeamCard()"
+									disabled>
+									Add Winning Team (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<hr class="dropdown-divider"/>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createMusicControlsCard()">
+									Add Music Controls
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createMusicAlbumCard()">
+									Add Music Album Cover
+								</button>
+							</li>
+							<!-- <li>
+                                <button
+                                    class="dropdown-item"
+                                    onclick="createMusicNameCard()"
+                                    disabled>
+                                    Add Music Name (Coming Soon)
+                                </button>
+                            </li> -->
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createMusicVolumeSliderCard()">
+									Add Volume Slider
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createMusicQueueCard()">
+									Add Song Queue
+								</button>
+							</li>
+							<!-- <li>
+                                <button
+                                    class="dropdown-item"
+                                    onclick="createMusicBPMCard()"
+                                    disabled>
+                                    Add BPM Number (Coming Soon)
+                                </button>
+                            </li> -->
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createClockCard()">
+									Add Digital Clock
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createAnalogueClockCard()">
+									Add Analogue Clock
+								</button>
+							</li>
+							<li>
+								<hr class="dropdown-divider"/>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createPlayBriefingCard()">
+									Add Play Briefing Button
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createWeatherCard()"
+									disabled>
+									Add Weather Card (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createTemparatureCard()"
+									disabled>
+									Add Arena Tempatature Card (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<hr class="dropdown-divider"/>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createVirtualLightingDeskCard()"
+									disabled>
+									Add Virtual Lighting Desk (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createLightingSceneCard()"
+									disabled>
+									Add Lighting Scene Control (Coming Soon)
+								</button>
+							</li>
+							<li>
+								<button
+									class="dropdown-item"
+									onclick="createLightingBrightnessCard()"
+									disabled>
+									Add Lighting Brightness Slider (Coming Soon)
+								</button>
+							</li>
+						</ul>
+					</div>
+					<!--
+                    <div class="dropdown d-inline-block me-2 mb-2">
+                        <button class="btn btn-secondary dropdown-toggle" type="button" id="loadPresetDropdown"
+                            data-bs-toggle="dropdown" aria-expanded="false">
+                            Load Preset
+                        </button>
+                        <ul class="dropdown-menu dropdown-menu-dark" aria-labelledby="loadPresetDropdown">
+                            <li><button class="dropdown-item" href="#" onclick="" disabled>Coming Soon</button></li>
+                        </ul>
+                    </div> -->
+
+					<button
+						class="btn btn-outline-light me-2 mb-2"
+						onclick="clearAllCards()"
+						id="clearAllCardsbtn">
+						Clear All Cards
+					</button>
+
+					<a
+						class="btn btn-outline-light me-2 mb-2"
+						href="/feedback"
+						type="button"
+						id="addSongsToPlaylistBtn">
+						REQUEST NEW SONGS
+					</a>
+
+					<button
+						class="btn btn-light me-2 mb-2"
+						onclick="playBriefing();"
+						type="button"
+						id="playBriefingBtn">
+						PLAY BRIEFING VIDEO
+					</button>
+				</div>
+			</ul>
+		</div>
+	</nav>
+
+	<div class="p-0">
+
+		<div class="movableItemsContainer"></div>
+
+	</div>
+
+	<script src="/wwwroot/scripts/draggableCards.js" async></script>
+	<script src="/wwwroot/scripts/musicBeat.js" async></script>
+
+	<script>
+		window.onload = function() {
+			if (controlSpotify === true) {
+				$("#spotifyPlaybackStatus").text("ON");
+			} else {
+				$("#spotifyPlaybackStatus").text("OFF");
+			}
+
+			fetchFixtures();
+
+			let currentTimeLeft;
+			let countdownInterval;
+
+			{#console.log(#}
+			{#    "LCARS Inspired Website Template by https://www.thelcars.com www.TheLCARS.com"#}
+			{#);#}
+
+			getDashboardCategories();
+		};
+
+		function getDashboardCategories() {
+			$.ajax({
+				url: "/api/dashboards",
+				type: "GET",
+				success: function(response) {
+					$("#tabContainer").empty();
+
+					response.forEach((category) => {
+						const tab = document.createElement("li");
+
+						tab.role = "button";
+						tab.className = "user-select-none";
+						tab.innerHTML = `<a class="nav-link dashboardTab" id="tab_${category.id}" data-bs-toggle="tab">${
+							category.name
+						}</a>`;
+						tab.addEventListener("click", function() {
+							openDashboard(category.id);
+						});
+
+						if (category.name == "Main" && $(".nav-link.dashboardTab.active").length == 0) {
+							openDashboard(category.id);
+						}
+
+						$("#tabContainer").append(tab);
+					});
+				}
+			});
+		}
+
+		function addNewCategory() {
+			const newCategoryName = prompt("Enter the name of the new category:");
+
+			if (newCategoryName) {
+				$.ajax({
+					url: "/api/dashboards",
+					type: "POST",
+					contentType: "application/json",
+					data: JSON.stringify({ name: newCategoryName }),
+					success: function(response) {
+						getDashboardCategories();
+					}
+				});
+			} else {
+				alert("Category name cannot be empty.");
+			}
+		}
+
+		function openDashboard(categoryId) {
+			$.ajax({
+				url: `/api/dashboards/${categoryId}`,
+				type: "GET",
+				success: function(response) {
+					$(".movableItemsContainer").each(function(index, elem) {
+						$(elem).empty();
+					});
+
+					$(".nav-link.dashboardTab").removeClass("active");
+					$("#tab_" + categoryId).addClass("active");
+
+					loadCardConfig(response.widgets);
+				}
+			});
+		}
+
+		async function getAlbumCover(albumName) {
+			const apiKey = "ce4aeea69e2f5a8fb184700d5892aa82";
+			const response = await fetch(
+				`http://ws.audioscrobbler.com/2.0/?method=album.search&album=${encodeURIComponent(
+					albumName
+				)}&api_key=${apiKey}&format=json`
+			);
+			const data = await response.json();
+			if (data.results.albummatches.album.length > 0) {
+				return data.results.albummatches.album[0].image[3]["#text"];
+			} else {
+				return null;
+			}
+		}
+
+		function formatTime(seconds) {
+			const minutes = Math.floor(seconds / 60);
+			const remainingSeconds = seconds % 60;
+			return `${minutes}:${
+				remainingSeconds < 10 ? "0" : ""
+			}${remainingSeconds}`;
+		}
+
+		async function toggleSpotifyControl() {
+			controlSpotify = !controlSpotify;
+
+			if (controlSpotify == true) {
+				$("#spotifyPlaybackStatus").text("ON");
+			} else {
+				$("#spotifyPlaybackStatus").text("OFF");
+			}
+
+			socket.emit("SpotifyControl", { data: controlSpotify });
+
+			console.log("SpotifyControl: " + controlSpotify);
+		}
+
+		async function controlPlayback(action) {
+			if (action == "end") {
+				if (
+					window.confirm("Are you sure you want to terminate the server?")
+				) {
+					const response = await fetch(`/${action}`);
+					const result = await response.json();
+					alert(result.message || result.error);
+					return;
+				}
+			} else {
+				const response = await fetch(`/${action}`);
+				const result = await response.json();
+				alert(result.message || result.error);
+			}
+		}
+
+		async function fetchFixtures() {
+			const response = await fetch(`/api/availableFixtures`);
+			const fixtures = await response.json();
+
+			fixtures.forEach((fixture) => {
+				try {
+					if (fixture.type.includes("Colorspot575XT")) {
+						console.log(
+							"Colorspot 575 XT found with name: " + fixture.name
+						);
+					} else if (fixture.type.includes("Colorspot250AT")) {
+						console.log("Colorspot 250 AT found with ID: " + fixture.name);
+					} else if (fixture.type.includes("Colorwash250AT")) {
+						console.log("Colorwash 250 AT found with ID: " + fixture.name);
+					} else if (fixture.type.includes("Dimmer")) {
+						console.log("Dimmer found with ID: " + fixture.name);
+
+						//createDimmerSlider(fixture);
+					}
+				} catch (error) {
+					console.log("Error processing fixture:", error);
+				}
+
+				const container = document.getElementById("fixtures-container");
+
+				if (!container) {
+					console.warn("Container with ID 'fixtures-container' not found.");
+					return;
+				}
+
+				const fixtureDiv = document.createElement("div");
+				fixtureDiv.className = `fixture`;
+				fixtureDiv.id = `fixture-${fixture.id}`;
+
+				const fixtureContainer = document.createElement("div");
+				fixtureContainer.className = "fixtureContainer";
+
+				const fixtureTitle = document.createElement("h1");
+				fixtureTitle.className = "title";
+				fixtureTitle.textContent = fixture.name;
+
+				container.appendChild(fixtureDiv);
+				fixtureDiv.appendChild(fixtureTitle);
+
+				Object.entries(fixture.attributes)
+					.map(([key, { DMXValue, index, value }]) => ({
+						key,
+						DMXValue,
+						index,
+						value
+					}))
+					.sort((a, b) => a.index - b.index)
+					.forEach(({ key, value, DMXValue }) => {
+						console.log(
+							`DMXVal: ${DMXValue}, Attribute: ${key}`,
+							value
+						);
+
+						const attributeName = key;
+
+						const slider = document.createElement("input");
+						slider.type = "range";
+						slider.min = 0;
+						slider.max = 255;
+						slider.value = DMXValue;
+						slider.className = "slider";
+						slider.id = `slider-${fixture.name}-${attributeName}`;
+						slider.oninput = function() {
+							updateDMXValue(attributeName, fixture.name, this.value);
+							valueLabel.textContent = this.value;
+						};
+
+						const label = document.createElement("label");
+						label.className = "label";
+						label.textContent = attributeName;
+
+						const valueLabel = document.createElement("label");
+						valueLabel.className = "valueLabel";
+						valueLabel.id = `valueLabel-${fixture.name}-${attributeName}`;
+						valueLabel.textContent = DMXValue;
+
+						const fixtureChannel = document.createElement("div");
+						fixtureChannel.className = "fixtureChannel";
+						fixtureChannel.id = `fixtureChannel-${fixture.name}-${attributeName}`;
+
+						fixtureChannel.appendChild(slider);
+						fixtureChannel.appendChild(label);
+						fixtureChannel.appendChild(valueLabel);
+						fixtureContainer.appendChild(fixtureChannel);
+						fixtureDiv.appendChild(fixtureContainer);
+					});
+
+				var gLabel = document.getElementById("musicControlCardBody");
+				var style = window.getComputedStyle(gLabel, null);
+
+				document.getElementById("fixtures-container").style.width =
+					style.getPropertyValue("width");
+			});
+		}
+
+		function createDimmerSlider(fixture) {
+		}
+
+		function updateDMXValue(attributeName, fixtureName, value) {
+			console.log(`Fixture ID: ${fixtureName}, DMX Value: ${value}`);
+
+			socket.emit("UpdateDMXValue", {
+				fixtureName: fixtureName,
+				attributeName: attributeName,
+				value: value
+			});
+		}
+
+		function toggleMusic() {
+			socket.emit("toggleMusic");
+		}
+
+		function nextSong() {
+			var songsSkipped = localStorage.getItem("SkippedSongsCount");
+			localStorage.setItem(
+				"SkippedSongsCount",
+				`${(parseInt(songsSkipped) + 1).toString()}`
+			);
+
+			socket.emit("nextSong");
+		}
+
+		function restartSong() {
+			socket.emit("restartSong");
+		}
+
+		document.addEventListener("keydown", function(event) {
+			if (event.key === "Home") {
+				console.log("Home Key pressed, Playing Briefing");
+				playBriefing();
+			}
+		});
+
+		function playBriefing() {
+			console.log("Playing Briefing");
+			socket.emit("playBriefing");
+		}
+
+		function removeSongFromQueue(songId) {
+			$.ajax({
+				url: `/api/music/removeSongFromQueue`,
+				type: "DELETE",
+				contentType: "application/json",
+				data: JSON.stringify({ songId: songId })
+			});
+		}
+
+	</script>
+
+	<script src="{{ url_for('static', filename='scripts/socketEvents.js') }}"></script>
+
+{% endblock %}
