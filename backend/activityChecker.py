@@ -30,6 +30,8 @@ while True:
         # Use adapter-specific IP if possible
         try:
             ip = net.get_ip_by_adapter(os.getenv("PREFERRED_NETWORK_INTERFACE", ""))
+            if ip == "":
+                ip = net.get_local_ip()
         except Exception:
             # fallback if adapter not found or fails
             ip = net.get_local_ip()
