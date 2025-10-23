@@ -6,6 +6,7 @@ import os, datetime
 from Data.models import *
 from Utilities.format import Format
 from Web.API.Supervisor import Supervisor
+from Utilities.InternalServerErrors import logInternalServerError
 
 f = Format("DBContext")
 class context:
@@ -270,8 +271,8 @@ class context:
     
     def getAllGames(self) -> list[Game]:
         with self.app.app_context():
-            return self.Game.query.all()
-    
+            return self.db.session.query(Game).all()
+
     def __createDatabase(self):
         self.__createModels()
         self.__seedDBData()
@@ -379,7 +380,7 @@ class context:
     def createNewGame(self):
         try:
             with self.app.app_context():
-                newGame = self.Game(
+                newGame = Game(
                     name=f"Game_{datetime.now().strftime('%Y%m%d_%H%M%S')}", 
                     startTime=datetime.now(),
                 )
@@ -396,7 +397,7 @@ class context:
             ise.process = "Create New Game"
             ise.severity = 2
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self, ise)
             return None  
         
     def addGamePlayer(self, player : GamePlayer):
@@ -415,14 +416,14 @@ class context:
             ise.process = "Add Game Player"
             ise.severity = 2
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self, ise)
             return None  
     
     def updateGame(self, gameId, **kwargs):
         try:
             with self.app.app_context():
-                game = self.Game.query.get(gameId)
-                
+                game = self.db.session.query(Game).get(gameId)
+
                 if game:
                     for key, value in kwargs.items():
                         setattr(game, key, value)
@@ -440,7 +441,7 @@ class context:
             ise.process = "Update Game"
             ise.severity = 2
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self, ise)
             return None
             
     class DMXSceneDTO:

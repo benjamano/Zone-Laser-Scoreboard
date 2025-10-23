@@ -66,6 +66,8 @@ class VerifyDependencies:
             "mutagen": "mutagen",
             "Pyside6": "PySide6",
             "screeninfo": "screeninfo",
+            "opencv-python": "cv2",
+            "dependency-injector": "dependency_injector",
         }
         self.installAll()
 
@@ -92,4 +94,4 @@ class VerifyDependencies:
         print(f"Installing '{pipName}' via pip...")
         subprocess.check_call([sys.executable, "-m", "pip", "install", pipName])
         if pipName == "pywin32":
-            raise "Please restart your computer to complete the installation of the dependancies.\nINFO: The Library 'Pywin32' requires the PC to be restarted before it's changes come into effect."
+            raise Exception("Please restart your computer to complete the installation of the dependancies.\nINFO: The Library 'Pywin32' requires the PC to be restarted before it's changes come into effect.")

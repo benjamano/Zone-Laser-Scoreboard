@@ -1,97 +1,42 @@
-# import eventlet
-# eventlet.monkey_patch() 
 import asyncio
+from Utilities.Container import Container
+from Utilities.networkUtils import is_app_already_running
+from Utilities.checkDependencies import VerifyDependencies
+from Web.webApp import WebApp
+import ctypes
 
-try:
-    from Utilities.checkDependencies import VerifyDependencies
-    import os
-    import signal
-    import threading
-    import traceback
-    
-except Exception as e:
-    print(f"An error occurred: {e}")
-    input("Press any key to exit...")
-
-def loadCustomImage(filePath):
-    from PIL import Image, ImageDraw
-    return Image.open(filePath)
-
-def stop():
-    print("Stopping...")
-    os.kill(os.getpid(), signal.SIGTERM)
-
-def showInterface():
-    ui.showInterface()
-
-def startIcon():
-    from PIL import Image, ImageDraw
-    import pystray
-    
-    def onQuit(icon, item):
-        stop()
-
-    def onShowUI(icon, item):
-        showInterface()
-
-    menu = pystray.Menu(
-        pystray.MenuItem("Stop Server", onQuit),
-        pystray.MenuItem("Show Interface", onShowUI)
-    )
-
-    try:
-        dir = os.path.join("src","Web", "wwwroot", "images", "SmallLogo.png")
-        iconImage = loadCustomImage(dir)
-
-        icon = pystray.Icon('Laser Tag Scoreboard', icon=iconImage, menu=menu)
-        threading.Thread(target=icon.run).start()
-        
-    except:
-        print("Failed to load custom image for icon. Not Running Icon.")
-    
-try:
-    import socket
-    
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        localIp = s.getsockname()[0]
-        s.close()
-        
-        with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
-            if s.connect_ex((localIp, 8080)) == 0:
-                print(f"Port 8080 is already in use on {localIp}")
-                raise RuntimeError("Port in use. Exiting application.")
-            
-    except Exception as e:
-        print(f"Error finding local IP: {e}")
+async def start():
+    if is_app_already_running():
+        raise RuntimeError("Port in use, app is probably already running. Exiting application.")
     
     VerifyDependencies()
-    
-    from Utilities.format import Format
-    
-    format = Format("Scoreboard")
-    
-    format.newline()
-    
-    global ui
-    import Utilities.userInterf as ui
-    
-    startIcon()
-    
-    format.message("User Interface starting")
-    
-    def run_ui():
-        asyncio.run(ui.startUI())
 
-    threading.Thread(target=run_ui).start()
+    container = Container()
+    
+    container.music_api_routes.init()
+    container.init_api_routes.init()
 
-except Exception as e:
-    print(f"An error occurred: {e}\nLine No: {e.__traceback__.tb_lineno}\nStack Trace: {e.__traceback__.tb_frame}")
-    
-    traceback.print_exc()
-    
-    if type(e) == RuntimeError:
-        pass
-    else:
-        input("Press any key to exit...")
+    from VRS.VRS import start_vrs_projector_thread
+    vrs_instance = start_vrs_projector_thread(container.vrs_projector_factory)
+
+    webApp = WebApp(
+        container.app(),
+        container.socketio(),
+        container.db_context(),
+        container.dmx_service(),
+        container.music_api(),
+        container.email_api(),
+        container.feedback_api(),
+        container.init_api(),
+        container.bpm_fetcher(),
+        container.secrets(),
+        vrs_instance
+    )
+
+    await webApp.start()
+
+if __name__ == "__main__":
+    ctypes.windll.kernel32.SetConsoleTitleW("Zone Laser Scoreboard - Ben Mercer")
+    start_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(start_loop)
+    start_loop.run_until_complete(start())

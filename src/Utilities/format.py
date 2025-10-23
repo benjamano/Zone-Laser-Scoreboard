@@ -129,3 +129,4 @@ class Format:
             requests.post(url, data=data)
         except Exception as e:
             self.queue.put(("Warning", f"Failed to send log message to server: {e}", True, False))
+            

@@ -6,41 +6,36 @@ from datetime import datetime
 
 import librosa
 import vlc
-from Web.API.Supervisor import Supervisor
 from Utilities.format import Format
 from Data.models import *
 from Web.API.Music.MusicDownloader import YouTubeMusicDownloader
 from flask import Blueprint, jsonify, request, Flask
 from flask_sqlalchemy import SQLAlchemy
-# librosa.load
 from pydub import AudioSegment
-
-# import joblib
-# from joblib.externals.loky.backend import context
-# get_context = context.get_context
-# from concurrent.futures.process import _MAX_WINDOWS_WORKERS
+from Utilities.InternalServerErrors import logInternalServerError
 
 MusicBlueprint = Blueprint("music", __name__)
 f = Format("Music")
 
 class MusicAPIController:
-    def __init__(self, supervisor: Supervisor, context: SQLAlchemy, secrets: dict[str, str], app: Flask, dir, dmx):
-        self._supervisor = supervisor
+    def __init__(self, context: SQLAlchemy, secrets: dict[str, str], app: Flask, dmx):
         self._context = context
         self._secrets = secrets
         self._dmx = dmx
-        self._app : Flask = app
-        self._dir = dir
+        self._app = app
 
         self.MusicDownloader = YouTubeMusicDownloader()
         
-        self.instance : vlc.Instance = vlc.Instance()
-        self.player : vlc.MediaPlayer = self.instance.media_player_new()
+        self.instance : vlc.Instance | None = vlc.Instance()
+        if not self.instance:
+            raise RuntimeError("VLC instance could not be created. Ensure VLC is installed correctly.")
         
+        self.player : vlc.MediaPlayer | None = self.instance.media_player_new()
+
         # Queue system variables
         self.queue = deque()  # Main queue for songs
-        self.currentSong: Song = None
-        self.currentPlaylist: PlayList = PlayList()
+        self.currentSong: Song | None = Song()
+        self.currentPlaylist: PlayList | None = PlayList()
         self.queueLock = threading.Lock()  # Thread safety for queue operations
         self.stopRequested = False
         self.playerThread = None
@@ -49,7 +44,7 @@ class MusicAPIController:
         self.isGettingBPM = False
         self.isDownloadingASong = False
         
-        self.setVolume(self._secrets["DefaultVolume"] if "DefaultVolume" in self._secrets else 50)
+        self.setVolume(int(self._secrets["DefaultVolume"] if "DefaultVolume" in self._secrets else 50))
         
     def registerMusicRoutes(self, app):
         @MusicBlueprint.route("/api/music/songs", methods=["GET"])
@@ -482,13 +477,17 @@ class MusicAPIController:
                 self._supervisor._dmx.checkForSongTriggers(self.currentSong.id if self.currentSong.id else 0)
             except Exception as e:
                 if "Prod" in self._secrets["Environment"]:
-                    self._supervisor.logInternalServerError(ise=InternalServerError(
-                        exception_message=str(e),
-                        timestamp=datetime.now(),
-                        process="Check for DMX song triggers when song changes",
-                        service="Music API",
-                        severity=2
-                    ))
+                    logInternalServerError(
+                        self._app,
+                        self._context,
+                        ise=InternalServerError(
+                            exception_message=str(e),
+                            timestamp=datetime.now(),
+                            process="Check for DMX song triggers when song changes",
+                            service="Music API",
+                            severity=2
+                        )
+                    )
 
             return True
         except Exception as e:
@@ -600,24 +599,32 @@ class MusicAPIController:
                     songs.append(song)
             return songs
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Get Playlist Songs",
-                service = "Music API",
-                severity = 1
-            ))
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Get Playlist Songs",
+                    service="Music API",
+                    severity=1
+                )
+            )
             
             return []
         
     def logError(self, process, e):
-        self._supervisor.logInternalServerError(InternalServerError(
-            exception_message=str(e),
-            timestamp=datetime.now(),
-            process=f"Music API - {process}",
-            service="Music API",
-            severity=1
-        ))
+        logInternalServerError(
+            self._app,
+            self._context,
+            InternalServerError(
+                exception_message=str(e),
+                timestamp=datetime.now(),
+                process=f"Music API - {process}",
+                service="Music API",
+                severity=1
+            )
+        )
         
     def setVolume(self, volume: int) -> int:
         try:
@@ -730,13 +737,17 @@ class MusicAPIController:
             songs = self._context.session.query(Song).all()
             return songs
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Get Songs",
-                service = "Music API",
-                severity = 1
-            ))
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Get Songs",
+                    service="Music API",
+                    severity=1
+                )
+            )
             
             return []
         
@@ -758,13 +769,17 @@ class MusicAPIController:
             
             return newSong
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Add Song",
-                service = "Music API",
-                severity = 1
-            ))
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Add Song",
+                    service="Music API",
+                    severity=1
+                )
+            )
             
             return Song()
         
@@ -776,14 +791,18 @@ class MusicAPIController:
             
             return song
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Get Song",
-                service = "Music API",
-                severity = 1
-            ))
-            
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Get Song",
+                    service="Music API",
+                    severity=1
+                )
+            )
+
             return None
         
     def updateSong(self, songId: int) -> Song:
@@ -800,13 +819,17 @@ class MusicAPIController:
             self._context.session.commit()
             return song
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Update Song",
-                service = "Music API",
-                severity = 1
-            ))
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Update Song",
+                    service="Music API",
+                    severity=1
+                )
+            )
             
             return Song()
         
@@ -815,14 +838,18 @@ class MusicAPIController:
             playlists = self._context.session.query(PlayList).all()
             return playlists
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Get Playlists",
-                service = "Music API",
-                severity = 1
-            ))
-            
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Get Playlists",
+                    service="Music API",
+                    severity=1
+                )
+            )
+
             return []
         
     def createPlaylist(self) -> PlayList:
@@ -837,14 +864,18 @@ class MusicAPIController:
             
             return newPlaylist
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Create Playlist",
-                service = "Music API",
-                severity = 1
-            ))
-            
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Create Playlist",
+                    service="Music API",
+                    severity=1
+                )
+            )
+
             return jsonify({"error": "Failed to create playlist"}), 500
         
     def getPlaylist(self, playlistId: int) -> PlayList:
@@ -855,14 +886,18 @@ class MusicAPIController:
             
             return playlist
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Get Playlist",
-                service = "Music API",
-                severity = 1
-            ))
-            
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Get Playlist",
+                    service="Music API",
+                    severity=1
+                )
+            )
+
             return None
         
     def addSongToPlaylist(self, song: Song, playlistId: int) -> bool:
@@ -895,14 +930,18 @@ class MusicAPIController:
             
             return False
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Add Song to Playlist",
-                service = "Music API",
-                severity = 1
-            ))
-            
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Add Song to Playlist",
+                    service="Music API",
+                    severity=1
+                )
+            )
+
             return False
 
     def getSongBPM(self, songId: int) -> float:
@@ -945,13 +984,17 @@ class MusicAPIController:
 
                 self.isDownloadingASong = False
         except Exception as e:
-            self._supervisor.logInternalServerError(InternalServerError(
-                exception_message = str(e),
-                timestamp = datetime.now(),
-                process = "Music API - Look For Songs to Download",
-                service = "Music API",
-                severity = 2
-            ))
+            logInternalServerError(
+                self._app,
+                self._context,
+                InternalServerError(
+                    exception_message=str(e),
+                    timestamp=datetime.now(),
+                    process="Music API - Look For Songs to Download",
+                    service="Music API",
+                    severity=2
+                )
+            )
 
     def lookForSongsWith0BPM(self):
         if self.isGettingBPM:
@@ -1009,24 +1052,25 @@ class MusicAPIController:
 
                 start = time.time()
 
-                songPath = f"{self._dir}\\data\\music\\{FoundSong.name}.mp3"
+                songPath = f"src/Data/music/{FoundSong.name}.mp3"
 
                 if not os.path.exists(songPath):
-                    f.message(f"Path doesnt exist for {songPath}"), "warning"
+                    f.message(f"Path doesnt exist for {songPath}", "warning")
                     with self._app.app_context():
-                        SongToUpdate: Song = self._context.session.query(Song).filter(Song.id == FoundSong.id).first()
+                        SongToUpdate: Song | None = self._context.session.query(Song).filter(Song.id == FoundSong.id).first()
 
-                        SongToUpdate.isDownloaded = False
-                        self._context.session.commit()
+                        if SongToUpdate:
+                            SongToUpdate.isDownloaded = False
+                            self._context.session.commit()
 
                     return 0
 
                 bpm = getBpm(songPath.replace('\\', "/"))
 
                 count = 0
-                for filename in os.listdir(f"{self._dir}\\data\\music"):
+                for filename in os.listdir("src/Data/music"):
                     if filename.lower().endswith(".wav"):
-                        fullPath = os.path.join(f"{self._dir}\\data\\music", filename)
+                        fullPath = os.path.join("src/Data/music", filename)
                         try:
                             os.remove(fullPath)
                             count += 1

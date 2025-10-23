@@ -19,22 +19,21 @@ from flask_socketio import SocketIO
 f = Format("Supervisor")
 
 if TYPE_CHECKING:
-    from Web.API.OBS import OBS as _OBS
+    from Web.Archive.OBS_Old import OBS as _OBS
     from Web.API.DMXControl import dmx as _dmx
     from Web.API.DB import context as _context
     from src.Web.webApp import WebApp as _webApp 
 
 class Supervisor:
-    def __init__(self):  
+    def __init__(self, obs, dmx, context, socket, app, mApi):  
         f.message(f.colourText("Starting Supervisor", "green"), type="info")
               
-        self._obs = None
-        self._dmx = None
-        self._context = None
-        self._socket = None
-        self._app = None
-        self._webApp = None
-        self._mApi = None
+        self._obs = obs
+        self._dmx = dmx
+        self._context = context
+        self._socket = socket
+        self._app = app
+        self._mApi = mApi
         self.devMode = False
         self._services = ["db", "obs", "dmx", "api"] # Should add MUSIC as an option here
         self.expectedProcesses = ["obs64"]
@@ -370,22 +369,3 @@ class Supervisor:
             numberOfRecentErrors=-1,
             recentErrorList=-1
         )
-
-    def logInternalServerError(self, ise: InternalServerError) -> None:
-        def _log():
-            try:
-                if self._context is not None and ise is not None:
-                    if ise.severity == 1:
-                        f.message(f"SEVERE EXCEPTION: Logging severe error from {ise.service}. \tException Message: {ise.exception_message}", type="error")
-                    else:
-                        f.message(f"EXCEPTION: Logging error from {str(ise.service).upper()}: {ise.exception_message}", type="warning")
-
-                    ise.timestamp = datetime.now()
-
-                    with self._app.app_context():
-                        self._context.db.session.add(ise)
-                        self._context.db.session.commit()
-            except Exception as e:
-                f.message(f"Error occurred while logging internal server error: {e}", type="error")
-
-        threading.Thread(target=_log, daemon=True).start()

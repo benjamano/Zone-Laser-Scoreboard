@@ -8,7 +8,6 @@ from Data.models import db
 from Web.API.DB import context as DBContext
 from Utilities.format import Format
 from Web.API.Dashboards.DashboardAPIController import registerDashboardRoutes
-from Web.API.Initialisation.InitialisationAPIController import registerInitialisationRoutes
 
 f = Format("Create App")
 
@@ -40,12 +39,11 @@ def createApp(appOnly = False):
     if appOnly:
         return app
     
-    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading") #, logger=True, engineio_logger=True
+    socketio = SocketIO(app, cors_allowed_origins="*", async_mode="threading")
     db_context = DBContext(app, db)
     
     f.message(f.colourText("Setting up routes..." ,"Blue"))
     
     registerDashboardRoutes(app, db_context.db)
-    registerInitialisationRoutes(app, db_context.db)
-
+    
     return app, socketio, db_context

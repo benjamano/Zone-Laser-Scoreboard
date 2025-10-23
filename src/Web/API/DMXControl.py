@@ -15,25 +15,22 @@ from PyDMXControl.profiles.Generic import Custom, Dimmer
 from Data.models import *
 from flask import Flask
 from flask_socketio import SocketIO
+from Utilities.InternalServerErrors import logInternalServerError
 
 format = Format("DMX")
             
 class dmx:
-    def __init__(self, context : dbContext, supervisor : Supervisor, socket : SocketIO, app, devmode):
-        self._dmx = None
-
+    def __init__(self, context : dbContext, socket : SocketIO, app, secrets):
         try:
-            self._dmx : OpenDMXController = OpenDMXController()
+            self._dmx : OpenDMXController | None = OpenDMXController()
         except Exception as e:            
             format.message(f"DMX controller not started, {e}", "error")
                 
         self._context : dbContext = context
-        self._supervisor : Supervisor = supervisor
         self.app : Flask = app
         self.socket : SocketIO = socket
         
-        self._localIp = self.__getLocalIp()
-        self.devMode = devmode
+        self.secrets = secrets
 
         self.runningScenes = {}
         self.scenes = {}
@@ -45,11 +42,14 @@ class dmx:
         except Exception as e:
             format.message(f"Error processing DMX scenes: {e}", "error")
             
-        self._supervisor.setDependencies(dmx=self)
+        try:
+            self.registerPatchedFixtures()
+        except Exception as e:
+            format.message(f"Error registering patched fixtures: {e}", "error")
 
     # Setters
     
-    async def registerPatchedFixtures(self):
+    def registerPatchedFixtures(self):
         if self.isConnected() == True:
             with self.app.app_context():
                 fixturesToPatch: list[PatchedFixture] = self._context.db.session.query(PatchedFixture).all()
@@ -71,7 +71,7 @@ class dmx:
             ise.process = "DMX: Check For Song Triggers"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
     
     def __appendToFixtures(self, fixture, fixtureType):
         return
@@ -104,7 +104,7 @@ class dmx:
             ise.exception_message = str(f"Error unpatching fixture: {e}")
             ise.process = "DMX: Unpatch Fixture"
             ise.severity = "1"
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
         return False
 
     def registerDimmerFixture(self, displayName):
@@ -141,7 +141,7 @@ class dmx:
             ise.process = "DMX: Register Dimmer Fixture"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return None
     
@@ -162,7 +162,7 @@ class dmx:
             ise.process = "DMX: Register custom fixture"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             raise
         
     def registerFixtureUsingType(self, displayName, fixtureType, startChannel):
@@ -207,7 +207,7 @@ class dmx:
             ise.process = "DMX: Register Fixture Using Type"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return
         
@@ -256,7 +256,7 @@ class dmx:
             ise.process = "DMX: Register Fixture Using Type"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return 0
         
@@ -277,19 +277,19 @@ class dmx:
             ise.process = "DMX: Register Channel"
             ise.severity = "1"
             
-        self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
         
     def getFixtureTypeChannels(self, fixtureTypeId):
         try:
             fixture = None
             
             with self.app.app_context():
-                fixture = self._context.Fixture.query.filter_by(id=fixtureTypeId).first()
-                
+                fixture = self._context.db.session.query(Fixture).filter_by(id=fixtureTypeId).first()
+
                 if not fixture:
                     return []
-                
-                fixtureChannels = self._context.FixtureChannel.query.filter_by(fixtureID=fixture.id).all()
+
+                fixtureChannels = self._context.db.session.query(FixtureChannel).filter_by(fixtureID=fixture.id).all()
                 return fixtureChannels
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -299,7 +299,7 @@ class dmx:
             ise.process = "DMX: Get Fixture Type Addresses"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return 0
         
@@ -308,8 +308,8 @@ class dmx:
             fixture = None
             
             with self.app.app_context():
-                fixture = self._context.Fixture.query.filter_by(name=fixtureTypeName).first()
-                
+                fixture = self._context.db.session.query(Fixture).filter_by(name=fixtureTypeName).first()
+
                 if fixture != None:
                     return fixture.id
                 else:
@@ -322,7 +322,7 @@ class dmx:
             ise.process = "DMX: Get Fixture Type Id From Name"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return 0
         
@@ -351,7 +351,7 @@ class dmx:
             ise.process = "DMX: Set Channel Value"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
     def startScene(self, sceneId):
         scene = self.getDMXSceneById(sceneId)
@@ -417,13 +417,13 @@ class dmx:
             ise.process = "DMX: Create New Scene"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             return
         
     def updateFixtureChannelEvent(self, sceneEventID, fixture, channel, value):
         try:
             with self.app.app_context():
-                event = self._context.DMXSceneEventChannel.query.filter_by(
+                event = self._context.db.session.query(DMXSceneEventChannel).filter_by(
                     eventID=sceneEventID,
                     fixture=fixture,
                     channel=channel
@@ -432,7 +432,7 @@ class dmx:
                 if event:
                     event.value = value
                 else:
-                    event = self._context.DMXSceneEventChannel(
+                    event = DMXSceneEventChannel(
                         eventID=sceneEventID,
                         fixture=fixture,
                         channel=channel,
@@ -451,7 +451,7 @@ class dmx:
             ise.process = "DMX: Register Dimmer Fixture"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             return None
         
     def turnOffAllChannels(self):
@@ -479,13 +479,13 @@ class dmx:
             ise.process = "DMX: Turn Off All Channels"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return
     
     def createNewSceneEvent(self, sceneId):
         try:
-            newSceneEvent = self._context.DMXSceneEvent(
+            newSceneEvent = DMXSceneEvent(
                 name="New Event", 
                 duration=0, 
                 updateDate=datetime.now(), 
@@ -504,7 +504,7 @@ class dmx:
             ise.process = "DMX: Create New Scene Event"
             ise.severity = "2"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return None
         
@@ -513,19 +513,17 @@ class dmx:
             self._dmx.close()
         self._dmx = None
         try:
-            self._dmx : OpenDMXController = OpenDMXController()       
+            self._dmx : OpenDMXController | None = OpenDMXController()       
         except Exception as e:            
             raise
-        
-        self._supervisor.setDependencies(dmx=self)
-        
+ 
         return True
     
     # Getters
     
     def isConnected(self) -> bool:
         try:
-            return (not self._dmx == None) or self.devMode == True
+            return (not self._dmx == None)
         except:
             return False
         
@@ -563,7 +561,7 @@ class dmx:
                             ise.exception_message = str(f"Error mapping fixture DTO for fixture Id: '{registeredFixture.id}': {e}")
                             ise.process = "DMX: Map Fixture DTO"
                             ise.severity = "2"
-                            self._supervisor.logInternalServerError(ise)
+                            logInternalServerError(self.app, self._context, ise)
 
         except Exception as e:
             ise : InternalServerError = InternalServerError()
@@ -573,7 +571,7 @@ class dmx:
             ise.process = "DMX: Get All Fixtures"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             return Fixtures
         
         return Fixtures
@@ -598,7 +596,7 @@ class dmx:
             DMXScenes = []
             
             with self.app.app_context():
-                scenes = self._context.DMXScene.query.all()
+                scenes = self._context.db.session.query(DMXScene).all()
 
                 for scene in scenes:
                     DMXScenes += self.__mapToDMXSceneDTO(scene)
@@ -612,7 +610,7 @@ class dmx:
             ise.process = "DMX: Get All DMX Scenes"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
             return []
         
@@ -633,7 +631,7 @@ class dmx:
             format.message(f"Error getting local IP: {e}", "error")
             return ""
     def getSceneEventById(self, eventId):
-        event = self._context.DMXSceneEvent.query.get(eventId)
+        event = self._context.db.session.query(DMXSceneEvent).get(eventId)
         return self._context.DMXSceneEventDTO(
             id=event.id,
             name=event.name, 
@@ -645,7 +643,7 @@ class dmx:
                     "channel": channel.channel,
                     "value": channel.value
                 }
-                for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                for channel in self._context.db.session.query(DMXSceneEventChannel).filter_by(eventID=event.id).all()
             ]
         )
     # Processing
@@ -662,7 +660,7 @@ class dmx:
                 repeat=scene.repeat,
                 keyboard_keybind=scene.keyboard_keybind,
                 song_keybind=scene.song_id,
-                game_event_keybind=scene.game_event_keybind,
+                game_event_keybind=scene.game_event_id,
                 events=[
                     self._context.DMXSceneEventDTO(
                         id=event.id,
@@ -675,10 +673,10 @@ class dmx:
                                 "channel": channel.channel,
                                 "value": channel.value
                             }
-                            for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                            for channel in self._context.db.session.query(DMXSceneEventChannel).filter_by(eventID=event.id).all()
                         ]
                     )
-                    for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                    for event in self._context.db.session.query(DMXSceneEvent).filter_by(sceneID=scene.id).all()
                 ]
             )
         ]
@@ -708,18 +706,18 @@ class dmx:
                                 "name": value.name,
                                 "icon": value.icon
                             }
-                            for value in self._context.FixtureChannelValue.query.filter_by(channelID=(channel.id if channel != None else 0)).all()
+                            for value in self._context.db.session.query(FixtureChannelValue).filter_by(channelID=(channel.id if channel != None else 0)).all()
                         ]
                     )
-                    for channel in self._context.FixtureChannel.query.filter_by(fixtureID=fixture.id).all()
+                    for channel in self._context.db.session.query(FixtureChannel).filter_by(fixtureID=fixture.id).all()
                 ]
             )
         ]
     
     def __findScene(self, sceneName):
         with self.app.app_context():
-            scene = self._context.DMXScene.query.filter_by(name=sceneName).first()
-            
+            scene = self._context.db.session.query(DMXScene).filter_by(name=sceneName).first()
+
             # Map the results to DMXSceneDTO objects
             DMXScene = self._context.DMXSceneDTO(
                 id=scene.id,
@@ -742,10 +740,10 @@ class dmx:
                                 "channel": channel.channel,
                                 "value": channel.value
                             }
-                            for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                            for channel in self._context.db.session.query(DMXSceneEventChannel).filter_by(eventID=event.id).all()
                         ]
                     )
-                    for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                    for event in self._context.db.session.query(DMXSceneEvent).filter_by(sceneID=scene.id).all()
                 ]
             )
             
@@ -754,7 +752,7 @@ class dmx:
     
     def __findSceneWithId(self, sceneId, return_dto=True):
         with self.app.app_context():
-            scene = self._context.db.session.query(self._context.DMXScene).filter_by(id=sceneId).first()
+            scene = self._context.db.session.query(DMXScene).filter_by(id=sceneId).first()
 
             if not scene:
                 return None
@@ -785,10 +783,10 @@ class dmx:
                                     "channel": channel.channel,
                                     "value": channel.value
                                 }
-                                for channel in self._context.DMXSceneEventChannel.query.filter_by(eventID=event.id).all()
+                                for channel in self._context.db.session.query(DMXSceneEventChannel).filter_by(eventID=event.id).all()
                             ]
                         )
-                        for event in self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all()
+                        for event in self._context.db.session.query(DMXSceneEvent).filter_by(sceneID=scene.id).all()
                     ]
                 )
 
@@ -804,10 +802,7 @@ class dmx:
     def __processJSONDMXScenes(self):
         scenes = []
         
-        if self.devMode == True:
-            folder = os.getcwd() + "\\backend\\data\\DMXScenes\\"
-        else:
-            folder = os.getcwd() + "\\data\\DMXScenes\\"
+        folder = "Data/DMXScenes/"
         
         #format.message(f"Searching for DMX scenes in {folder}", "info")
 
@@ -870,7 +865,7 @@ class dmx:
                                     ise.process = "DMX: Process JSON DMX Scenes"
                                     ise.severity = "2"
                                     
-                                    self._supervisor.logInternalServerError(ise)
+                                    logInternalServerError(self.app, self._context, ise)
                             
                             os.rename(folder + "\\" + filename, f"{folder}\\{filename.strip('.json')}_processed.json")
                             
@@ -882,7 +877,7 @@ class dmx:
                             ise.process = "DMX: Process JSON DMX Scenes"
                             ise.severity = "3"
                             
-                            self._supervisor.logInternalServerError(ise)
+                            logInternalServerError(self.app, self._context, ise)
                 
             return scenes
 
@@ -968,7 +963,7 @@ class dmx:
             ise.process = "DMX: Running Scene"
             ise.severity = "1"
             
-            self._supervisor.logInternalServerError(ise)
+            logInternalServerError(self.app, self._context, ise)
             
     # Config
     

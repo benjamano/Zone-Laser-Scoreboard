@@ -1,6 +1,7 @@
 import socket, psutil
 import os
 from dotenv import load_dotenv
+import socket   
 
 load_dotenv("../../.env")
 
@@ -34,3 +35,15 @@ def get_ip_by_adapter(adapter_name: str) -> str:
         return ""
     except Exception as e:
         raise
+    
+def is_app_already_running() -> bool:
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.connect(("8.8.8.8", 80))
+    localIp = s.getsockname()[0]
+    s.close()
+
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+        if s.connect_ex((localIp, 8080)) == 0:
+            print(f"Port 8080 is already in use on {localIp}")
+            return True
+    return False
