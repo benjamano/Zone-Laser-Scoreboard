@@ -47,7 +47,6 @@ class Container(containers.DeclarativeContainer):
     music_api = providers.Singleton(
         MusicAPIController,
         db_context,
-        secrets,
         app,
         dmx_service,
     )

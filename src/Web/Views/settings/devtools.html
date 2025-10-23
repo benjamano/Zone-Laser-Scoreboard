@@ -4,9 +4,55 @@
 
 <div class="card">
 
-    <div class="card-header">Variable Dump</div>
+    <button class="card-header collapsed" data-bs-toggle="collapse" data-bs-target="#devCommands" aria-expanded="true" aria-controls="devCommands">
+        Dev Commands
+    </button>
 
-    <div class="card-body">
+    <div class="card-body collapse show" id="devCommands">
+
+        <button class="btn btn-primary mb-2" onclick="playBriefing()">Play Briefing Video</button>
+
+        <script>
+            function playBriefing() {
+                socket.emit('playBriefing');
+            }
+        </script>
+
+        <button class="btn btn-primary mb-2" onclick="stopBriefing()">Stop Briefing Video</button>
+
+        <script>
+            function stopBriefing() {
+                socket.emit('stopBriefing');
+            }
+        </script>
+
+        <button class="btn btn-primary mb-2" onclick="startGame()">Start Game</button>
+
+        <script>
+            function startGame() {
+                socket.emit('test_startGame');
+            }
+        </script>
+
+        <button class="btn btn-primary mb-2" onclick="endGame()">End Game</button>
+
+        <script>
+            function endGame() {
+                socket.emit('test_endGame');
+            }
+        </script>
+
+    </div>
+
+</div>
+
+<div class="card">
+
+    <button class="card-header collapsed" data-bs-toggle="collapse" data-bs-target="#variableDump" aria-expanded="false" aria-controls="variableDump">
+        Variable Dump
+    </button>
+
+    <div class="card-body collapse" id="variableDump">
 
         <table class="table table-dark table-striped table-hover">
             <thead>

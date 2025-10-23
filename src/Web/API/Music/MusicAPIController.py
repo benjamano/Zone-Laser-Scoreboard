@@ -13,14 +13,16 @@ from flask import Blueprint, jsonify, request, Flask
 from flask_sqlalchemy import SQLAlchemy
 from pydub import AudioSegment
 from Utilities.InternalServerErrors import logInternalServerError
+from dotenv import load_dotenv
+
+load_dotenv(".env")
 
 MusicBlueprint = Blueprint("music", __name__)
 f = Format("Music")
 
 class MusicAPIController:
-    def __init__(self, context: SQLAlchemy, secrets: dict[str, str], app: Flask, dmx):
+    def __init__(self, context: SQLAlchemy, app: Flask, dmx):
         self._context = context
-        self._secrets = secrets
         self._dmx = dmx
         self._app = app
 
@@ -44,7 +46,7 @@ class MusicAPIController:
         self.isGettingBPM = False
         self.isDownloadingASong = False
         
-        self.setVolume(int(self._secrets["DefaultVolume"] if "DefaultVolume" in self._secrets else 50))
+        self.setVolume(int(os.environ["DefaultVolume"] if "DefaultVolume" in os.environ else 50))
         
     def registerMusicRoutes(self, app):
         @MusicBlueprint.route("/api/music/songs", methods=["GET"])
@@ -67,7 +69,7 @@ class MusicAPIController:
 
         @MusicBlueprint.route("/api/music/songs/<songId>/play", methods=["POST"])
         def playSong(songId):
-            SongToPlay: Song = self._context.session.query(Song).filter(Song.id == songId).first()
+            SongToPlay: Song = self._context.db.session.query(Song).filter(Song.id == songId).first()
 
             self.loadSong(SongToPlay)
             self.play(fadeAudio=False)
@@ -185,7 +187,7 @@ class MusicAPIController:
             if not song:
                 return jsonify({"error": "Song not found"}), 404
             
-            playlistSong = self._context.session.query(PlaylistSong).filter(
+            playlistSong = self._context.db.session.query(PlaylistSong).filter(
                 PlaylistSong.playlistId == playlistId,
                 PlaylistSong.songId == song.id,
                 PlaylistSong.isActive == True
@@ -193,7 +195,7 @@ class MusicAPIController:
             
             if playlistSong:
                 playlistSong.isActive = False
-                self._context.session.commit()
+                self._context.db.session.commit()
                 return jsonify({"message": "Song removed from playlist"}), 200
             
             return jsonify({"error": "Song not found in playlist"}), 404
@@ -217,6 +219,8 @@ class MusicAPIController:
             if self.addSongToPlaylist(song, playlistId):
                 return jsonify({"message": "Song added to playlist"}), 200
             
+            return jsonify({"error": "Failed to add song to playlist"}), 500
+            
         @MusicBlueprint.route("/api/music/getDownloadedSongs", methods=["GET"])
         def getDownloadedSongs(playlistId):
             return jsonify({self.getDownloadedSongs()}), 200
@@ -224,6 +228,8 @@ class MusicAPIController:
         @MusicBlueprint.route("/api/music/removeSongFromQueue", methods=["DELETE"])
         def removeSongFromQueue():
             data = request.json
+            if (not data):
+                return jsonify({"error": "No data provided"}), 400
             songId = data.get("songId")
             if not songId:
                 return jsonify({"error": "Song ID is required"}), 400
@@ -241,11 +247,11 @@ class MusicAPIController:
             for filename in os.listdir(musicDir):
                 if filename.endswith(".mp3") or filename.endswith(".m4a"):
                     song_name = os.path.splitext(filename)[0]
-                    song : Song = self._context.session.query(Song).filter(Song.name == song_name).first()
+                    song : Song = self._context.db.session.query(Song).filter(Song.name == song_name).first()
                     if not song:
                         song = Song(name=song_name, isDownloaded=True)
-                        self._context.session.add(song)
-                        self._context.session.commit()
+                        self._context.db.session.add(song)
+                        self._context.db.session.commit()
                     else:
                         song.isDownloaded = True
                         
@@ -396,7 +402,7 @@ class MusicAPIController:
 
                 self.currentSong = song
                     
-                self._context.session.commit()
+                self._context.db.session.commit()
                 
             media = self.instance.media_new(path)
             self.player.set_media(media)
@@ -468,26 +474,26 @@ class MusicAPIController:
                     else:
                         self.loadPlaylistToQueue(1)
                         self.startQueuePlayback()
+                else:
+                    self.player.play()
 
-                self.player.play()
                 if fadeAudio:
                     self.fadeVolumeTo(100)
-
             try:
-                self._supervisor._dmx.checkForSongTriggers(self.currentSong.id if self.currentSong.id else 0)
+                if self.currentSong:
+                    self._dmx.checkForSongTriggers(self.currentSong.id if self.currentSong.id else 0)
             except Exception as e:
-                if "Prod" in self._secrets["Environment"]:
-                    logInternalServerError(
-                        self._app,
-                        self._context,
-                        ise=InternalServerError(
-                            exception_message=str(e),
-                            timestamp=datetime.now(),
-                            process="Check for DMX song triggers when song changes",
-                            service="Music API",
-                            severity=2
-                        )
+                logInternalServerError(
+                    self._app,
+                    self._context,
+                    ise=InternalServerError(
+                        exception_message=str(e),
+                        timestamp=datetime.now(),
+                        process="Check for DMX song triggers when song changes",
+                        service="Music API",
+                        severity=2
                     )
+                )
 
             return True
         except Exception as e:
@@ -559,20 +565,20 @@ class MusicAPIController:
     def loadPlaylistToQueue(self, playlistId: int) -> bool:
         try:
             with self._app.app_context():
-                playlist = self._context.session.query(PlayList).filter(PlayList.id == playlistId).first()
+                playlist = self._context.db.session.query(PlayList).filter(PlayList.id == playlistId).first()
                 if not playlist:
                     return False
                 
-                playlistSongs = self._context.session.query(PlaylistSong).filter(
+                playlistSongs = self._context.db.session.query(PlaylistSong).filter(
                     PlaylistSong.playlistId == playlistId,
                     PlaylistSong.isActive == True
                 ).order_by(PlaylistSong.songId).all()
 
                 playListSongIds = [song.songId for song in playlistSongs]
-                songs = self._context.session.query(Song).filter(Song.id.in_(playListSongIds)).all()
+                songs = self._context.db.session.query(Song).filter(Song.id.in_(playListSongIds)).all()
                 
-                self._context.session.flush()
-                self._context.session.expunge(playlist)
+                self._context.db.session.flush()
+                self._context.db.session.expunge(playlist)
                 
                 self.currentPlaylist = playlist
             
@@ -588,13 +594,13 @@ class MusicAPIController:
         
     def getPlaylistSongs(self, playListId: int) -> list[Song]:
         try:
-            playlistSongs = self._context.session.query(PlaylistSong).filter(PlaylistSong.playlistId == playListId).filter(PlaylistSong.isActive == True).order_by(PlaylistSong.songId).all()
+            playlistSongs = self._context.db.session.query(PlaylistSong).filter(PlaylistSong.playlistId == playListId).filter(PlaylistSong.isActive == True).order_by(PlaylistSong.songId).all()
             if not playlistSongs:
                 return []
             
             songs = []
             for playlistSong in playlistSongs:
-                song = self._context.session.query(Song).filter(Song.id == playlistSong.songId).first()
+                song = self._context.db.session.query(Song).filter(Song.id == playlistSong.songId).first()
                 if song:
                     songs.append(song)
             return songs
@@ -693,7 +699,7 @@ class MusicAPIController:
             
             with self._app.app_context():
                 songInDB = (
-                    self._context.session
+                    self._context.db.session
                     .query(Song)
                     .filter(Song.id == currentSongId)
                     .first()
@@ -703,9 +709,9 @@ class MusicAPIController:
                     songInDB.album  = album
                     songInDB.artist = artist
 
-                    self._context.session.flush()
-                    self._context.session.expunge(songInDB)
-                    self._context.session.commit()
+                    self._context.db.session.flush()
+                    self._context.db.session.expunge(songInDB)
+                    self._context.db.session.commit()
 
                     # self.currentSong = songInDB
 
@@ -734,7 +740,7 @@ class MusicAPIController:
         
     def getSongs(self) -> list[Song]:
         try:
-            songs = self._context.session.query(Song).all()
+            songs = self._context.db.session.query(Song).all()
             return songs
         except Exception as e:
             logInternalServerError(
@@ -755,7 +761,7 @@ class MusicAPIController:
         try:        
             data = request.json
             
-            existingSong = self._context.session.query(Song).filter(Song.name == data["name"]).first()
+            existingSong = self._context.db.session.query(Song).filter(Song.name == data["name"]).first()
             if existingSong:
                 return existingSong
                 
@@ -764,8 +770,8 @@ class MusicAPIController:
                 youtubeLink = data["songUrl"] if "songUrl" in data else None,
             )
 
-            self._context.session.add(newSong)
-            self._context.session.commit()
+            self._context.db.session.add(newSong)
+            self._context.db.session.commit()
             
             return newSong
         except Exception as e:
@@ -785,7 +791,7 @@ class MusicAPIController:
         
     def getSong(self, songId: int) -> Song:
         try:
-            song = self._context.session.query(Song).filter(Song.id == songId).first()
+            song = self._context.db.session.query(Song).filter(Song.id == songId).first()
             if not song:
                 return None
             
@@ -809,14 +815,14 @@ class MusicAPIController:
         try:
             data = request.json
             
-            song = self._context.session.query(Song).filter(Song.id == songId).first()
+            song = self._context.db.session.query(Song).filter(Song.id == songId).first()
             if not song:
                 return None
             
             if "name" in data:
                 song.name = data["name"]
             
-            self._context.session.commit()
+            self._context.db.session.commit()
             return song
         except Exception as e:
             logInternalServerError(
@@ -835,7 +841,7 @@ class MusicAPIController:
         
     def getPlaylists(self) -> list[PlayList]:
         try:
-            playlists = self._context.session.query(PlayList).all()
+            playlists = self._context.db.session.query(PlayList).all()
             return playlists
         except Exception as e:
             logInternalServerError(
@@ -859,8 +865,8 @@ class MusicAPIController:
             newPlaylist = PlayList(
                 name=data["name"] if "name" in data else "New Playlist",
             )
-            self._context.session.add(newPlaylist)
-            self._context.session.commit()
+            self._context.db.session.add(newPlaylist)
+            self._context.db.session.commit()
             
             return newPlaylist
         except Exception as e:
@@ -880,7 +886,7 @@ class MusicAPIController:
         
     def getPlaylist(self, playlistId: int) -> PlayList:
         try:
-            playlist = self._context.session.query(PlayList).filter(PlayList.id == playlistId).first()
+            playlist = self._context.db.session.query(PlayList).filter(PlayList.id == playlistId).first()
             if not playlist:
                 return None
             
@@ -902,29 +908,29 @@ class MusicAPIController:
         
     def addSongToPlaylist(self, song: Song, playlistId: int) -> bool:
         try:
-            playlist = self._context.session.query(PlayList).filter(PlayList.id == playlistId).first()
+            playlist = self._context.db.session.query(PlayList).filter(PlayList.id == playlistId).first()
             if not playlist:
                 return False
             
-            existingPlaylistSong = self._context.session.query(PlaylistSong).filter(
+            existingPlaylistSong = self._context.db.session.query(PlaylistSong).filter(
                 PlaylistSong.playlistId == playlistId,
                 PlaylistSong.songId == song.id,
             ).first()
             
             if existingPlaylistSong:
                 existingPlaylistSong.isActive = True
-                self._context.session.commit()
+                self._context.db.session.commit()
                 
                 return True
             
             if song not in playlist.songs:
-                self._context.session.add(PlaylistSong(
+                self._context.db.session.add(PlaylistSong(
                     playlistId = playlistId,
                     songId = song.id,
                     isActive = True
                 ))
                 
-                self._context.session.commit()
+                self._context.db.session.commit()
                 
                 return True
             
@@ -949,7 +955,7 @@ class MusicAPIController:
             if songId == self.currentSong.id and self.currentSong.bpm is not None:
                 return self.currentSong.bpm
 
-            foundSong: Song = self._context.session.query(Song).filter(Song.id == songId).first()
+            foundSong: Song = self._context.db.session.query(Song).filter(Song.id == songId).first()
             if not foundSong:
                 return 0
 
@@ -964,10 +970,10 @@ class MusicAPIController:
                 return
 
             with self._app.app_context():
-                SongToDownload: Song = self._context.session.query(Song).filter(Song.isDownloaded == False).first()
+                SongToDownload: Song = self._context.db.session.query(Song).filter(Song.isDownloaded == False).first()
 
                 if SongToDownload == None:
-                    SongToDownload = self._context.session.query(Song).filter(Song.isDownloaded == None).first()
+                    SongToDownload = self._context.db.session.query(Song).filter(Song.isDownloaded == None).first()
 
                 if SongToDownload == None:
                     return
@@ -976,11 +982,11 @@ class MusicAPIController:
 
                 self.MusicDownloader.search_and_download(SongToDownload.name, SongToDownload.album, SongToDownload.artist)
 
-                SongDownloaded: Song = self._context.session.query(Song).filter(Song.id == SongToDownload.id).first()
+                SongDownloaded: Song = self._context.db.session.query(Song).filter(Song.id == SongToDownload.id).first()
 
                 SongDownloaded.isDownloaded = True
 
-                self._context.session.commit()
+                self._context.db.session.commit()
 
                 self.isDownloadingASong = False
         except Exception as e:
@@ -1001,17 +1007,17 @@ class MusicAPIController:
             return
 
         with self._app.app_context():
-            SongToAnalyse: Song = self._context.session.query(Song).filter(Song.bpm == None, Song.isDownloaded == True).first()
+            SongToAnalyse: Song = self._context.db.session.query(Song).filter(Song.bpm == None, Song.isDownloaded == True).first()
 
             if SongToAnalyse == None:
                 return
 
             def bpm_callback(bpm, name):
                 if bpm > 0:
-                    SongToUpdate: Song = self._context.session.query(Song).filter(Song.id == SongToAnalyse.id).first()
+                    SongToUpdate: Song = self._context.db.session.query(Song).filter(Song.id == SongToAnalyse.id).first()
 
                     SongToUpdate.bpm = bpm
-                    self._context.session.commit()
+                    self._context.db.session.commit()
                 else:
                     f.message(f"Failed to calculate BPM for {name}", "error")
 
@@ -1026,7 +1032,7 @@ class MusicAPIController:
         self.IsGettingBPM = True
         try:
             with self._app.app_context():
-                FoundSong = self._context.session.query(Song).filter(Song.id == songId).first()
+                FoundSong = self._context.db.session.query(Song).filter(Song.id == songId).first()
                 if FoundSong is None:
                     return 0
 
@@ -1057,11 +1063,11 @@ class MusicAPIController:
                 if not os.path.exists(songPath):
                     f.message(f"Path doesnt exist for {songPath}", "warning")
                     with self._app.app_context():
-                        SongToUpdate: Song | None = self._context.session.query(Song).filter(Song.id == FoundSong.id).first()
+                        SongToUpdate: Song | None = self._context.db.session.query(Song).filter(Song.id == FoundSong.id).first()
 
                         if SongToUpdate:
                             SongToUpdate.isDownloaded = False
-                            self._context.session.commit()
+                            self._context.db.session.commit()
 
                     return 0
 

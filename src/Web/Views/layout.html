@@ -171,6 +171,16 @@
 								class="fas fa-gear settingsIcon sidebarIcon"></i><span
 								class="sidebarText">Settings</span></a>
 						</li>
+						<li class="nav-item sidebarItem" onclick="window.location.href='/VideoRenderingSystem'" role="button">
+							<a class="nav-link content" href="/VideoRenderingSystem"><i
+								class="fas fa-tv"></i><span
+								class="sidebarText">VRS</span></a>
+						</li>
+						<li class="nav-item sidebarItem" onclick="window.location.href='/devtools'" role="button">
+							<a class="nav-link content" href="/devtools"><i
+								class="fas fa-code"></i><span
+								class="sidebarText">DevTools</span></a>
+						</li>
 					</ul>
 
 					<div class="sidebar-footer link-light" role="button">
@@ -182,8 +192,6 @@
 							<small class="text-decoration-underline">View Release Notes</small>
 						</span>
 					</div>
-
-					{#							<hr>#}
 				</div>
 
 				<script>
@@ -222,9 +230,9 @@
 			{% endif %}
 		
 			<div class="flex-grow-1" style="min-height: 0; overflow-y: auto;">
-				<div class="{% if 'Home' not in PageTitle %}px-0{% endif %} h-100 d-flex flex-column">
+				<main class="{% if 'Home' not in PageTitle %}px-0{% endif %} h-100 d-flex flex-column">
 					{% block content %}{% endblock %}
-				</div>
+				</main>
 			</div>
 		</div>
 	</div>

@@ -47,3 +47,19 @@ def is_app_already_running() -> bool:
             print(f"Port 8080 is already in use on {localIp}")
             return True
     return False
+
+def hexToASCII(hexString):
+    ascii = ""
+
+    for i in range(0, len(hexString), 2):
+
+        part = hexString[i: i + 2]
+
+        ch = chr(int(part, 16))
+
+        ascii += ch
+
+        if ch == "\x00":
+            break
+
+    return ascii

@@ -1,0 +1,74 @@
+{% extends "layout.html" %} {% block content %}
+
+<style>
+    main {
+        font-family: "ModeSeven";
+    }
+</style>
+
+<div class="px-4">
+    <div class="py-2 px-5 text-center">
+        <span style="font-family:'ModeSeven'; font-size:32pt; font-weight:bold;">
+            <span style="font-size:50pt;">V</span>ideo 
+            <span style="font-size:50pt;">R</span>endering 
+            <span style="font-size:50pt;">S</span>ystem
+        </span>
+    </div>
+
+    <div class="card">
+        <div class="card-header">Controls</div>
+        <div class="card-body">
+            <div class="mb-3">
+                <div class="btn-group" role="group" aria-label="View Options">
+                    {% for id, name in view_options.items() %}
+                    <button type="button" class="btn btn-outline-secondary" onclick="switchToView('{{ id }}')">
+                        Switch to {{ name }}
+                    </button>
+                    {% endfor %}
+                </div>
+            </div>
+            Current Scene: <span id="current-scene-text">{{ current_scene }}</span>
+        </div>
+    </div>
+</div>
+
+<script>
+    function switchToView(view) {
+        socket.emit('vrs_switchView', {'view': view});
+    }
+
+    setInterval(function() {
+        socket.emit('vrs_getView', function(response) {
+            if (response) {
+                console.log(response)
+
+                const $sceneSpan = $('#current-scene-text');
+                const oldScene = $sceneSpan.text();
+                
+                if (response !== oldScene) {
+                    $sceneSpan.text(response);
+                    
+                    const $cardBody = $('.card-body');
+                    $cardBody.css('background-color', '#ffff00');
+                    $sceneSpan.css({
+                        'color': '#ffff00',
+                        'font-weight': 'bold',
+                        'transform': 'scale(1.2)',
+                        'transition': 'all 0.3s ease'
+                    });
+                    setTimeout(function() {
+                        $cardBody.css('background-color', '');
+                        $sceneSpan.css({
+                            'color': '',
+                            'font-weight': '',
+                            'transform': 'scale(1)',
+                            'transition': 'all 0.3s ease'
+                        });
+                    }, 600);
+                }
+            }
+        });
+    }, 500);
+</script>
+
+{% endblock %}

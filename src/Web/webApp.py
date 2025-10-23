@@ -17,11 +17,9 @@ import sys
 import threading
 import time
 from datetime import datetime, timedelta
-from multiprocessing import Process
 
 import pyautogui
 import requests
-from dotenv import dotenv_values
 from flask import Flask, render_template, request, jsonify, redirect, g, session
 from flask_socketio import SocketIO, emit
 from scapy.all import sniff
@@ -35,8 +33,6 @@ from Web.API.Emails import EmailsAPIController
 from Web.API.Feedback.feedback import RequestAndFeedbackAPIController
 from Web.API.Initialisation.InitialisationAPIController import InitialisationAPIController
 from Web.API.Music.MusicAPIController import MusicAPIController
-from Web.API.Supervisor import Supervisor
-from Utilities.createApp import createApp
 from Utilities.format import Format
 from Data.models import *
 from Utilities.networkUtils import *
@@ -67,7 +63,7 @@ class WebApp:
         self._iAPI = iAPI
         self._fetcher = bpm_fetcher
         self.secrets = secrets
-        self._VRSProjector = VRSProjector
+        self.__VRSProjector = VRSProjector
 
         # LOAD ENVIRONMENT VARIABLES
         self.ENVIRONMENT = secrets["ENVIRONMENT"]
@@ -87,15 +83,12 @@ class WebApp:
         # INIT ALL OTHER VARIABLES
         self.OBSConnected = False
         self.devMode = self.ENVIRONMENT == "Development"
-        self._localIp = ""
         self.RestartRequested = False
         self.gameStatus = "stopped"  # Either running or stopped
         self.endOfDay = False
         self.currentGameId = 0
         self.GunScores = {}
         self.TeamScores = {}
-        self.DevToolsOTP = ""
-        self.DevToolsRefreshCount = 5
         # END INIT
 
         pyautogui.FAILSAFE = False
@@ -142,6 +135,10 @@ class WebApp:
         self.flaskThread = threading.Thread(target=self.startFlask, args=(flaskIsReady,), daemon=True)
         self.flaskThread.start()
         flaskIsReady.wait()
+        
+        mediaCheckerIsReady = threading.Event()
+        threading.Thread(target=self.mediaStatusChecker, args=(mediaCheckerIsReady,), daemon=True).start()
+        mediaCheckerIsReady.wait()
 
         f.message(f"{f.colourText('Flask Web Server has Started!', 'green')}", type="success")
         f.message(f"Web App hosted on IP " + f.colourText(f"http://{get_local_ip()}:8080", "blue"), type="success")
@@ -149,8 +146,6 @@ class WebApp:
         self.flaskThread.join()
         
     def setupRoutes(self):
-        f.message(f.colourText("Setting up routes...", "Blue"))
-
         # @self.app.errorhandler(404)
         # def not_found():
         #     return render_template("error.html", message="Page not found")
@@ -165,20 +160,6 @@ class WebApp:
                 Environment=self.secrets["ENVIRONMENT"],
                 IsLoggedIn=checkLoginStatus()
             )
-
-        # @self.app.before_request
-        # def beforeRequest():
-        # 	self.checkLoginStatus()
-        #
-        # 	# if "/static/" not in request.full_path and "/api/" not in request.full_path and request.method.upper() == "GET":
-        # 	#     isInitialisedControl : SystemControls = self._context.db.session.query(SystemControls).filter(SystemControls.name == "isInitialised").first()
-        # 	#     isInitialised : bool = isInitialisedControl != None and isInitialisedControl.value == "1"
-        # 	#
-        # 	#     if isInitialised != True and "init/onboarding" not in request.base_url and "static" not in request.base_url and "/sendmessage" not in request.base_url and "/api" not in request.base_url:
-        # 	#         # f.message("System not initialised, redirecting to initialisation page", type="error")
-        # 	#         return redirect("/init/onboarding")
-        #
-        # 	return None
 
         @self.app.errorhandler(HTTPException)
         def handle_exception(e):
@@ -205,8 +186,6 @@ class WebApp:
         @self.app.route('/')
         def index():
             try:
-                self.DevToolsOTP = ""
-
                 g.PageTitle = "Home"
 
                 return render_template('index.html')
@@ -243,56 +222,50 @@ class WebApp:
                 return jsonify({"error": str(e)}), 500
 
         @self.app.route("/schedule")
-        def scehdule():
-            self.DevToolsOTP = ""
-
+        def schedule():
             g.PageTitle = "Schedule"
 
             return render_template("schedule.html")
 
         @self.app.route("/settings")
         def settings():
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Settings"
 
-            return render_template("settings/settings.html")
+            return render_template("Settings/settings.html")
 
-        @self.app.route("/settings/devtools/")
-        def settings_devtools():
-            otp = request.args.get("code")
-
-            if (
-                    otp is None or otp == "" or otp != self.DevToolsOTP or self.DevToolsRefreshCount <= 0) and self.devMode == False:
-                self.DevToolsOTP = ""
-                return render_template("error.html", message="Access Denied")
-
-            self.DevToolsRefreshCount -= 1
-
+        @self.app.route("/devtools")
+        def devtools():
             g.PageTitle = "Dev Tools"
 
             variables = {}
 
             for k, v in vars(self).items():
-                if not k.startswith('__'):
-                    variables[k] = v
+                try:
+                    if not k.startswith('__') and not "__" in k:
+                        variables[k] = v
 
-                    if hasattr(v, '__dict__'):
-                        try:
-                            obj_vars = vars(v)
-                            for ok, ov in obj_vars.items():
-                                if not ok.startswith('__'):
-                                    variables[f"{k}.{ok}"] = ov
-                        except:
-                            pass
+                        if hasattr(v, '__dict__'):
+                            try:
+                                obj_vars = vars(v)
+                                for ok, ov in obj_vars.items():
+                                    if not ok.startswith('__'):
+                                        variables[f"{k}.{ok}"] = ov
+                            except:
+                                pass
+                except:
+                    pass
 
-            return render_template("settings/devtools.html", variables=variables)
+            return render_template("Settings/devtools.html", variables=variables)
+        
+        @self.app.route("/VideoRenderingSystem")
+        def VideoRenderingSystem():
+            g.PageTitle = "Video Rendering System"
+
+            return render_template("vrs/vrs.html", current_scene=self.__VRSProjector.get_current_view(), view_options = self.__VRSProjector.get_views())
 
         @self.app.route("/editScene")
         def editScene():
             # Accessed by /EditScene?Id=[sceneId]
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Lighting Control"
 
             sceneId = request.args.get('Id')
@@ -316,36 +289,26 @@ class WebApp:
 
         @self.app.route("/text")
         def neonText():
-            self.DevToolsOTP = ""
-
             return render_template("neonFlicker.html")
 
         @self.app.route("/status")
         def status():
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Status"
 
             return render_template("status.html")
 
         @self.app.route("/experimental")
         def experimental():
-            self.DevToolsOTP = ""
-
             return redirect("/")
 
         @self.app.route("/feedback")
         def feedback():
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Leave Feedback"
 
             return render_template("Feedback/leaveFeedback.html")
         
         @self.app.route("/dynamicRendering/gameResults")
         def dynamicRendering_gameResults():
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Game Results"
 
             return render_template("DynamicRendering/gameResults.html")
@@ -475,16 +438,12 @@ class WebApp:
 
         @self.app.route("/statistics")
         def statistics():
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Statistics"
 
             return render_template("statistics.html")
 
         @self.app.route("/managerTools")
         def managerTools():
-            self.DevToolsOTP = ""
-
             g.PageTitle = "Manager Tools"
 
             return render_template("ManagerTools/managerTools.html")
@@ -1541,7 +1500,36 @@ class WebApp:
 
         @self.socketio.on('playBriefing')
         def playBriefing():
-            self._VRSProjector.play_video("src/VRS/media/Briefing.mp4")
+            self.__VRSProjector.play_video("src/VRS/media/Briefing.mp4")
+            
+        @self.socketio.on('stopBriefing')
+        def stopBriefing():
+            self.__VRSProjector.show_idle()
+            
+        @self.socketio.on('test_startGame')
+        def test_startGame():
+            self.gameStarted()
+            
+            for i in range(120, 110, -2):
+                self.timingPacket(["0", "0", "0", f"{str(i)}"])
+                self.finalScorePacket(["0", "1", "0", str(random.randint(1, 200)), "0", "0", "0", str(random.randint(1, 100))])
+                self.teamScorePacket(["0", "0", str(random.randint(1, 100))])
+                self.teamScorePacket(["0", "2", str(random.randint(1, 100))])
+                self.finalScorePacket(["0", "3", "0", str(random.randint(1, 200)), "0", "0", "0", str(random.randint(1, 100))])
+                self.finalScorePacket(["0", "7", "0", str(random.randint(1, 200)), "0", "0", "0", str(random.randint(1, 100))])
+                time.sleep(2)
+                
+        @self.socketio.on('test_endGame')
+        def test_endGame():
+            self.gameEnded()
+            
+        @self.socketio.on('vrs_switchView')
+        def vrs_switchView(data):
+            self.__VRSProjector.switch_view_to_index(int(data.get("view", 0)))
+            
+        @self.socketio.on('vrs_getView')
+        def vrs_getView():
+            return self.__VRSProjector.get_current_view()
 
         @self.socketio.on("setVolume")
         def setVolume(msg):
@@ -1575,6 +1563,8 @@ class WebApp:
                 ise.severity = "1"
 
                 logInternalServerError(self.app, self._context, ise)
+                
+                return jsonify({"error": f"Failed to send socket message: {e}"}), 500
 
     # -----------------| Background Tasks |-------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
@@ -1586,49 +1576,6 @@ class WebApp:
         except Exception as e:
             f.message(f"Error while sniffing: {e}", type="error")
             return
-
-    # async def getPlayingStatus(self):
-    #     try:
-    #         sessions = await wmc.GlobalSystemMediaTransportControlsSessionManager.request_async()
-    #     except Exception as e:
-    #         f.message(f"Error getting session manager: {e}", type="error")
-    #         raise
-
-    #     try:
-    #         current_session = sessions.get_current_session()
-    #     except Exception as e:
-    #         f.message(f"Error getting current session: {e}", type="error")
-    #         raise
-
-    #     if not current_session:
-    #         return "paused", 0, 0
-
-    #     try:
-    #         playback_info = current_session.get_playback_info()
-    #     except Exception as e:
-    #         f.message(f"Error getting playback info: {e}", type="error")
-    #         raise
-
-    #     try:
-    #         timeline_properties = current_session.get_timeline_properties()
-    #     except Exception as e:
-    #         f.message(f"Error getting timeline properties: {e}", type="error")
-    #         raise
-
-    #     try:
-    #         status = "playing" if playback_info.playback_status == wmc.GlobalSystemMediaTransportControlsSessionPlaybackStatus.PLAYING else "paused"
-    #     except Exception as e:
-    #         f.message(f"Error getting playback status: {e}", type="error")
-    #         raise
-
-    #     try:
-    #         currentPosition = timeline_properties.position.total_seconds()
-    #         totalDuration = timeline_properties.end_time.total_seconds()
-    #     except Exception as e:
-    #         f.message(f"Error getting timeline properties: {e}", type="error")
-    #         raise
-
-    #     return status, currentPosition, totalDuration
 
     def handleMusic(self, mode):
         match mode.lower():
@@ -1653,7 +1600,7 @@ class WebApp:
 
         f.message(f"Restarting App due to {reason}", type="error")
 
-        response = requests.post(f'http://{self._localIp}:8080/sendMessage',
+        response = requests.post(f'http://{get_local_ip()}:8080/sendMessage',
             data={'message': "Restarting Web App Now!", 'type': "createWarning"})
 
         # Make sure all the end of game processing completes
@@ -1662,155 +1609,6 @@ class WebApp:
         f.message("Restarting App", type="warning")
 
         os._exit(1)
-
-    # def handleBPM(self, song, album, bpm=0):
-    #     #f.message(f"Get Here with {song}, {bpm}, {album}")
-    #     try:
-    #         if (self.rateLimit == True and ((random.randint(1, 50)) == 10)) or self.rateLimit == False:
-
-    #             if song == None or bpm == None or bpm == "Song not found":
-    #                 match song:
-    #                     #This makes me want to die
-    #                     #Implemented because these are local songs used specifically in the Arena, and aren't on spotify.
-    #                     case "Main Theme":
-    #                         bpm = "69"
-    #                     case "Loon Skirmish":
-    #                         bpm = "80"
-    #                     case "Crainy Yum (Medium)":
-    #                         bpm = "80"
-    #                     case "Crainy Yum":
-    #                         bpm = "80"
-    #                     case "Thing Of It Is":
-    #                         bpm = "87"
-    #                     case "Bug Zap":
-    #                         bpm = "87"
-    #                     case "Bug Zap (Medium)":
-    #                         bpm = "87"
-    #                     case "Only Partially Blown Up (Medium)":
-    #                         bpm = "87"
-    #                     case "Only Partially Blown Up":
-    #                         bpm = "87"
-    #                     case "Baron von Bats":
-    #                         bpm = "87"
-    #                     case "Treasure Yeti":
-    #                         bpm = "86"
-    #                     case "Normal Wave (A) (Medium)":
-    #                         bpm = "86"
-    #                     case "Normal Wave A":
-    #                         bpm = "86"
-    #                     case "Normal Wave B":
-    #                         bpm = "87"
-    #                     case "Normal Wave (C) (High)":
-    #                         bpm = "87"
-    #                     case "Special Wave A":
-    #                         bpm = "87"
-    #                     case "Special Wave B":
-    #                         bpm = "101"
-    #                     case "Challenge Wave B":
-    #                         bpm = "101"
-    #                     case "Challenge Wave C":
-    #                         bpm = "101"
-    #                     case "Boss Wave (A)":
-    #                         bpm = "93"
-    #                     case "Boss Wave (B)":
-    #                         bpm = "98"
-    #                     case "The Gnomes Cometh (B)":
-    #                         bpm = "90"
-    #                     case "The Gnomes Cometh (C)":
-    #                         bpm = "86"
-    #                     case "Gnome King":
-    #                         bpm = "95"
-    #                     case "D Boss Is Here":
-    #                         bpm = "90"
-    #                     case "Excessively Bossy":
-    #                         bpm = "93"
-    #                     case "One Bad Boss":
-    #                         bpm = "84"
-    #                     case "Zombie Horde":
-    #                         bpm = "84"
-    #                     case "Marching Madness":
-    #                         bpm = "58"
-    #                     case "March Of The Brain Munchers":
-    #                         bpm = "58"
-    #                     case "SUBURBINATION!!!":
-    #                         bpm = "86"
-    #                     case "Splattack!":
-    #                         bpm = "88"
-    #                     case "Science Blaster":
-    #                         bpm = "92"
-    #                     case "Undertow":
-    #                         bpm = "88"
-    #                     case _:
-    #                         bpm = "60"
-
-    #             #f.message(f"Current song: {song}, BPM: {bpm}")
-
-    #             response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{str(round(int(bpm)))}", 'type': "songBPM"})
-
-    #             self.rateLimit = False
-
-    #     except Exception as e:
-    #         if "max retries, reason: too many 429 error responses" in e.lower():
-    #             self.rateLimit = True
-    #             return
-    #         else:
-    #             f.message(f"Error occured while handling BPM: {e}", type="warning")
-
-    # def findBPM(self):
-    #     try:
-    #         try:
-    #             self._fetcher.fetch()
-    #             song, bpm, album = self._fetcher.get_current_song_and_bpm()
-
-    #             if type(bpm) == str:
-    #                 bpm = 0
-
-    #             self.handleBPM(song, album, bpm)
-    #         except Exception as e:
-    #             f.message(f"Error fetching BPM: {e}", type="error")
-
-    #         temp_spotifyStatus, currentPosition, totalDuration = asyncio.run(self.getPlayingStatus())
-
-    #         if temp_spotifyStatus != self.spotifyStatus:
-    #             self.spotifyStatus = temp_spotifyStatus
-
-    #             try:
-    #                 response = requests.post(
-    #                     f'http://{self._localIp}:8080/sendMessage',
-    #                     data={'message': self.spotifyStatus, 'type': "musicStatus"}
-    #                 )
-    #                 if response.status_code != 200:
-    #                     raise Exception(f"Failed to send status: {response.text}")
-    #             except Exception as e:
-    #                 f.message(f"Error sending Spotify status: {e}", type="error")
-
-    #     except Exception as e:
-    #         f.message(f"Failed to find BPM: {e}", type="error")
-
-    def runAsyncioInSta(self, coro):
-        result_container = {}
-        exc_container = {}
-
-        def runner():
-            asyncio.set_event_loop(asyncio.new_event_loop())
-            loop = asyncio.get_event_loop()
-
-            try:
-                result_container['result'] = loop.run_until_complete(coro)
-            except Exception as e:
-                exc_container['exception'] = e
-            finally:
-                loop.close()
-
-        thread = threading.Thread(target=runner)
-        thread.daemon = True
-        thread.start()
-        thread.join()
-
-        if 'exception' in exc_container:
-            raise exc_container['exception']
-
-        return result_container['result']
 
     def sendSongDetails(self, songDetails):
         self.socketio.emit('songAlbum', {'message': songDetails.album})
@@ -1844,80 +1642,6 @@ class WebApp:
             except Exception as e:
                 f.message(f"Error fetching current song details: {e}", type="error")
 
-        # try:
-        #     song, album, bpm = self._fetcher.get_current_song_and_bpm()
-
-        #     if (previousSong != song):
-        #         previousSong = song
-
-        #
-
-        #         self._dmx.checkForSongTriggers(song)
-
-        #     # self.handleBPM(song)
-
-        # except Exception as e:
-        #     pass
-
-        # try:
-        #     temp_spotifyStatus, currentPosition, totalDuration = self.runAsyncioInSta(self.getPlayingStatus())
-
-        #     if temp_spotifyStatus != self.spotifyStatus:
-        #         self.spotifyStatus = temp_spotifyStatus
-
-        #     try:
-        #         # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{self.spotifyStatus}", 'type': "musicStatus"})
-
-        #
-
-        #         # response = requests.post(
-        #         #     f"http://{self._localIp}:8080/sendMessage",
-        #         #     json={
-        #         #         "message": {
-        #         #             "playbackStatus": self.spotifyStatus,
-        #         #             "musicPosition": currentPosition,
-        #         #             "duration": totalDuration
-        #         #         },
-        #         #         "type": "musicStatusV2"
-        #         #     }
-        #         # )
-        #     except Exception as e:
-        #         f.message(f"Error sending music status message: {e}.", type="error")
-
-        #     # if currentPosition and totalDuration:
-        #     #     try:
-        #     #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{currentPosition}", 'type': "musicPosition"})
-        #     #         response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"{totalDuration}", 'type': "musicDuration"})
-        #     #     except Exception as e:
-        #     #         f.message(f"Error sending music status message, app probably hasn't started. {e}.", type="error")
-
-        # except Exception as e:
-        #     f.message(f"Error occured while checking media status: {e}", type="error")
-
-        #     if str(e) != "an integer is required":
-
-        #         f.message("Requesting app restart", type="warning")
-
-        #         # response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.", 'type': "createWarning"})
-
-        #         self.RestartRequested = True
-
-        #         with self.app.app_context():
-        #             self._context.db.session.add(RestartRequest(
-        #                 created_by_service_name = "WebApp - Media Status Checker",
-        #                 reason = f"RESTART PC - RESTART PC - Failed to check for media status: {str(e)}",,
-        #             ))
-
-        #             self._context.db.session.commit()
-
-        #         # Just makes sure to pause this process, so it doesn't keep logging the same error
-        #         time.sleep(1800)
-
-        #     else:
-        #         f.message("Error not fatal, don't care", type="warning")
-
-        #         time.sleep(3)
-
     # -----------------| Packet Handling |-------------------------------------------------------------------------------------------------------------------------------------------------------- #
 
     def packetCallback(self, packet):
@@ -1930,7 +1654,7 @@ class WebApp:
                 packet_data = bytes(packet['Raw']).hex()
                 # f.message(f"Packet Data (hex): {packet_data}, {type(packet_data)}")
 
-                decodedData = (self.hexToASCII(hexString=packet_data)).split(',')
+                decodedData = (hexToASCII(hexString=packet_data)).split(',')
                 # f.message(f"Decoded Data: {decodedData}")
 
                 with self.app.app_context():
@@ -1967,13 +1691,13 @@ class WebApp:
 
         if packetData[1] == "@015":
             self.gameStarted()
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage',
+            response = requests.post(f'http://{get_local_ip()}:8080/sendMessage',
                 data={'message': f"Game Started @ {str(datetime.now())}", 'type': "start"})
         # f.message(f"Response: {response.text}")
 
         elif packetData[1] == "@014":
             self.gameEnded()
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage',
+            response = requests.post(f'http://{get_local_ip()}:8080/sendMessage',
                 data={'message': f"Game Ended @ {str(datetime.now())}", 'type': "end"})
         # f.message(f"Response: {response.text}")
 
@@ -1994,7 +1718,7 @@ class WebApp:
 
             f.message(f"Game Mode Changed to {newGameMode} with time {newTime} and sound mode {newSoundMode}")
 
-        response = requests.post(f'http://{self._localIp}:8080/sendMessage',
+        response = requests.post(f'http://{get_local_ip()}:8080/sendMessage',
             data={'message': f"{packetData[0]}", 'type': "gameMode"})
 
 
@@ -2026,7 +1750,7 @@ class WebApp:
         else:
             self.gameStarted()
             self.endOfDay = False
-            response = requests.post(f'http://{self._localIp}:8080/sendMessage',
+            response = requests.post(f'http://{get_local_ip()}:8080/sendMessage',
                 data={'message': f"{timeLeft}", 'type': "timeRemaining"})
 
 
@@ -2041,7 +1765,7 @@ class WebApp:
 
         try:
             with self.app.app_context():
-                gunName: str = self._context.Gun.query.filter_by(id=gunId).first().name
+                gunName: str = self._context.db.session.query(Gun).filter_by(id=gunId).first().name
 
         except Exception as e:
             f.message(f"Error getting gun name: {e}", type="error")
@@ -2124,7 +1848,7 @@ class WebApp:
         self.TeamScores = {}
         self.endOfDay = False
 
-        self._VRSProjector.play_video(int(os.getenv("PREFERRED_SCOREBOARD_CAPTURE_DEVICE_INDEX", 0)))
+        self.__VRSProjector.play_video(int(os.getenv("PREFERRED_SCOREBOARD_CAPTURE_DEVICE_INDEX", 0)))
 
     def gameEnded(self):
         if self.gameStatus == "stopped":
@@ -2155,7 +1879,7 @@ class WebApp:
                 
                 with self.app.app_context():
                     for gunId, score in self.GunScores.items():
-                        gamePlayer: GamePlayer = self._context.GamePlayer.query.filter_by(
+                        gamePlayer: GamePlayer = self._context.db.session.query(GamePlayer).filter_by(
                             gameId=self.currentGameId).filter_by(gunId=gunId).first()
 
                         if gamePlayer != None:
@@ -2213,23 +1937,23 @@ class WebApp:
             teamScore = winningTeam[1]
             
             try:
-                self._VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mainText=Game%20Over!")
+                self.__VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mainText=Game%20Over!")
 
                 time.sleep(7)
 
-                self._VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mode=team&teamName={teamName}%20Team&teamColor={teamName.lower()}&score={teamScore}")
-
-                time.sleep(7)
-                
-                self._VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mode=player&playerName={winningGunName}&score={gunScore}")
+                self.__VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mode=team&teamName={teamName}%20Team&teamColor={teamName.lower()}&score={teamScore}")
 
                 time.sleep(7)
                 
-                self._VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mainText=Please%20Return%20to%20the%20Starting%20Area")
+                self.__VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mode=player&playerName={winningGunName}&score={gunScore}")
+
+                time.sleep(7)
+                
+                self.__VRSProjector.show_page(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mainText=Please%20Return%20to%20the%20Starting%20Area")
                 
                 time.sleep(20)
 
-                self._VRSProjector.play_video(int(os.getenv("PREFERRED_SCOREBOARD_CAPTURE_DEVICE_INDEX", 0)))
+                self.__VRSProjector.play_video(int(os.getenv("PREFERRED_SCOREBOARD_CAPTURE_DEVICE_INDEX", 0)))
 
                 return True
             except Exception as e:
@@ -2243,59 +1967,3 @@ class WebApp:
                 logInternalServerError(self.app, self._context, ise)
                 
                 return False
-    # -------------------------------------------------------------------------| Testing |----------------------------------------------------------------------------------------------------------------------------------- #
-
-    def sendTestPacket(self, type="server"):
-        f.message(f"Sending {type} packet")
-        match type.lower():
-            case "server":
-                with self.app.app_context():
-                    self._context.db.session.add(RestartRequest(
-                        created_by_service_name="WebApp - Test Packet",
-                        reason=f"Test packet generated by server at {str(datetime.now())}."
-                    ))
-
-                    self._context.db.session.commit()
-
-                self.RestartRequested = True
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage', data={
-                    'message': f"WARNING: A critical error has occured! Background service will restart at the end of this game.",
-                    'type': "createWarning"})
-
-                response = requests.post(f'http://{self._localIp}:8080/sendMessage',
-                    data={'message': "Test Packet", 'type': "server"})
-                f.message(f"Response: {response.text}")
-            case "start":
-                self.gameStarted()
-            case "end":
-                self.gameEnded()
-            case "gunscore":
-                for i in range(120, 110, -2):
-                    self.timingPacket([0, 0, 0, i])
-                    self.finalScorePacket([0, 1, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
-                    self.teamScorePacket([0, 0, random.randint(1, 100)])
-                    self.teamScorePacket([0, 2, random.randint(1, 100)])
-                    self.finalScorePacket([0, 3, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
-                    self.finalScorePacket([0, 7, 0, random.randint(1, 200), 0, 0, 0, random.randint(1, 100)])
-                    time.sleep(2)
-            case "play":
-                self._mAPI.loadSong("05 Bug Zap")
-                self._mAPI.play()
-
-    # -----------------| Utlities |-------------------------------------------------------------------------------------------------------------------------------------------------------- #
-
-    def hexToASCII(self, hexString):
-        ascii = ""
-
-        for i in range(0, len(hexString), 2):
-
-            part = hexString[i: i + 2]
-
-            ch = chr(int(part, 16))
-
-            ascii += ch
-
-            if ch == "\x00":
-                break
-
-        return ascii
