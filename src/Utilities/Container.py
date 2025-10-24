@@ -28,6 +28,10 @@ class Container(containers.DeclarativeContainer):
     app = providers.Callable(lambda x: x[0], app_and_context)
     socketio = providers.Callable(lambda x: x[1], app_and_context)
     db_context = providers.Callable(lambda x: x[2], app_and_context)
+    
+    vrs_projector_factory = providers.Factory(
+        VRSProjector,
+    )
 
     dmx_service = providers.Singleton(
         dmx,
@@ -75,8 +79,4 @@ class Container(containers.DeclarativeContainer):
         socket=socketio,
         app=app,
         mApi=music_api,
-    )
-    
-    vrs_projector_factory = providers.Factory(
-        VRSProjector,
     )

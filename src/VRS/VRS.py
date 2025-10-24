@@ -31,7 +31,7 @@ def start_vrs_projector_thread(vrs_projector_factory, monitor_index=None):
     
     threading.Thread(target=run, daemon=True).start()
     
-    vrs_container['ready'].wait(timeout=10)
+    vrs_container['ready'].wait(timeout=30)
     return vrs_container['instance']
 
 class VRSProjector(QMainWindow):
