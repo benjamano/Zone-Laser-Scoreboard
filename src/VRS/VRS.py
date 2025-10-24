@@ -75,6 +75,10 @@ class VRSProjector(QMainWindow):
 
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
+        
+        # Set background to pure black
+        self.setStyleSheet("background-color: rgb(0, 0, 0);")
+        self.stacked_widget.setStyleSheet("background-color: rgb(0, 0, 0);")
 
         # Web view setup (index 0)
         self.web_view = QWebEngineView()
@@ -93,6 +97,8 @@ class VRSProjector(QMainWindow):
         # Camera capture setup (index 2)
         self.camera_label = QLabel()
         self.camera_label.setAlignment(CoreQt.AlignmentFlag.AlignCenter)
+        self.camera_label.setStyleSheet("background-color: rgb(0, 0, 0);")
+        self.camera_label.setScaledContents(True)  # Enable scaling to fill the label
         self.cap = None
         self.camera_timer = QTimer()
         self.camera_timer.timeout.connect(self.update_camera_frame)
@@ -261,7 +267,13 @@ class VRSProjector(QMainWindow):
         bytes_per_line = ch * w
         from PySide6.QtGui import QImage, QPixmap
         qt_image = QImage(frame.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-        self.camera_label.setPixmap(QPixmap.fromImage(qt_image))
+        # Scale pixmap to fill the entire label (screen) while maintaining aspect ratio
+        scaled_pixmap = QPixmap.fromImage(qt_image).scaled(
+            self.camera_label.size(), 
+            CoreQt.AspectRatioMode.KeepAspectRatio,
+            CoreQt.TransformationMode.SmoothTransformation
+        )
+        self.camera_label.setPixmap(scaled_pixmap)
         
     @Slot(int)
     def _switch_view_slot(self, index: int):
