@@ -10,7 +10,7 @@ load_dotenv("../.env")
 
 # Import functions from networkinterfaces.py
 try:
-    import utils.networkUtils as net
+    import Utilities.networkUtils as net
 except ImportError as e:
     print(f"Failed to import networkinterfaces: {e}")
     input("Press Enter to exit")
