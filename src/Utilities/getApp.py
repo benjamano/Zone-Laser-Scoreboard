@@ -1,12 +1,12 @@
 """
 
-cd backend
+cd src
 
-python -m flask --app API.getApp db migrate -m "Initial DB Creation"
+python -m flask --app Utilities.getApp db migrate -m "Initial DB Creation"
 
-python -m flask --app API.getApp db upgrade 
+python -m flask --app Utilities.getApp db upgrade 
 
-python -m flask --app API.getApp db migrate 
+python -m flask --app Utilities.getApp db migrate 
 
 """
 
@@ -19,9 +19,7 @@ from alembic import command
 import os
 
 def runMigrations():
-    BasePath = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
-
-    base_dir = os.path.abspath(os.path.join(BasePath, "Data", "migrations"))
+    base_dir = "Data/migrations"
     alembic_cfg = Config(os.path.join(base_dir, 'alembic.ini'))
     
     command.upgrade(alembic_cfg, 'head')
