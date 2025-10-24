@@ -204,3 +204,5 @@ update.bat
 .idea/*
 /.vscode/*
 Data/music/
+src/runActivityChecker.bat
+src/runPython.bat
