@@ -34,8 +34,7 @@ def createApp(appOnly = False):
     app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{databasePath}"
     
     db.init_app(app)
-    Migrate(app, db)
-    
+    Migrate(app, db, directory=os.path.join(BasePath, "Data", "migrations"))
     if appOnly:
         return app
     
