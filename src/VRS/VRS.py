@@ -77,7 +77,7 @@ class VRSProjector(QMainWindow):
         self.setCentralWidget(self.stacked_widget)
         
         # Set background to pure black
-        self.setStyleSheet("background-color: rgb(0, 0, 0);")
+        self.setStyleSheet("background-color: rgb(0, 0, 0); color: white;")
         self.stacked_widget.setStyleSheet("background-color: rgb(0, 0, 0);")
 
         # Web view setup (index 0)
