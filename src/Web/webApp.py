@@ -233,7 +233,7 @@ class WebApp:
 
             return render_template("Settings/settings.html")
 
-        @self.app.route("/devtools")
+        @self.app.route("/devtools/")
         def devtools():
             g.PageTitle = "Dev Tools"
 
@@ -1525,11 +1525,13 @@ class WebApp:
             
         @self.socketio.on('vrs_switchView')
         def vrs_switchView(data):
-            self.__VRSProjector.switch_view_to_index(int(data.get("view", 0)))
+            if self.__VRSProjector is not None:
+                self.__VRSProjector.switch_view_to_index(int(data.get("view", 0)))
             
         @self.socketio.on('vrs_getView')
         def vrs_getView():
-            return self.__VRSProjector.get_current_view()
+            if self.__VRSProjector is not None:
+                return self.__VRSProjector.get_current_view()
 
         @self.socketio.on("setVolume")
         def setVolume(msg):
