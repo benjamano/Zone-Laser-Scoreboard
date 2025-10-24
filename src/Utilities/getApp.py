@@ -19,7 +19,7 @@ from alembic import command
 import os
 
 def runMigrations():
-    base_dir = "Data/migrations"
-    alembic_cfg = Config(os.path.join(base_dir, 'alembic.ini'))
+    base_dir = "Data/migrations/alembic.ini"
+    alembic_cfg = Config(base_dir)
     
     command.upgrade(alembic_cfg, 'head')
