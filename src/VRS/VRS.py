@@ -72,7 +72,8 @@ class VRSProjector(QMainWindow):
             self.showFullScreen()
             # self.setWindowFlags(CoreQt.WindowType.FramelessWindowHint)
             self.setGeometry(monitor.x, monitor.y, monitor.width, monitor.height)
-
+            self.showFullScreen()
+            
         self.stacked_widget = QStackedWidget()
         self.setCentralWidget(self.stacked_widget)
         
