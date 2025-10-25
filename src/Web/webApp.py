@@ -1799,8 +1799,8 @@ class WebApp:
 
         try:
             with self.app.app_context():
-                shotGunName: str = self._context.Gun.query.filter_by(id=shotGunId).first().name
-                shooterGunName: str = self._context.Gun.query.filter_by(id=shooterGunId).first().name
+                shotGunName: str = self._context.db.session.query(Gun).filter_by(id=shotGunId).first().name
+                shooterGunName: str = self._context.db.session.query(Gun).filter_by(id=shooterGunId).first().name
 
         except Exception as e:
             f.message(f"Error getting gun names: {e}", type="error")
