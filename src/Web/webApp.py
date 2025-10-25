@@ -136,6 +136,10 @@ class WebApp:
         self.flaskThread.start()
         flaskIsReady.wait()
         
+        sniffingIsReady = threading.Event()
+        threading.Thread(target=self.startSniffing, args=(sniffingIsReady,), daemon=True).start()
+        sniffingIsReady.wait()
+        
         mediaCheckerIsReady = threading.Event()
         threading.Thread(target=self.mediaStatusChecker, args=(mediaCheckerIsReady,), daemon=True).start()
         mediaCheckerIsReady.wait()
