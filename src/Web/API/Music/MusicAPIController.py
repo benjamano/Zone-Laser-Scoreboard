@@ -980,11 +980,12 @@ class MusicAPIController:
 
                 self.isDownloadingASong = True
 
-                self.MusicDownloader.search_and_download(SongToDownload.name, SongToDownload.album, SongToDownload.artist)
+                downloadedSong = self.MusicDownloader.search_and_download(SongToDownload.name, SongToDownload.album, SongToDownload.artist)
 
                 SongDownloaded: Song = self._context.db.session.query(Song).filter(Song.id == SongToDownload.id).first()
 
                 SongDownloaded.isDownloaded = True
+                SongDownloaded.name = str(downloadedSong).split("\\")[3].split(".mp3")[0].split(".m4a")[0]
 
                 self._context.db.session.commit()
 
@@ -1059,6 +1060,8 @@ class MusicAPIController:
                 start = time.time()
 
                 songPath = f"src/Data/music/{FoundSong.name}.mp3"
+                
+                # path = os.getcwd()
 
                 if not os.path.exists(songPath):
                     f.message(f"Path doesnt exist for {songPath}", "warning")

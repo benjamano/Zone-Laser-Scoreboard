@@ -238,10 +238,10 @@ class VRSProjector(QMainWindow):
         if self.cap is None:
             self.cap = cv2.VideoCapture(self.default_camera_index)
             if not self.cap.isOpened():
-                print(f"Warning: Could not pre-load camera {self.default_camera_index}")
+                f.message(f"Warning: Could not pre-load camera {self.default_camera_index}", type="error")
                 self.cap = None
             else:
-                print(f"Camera {self.default_camera_index} pre-loaded successfully")
+                f.message(f"Camera {self.default_camera_index} pre-loaded successfully")
     
     def show_idle(self):
         """Thread-safe method to show idle screen"""

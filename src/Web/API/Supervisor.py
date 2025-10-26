@@ -25,32 +25,27 @@ if TYPE_CHECKING:
     from src.Web.webApp import WebApp as _webApp 
 
 class Supervisor:
-    def __init__(self, obs, dmx, context, socket, app, mApi):  
+    def __init__(self, dmx, context, socket, app, mApi):  
         f.message(f.colourText("Starting Supervisor", "green"), type="info")
               
-        self._obs = obs
         self._dmx = dmx
         self._context = context
         self._socket = socket
         self._app = app
         self._mApi = mApi
         self.devMode = False
-        self._services = ["db", "obs", "dmx", "api"] # Should add MUSIC as an option here
+        self._services = ["db", "dmx", "api"] # Should add MUSIC as an option here
         self.expectedProcesses = ["obs64"]
-        self._dir = os.path.dirname(os.path.dirname(os.path.realpath(__file__)))
 
         f.message(f.colourText(f"Supervisor Started! Starting Background Processes...", "green"), type="info")
         
         threading.Thread(target=self.__checkForErrors, daemon=True).start() 
         threading.Thread(target=self.__processResourceUtilisation, daemon=True).start()
-        threading.Thread(target=self.setOtherDependencies, daemon=True).start()
 
-    def setDependencies(self, obs: "_OBS" = None, dmx: "_dmx" = None, db: "_context" = None, webApp: "_webApp" = None,
+    def setDependencies(self, dmx: "_dmx | None" = None, db: "_context | None" = None, webApp: "_webApp | None" = None,
             socket=None, mApi=None):
-        if obs is not None:
-            self._obs: "_OBS" = obs
         if dmx is not None:
-            self._dmx : "_dmx" = dmx
+            self._dmx: "_dmx | None" = dmx
         if db is not None:
             self._context: "_context" = db
         if webApp is not None:
@@ -62,98 +57,47 @@ class Supervisor:
             self._socket: SocketIO = socket
         if mApi is not None:
             self._mApi = mApi
-            
-    def setOtherDependencies(self):
-        while self._context == None:
-            _time.sleep(0.5)
-        
-        f.message(f.colourText(f"Setting dependencies...", "Green"), type="info")
-        try:
-            # TODO: NEED TO SET ALL OTHER DEPENDENCIES TO THE NEW DEPENDENCIES
-            self._context.setSupervisor(self)
-            f.message(f.colourText(f"Dependancies Reset!", "Green"), type="info")
-        except Exception as e:
-            f.message(f"Error occurred while resetting dependencies: {e}", type="error")
-        
-    def getDir(self) -> str:
-        return self._dir
         
     def __processResourceUtilisation(self):
         while True:
             try:
-                if (self._webApp != None):
-                    cpuUsage = psutil.cpu_percent(interval=1)
+                cpuUsage = psutil.cpu_percent(interval=1)
 
-                    ram = psutil.virtual_memory()
-                    ramUsagePercent = ram.percent
-                    ramUsageValue = ram.used / (1024 ** 3) 
-                    
-                    gpuUsage = 0
-                    try:
-                        gpus = GPUtil.getGPUs()
-                        if gpus:
-                            gpuUsage = gpus[0].load * 100
-                    except:
-                        pass
+                ram = psutil.virtual_memory()
+                ramUsagePercent = ram.percent
+                ramUsageValue = ram.used / (1024 ** 3) 
+                
+                gpuUsage = 0
+                try:
+                    gpus = GPUtil.getGPUs()
+                    if gpus:
+                        gpuUsage = gpus[0].load * 100
+                except:
+                    pass
 
-                    self._socket.emit(
-                        'resourceUtilisation',
-                        {
-                            "message": {
-                                "ramPercentage": ramUsagePercent,
-                                "ramValue": ramUsageValue,
-                                "gpu": gpuUsage,
-                                "cpu": cpuUsage
-                            }
+                self._socket.emit(
+                    'resourceUtilisation',
+                    {
+                        "message": {
+                            "ramPercentage": ramUsagePercent,
+                            "ramValue": ramUsageValue,
+                            "gpu": gpuUsage,
+                            "cpu": cpuUsage
                         }
-                    )
+                    }
+                )
 
                 _time.sleep(5)
                 
             except Exception as e:
                 f.message(f"Error getting resource utilization: {e}", type="error")
                 return None
-            
-    def __focusWindow(self, title):
-        try:
-            pythoncom.CoInitialize()
-            shell = win32com.client.Dispatch("WScript.Shell")
-            hwnd = win32gui.FindWindow(None, title)
-
-            if hwnd:
-                win32gui.ShowWindow(hwnd, win32con.SW_RESTORE)
-                shell.SendKeys('%')
-                win32gui.SetForegroundWindow(hwnd)
-            else:
-                pass
-        except Exception as e:
-            f.message(f"Error focusing window: {e}", type="error")
-            return None
 
     def __checkForErrors(self):
         while True:
-            self.__focusWindow("Zone Laser Scoreboard")
-            
             _time.sleep(30)
 
             if self.devMode == False:
-                try:
-                    # Check if all expected processes are running
-                    for processName in self.expectedProcesses:
-                        try:
-                            processFound : bool = self.__checkIfProcessRunning(processName)
-                            if not processFound:
-                                try:
-                                    f.message(f"Process {processName} not found, starting it..", type="warning")
-                                    if processName.lower() == "obs64":
-                                        self.__resetOBSConnection()
-                                except Exception as e:
-                                    f.message(f"Error starting process {processName}: {e}", type="error")
-                        except Exception as e:  
-                            f.message(f"Error occurred while checking for expected processes: {e}", type="error")
-                except Exception as e:
-                    f.message(f"Error occurred while checking for expected processes: {e}", type="error")
-                
                 try:
                     # Check Database Connection
                     if self._context != None and self.hasSevereErrorOccurred("db"):
@@ -161,15 +105,7 @@ class Supervisor:
                         threading.Thread(target=self.__resetDatabaseConnection(), daemon=True).start()
                 except Exception as e:
                     f.message(f"Error occured while checking Database status: {e}", type="error")
-                    
-                try:
-                    # Check OBS Connection
-                    if self._obs != None and (self.hasSevereErrorOccurred("obs") or self._obs.isConnected() == False):
-                        f.message("OBS Connection Error", type="error")
-                        threading.Thread(target=self.__resetOBSConnection(), daemon=True).start()
-                except Exception as e:
-                    f.message(f"Error occured while checking OBS status: {e}", type="error")
-                    
+
                 try:
                     # Check DMX Connection
                     if self._dmx != None and self.hasSevereErrorOccurred("dmx"):
@@ -178,30 +114,6 @@ class Supervisor:
                 except Exception as e:
                     f.message(f"Error occured while checking DMX status: {e}", type="error")
                     
-            try:
-                if self._obs != None and self._obs.isConnected() == True:
-                    self._obs.openProjector()
-                    
-                    if (self._obs.getCurrentScene()).lower() != "video":
-                        # Check the time to enter sleep mode
-                        with self._app.app_context():
-                            foundGame : Game = (self._context.db.session
-                                .query(Game)
-                                .order_by(Game.startTime.desc())
-                                .first())
-                            
-                            if foundGame != None and foundGame.endTime != None:
-                                startTime = datetime.fromisoformat(foundGame.startTime) if isinstance(foundGame.startTime, str) else foundGame.startTime
-                                timeToCheck = datetime.now() + timedelta(minutes=-30)
-                                currentTime = datetime.now().time()
-                                if startTime < timeToCheck and self._obs is not None and (currentTime < time(11, 0) or currentTime > time(17, 0)):
-                                    # f.message(f"Found game with end time: {foundGame.endTime}, time to check is {timeToCheck} setting OBS output to sleep mode.")
-                                    self._obs.switchScene("Test Mode")
-                                
-            except Exception as e:
-                pass
-                f.message(f"Error occurred while switching to sleep mode: {e}", type="warning")
-                
             now = datetime.now().time()
                 
             if self.devMode == False:
@@ -220,13 +132,6 @@ class Supervisor:
                 f.message(f"Error occurred while looking for songs to get a BPM for: {e}", type="error")
 
             self._mApi.lookForSongsToDownload()
-
-            # try:
-            #     p = Popen("/update.bat", cwd=self._dir)
-            #     f.message(p)
-
-            # except Exception as e:
-            #     f.message(f"Error occurred while trying to pull changes from github: {e}", type="error")
             
     def hasSevereErrorOccurred(self, service: str) -> bool:
         try:
@@ -280,12 +185,6 @@ class Supervisor:
     def __resetDatabaseConnection(self):
         self.__closeApp("Database Connection Error")
         
-    def __resetOBSConnection(self):
-        self._obs.resetConnection()
-        
-    def resetDMXConnection(self):
-        self._dmx.resetConnection()
-        
     def __restartPC(self, reason: str):
         f.message(f"Restarting PC. Reason {reason}", type="error")
         os.system("shutdown /r /f /t 0")
@@ -318,23 +217,12 @@ class Supervisor:
         
         return None
         
-    def __checkIfProcessRunning(self, processName):
-        for proc in psutil.process_iter():
-            try:
-                if processName.lower() in proc.name().lower():
-                    return True
-            except (psutil.NoSuchProcess, psutil.AccessDenied, psutil.ZombieProcess):
-                pass
-            
-        return False
-        
     def getServiceHealth(self, serviceName: str):
         try:
             if self._context != None:
                 notSetup = (
                     (serviceName.lower() == "dmx" and (self._dmx is None or self._dmx.isConnected() is False)) or 
-                    (serviceName.lower() == "db" and self._context is None) or
-                    (serviceName.lower() == "obs" and (self._obs is None or self._obs.isConnected() is False))
+                    (serviceName.lower() == "db" and self._context is None)
                 )
                 
                 severeErrorOccured : bool = self.hasSevereErrorOccurred(str(serviceName).lower())

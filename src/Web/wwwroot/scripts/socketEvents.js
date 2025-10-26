@@ -244,7 +244,7 @@ socket.on("songName", function (msg) {
 
 		} else if (msg.message !== previousSongName) {
 			$("#currentPlayingSongForTrigger").val(msg.message.name.split(" - ")[1] + " - " + msg.message.name.split(" - ")[0]);
-			$(".playingSongTextValue").text(msg.message.name);
+			$(".playingSongTextValue").text(msg.message.name.split(".mp3")[0]);
 			$("#setThisSongAsBindButton").show();
 
 			$(".songListRow ").addClass("bg-transparent").removeClass("bg-success");
@@ -390,7 +390,7 @@ socket.on("musicQueue", function (queue) {
 							<u><strong>${songName}</strong></u>
 						</p>	
 						<p class="mb-1 text-truncate w-100 fs-7">
-							${(songArtist != "" && songArtist != null ? songArtist + " - " + songAlbum : songAlbum)}
+							${(songArtist != "" && songArtist != null ? songArtist + " - " + songAlbum : songAlbum != "" && songAlbum != null ? songAlbum : "Unknown Album")}
 						</p>
 						${(formattedDuration ? `<p class="mb-1 fs-7">(${formattedDuration})</p>` : "")}
 					</div>

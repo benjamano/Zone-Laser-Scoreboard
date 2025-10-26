@@ -1,14 +1,14 @@
 {% extends "layout.html" %} {% block content %}
-	<div class="d-flex flex-column" style="height: 94.7vh;">
-		<div class="row flex-grow-1" style="min-height: 0;">
-			<div class="col-9">
+	<div class="d-flex flex-column" style="height: 96.7vh;">
+		<div class="row flex-grow-1 g-0" style="min-height: 0;">
+			<div class="col-9 pe-0">
 				<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
 					<ul class="navbar-nav p-0 nav nav-tabs w-100">
 						<div id="tabContainer" class="d-flex"></div>
 					</ul>
 				</nav>
-				<div style="height: calc(100vh - 140px); overflow-y: auto;">
-					<table class="table table-dark table-hover w-100 table-borderless bg-transparent">
+				<div class="pb-2" style="height: 77vh; overflow-y: scroll;">
+					<table class="table table-dark table-hover w-100 table-borderless text-opacity-75 text-light">
 						<thead class="sticky-top">
 						<tr>
 							<th class="col-5 bg-dark">Title</th>
@@ -22,14 +22,14 @@
 					</table>
 				</div>
 			</div>
-			<div class="col-3">
+			<div class="col-3 ps-0">
 				<div class="d-flex flex-column align-items-center justify-content-start py-4 px-4 bg-dark h-100">
 					<div class="d-flex flex-column align-items-start gap-3 w-100 px-2">
 						<div class="albumContainer col-12">
-							<img src="" style="width: 100%; border-radius: 3%;" alt="Album Cover">
+							<img src="" style="width: 100%; border-radius: 3%;" alt="">
 						</div>
 						<div>
-							<p style="line-height: 30px;" class="playingSongTextValue fs-3 fw-bold m-0"></p>
+							<p style="line-height: 30px;" class="text-muted playingSongTextValue fs-3 fw-bold m-0"></p>
 							<p class="playingSongAlbumText fs-5 fw-light text-muted"></p>
 						</div>
 					</div>
@@ -53,10 +53,10 @@
 				<div class="col-3">
 					<div class="d-flex align-items-center">
 						<div class="albumContainer me-3">
-							<img src="" style="width: 60px; border-radius: 3%;" alt="Album Cover">
+							<img src="" style="width: 60px; border-radius: 3%;" alt="">
 						</div>
 						<div>
-							<div class="text-white fw-semibold playingSongTextValue">Song Title</div>
+							<div class="text-muted fw-semibold playingSongTextValue">Song Title</div>
 							<div class="text-muted small playingSongAlbumText">Artist Name</div>
 						</div>
 					</div>
@@ -121,10 +121,13 @@
 			let newRows = "";
 
 			songList.forEach(function(song) {
+				const maxLength = 50;
+				const truncate = (str, max) => str && str.length > max ? str.substring(0, max) + '...' : (str || '');
+				
 				newRows += "<tr id='songRow_" + song.id + "' data-playlist-id='" + song.playlistId + "' data-song-id='" + song.id + "' class='bg-transparent songListRow' role='button' onclick='selectSong(this)'>";
-				newRows += "<td>" + song.name + "</td>";
-				newRows += "<td>" + (song.artist === null ? "" : song.artist) + "</td>";
-				newRows += "<td>" + (song.album === null ? "" : song.album) + "</td>";
+				newRows += "<td>" + truncate(song.name, maxLength) + "</td>";
+				newRows += "<td>" + truncate(song.artist, 25) + "</td>";
+				newRows += "<td>" + truncate(song.album, 25) + "</td>";
 				newRows += "<td>" + Math.round(song.duration / 60) + ":" + String(Math.round(song.duration % 60)).padStart(2, "0") + "</td>";
 				newRows += "<td>" + Math.round(song.bpm) + "</td>";
 				newRows += "</tr>";

@@ -19,6 +19,7 @@ async def start():
     
     container.music_api_routes.init()
     container.init_api_routes.init()
+    container.supervisor.init() 
 
     from VRS.VRS import start_vrs_projector_thread
     

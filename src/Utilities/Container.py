@@ -72,7 +72,7 @@ class Container(containers.DeclarativeContainer):
     
     bpm_fetcher = providers.Singleton(MediaBPMFetcher)
     
-    supervisor = providers.Singleton(
+    supervisor = providers.Resource(
         Supervisor,
         dmx=dmx_service,
         context=db_context,
@@ -80,3 +80,5 @@ class Container(containers.DeclarativeContainer):
         app=app,
         mApi=music_api,
     )
+    
+    

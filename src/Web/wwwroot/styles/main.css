@@ -585,6 +585,15 @@ html {
     background-color: var(--TBSHover);
 }
 
+.table-hover tbody tr:hover {
+    background-color: var(--TBSHover) !important;
+}
+
+.text-opacity-75 td,th {
+    --bs-text-opacity: 0.75 !important;
+    color: rgba(var(--bs-light-rgb),var(--bs-text-opacity)) !important;
+}
+
 /* main {
     margin-left: 12vw;
     transition: margin-left 0.3s ease;
