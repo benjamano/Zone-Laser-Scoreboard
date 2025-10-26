@@ -19,15 +19,35 @@ os.environ["QT_LOGGING_RULES"] = "*.debug=false;qt.multimedia.ffmpeg.debug=false
 
 load_dotenv()
 
-def start_vrs_projector_thread(vrs_projector_factory, monitor_index=None):
-    """Start VRS projector in its own thread and return the instance."""
-    vrs_container = {'instance': None, 'ready': threading.Event()}
+def start_vrs_projector_thread(vrs_projector_factory):
+    """Start VRS projector in its own thread and return the instances.
+    
+    Args:
+        vrs_projector_factory: Factory function to create VRSProjector
+        monitor_index: Monitor index for the main VRS window
+        static_web_monitor_index: Monitor index for the static web window (optional)
+    
+    Returns:
+        dict: {'vrs': VRSProjector instance, 'static_web': StaticWebWindow instance or None}
+    """
+    vrs_container = {
+        'vrs': None, 
+        'static_web': None,
+        'ready': threading.Event()
+    }
     
     def run():
         import sys
         app = QApplication(sys.argv)
-        vrs_instance = vrs_projector_factory(monitor_index)
-        vrs_container['instance'] = vrs_instance
+        
+        vrs_instance = vrs_projector_factory()
+        vrs_container['vrs'] = vrs_instance
+        
+        # Create static web window if monitor index provided
+        static_web_instance = StaticWebWindow()
+        vrs_container['static_web'] = static_web_instance
+        static_web_instance.show()
+    
         vrs_container['ready'].set()
         vrs_instance.show()
         app.exec()
@@ -35,18 +55,69 @@ def start_vrs_projector_thread(vrs_projector_factory, monitor_index=None):
     threading.Thread(target=run, daemon=True).start()
     
     vrs_container['ready'].wait(timeout=30)
-    return vrs_container['instance']
+    return vrs_container
+
+class StaticWebWindow(QMainWindow):
+    """A static window that always displays a web page."""
+    load_url_signal = Signal(str) 
+    
+    def __init__(self):
+        super().__init__()
+        
+        monitor_index = int(os.getenv("STATIC_WEB_MONITOR_INDEX", 0))
+        
+        self.load_url_signal.connect(self._load_url_slot)
+        
+        monitors = screeninfo.get_monitors()
+        
+        f.message(f"Static Web Window - Using monitor index: {monitor_index}")
+        monitor = monitors[monitor_index]
+        
+        if os.environ.get("USE_VRS") == "False":
+            self.setGeometry(
+                monitor.x + int(monitor.width / 4),
+                monitor.y + int(monitor.height / 4),
+                int(monitor.width / 2),
+                int(monitor.height / 2)
+            )
+        else:
+            self.setWindowFlags(CoreQt.WindowType.FramelessWindowHint)
+            self.setGeometry(monitor.x, monitor.y, monitor.width, monitor.height)
+            self.showFullScreen()
+        
+        self.setStyleSheet("background-color: rgb(0, 0, 0); color: white;")
+        
+        self.web_view = QWebEngineView()
+        self.web_view.setPage(NoDialogWebPage(self.web_view))
+        
+        initial_url = os.getenv("STATIC_WEB_URL", f"http://{get_local_ip()}:8080/")
+        f.message(f"Static Web Window loading: {initial_url}")
+        self.web_view.load(initial_url)
+        
+        self.setCentralWidget(self.web_view)
+        
+        self.setWindowTitle("VRS - Static Web Display")
+    
+    def load_url(self, url: str):
+        """Thread-safe method to load a new URL"""
+        self.load_url_signal.emit(url)
+    
+    @Slot(str)
+    def _load_url_slot(self, url: str):
+        """Slot to load URL (runs in Qt main thread)"""
+        f.message(f"Static Web Window loading new URL: {url}")
+        self.web_view.load(url)
 
 class VRSProjector(QMainWindow):
     show_idle_signal = Signal()
     play_video_signal = Signal(object)
     show_page_signal = Signal(str)
     switch_view_signal = Signal(int)
-    set_volume_signal = Signal(int)  # Signal to set volume (0 to 100)
-    get_volume_signal = Signal()  # Signal to request current volume
-    volume_response_signal = Signal(int)  # Signal to respond with current volume (0 to 100)
+    set_volume_signal = Signal(int)
+    get_volume_signal = Signal()
+    volume_response_signal = Signal(int)
     
-    def __init__(self, monitor_index=None):
+    def __init__(self):
         self.scenes = {
             0: "Web View",
             1: "Video Playback",
@@ -54,8 +125,8 @@ class VRSProjector(QMainWindow):
             3: "Idle Screen"
         }
         
-        if monitor_index is None:
-            monitor_index = int(os.getenv("PREFERRED_MONITOR_INDEX", 1))
+        monitor_index = int(os.getenv("PREFERRED_MONITOR_INDEX", 1))
+        
         super().__init__()
 
         self._volume = int(os.getenv("VRS_PREFERRED_VOLUME", 50))

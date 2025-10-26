@@ -3,7 +3,11 @@ from Utilities.Container import Container
 from Utilities.networkUtils import is_app_already_running
 from Utilities.checkDependencies import VerifyDependencies
 from Web.webApp import WebApp
+from Utilities.format import Format
 import ctypes
+import os
+
+f = Format("Startup")
 
 async def start():
     if is_app_already_running():
@@ -17,7 +21,23 @@ async def start():
     container.init_api_routes.init()
 
     from VRS.VRS import start_vrs_projector_thread
-    vrs_instance = start_vrs_projector_thread(container.vrs_projector_factory)
+    
+    static_web_monitor = os.getenv("STATIC_WEB_MONITOR_INDEX")
+    
+    if static_web_monitor is not None and static_web_monitor.strip():
+        # Start VRS with both windows
+        vrs_container = start_vrs_projector_thread(
+            container.vrs_projector_factory,
+        )
+        vrs_instance = vrs_container['vrs']
+        static_web_instance = vrs_container['static_web']
+        f.message(f"VRS started with static web window on monitor {static_web_monitor}", "success")
+    else:
+        # Start VRS with only main window (backward compatible)
+        vrs_container = start_vrs_projector_thread(container.vrs_projector_factory)
+        vrs_instance = vrs_container['vrs']
+        static_web_instance = None
+        f.message("VRS started with main window only", "warning")
 
     webApp = WebApp(
         container.app(),
