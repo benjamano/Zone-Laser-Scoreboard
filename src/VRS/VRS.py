@@ -6,11 +6,14 @@ from PySide6.QtWebEngineCore import QWebEnginePage
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtCore import Qt as CoreQt, QTimer, Signal, Slot
 from PySide6.QtGui import QFont
+from Utilities.format import Format
 import screeninfo
 import os
 from dotenv import load_dotenv
 from Utilities.networkUtils import *
 import cv2
+
+f = Format("VRS")
 
 os.environ["QT_LOGGING_RULES"] = "*.debug=false;qt.multimedia.ffmpeg.debug=false"
 
@@ -39,6 +42,9 @@ class VRSProjector(QMainWindow):
     play_video_signal = Signal(object)
     show_page_signal = Signal(str)
     switch_view_signal = Signal(int)
+    set_volume_signal = Signal(int)  # Signal to set volume (0 to 100)
+    get_volume_signal = Signal()  # Signal to request current volume
+    volume_response_signal = Signal(int)  # Signal to respond with current volume (0 to 100)
     
     def __init__(self, monitor_index=None):
         self.scenes = {
@@ -51,14 +57,24 @@ class VRSProjector(QMainWindow):
         if monitor_index is None:
             monitor_index = int(os.getenv("PREFERRED_MONITOR_INDEX", 1))
         super().__init__()
-        
+
+        self._volume = int(os.getenv("VRS_PREFERRED_VOLUME", 50))
+
         self.show_idle_signal.connect(self._show_idle_slot)
         self.play_video_signal.connect(self._play_video_slot)
         self.show_page_signal.connect(self._show_page_slot)
         self.switch_view_signal.connect(self._switch_view_slot)
+        self.set_volume_signal.connect(self._set_volume_slot)
 
-        monitor = screeninfo.get_monitors()[monitor_index]
+        monitors = screeninfo.get_monitors()
+
+        f.message(f"Available monitors:")
+        for i, monitor in enumerate(monitors):
+            f.message(f"Monitor {i}: {monitor.name} - Primary: {monitor.is_primary}")
         
+        f.message(f"Using monitor index: {monitor_index}")
+        monitor = monitors[monitor_index]
+
         if os.environ["USE_VRS"] == "False":
             self.setWindowState(self.windowState() & ~CoreQt.WindowState.WindowFullScreen | CoreQt.WindowState.WindowNoState)
             self.showMinimized()
@@ -91,6 +107,7 @@ class VRSProjector(QMainWindow):
         self.video_widget = QVideoWidget()
         self.player = QMediaPlayer()
         self.audio_output = QAudioOutput()
+        self.audio_output.setVolume(self._volume / 100.0) 
         self.player.setAudioOutput(self.audio_output)
         self.player.setVideoOutput(self.video_widget)
         self.stacked_widget.addWidget(self.video_widget)
@@ -99,13 +116,13 @@ class VRSProjector(QMainWindow):
         self.camera_label = QLabel()
         self.camera_label.setAlignment(CoreQt.AlignmentFlag.AlignCenter)
         self.camera_label.setStyleSheet("background-color: rgb(0, 0, 0);")
-        self.camera_label.setScaledContents(True)  # Enable scaling to fill the label
+        self.camera_label.setScaledContents(True)
         self.cap = None
         self.camera_timer = QTimer()
         self.camera_timer.timeout.connect(self.update_camera_frame)
         self.stacked_widget.addWidget(self.camera_label)
         
-        # Pre-load default camera at startup to eliminate delay when switching
+        # Pre-load default camera at startup to remove the delay when switching
         self.default_camera_index = int(os.getenv("PREFERRED_SCOREBOARD_CAPTURE_DEVICE_INDEX", 0))
         self._preload_camera()
 
@@ -155,7 +172,6 @@ class VRSProjector(QMainWindow):
             else:
                 print(f"Camera {self.default_camera_index} pre-loaded successfully")
     
-    # Public methods that can be called from other threads
     def show_idle(self):
         """Thread-safe method to show idle screen"""
         self.show_idle_signal.emit()
@@ -172,16 +188,21 @@ class VRSProjector(QMainWindow):
         """Thread-safe method to switch view by index"""
         self.switch_view_signal.emit(index)
     
-    # Slot methods that execute in the Qt main thread
+    def set_volume(self, volume: int):
+        """Thread-safe method to set volume (0 to 100)"""
+        self.set_volume_signal.emit(volume)
+    
+    @Slot(int)
+    def _set_volume_slot(self, volume: int):
+        """Slot to set volume (runs in Qt main thread)"""
+        volume = max(0, min(100, volume))
+        self._volume = volume
+        self.audio_output.setVolume(volume / 100.0)
+    
     @Slot()
     def _show_idle_slot(self):
-        # Stop camera timer if running
         if self.camera_timer.isActive():
             self.camera_timer.stop()
-            
-        # Keep camera pre-loaded for instant switching (don't release it)
-        # Only release if it's not the default camera
-        # This maintains the pre-loaded state for fast switching
 
         if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             self.player.stop()
@@ -198,9 +219,7 @@ class VRSProjector(QMainWindow):
         if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             self.player.stop()
 
-        # Handle new source
         if isinstance(source, int):
-            # Check if we need to switch to a different camera
             if source != self.default_camera_index:
                 # Release current camera and open the requested one
                 if self.cap:
@@ -219,7 +238,6 @@ class VRSProjector(QMainWindow):
                         print(f"Cannot open camera {source}")
                         return
 
-            # Switch to camera view
             self.stacked_widget.setCurrentIndex(self.VIEW_CAMERA)
             # Start timer to update camera frames at ~30 FPS
             self.camera_timer.start(33)
@@ -244,18 +262,15 @@ class VRSProjector(QMainWindow):
 
     @Slot(str)
     def _show_page_slot(self, url):
-        # Stop camera timer if running
         if self.camera_timer.isActive():
             self.camera_timer.stop()
             
-        # Keep camera pre-loaded for instant switching (don't release it)
-
         if self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             self.player.stop()
 
-        # Switch to web view
-        self.stacked_widget.setCurrentIndex(self.VIEW_WEB)
         self.web_view.load(url)
+        
+        QTimer.singleShot(200, lambda: self.stacked_widget.setCurrentIndex(self.VIEW_WEB))
 
     def update_camera_frame(self):
         if not self.cap:
@@ -268,7 +283,6 @@ class VRSProjector(QMainWindow):
         bytes_per_line = ch * w
         from PySide6.QtGui import QImage, QPixmap
         qt_image = QImage(frame.data, w, h, bytes_per_line, QImage.Format.Format_RGB888)
-        # Scale pixmap to fill the entire label (screen) while maintaining aspect ratio
         scaled_pixmap = QPixmap.fromImage(qt_image).scaled(
             self.camera_label.size(), 
             CoreQt.AspectRatioMode.KeepAspectRatio,
@@ -279,15 +293,12 @@ class VRSProjector(QMainWindow):
     @Slot(int)
     def _switch_view_slot(self, index: int):
         """Slot to switch view (runs in Qt main thread)"""
-        # Stop camera timer if switching away from camera
         if self.stacked_widget.currentIndex() == self.VIEW_CAMERA and self.camera_timer.isActive():
             self.camera_timer.stop()
             
-        # Stop video if switching away from video
         if self.stacked_widget.currentIndex() == self.VIEW_VIDEO and self.player.playbackState() == QMediaPlayer.PlaybackState.PlayingState:
             self.player.stop()
         
-        # Load default content based on view type
         if index == self.VIEW_WEB:
             # Load default web page
             self.web_view.load(f"http://{get_local_ip()}:8080/dynamicRendering/gameResults?mainText=TEST MODE")
@@ -319,14 +330,15 @@ class VRSProjector(QMainWindow):
             # Unknown index, just switch
             self.stacked_widget.setCurrentIndex(index)
             
-    
-    
     def get_current_view(self) -> str:
         return self.scenes[self.stacked_widget.currentIndex()]
     
     def get_views(self) -> dict[int, str]:
         return self.scenes
-
+    
+    def get_volume(self) -> int:
+        return int(self._volume)
+    
 class NoDialogWebPage(QWebEnginePage):
     def javaScriptConsoleMessage(self, level, msg, line, source):
         print(f"[JS Console] {msg} ({source}:{line})")

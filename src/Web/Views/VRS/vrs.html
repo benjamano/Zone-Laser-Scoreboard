@@ -28,9 +28,14 @@
                 </div>
             </div>
             Current Scene: <span id="current-scene-text">{{ current_scene }}</span>
-        </div>
-    </div>
-</div>
+
+            <div class="mt-4">
+                <label for="volumeRange" class="form-label">Volume: <span id="volumeValue">0</span>%</label>
+                <input type="range" class="form-range" min="0" max="100" id="volumeRange" value="0" 
+                       oninput="document.getElementById('volumeValue').innerText = this.value; socket.emit('vrs_set_volume', {'volume': this.value});">
+               </div>
+           </div>
+       </div>
 
 <script>
     function switchToView(view) {
@@ -40,7 +45,6 @@
     setInterval(function() {
         socket.emit('vrs_getView', function(response) {
             if (response) {
-                console.log(response)
 
                 const $sceneSpan = $('#current-scene-text');
                 const oldScene = $sceneSpan.text();
@@ -66,6 +70,13 @@
                         });
                     }, 600);
                 }
+            }
+        });
+
+        socket.emit('vrs_get_volume', function(response) {
+            if (response !== undefined) {
+                $('#volumeRange').val(response);
+                $('#volumeValue').text(response);
             }
         });
     }, 500);

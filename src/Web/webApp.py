@@ -1536,6 +1536,16 @@ class WebApp:
         def vrs_getView():
             if self.__VRSProjector is not None:
                 return self.__VRSProjector.get_current_view()
+            
+        @self.socketio.on('vrs_get_volume')
+        def vrs_get_volume():
+            if self.__VRSProjector is not None:
+                return self.__VRSProjector.get_volume()
+            
+        @self.socketio.on('vrs_set_volume')
+        def vrs_set_volume(data):
+            if self.__VRSProjector is not None:
+                self.__VRSProjector.set_volume(int(data.get("volume", 0)))
 
         @self.socketio.on("setVolume")
         def setVolume(msg):

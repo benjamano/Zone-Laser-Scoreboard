@@ -324,11 +324,11 @@
             createLaserBeams() {
                 setInterval(() => {
                     this.shootLaser();
-                }, 800 + Math.random() * 1200);
+                }, 800 + Math.random() * 3500);
 
                 // Initial burst of lasers
                 setTimeout(() => {
-                    for(let i = 0; i < 5; i++) {
+                    for(let i = 0; i < 3; i++) {
                         setTimeout(() => this.shootLaser(), i * 200);
                     }
                 }, 500);
@@ -340,7 +340,7 @@
                 
                 laser.className = `laser-beam laser-${color}`;
                 laser.style.top = Math.random() * 80 + 10 + '%';
-                laser.style.transform = `rotate(${(Math.random() - 0.5) * 20}deg)`;
+                // laser.style.transform = `rotate(${(Math.random() - 0.5) * 20}deg)`;
                 
                 document.querySelector('.game-screen').appendChild(laser);
 
