@@ -998,7 +998,7 @@ label {
     grid-template-columns: repeat(auto-fill, minmax(125px, 1fr));
     grid-template-rows: repeat(auto-fill, minmax(125px, 1fr));
     gap: 0px;
-    border: 2px solid black;
+    border: none;
     position: relative;
 }
 
