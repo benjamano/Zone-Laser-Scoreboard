@@ -15,9 +15,10 @@ import cv2
 
 f = Format("VRS")
 
-os.environ["QT_LOGGING_RULES"] = "*.debug=false;qt.multimedia.ffmpeg.debug=false"
-
 load_dotenv()
+
+os.environ["QT_LOGGING_RULES"] = "*.debug=false;qt.multimedia.ffmpeg.debug=false"
+os.environ["QTWEBENGINE_CHROMIUM_FLAGS"] = "--enable-gpu-rasterization --enable-zero-copy --ignore-gpu-blocklist"
 
 def start_vrs_projector_thread(vrs_projector_factory):
     """Start VRS projector in its own thread and return the instances.
@@ -52,9 +53,9 @@ def start_vrs_projector_thread(vrs_projector_factory):
         vrs_instance.show()
         app.exec()
     
-    threading.Thread(target=run, daemon=True).start()
-    
     f.message("Waiting for VRS projector to be ready...", type="info")
+    
+    threading.Thread(target=run, daemon=True).start()
     
     vrs_container['ready'].wait(timeout=120)
     return vrs_container
@@ -113,6 +114,9 @@ class StaticWebWindow(QMainWindow):
 class VRSProjector(QMainWindow):
     def _set_highest_camera_resolution(self, cap):
         """Try to set the camera to the highest supported resolution."""
+        
+        f.message("Setting camera to highest supported resolution...", type="info")
+        
         common_resolutions = [
             (1920, 1080), 
             (1280, 720),  
