@@ -1,0 +1,344 @@
+{% extends "layout.html" %} {% block content %}
+
+<div class="container-fluid vh-100 d-flex flex-column p-4">
+    <!-- <h1 class="text-center mb-4 display-4">🎯 Random Name Picker</h1> -->
+    
+    <div class="row flex-grow-1 g-4">
+        <!-- Left Panel - Name Input -->
+        <div class="col-lg-4">
+            <div class="card bg-dark border-secondary h-100">
+                <div class="card-header bg-secondary">
+                    <h5 class="card-title mb-0">Add Names</h5>
+                </div>
+                <div class="card-body d-flex flex-column">
+                    <div class="mb-3">
+                        <label for="singleName" class="form-label">Add Single Name:</label>
+                        <input type="text" class="form-control bg-dark text-light border-secondary" id="singleName" placeholder="Enter a name and press Enter">
+                    </div>
+
+                    <div class="mb-3 flex-grow-1 d-flex flex-column">
+                        <label for="bulkNames" class="form-label">Add Multiple Names (one per line):</label>
+                        <textarea class="form-control bg-dark text-light border-secondary flex-grow-1" id="bulkNames" placeholder="Enter names, one per line" rows="5"></textarea>
+                    </div>
+
+                    <div class="d-flex gap-2 mb-3">
+                        <button class="btn btn-primary flex-fill" onclick="addSingleName()">Add Name</button>
+                        <button class="btn btn-info flex-fill" onclick="addBulkNames()">Add Multiple</button>
+                        <button class="btn btn-danger flex-fill" onclick="clearNames()">Clear All</button>
+                    </div>
+
+                    <div class="border border-secondary rounded p-3 bg-black overflow-auto" style="max-height: 250px;" id="namesList">
+                        <p class="text-muted mb-0 text-center">No names added yet. Add some names to get started!</p>
+                    </div>
+
+                    <div class="text-center mt-3">
+                        <small class="text-muted">💡 Tip: Press Enter in the single name field to quickly add names!</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Panel - Wheel and Controls -->
+        <div class="col-lg-8 d-flex flex-column">
+            <div class="card bg-dark border-secondary flex-grow-1">
+                <div class="card-body d-flex flex-column align-items-center justify-content-center position-relative">
+                    <!-- Wheel Container -->
+                    <div class="position-relative mb-4" style="width: 600px; height: 600px;">
+                        <!-- Arrow Pointer -->
+                        <div class="position-absolute top-0 start-50 translate-middle-x" style="width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-top: 60px solid #dc3545; z-index: 10;"></div>
+                        
+                        <!-- Wheel SVG -->
+                        <svg id="wheelSvg" width="600" height="600" viewBox="0 0 400 400" style="border: 8px solid white; border-radius: 50%;">
+                        </svg>
+                        
+                        <!-- Center Circle -->
+                        <div class="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold border border-white border-4" style="width: 120px; height: 120px; font-size: 1.8rem; z-index: 5; pointer-events: none;">
+                            SPIN
+                        </div>
+
+                        <!-- Result Display - Overlays the wheel center -->
+                        <div class="position-absolute top-50 start-50 translate-middle d-none rounded-circle bg-success border border-white border-5 shadow-lg d-flex flex-column align-items-center justify-content-center" id="result" style="width: 450px; height: 450px; z-index: 20;">
+                            <h3 class="text-center mb-2" style="font-size: 2.2rem;">🎉 Winner 🎉</h3>
+                            <p class="text-center fw-bold mb-0 px-3" id="winnerName" style="font-size: 3rem; word-break: break-word;"></p>
+                            <button class="btn btn-primary mt-3" id="removeWinnerBtn" onclick="removeWinnerAndSpinAgain()"><i class="fas fa-user-slash"></i> Remove Winner From Wheel &amp; Spin Again</button>
+                        </div>
+                    </div>
+
+                    <!-- Spin Button -->
+                    <button class="btn btn-primary btn-lg px-5 py-3 mb-4" id="spinBtn" onclick="spinWheel()" disabled>
+                        <i class="fas fa-sync-alt me-2" id="spinIcon"></i>SPIN THE WHEEL!
+                    </button>
+                    <!-- Winners List -->
+                    <div class="w-100 mt-2 mb-2">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <h5 class="mb-0 text-light">Previous Winners</h5>
+                        </div>
+                        <div id="winnersList" class="bg-black border border-secondary rounded p-3 text-light" style="min-height: 48px; max-height: 120px; overflow-y: auto;">
+                            <!-- Winner badges will be injected here by JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    let names = [];
+    let isSpinning = false;
+    let winners = [];
+
+    // Color palette for wheel segments
+    const colors = [
+        '#dc3545', '#0dcaf0', '#0d6efd', '#fd7e14', 
+        '#20c997', '#ffc107', '#6f42c1', '#6c757d',
+        '#198754', '#d63384', '#17a2b8', '#28a745'
+    ];
+
+    // Load names and winners from localStorage on page load
+    window.onload = function() {
+        const savedNames = localStorage.getItem('spinnerNames');
+        if (savedNames) {
+            names = JSON.parse(savedNames);
+            updateDisplay();
+        }
+        const savedWinners = localStorage.getItem('spinnerWinners');
+        if (savedWinners) {
+            winners = JSON.parse(savedWinners);
+            updateWinnersList();
+        }
+    };
+
+    // Add single name with Enter key support
+    document.getElementById('singleName').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            addSingleName();
+        }
+    });
+
+    function addSingleName() {
+        const input = document.getElementById('singleName');
+        const name = input.value.trim();
+        
+        if (name && !names.includes(name)) {
+            names.push(name);
+            input.value = '';
+            updateDisplay();
+            saveNames();
+        } else if (names.includes(name)) {
+            alert('This name is already in the list!');
+        }
+    }
+
+    function addBulkNames() {
+        const textarea = document.getElementById('bulkNames');
+        const newNames = textarea.value.split('\n')
+            .map(name => name.trim())
+            .filter(name => name && !names.includes(name));
+        
+        if (newNames.length > 0) {
+            names.push(...newNames);
+            textarea.value = '';
+            updateDisplay();
+            saveNames();
+        }
+    }
+
+    function clearNames() {
+        if (confirm('Are you sure you want to clear all names?')) {
+            names = [];
+            updateDisplay();
+            saveNames();
+        }
+    }
+
+    function removeName(index) {
+        names.splice(index, 1);
+        updateDisplay();
+        saveNames();
+    }
+
+    function saveNames() {
+        localStorage.setItem('spinnerNames', JSON.stringify(names));
+    }
+
+    function updateDisplay() {
+        const namesList = document.getElementById('namesList');
+        
+        if (names.length === 0) {
+            namesList.innerHTML = '<p class="text-muted mb-0 text-center">No names added yet. Add some names to get started!</p>';
+            document.getElementById('spinBtn').disabled = true;
+        } else {
+            namesList.innerHTML = names.map((name, index) => 
+                `<span class="badge bg-secondary me-2 mb-2 fs-6" role="button" onclick="removeName(${index})" title="Click to remove">${name} <i class="fas fa-times ms-1"></i></span>`
+            ).join('');
+            document.getElementById('spinBtn').disabled = false;
+        }
+
+        updateWheel();
+    }
+
+    function updateWheel() {
+        const wheelSvg = document.getElementById('wheelSvg');
+        
+        // Clear previous segments
+        wheelSvg.innerHTML = '';
+
+        if (names.length === 0) return;
+
+        const centerX = 200;
+        const centerY = 200;
+        const radius = 200;
+        const segmentAngle = 360 / names.length;
+
+        names.forEach((name, index) => {
+            const startAngle = (segmentAngle * index - 90) * (Math.PI / 180);
+            const endAngle = (segmentAngle * (index + 1) - 90) * (Math.PI / 180);
+            
+            const x1 = centerX + radius * Math.cos(startAngle);
+            const y1 = centerY + radius * Math.sin(startAngle);
+            const x2 = centerX + radius * Math.cos(endAngle);
+            const y2 = centerY + radius * Math.sin(endAngle);
+            
+            const largeArcFlag = segmentAngle > 180 ? 1 : 0;
+            
+            const pathData = [
+                `M ${centerX} ${centerY}`,
+                `L ${x1} ${y1}`,
+                `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+                'Z'
+            ].join(' ');
+            
+            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttribute('d', pathData);
+            path.setAttribute('fill', colors[index % colors.length]);
+            path.setAttribute('stroke', '#000');
+            path.setAttribute('stroke-width', '1');
+            
+            wheelSvg.appendChild(path);
+            
+            // Add text label
+            const textAngle = (segmentAngle * index + segmentAngle / 2 - 90) * (Math.PI / 180);
+            const textRadius = radius * 0.65;
+            const textX = centerX + textRadius * Math.cos(textAngle);
+            const textY = centerY + textRadius * Math.sin(textAngle);
+            
+            const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            text.setAttribute('x', textX);
+            text.setAttribute('y', textY);
+            text.setAttribute('text-anchor', 'middle');
+            text.setAttribute('dominant-baseline', 'middle');
+            text.setAttribute('fill', 'white');
+            text.setAttribute('font-weight', 'bold');
+            text.setAttribute('font-size', '14');
+            text.setAttribute('style', 'text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); pointer-events: none;');
+            text.setAttribute('transform', `rotate(${segmentAngle * index + segmentAngle / 2}, ${textX}, ${textY})`);
+            
+            // Truncate long names
+            const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
+            text.textContent = displayName;
+            
+            wheelSvg.appendChild(text);
+        });
+    }
+
+    function spinWheel() {
+        if (isSpinning || names.length === 0) return;
+        
+        isSpinning = true;
+        const result = document.getElementById('result');
+        result.classList.add('d-none');
+        result.classList.remove('d-flex');
+        document.getElementById('spinBtn').disabled = true;
+        document.getElementById('spinIcon').classList.add('fa-spin');
+
+        const wheelSvg = document.getElementById('wheelSvg');
+        const segmentAngle = 360 / names.length;
+        
+        // Random winner
+        const winnerIndex = Math.floor(Math.random() * names.length);
+        
+        // Calculate rotation: multiple full spins + landing on winner
+        const baseRotation = 360 * 5; // 5 full spins
+        const targetRotation = baseRotation + (360 - (winnerIndex * segmentAngle + segmentAngle / 2));
+        
+        // Apply rotation
+        wheelSvg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+        wheelSvg.style.transform = `rotate(${targetRotation}deg)`;
+        
+        // Show result after spin completes
+        setTimeout(() => {
+            showWinner(names[winnerIndex]);
+            isSpinning = false;
+            document.getElementById('spinBtn').disabled = false;
+            document.getElementById('spinIcon').classList.remove('fa-spin');
+            
+            // Reset wheel rotation for next spin
+            setTimeout(() => {
+                wheelSvg.style.transition = 'none';
+                wheelSvg.style.transform = 'rotate(0deg)';
+                setTimeout(() => {
+                    wheelSvg.style.transition = 'transform 4s cubic-bezier(0.17, 0.67, 0.12, 0.99)';
+                }, 50);
+            }, 1000);
+        }, 4000);
+    }
+
+    function showWinner(name) {
+        const result = document.getElementById('result');
+        const winnerName = document.getElementById('winnerName');
+        winnerName.textContent = name;
+        result.classList.remove('d-none');
+        result.classList.add('d-flex');
+        // Add a slight scale animation for dramatic effect
+        result.style.transform = 'translate(-50%, -50%) scale(0)';
+        setTimeout(() => {
+            result.style.transition = 'transform 0.3s ease-out';
+            result.style.transform = 'translate(-50%, -50%) scale(1)';
+        }, 50);
+        // Add winner to list and update
+        winners.push(name);
+        updateWinnersList();
+        saveWinners();
+        // Enable remove button
+        document.getElementById('removeWinnerBtn').disabled = false;
+    }
+
+    function removeWinnerAndSpinAgain() {
+        const winnerName = document.getElementById('winnerName').textContent;
+        const idx = names.indexOf(winnerName);
+        if (idx !== -1) {
+            names.splice(idx, 1);
+            updateDisplay();
+            saveNames();
+        }
+        document.getElementById('removeWinnerBtn').disabled = true;
+        // Spin again if there are names left
+        if (names.length > 0) {
+            setTimeout(() => spinWheel(), 300);
+        }
+    }
+
+    function updateWinnersList() {
+        const winnersList = document.getElementById('winnersList');
+        if (!winners.length) {
+            winnersList.innerHTML = '<span class="text-muted">No winners yet.</span>';
+        } else {
+            winnersList.innerHTML = winners.map((w, i) => `<span class="badge bg-success me-2 mb-2 fs-6">${w}</span>`).join('') + `<button class='btn btn-outline-danger float-end btn-sm ms-2' style='vertical-align: middle;' onclick='clearWinners()'><i class='fas fa-trash float-'></i> Clear</button>`;
+        }
+    }
+
+    function saveWinners() {
+        localStorage.setItem('spinnerWinners', JSON.stringify(winners));
+    }
+
+    function clearWinners() {
+        if (confirm('Clear all previous winners?')) {
+            winners = [];
+            updateWinnersList();
+            saveWinners();
+        }
+    }
+</script>
+
+{% endblock %}

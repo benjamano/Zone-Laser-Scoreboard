@@ -471,6 +471,13 @@ class WebApp:
 
             return render_template("/Music/musicControls.html")
 
+        @self.app.route("/randomNamePicker")
+        def random_name_picker():
+            g.PageTitle = "Random Name Picker"
+            g.PageDescription = "Pick a random name from a list using a spinning wheel"
+
+            return render_template("randomNamePicker.html")
+
         @self.app.route("/api/accounts/login", methods=["POST"])
         def accounts_login():
             currentToken: str = session.get("System_AccountAuthToken") or ""
