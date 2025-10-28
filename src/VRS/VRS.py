@@ -54,7 +54,9 @@ def start_vrs_projector_thread(vrs_projector_factory):
     
     threading.Thread(target=run, daemon=True).start()
     
-    vrs_container['ready'].wait(timeout=30)
+    f.message("Waiting for VRS projector to be ready...", type="info")
+    
+    vrs_container['ready'].wait(timeout=120)
     return vrs_container
 
 class StaticWebWindow(QMainWindow):
@@ -109,6 +111,33 @@ class StaticWebWindow(QMainWindow):
         self.web_view.load(url)
 
 class VRSProjector(QMainWindow):
+    def _set_highest_camera_resolution(self, cap):
+        """Try to set the camera to the highest supported resolution."""
+        common_resolutions = [
+            (1920, 1080), 
+            (1280, 720),  
+            (1024, 768),
+            (800, 600),
+            (640, 480),
+        ]
+        
+        actual_width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        actual_height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        
+        for width, height in common_resolutions:
+            cap.set(cv2.CAP_PROP_FRAME_WIDTH, width)
+            cap.set(cv2.CAP_PROP_FRAME_HEIGHT, height)
+            w = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+            h = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+            actual_width, actual_height = w, h
+            # If the camera accepted the resolution, use it
+            if w == width and h == height:
+                f.message(f"Camera set to resolution: {width}x{height}", type="info")
+                return (width, height)
+        # If none matched, use whatever is set
+        f.message(f"Camera using resolution: {actual_width}x{actual_height}", type="warning")
+        return (actual_width, actual_height)
+    
     show_idle_signal = Signal()
     play_video_signal = Signal(object)
     show_page_signal = Signal(str)
@@ -139,11 +168,11 @@ class VRSProjector(QMainWindow):
 
         monitors = screeninfo.get_monitors()
 
-        f.message(f"Available monitors:")
-        for i, monitor in enumerate(monitors):
-            f.message(f"Monitor {i}: {monitor.name} - Primary: {monitor.is_primary}")
+        # f.message(f"Available monitors:")
+        # for i, monitor in enumerate(monitors):
+        #     f.message(f"Monitor {i}: {monitor.name} - Primary: {monitor.is_primary}")
         
-        f.message(f"Using monitor index: {monitor_index}")
+        # f.message(f"Using monitor index: {monitor_index}")
         monitor = monitors[monitor_index]
 
         if os.environ["USE_VRS"] == "False":
@@ -241,6 +270,7 @@ class VRSProjector(QMainWindow):
                 f.message(f"Warning: Could not pre-load camera {self.default_camera_index}", type="error")
                 self.cap = None
             else:
+                self._set_highest_camera_resolution(self.cap)
                 f.message(f"Camera {self.default_camera_index} pre-loaded successfully")
     
     def show_idle(self):
@@ -301,6 +331,8 @@ class VRSProjector(QMainWindow):
                     # Try to restore default camera
                     self._preload_camera()
                     return
+                else:
+                    self._set_highest_camera_resolution(self.cap)
             else:
                 # Use pre-loaded default camera
                 if not self.cap or not self.cap.isOpened():
@@ -308,6 +340,8 @@ class VRSProjector(QMainWindow):
                     if not self.cap or not self.cap.isOpened():
                         print(f"Cannot open camera {source}")
                         return
+                else:
+                    self._set_highest_camera_resolution(self.cap)
 
             self.stacked_widget.setCurrentIndex(self.VIEW_CAMERA)
             # Start timer to update camera frames at ~30 FPS
