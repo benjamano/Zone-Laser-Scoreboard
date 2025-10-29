@@ -4,7 +4,31 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Laser Tag Results</title>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge,chrome=0">
     <style>
+        /* Anti-flicker: Stabilize text rendering in QtWebEngine */
+        body {
+            -webkit-font-smoothing: antialiased;
+            font-smooth: always;
+            will-change: transform;
+            transform: translateZ(0);
+            contain: strict; /* Prevent layout/paint leaks */
+        }
+        .main-text, .sub-text {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            contain: layout paint;
+            color: #00ffff; /* Use a single color for all text */
+        }
+        /* Remove all fancy color classes */
+        .color-red, .color-blue, .color-green, .color-purple, .color-cyan, .color-yellow {
+            color: #00ffff !important;
+        }
+        /* Reduce transition triggers on text */
+        .main-text, .sub-text {
+            transition: none !important;
+        }
+
         * {
             margin: 0;
             padding: 0;
@@ -214,13 +238,6 @@
             }
         }
 
-        .color-red { color: #ff0040; }
-        .color-blue { color: #00a0ff; }
-        .color-green { color: #00ff40; }
-        .color-purple { color: #a040ff; }
-        .color-cyan { color: #00ffff; }
-        .color-yellow { color: #ffff00; }
-
         .energy-blast {
             position: absolute;
             top: 50%;
@@ -302,8 +319,8 @@
 
         <div class="results-container">
             <div class="energy-blast"></div>
-            <div class="main-text glow-text color-cyan" id="mainText"></div>
-            <div class="sub-text glow-text color-yellow" id="subText"></div>
+            <div class="main-text glow-text" id="mainText"></div>
+            <div class="sub-text glow-text" id="subText"></div>
         </div>
     </div>
 
@@ -457,32 +474,32 @@
             }
 
             // Public methods for changing text content
-            setMainText(text, colorClass = 'color-cyan') {
+            setMainText(text) {
                 const mainText = document.getElementById('mainText');
                 mainText.textContent = text;
-                mainText.className = `main-text glow-text ${colorClass}`;
+                mainText.className = `main-text glow-text`;
             }
 
-            setSubText(text, colorClass = 'color-yellow') {
+            setSubText(text) {
                 const subText = document.getElementById('subText');
                 subText.textContent = text;
-                subText.className = `sub-text glow-text ${colorClass}`;
+                subText.className = `sub-text glow-text`;
             }
 
             // Preset configurations
-            showTeamWin(teamName, teamColor = 'red', score) {
-                this.setMainText(`${teamName.toUpperCase()} WINS!`, `color-${teamColor}`);
-                this.setSubText(`WITH ${score} POINTS!`, `color-${teamColor}`);
+            showTeamWin(teamName, score) {
+                this.setMainText(`${teamName.toUpperCase()} WINS!`);
+                this.setSubText(`WITH ${score} POINTS!`);
             }
 
             showPlayerScore(playerName, score) {
-                this.setMainText(`Gun ${playerName.toUpperCase()} WINS!`, 'color-cyan');
-                this.setSubText(`WITH ${score} POINTS!`, 'color-green');
+                this.setMainText(`Gun ${playerName.toUpperCase()} WINS!`);
+                this.setSubText(`WITH ${score} POINTS!`);
             }
 
             showGameOver() {
-                this.setMainText('GAME OVER', 'color-red');
-                this.setSubText('MISSION COMPLETE', 'color-blue');
+                this.setMainText('GAME OVER');
+                this.setSubText('MISSION COMPLETE');
             }
         }
 
@@ -503,44 +520,39 @@
         }
 
         // Initialize the results screen
-        const resultsScreen = new LaserTagResults();
-        const params = getUrlParams();
+        document.addEventListener('DOMContentLoaded', function() {
+            requestAnimationFrame(() => {
+                setTimeout(() => {
+                    const resultsScreen = new LaserTagResults();
+                    const params = getUrlParams();
+                    if (params.mode === 'team' && params.teamName) {
+                        resultsScreen.showTeamWin(params.teamName, params.score);
+                    } else if (params.mode === 'player' && params.playerName && params.score) {
+                        resultsScreen.showPlayerScore(params.playerName, params.score);
+                    } else if (params.mainText) {
+                        resultsScreen.setMainText(params.mainText);
+                        if (params.subText) {
+                            resultsScreen.setSubText(params.subText);
+                        }
+                    } else {
+                        // Default demo mode - cycle through different results every 8 seconds
+                        //const demoResults = [
+                        //    () => resultsScreen.showTeamWin('Red Team', 'red'),
+                        // () => resultsScreen.showTeamWin('Blue Team', 'blue'),
+                        // () => resultsScreen.showPlayerScore('CHAOS', 7430),
+                        // () => resultsScreen.showPlayerScore('VIPER', 6890),
+                        // () => resultsScreen.setMainText('PERFECT GAME!', 'color-purple'),
+                        //];
 
-        // Apply URL parameters if they exist
-        if (params.mode === 'team' && params.teamName) {
-            resultsScreen.showTeamWin(params.teamName, params.teamColor, params.score);
-        } else if (params.mode === 'player' && params.playerName && params.score) {
-            resultsScreen.showPlayerScore(params.playerName, params.score);
-        } else if (params.mainText) {
-            // Custom text mode
-            resultsScreen.setMainText(params.mainText, `color-${params.mainColor}`);
-            if (params.subText) {
-                resultsScreen.setSubText(params.subText, `color-${params.subColor}`);
-            }
-        } else {
-            
-
-            // Default demo mode - cycle through different results every 8 seconds
-            //const demoResults = [
-            //    () => resultsScreen.showTeamWin('Red Team', 'red'),
-                // () => resultsScreen.showTeamWin('Blue Team', 'blue'),
-                // () => resultsScreen.showPlayerScore('CHAOS', 7430),
-                // () => resultsScreen.showPlayerScore('VIPER', 6890),
-                // () => resultsScreen.setMainText('PERFECT GAME!', 'color-purple'),
-            // ];
-
-            // let currentDemo = 0;
-            // setInterval(() => {
-            //     demoResults[currentDemo]();
-            //     currentDemo = (currentDemo + 1) % demoResults.length;
-            // }, 8000);
-        }
-
-        // Example URLs you can use:
-        // /?mainText=This Is An Announcement
-        // /?mainText=MISSION COMPLETE&subText=All Targets Eliminated&mainColor=green&subColor=blue
-        // /?mode=team&teamName=Alpha Squad&teamColor=blue
-        // /?mode=player&playerName=SHADOWHAWK&score=9999
+                        // let currentDemo = 0;
+                        // setInterval(() => {
+                        //     demoResults[currentDemo]();
+                        //     currentDemo = (currentDemo + 1) % demoResults.length;
+                        // }, 8000);
+                    }
+                }, 60); // Slightly reduced delay for faster paint
+            });
+        });
     </script>
 </body>
 </html>

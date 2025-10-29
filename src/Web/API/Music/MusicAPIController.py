@@ -3,6 +3,7 @@ import threading
 import time
 from collections import deque
 from datetime import datetime
+import random
 
 import librosa
 import vlc
@@ -577,16 +578,16 @@ class MusicAPIController:
                 playListSongIds = [song.songId for song in playlistSongs]
                 songs = self._context.db.session.query(Song).filter(Song.id.in_(playListSongIds)).all()
                 
+                # Shuffle the songs before adding to queue
+                random.shuffle(songs)
+                
                 self._context.db.session.flush()
                 self._context.db.session.expunge(playlist)
                 
                 self.currentPlaylist = playlist
-            
             self.queue.clear()
-            
             for song in songs:
                 self.addToQueue(song)
-            
             return True
         except Exception as e:
             self.logError("Load Playlist to Queue", e)
