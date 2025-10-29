@@ -274,8 +274,11 @@ class VRSProjector(QMainWindow):
                 f.message(f"Warning: Could not pre-load camera {self.default_camera_index}", type="error")
                 self.cap = None
             else:
-                self._set_highest_camera_resolution(self.cap)
-                f.message(f"Camera {self.default_camera_index} pre-loaded successfully")
+                # Set camera resolution in a background thread
+                def set_resolution_async():
+                    self._set_highest_camera_resolution(self.cap)
+                    f.message(f"Camera {self.default_camera_index} pre-loaded successfully")
+                threading.Thread(target=set_resolution_async, daemon=True).start()
     
     def show_idle(self):
         """Thread-safe method to show idle screen"""
