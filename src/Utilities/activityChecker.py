@@ -56,7 +56,7 @@ while True:
             if tries == TRIES_BEFORE_RESTART:
                 print("Attempting to restart server...")
                 subprocess.Popen(
-                    [f"../runPython.bat"],
+                    [f"runPython.bat"],
                     creationflags=subprocess.CREATE_NEW_CONSOLE
                 )
 
