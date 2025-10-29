@@ -1,0 +1,82 @@
+body{
+    background-color: white;
+}
+
+.navbar {
+    background-color: grey !important;
+}
+
+.card-header, .card-footer {
+    background-color: #f8941c !important;
+}
+
+.card-body {
+    background-color: rgb(240, 240, 240) !important;
+    color: black !important;
+}
+
+label {
+    color: black !important;
+}
+
+.card {
+    border-color: darkgrey !important;
+}
+
+.btn-primary {
+    background-color: #f8941c !important;
+    border-color: #f8941c !important;
+}
+
+.btn-primary:hover {
+    background-color: #e6830b !important;
+    border-color: #e6830b !important;
+}
+
+.btn-success {
+    background-color: #28a745 !important;
+    border-color: #28a745 !important;
+}
+
+.btn-success:hover {
+    background-color: #218838 !important;
+    border-color: #218838 !important;
+}
+
+.btn-danger {
+    background-color: #bb202c !important;
+    border-color: #bb202c !important;
+}
+
+.btn-danger:hover {
+    background-color: rgb(146, 27, 39) !important;
+    border-color: rgb(146, 27, 39) !important;
+}
+
+.btn-info {
+    background-color: #00a5ff !important;
+    border-color: #00a5ff !important;
+}
+
+.btn-info:hover {
+    background-color: #0091df !important;
+    border-color: #0091df !important;
+}
+
+.form-control {
+    border-color: darkgrey !important;
+    background-color: white !important;
+    color: black !important;
+}
+
+input::placeholder, textarea::placeholder {
+    color: grey !important;
+}
+
+.bg-primary{
+    background-color: #f8941c !important;
+}
+
+.bg-success{
+    background-color: #28a745 !important;
+}

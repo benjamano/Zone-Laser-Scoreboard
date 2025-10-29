@@ -1,11 +1,13 @@
 {% extends "layout.html" %} {% block content %}
 
+<link rel="stylesheet" href="wwwroot/styles/play2dayTheme.css">
+
 <div class="container-fluid vh-100 d-flex flex-column p-4">
     <!-- <h1 class="text-center mb-4 display-4">🎯 Random Name Picker</h1> -->
     
     <div class="row flex-grow-1 g-4">
         <!-- Left Panel - Name Input -->
-        <div class="col-lg-4">
+        <div class="col-lg-4 mt-1">
             <div class="card bg-dark border-secondary h-100">
                 <div class="card-header bg-secondary">
                     <h5 class="card-title mb-0">Add Names</h5>
@@ -27,40 +29,35 @@
                         <button class="btn btn-danger flex-fill" onclick="clearNames()">Clear All</button>
                     </div>
 
-                    <div class="border border-secondary rounded p-3 bg-black overflow-auto" style="max-height: 250px;" id="namesList">
+                    <div class="border border-secondary rounded p-3 bg-white overflow-auto" style="max-height: 250px;" id="namesList">
                         <p class="text-muted mb-0 text-center">No names added yet. Add some names to get started!</p>
-                    </div>
-
-                    <div class="text-center mt-3">
-                        <small class="text-muted">💡 Tip: Press Enter in the single name field to quickly add names!</small>
                     </div>
                 </div>
             </div>
         </div>
 
         <!-- Right Panel - Wheel and Controls -->
-        <div class="col-lg-8 d-flex flex-column">
+        <div class="col-lg-8 d-flex flex-column mt-1">
             <div class="card bg-dark border-secondary flex-grow-1">
                 <div class="card-body d-flex flex-column align-items-center justify-content-center position-relative">
                     <!-- Wheel Container -->
-                    <div class="position-relative mb-4" style="width: 600px; height: 600px;">
+                    <div id="wheelContainer" class="position-relative mb-4" style="width: 600px; height: 600px;">
                         <!-- Arrow Pointer -->
                         <div class="position-absolute top-0 start-50 translate-middle-x" style="width: 0; height: 0; border-left: 30px solid transparent; border-right: 30px solid transparent; border-top: 60px solid #dc3545; z-index: 10;"></div>
                         
                         <!-- Wheel SVG -->
-                        <svg id="wheelSvg" width="600" height="600" viewBox="0 0 400 400" style="border: 8px solid white; border-radius: 50%;">
-                        </svg>
+                        <svg id="wheelSvg" viewBox="0 0 400 400" style="border: 8px solid white; border-radius: 50%;"></svg>
                         
                         <!-- Center Circle -->
-                        <div class="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold border border-white border-4" style="width: 120px; height: 120px; font-size: 1.8rem; z-index: 5; pointer-events: none;">
+                        <div class="position-absolute top-50 start-50 translate-middle bg-primary rounded-circle d-flex align-items-center justify-content-center fw-bold border border-white border-4" style="width: 20%; height: 20%; font-size: 1.8rem; z-index: 5; pointer-events: none; min-width: 60px; min-height: 60px; max-width: 120px; max-height: 120px;">
                             SPIN
                         </div>
 
                         <!-- Result Display - Overlays the wheel center -->
-                        <div class="position-absolute top-50 start-50 translate-middle d-none rounded-circle bg-success border border-white border-5 shadow-lg d-flex flex-column align-items-center justify-content-center" id="result" style="width: 450px; height: 450px; z-index: 20;">
+                        <div class="position-absolute top-50 start-50 translate-middle d-none rounded-circle bg-success border border-white border-5 shadow-lg d-flex flex-column align-items-center justify-content-center" id="result" style="width: 75%; height: 75%; z-index: 20; min-width: 180px; min-height: 180px; max-width: 450px; max-height: 450px;">
                             <h3 class="text-center mb-2" style="font-size: 2.2rem;">🎉 Winner 🎉</h3>
                             <p class="text-center fw-bold mb-0 px-3" id="winnerName" style="font-size: 3rem; word-break: break-word;"></p>
-                            <button class="btn btn-primary mt-3" id="removeWinnerBtn" onclick="removeWinnerAndSpinAgain()"><i class="fas fa-user-slash"></i> Remove Winner From Wheel &amp; Spin Again</button>
+                            <button class="btn btn-primary mt-3" id="removeWinnerBtn" onclick="removeWinnerAndSpinAgain()"><i class="fas fa-user-slash"></i> Remove Winner &amp; Spin Again</button>
                         </div>
                     </div>
 
@@ -73,7 +70,7 @@
                         <div class="d-flex justify-content-between align-items-center mb-2">
                             <h5 class="mb-0 text-light">Previous Winners</h5>
                         </div>
-                        <div id="winnersList" class="bg-black border border-secondary rounded p-3 text-light" style="min-height: 48px; max-height: 120px; overflow-y: auto;">
+                        <div id="winnersList" class="bg-white border border-secondary rounded p-3 text-dark" style="min-height: 48px; max-height: 120px; overflow-y: auto;">
                             <!-- Winner badges will be injected here by JS -->
                         </div>
                     </div>
@@ -83,6 +80,46 @@
     </div>
 </div>
 
+<style>
+    /* Responsive wheel container */
+    #wheelContainer {
+        width: 100vw;
+        max-width: 600px;
+        aspect-ratio: 1 / 1;
+        position: relative;
+        margin: 0 auto 2rem auto;
+        min-width: 220px;
+        min-height: 220px;
+    }
+    #wheelSvg {
+        width: 100%;
+        height: 100%;
+        display: block;
+    }
+    @media (max-width: 600px) {
+        #wheelContainer {
+            max-width: 90vw;
+            min-width: 120px;
+            min-height: 120px;
+        }
+        #wheelSvg {
+            min-width: 120px;
+            min-height: 120px;
+        }
+    }
+    @media (max-width: 400px) {
+        #wheelContainer {
+            max-width: 98vw;
+            min-width: 80px;
+            min-height: 80px;
+        }
+        #wheelSvg {
+            min-width: 80px;
+            min-height: 80px;
+        }
+    }
+</style>
+
 <script>
     let names = [];
     let isSpinning = false;
@@ -90,8 +127,8 @@
 
     // Color palette for wheel segments
     const colors = [
-        '#dc3545', '#0dcaf0', '#0d6efd', '#fd7e14', 
-        '#20c997', '#ffc107', '#6f42c1', '#6c757d',
+        '#bb202c', '#f8941c', '#0d6efd', '#28a745', 
+        '#00a5ff', '#0034ff', '#971d1b', '#067001d',
         '#198754', '#d63384', '#17a2b8', '#28a745'
     ];
 
@@ -180,49 +217,41 @@
 
     function updateWheel() {
         const wheelSvg = document.getElementById('wheelSvg');
-        
-        // Clear previous segments
-        wheelSvg.innerHTML = '';
-
-        if (names.length === 0) return;
-
+        // Responsive: get actual size of SVG
+        const rect = wheelSvg.getBoundingClientRect();
+        const size = Math.min(rect.width, rect.height) || 400;
         const centerX = 200;
         const centerY = 200;
         const radius = 200;
+        wheelSvg.setAttribute('viewBox', '0 0 400 400');
+        wheelSvg.innerHTML = '';
+        if (names.length === 0) return;
         const segmentAngle = 360 / names.length;
-
         names.forEach((name, index) => {
             const startAngle = (segmentAngle * index - 90) * (Math.PI / 180);
             const endAngle = (segmentAngle * (index + 1) - 90) * (Math.PI / 180);
-            
             const x1 = centerX + radius * Math.cos(startAngle);
             const y1 = centerY + radius * Math.sin(startAngle);
             const x2 = centerX + radius * Math.cos(endAngle);
             const y2 = centerY + radius * Math.sin(endAngle);
-            
             const largeArcFlag = segmentAngle > 180 ? 1 : 0;
-            
             const pathData = [
                 `M ${centerX} ${centerY}`,
                 `L ${x1} ${y1}`,
                 `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
                 'Z'
             ].join(' ');
-            
             const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
             path.setAttribute('d', pathData);
             path.setAttribute('fill', colors[index % colors.length]);
             path.setAttribute('stroke', '#000');
             path.setAttribute('stroke-width', '1');
-            
             wheelSvg.appendChild(path);
-            
             // Add text label
             const textAngle = (segmentAngle * index + segmentAngle / 2 - 90) * (Math.PI / 180);
             const textRadius = radius * 0.65;
             const textX = centerX + textRadius * Math.cos(textAngle);
             const textY = centerY + textRadius * Math.sin(textAngle);
-            
             const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
             text.setAttribute('x', textX);
             text.setAttribute('y', textY);
@@ -233,11 +262,9 @@
             text.setAttribute('font-size', '14');
             text.setAttribute('style', 'text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8); pointer-events: none;');
             text.setAttribute('transform', `rotate(${segmentAngle * index + segmentAngle / 2}, ${textX}, ${textY})`);
-            
             // Truncate long names
             const displayName = name.length > 15 ? name.substring(0, 12) + '...' : name;
             text.textContent = displayName;
-            
             wheelSvg.appendChild(text);
         });
     }
@@ -339,6 +366,8 @@
             saveWinners();
         }
     }
+
+    window.addEventListener('resize', updateWheel);
 </script>
 
 {% endblock %}
