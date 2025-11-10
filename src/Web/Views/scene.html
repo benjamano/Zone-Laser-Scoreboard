@@ -262,7 +262,7 @@
                             "data-bs-title",
                             channel.name.replace(/_/g, " ")
                         );
-                        img.src = `/static/images/channelImageStore/${
+                        img.src = `/wwwroot/images/channelImageStore/${
                             channel.name.toLowerCase().includes("speed")
                                 ? "speed"
                                 : channel.name
@@ -272,7 +272,7 @@
                         }.png`;
         
                         img.onerror = () => {
-                            img.src = `/static/images/channelImageStore/Undef.png`;
+                            img.src = `/wwwroot/images/channelImageStore/Undef.png`;
                         };
         
                         fixtureChannel.appendChild(slider);

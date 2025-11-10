@@ -819,27 +819,29 @@ class WebApp:
                                 "channel": channel.name
                             }
                             continue
+                        
+                        try:
+                            channelValue = DMXFixture.get_channel_value(channel.id)
 
-                        channelValue = DMXFixture.get_channel_value((str(channel.name)).lower())
+                            if DMXFixture.json_data["type"] == "Generic.Dimmer":
+                                channels = {"DMXValue": DMXFixture.channels[1]["value"][0],
+                                            "channel": DMXFixture.channels[1]["name"]}
+                            else:
+                                try:
+                                    fixtureChannelTemp = 0
 
-                        if DMXFixture.json_data["type"] == "Generic.Dimmer":
-                            channels = {"DMXValue": DMXFixture.channels[1]["value"][0],
-                                        "channel": DMXFixture.channels[1]["name"]}
-                        else:
-                            try:
-                                fixtureChannelTemp = 0
+                                    for keyId, dmxChannel in DMXFixture.channels.items():
+                                        if str(channel.name).lower() == str(dmxChannel["name"]).lower():
+                                            fixtureChannelTemp = dmxChannel["value"][0]
 
-                                for keyId, dmxChannel in DMXFixture.channels.items():
-                                    if str(channel.name).lower() == str(dmxChannel["name"]).lower():
-                                        fixtureChannelTemp = dmxChannel["value"][0]
-
-                                channels[channel.name] = {
-                                    "DMXValue": fixtureChannelTemp,
-                                    "channel": channel.name
-                                }
-                            except Exception as e:
-                                f.message(f"Error getting fixture channel: {e}, {dmxChannel["name"]}, {channelValue}",
-                                    type="error")
+                                    channels[channel.name] = {
+                                        "DMXValue": fixtureChannelTemp,
+                                        "channel": channel.name
+                                    }
+                                except Exception as e:
+                                    f.message(f"Error getting fixture channel: {e}, {dmxChannel["name"]}, {channelValue}", type="error")
+                        except Exception as e:
+                            f.message(f"Error getting fixture channel value: {e} {channel.id}", type="error")
 
                     channelValues.append({
                         "name": fixtureName,
