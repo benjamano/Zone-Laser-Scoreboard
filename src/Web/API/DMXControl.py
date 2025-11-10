@@ -147,7 +147,7 @@ class dmx:
     
     def registerCustomFixture(self, fixtureName, fixtureType, channels, startChannel):
         try:
-            fixture = self._dmx.add_fixture(Custom(channels=channels, name=fixtureName, start_channel=startChannel))
+            fixture = self._dmx.add_fixture(Custom(channels=len(channels), name=fixtureName, start_channel=startChannel))
             
             setattr(self, fixtureName, fixture)
         
