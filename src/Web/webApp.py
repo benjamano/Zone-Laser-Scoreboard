@@ -821,7 +821,7 @@ class WebApp:
                             continue
                         
                         try:
-                            channelValue = DMXFixture.get_channel_value(channel.id)
+                            channelValue = DMXFixture.get_channel_value(channel.channelNo)
 
                             if DMXFixture.json_data["type"] == "Generic.Dimmer":
                                 channels = {"DMXValue": DMXFixture.channels[1]["value"][0],
