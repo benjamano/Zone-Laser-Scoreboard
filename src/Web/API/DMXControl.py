@@ -528,6 +528,8 @@ class dmx:
     # Getters
     
     def isConnected(self) -> bool:
+        if self.secrets.get("ENVIRONMENT") == "Development":
+            return True
         try:
             return (not self._dmx == None)
         except:
@@ -637,7 +639,7 @@ class dmx:
             format.message(f"Error getting local IP: {e}", "error")
             return ""
     def getSceneEventById(self, eventId):
-        event = self._context.db.session.query(DMXSceneEvent).get(eventId)
+        event : DMXSceneEvent = self._context.db.session.query(DMXSceneEvent).get(eventId)
         return self._context.DMXSceneEventDTO(
             id=event.id,
             name=event.name, 
@@ -776,7 +778,7 @@ class dmx:
                     flash=scene.flash,
                     keyboard_keybind=scene.keyboard_keybind,
                     song_keybind= songName,
-                    game_event_keybind=scene.game_event_keybind,
+                    game_event_keybind=scene.game_event_id,
                     events=[
                         self._context.DMXSceneEventDTO(
                             id=event.id,
@@ -970,6 +972,15 @@ class dmx:
             ise.severity = "1"
             
             logInternalServerError(self.app, self._context, ise)
+            
+    def trigger_event(self, event_type_id):
+        try:
+            scenes_to_start = self._context.db.session.query(DMXScene).filter_by(game_event_id=event_type_id).all()
+            
+            for scene in scenes_to_start:
+                self.startScene(scene.id)
+        except Exception as e:
+            format.message(f"Error triggering event {event_type_id}: {e}", "error")
             
     # Config
     

@@ -240,7 +240,7 @@ class VRSProjector(QMainWindow):
         <span style="font-family:'ModeSeven'; font-size:32pt; font-weight:bold;">
         <span style="font-size:50pt;">V</span>ideo 
         <span style="font-size:50pt;">R</span>endering 
-        <span style="font-size:50pt;">S</span>ystem
+        <span style="font-size:50pt;">S</span>ubSystem
         </span>
         <div style="font-size:20pt; margin-top: 10px; font-family:'ModeSeven';">Maintained By Ben Mercer</div>
         """)

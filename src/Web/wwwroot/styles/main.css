@@ -1016,6 +1016,7 @@ label {
     flex-direction: column;
     color: white;
     padding: 0.15rem;
+    border-radius: 20rem;
 }
 
 .smallCard {

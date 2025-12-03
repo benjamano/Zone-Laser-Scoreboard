@@ -119,10 +119,20 @@
 
                     <div class="col-12">
                         <div class="form-group" id="selectSongTriggerContainer">
-                            <label for="selectSongTrigger">Select Song Trigger</label>
+                            <label for="selectSongTrigger">Song Trigger</label>
                             <input role="button" type="text" id="selectSongTrigger" onclick="setThisSongAsKeybind();" class="form-control" placeholder="Click To Set To Current Song" readonly>
                             <span class="d-none" id="currentSongId"></span>
                             <span class="d-none" id="currentSongName"></span>
+                        </div>
+                    </div>
+
+                    <div class="col-12">
+                        <div class="form-group" id="selectGameEventTriggerContainer">
+                            <label for="selectGameEventTrigger">Game Event Trigger</label>
+                            <select id="selectGameEventTrigger" class="form-control form-select" onchange="setThisGameEventAsTrigger();">
+                                <option value="">Select Game Event</option>
+                            </select>
+                            <span class="d-none" id="currentGameEventId"></span>
                         </div>
                     </div>
 
@@ -184,7 +194,22 @@
         getDMXScenes();
         fetchFixtures();
         setupEventListeners();
+        getGameEventTypes();
     });
+
+    function getGameEventTypes(){
+        $.ajax({
+            url: "/api/dmx/GetGameEventTypes",
+            type: "GET",
+            success: function (response) {
+                const select = $("#selectGameEventTrigger");
+                response.forEach(function(eventType){
+                    const option = `<option value="${eventType.id}">${eventType.name}</option>`;
+                    select.append(option);
+                });
+            }
+        });
+    }
 
     function fetchFixtures() {
         $.ajax({
@@ -1088,6 +1113,7 @@
                 $("#sceneLoopToggle").prop("checked", scene.repeat);
                 $("#sceneFlashToggle").prop("checked", scene.flash);
                 $("#triggerKeybindClick").text(scene.keyboardKeybind);
+                $("#selectGameEventTrigger").val(scene.game_event_keybind || "");
 
                 if (Array.isArray(scene.events)) {
                     var sceneContainer = $("#sceneStepsList");
@@ -1529,6 +1555,24 @@
             },
             success: function (response) {
                 $("#selectSongTrigger").attr("placeholder", songName);
+            },
+        });
+    }
+
+    function setThisGameEventAsTrigger(){
+        var sceneId = getActiveSceneId();
+        var gameEventId = $("#selectGameEventTrigger").val();
+
+        if (sceneId == null || sceneId == "" || gameEventId == null || gameEventId == "") {
+            return;
+        }
+
+        $.ajax({
+            url: "/api/dmx/SetSceneGameEventTrigger",
+            type: "POST",
+            data: {
+                sceneId: sceneId,
+                gameEventId: gameEventId,
             },
         });
     }

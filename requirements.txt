@@ -1,0 +1,50 @@
+flask
+flask_sqlalchemy
+waitress
+scapy
+flask_socketio
+eventlet
+winrt.windows.media.control
+pillow
+pyshark
+manuf
+pystray
+requests
+pyautogui
+datetime
+psutil
+flask_cors
+dmx
+pyserial
+PyDMXControl
+pyaudio
+sounddevice
+numpy
+spotipy
+winsdk
+obsws_python
+winrt.windows.foundation
+flask_migrate
+pythonnet
+# smtplib
+python-dotenv
+pygetwindow
+GPUtil
+setuptools
+pywin32
+# win32gui
+# win32con
+# win32com.client
+# pythoncom
+python-vlc
+pytube
+librosa
+soundfile
+joblib
+pydub
+yt_dlp
+mutagen
+Pyside6
+screeninfo
+opencv-python
+dependency-injector

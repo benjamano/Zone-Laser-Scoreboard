@@ -701,21 +701,6 @@ class WebApp:
             except Exception as e:
                 return jsonify({"error": str(e)}), 500
 
-        @self.app.route("/api/settings/devtools/requestAccess", methods=["POST"])
-        def settings_devtools_requestAccess():
-            try:
-                password = request.form.get("password")
-
-                if (str(password) != str(os.environ["DEVTOOLSPASSWORD"]) and self.devMode == False):
-                    return jsonify({"error": "Invalid password"}), 401
-
-                self.DevToolsOTP = ''.join(random.choices(string.ascii_letters + string.digits, k=32))
-                self.DevToolsRefreshCount = 5
-                return jsonify(self.DevToolsOTP)
-
-            except Exception as e:
-                return jsonify({"error": str(e)}), 500
-
         @self.app.route("/ping")
         def ping():
             # f.message("|--- I'm still alive! ---|")
@@ -1072,9 +1057,9 @@ class WebApp:
                 return jsonify({"error": "DMX Connection not available"}), 503
 
             try:
-                newDMXScene = self._context.DMXScene(
+                newDMXScene = DMXScene(
                     name="New Scene",
-                    createDate=datetime.now(),
+                    create_date=datetime.now(),
                     duration=0,
                     repeat=False,
                     flash=False
@@ -1107,7 +1092,7 @@ class WebApp:
                     return jsonify({"error": "Invalid input"}), 400
 
                 with self._context.db.session.begin():
-                    scene = self._context.db.session.query(self._context.DMXScene).filter_by(id=sceneId).first()
+                    scene = self._context.db.session.query(DMXScene).filter_by(id=sceneId).first()
 
                     if not scene:
                         return jsonify({"error": "Scene not found"}), 404
@@ -1220,16 +1205,16 @@ class WebApp:
                     return jsonify({"error": "Invalid duration"}), 400
 
                 with self.app.app_context():
-                    sceneEvent = self._context.DMXSceneEvent.query.filter_by(id=sceneEventId).first()
+                    sceneEvent = self._context.db.session.query(DMXSceneEvent).filter_by(id=sceneEventId).first()
                     if not sceneEvent:
                         return jsonify({"error": "Scene event not found"}), 404
 
                     sceneEvent.duration = duration
 
-                    scene = self._context.DMXScene.query.filter_by(id=sceneEvent.sceneID).first()
+                    scene = self._context.db.session.query(DMXScene).filter_by(id=sceneEvent.sceneID).first()
                     if scene:
                         totalDuration = sum(event.duration for event in
-                                            self._context.DMXSceneEvent.query.filter_by(sceneID=scene.id).all())
+                                            self._context.db.session.query(DMXSceneEvent).filter_by(sceneID=scene.id).all())
                         scene.duration = totalDuration
 
                     self._context.db.session.commit()
@@ -1258,7 +1243,7 @@ class WebApp:
                     return jsonify({"error": "sceneId is required"}), 500
 
                 with self.app.app_context():
-                    scene: DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    scene: DMXScene = self._context.db.session.query(DMXScene).filter_by(id=sceneId).first()
                     if not scene:
                         return jsonify({"error": "Scene not found"}), 404
 
@@ -1290,7 +1275,7 @@ class WebApp:
                     return jsonify({"error": "sceneId is required"}), 500
 
                 with self.app.app_context():
-                    scene: DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    scene: DMXScene = self._context.db.session.query(DMXScene).filter_by(id=sceneId).first()
                     if not scene:
                         return jsonify({"error": "Scene not found"}), 404
 
@@ -1356,7 +1341,7 @@ class WebApp:
                     return jsonify({"error": "sceneId and keybind are required"}), 400
 
                 with self.app.app_context():
-                    scene: DMXScene = self._context.DMXScene.query.filter_by(id=sceneId).first()
+                    scene: DMXScene = self._context.db.query(DMXScene).filter_by(id=sceneId).first()
                     if not scene:
                         return jsonify({"error": "Scene not found"}), 404
 
@@ -1375,6 +1360,57 @@ class WebApp:
 
                 logInternalServerError(self.app, self._context, ise)
                 return jsonify({"error": ise.exception_message}), 500
+            
+        @self.app.route("/api/dmx/GetGameEventTypes", methods=["GET"])
+        def GetGameEventTypes():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                with self.app.app_context():
+                    Triggers: list[GameEventType] = self._context.db.session.query(GameEventType).all()
+
+                    TriggerList : list[dict] = [trigger.to_dict() for trigger in Triggers]
+
+                return jsonify(TriggerList), 200
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to get game events: {e}"
+                ise.process = "API: Get Game Event Types"
+                ise.severity = "3"
+
+                logInternalServerError(self.app, self._context, ise)
+                return jsonify({"error": ise.exception_message}), 500
+
+        @self.app.route("/api/dmx/SetSceneGameEventTrigger", methods=["POST"])
+        def SetSceneGameEventTrigger():
+            if self._dmx is None or not self._dmx.isConnected():
+                return jsonify({"error": "DMX Connection not available"}), 503
+
+            try:
+                with self.app.app_context():
+                    sceneId = request.form.get("sceneId")
+                    gameEventId = request.form.get("gameEventId")
+
+                    scene: DMXScene = self._context.db.session.query(DMXScene).filter_by(id=sceneId).first()
+                    if not scene:
+                        return jsonify({"error": "Scene not found"}), 404
+
+                    scene.game_event_id = gameEventId
+
+                    self._context.db.session.commit()
+
+                return jsonify({"success": "Scene game event trigger set"}), 200
+            except Exception as e:
+                ise = InternalServerError()
+                ise.service = "api"
+                ise.exception_message = f"Failed to set scene game event trigger: {e}"
+                ise.process = "API: Set Scene Game Event Trigger"
+                ise.severity = "3"
+
+                logInternalServerError(self.app, self._context, ise)
+                return jsonify({"error": ise.exception_message}), 500
 
         @self.app.route("/api/dmx/getScenesWithKeyboardTriggers", methods=["GET"])
         def getScenesWithKeyboardTriggers():
@@ -1383,8 +1419,8 @@ class WebApp:
 
             try:
                 with self.app.app_context():
-                    Scenes: list[DMXScene] = self._context.DMXScene.query.filter(
-                        self._context.DMXScene.keyboard_keybind.isnot(None).isnot("")).all()
+                    Scenes: list[DMXScene] = self._context.db.query(DMXScene).filter(
+                        self._context.db.query(DMXScene).keyboard_keybind.isnot(None).isnot("")).all()
 
                     scenesWithTriggers = [scene.to_dict() for scene in Scenes if scene.keyboard_keybind]
 
@@ -1855,6 +1891,10 @@ class WebApp:
 
         f.newline()
         
+        self._dmx.trigger_event(GameEventType.GAME_START)
+        
+        self.handleMusic(mode="play")
+        
         self.currentGameId = self._context.createNewGame()
 
         f.message(f"Created new game with Id {self.currentGameId}")
@@ -1865,8 +1905,6 @@ class WebApp:
             pass
 
         f.message(f"Game started at {datetime.now():%d/%m/%Y %H:%M:%S}", type="success")
-
-        self.handleMusic(mode="play")
 
         self.gameStatus = "running"
         self.GunScores = {}
@@ -1882,6 +1920,8 @@ class WebApp:
         self.gameStatus = "stopped"
 
         self.handleMusic(mode="pause")
+        
+        self._dmx.trigger_event(GameEventType.GAME_END)
 
         try:
             self.socketio.emit('end', {'message': f"Game Ended @ {str(datetime.now())}"})

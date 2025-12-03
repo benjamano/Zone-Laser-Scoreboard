@@ -147,6 +147,14 @@ class DMXSceneEventChannel(db.Model):
 class GameEventType(db.Model):
     __tablename__ = 'gameEventType'
     
+    # Constants
+    GAME_START = 1
+    GAME_END = 2
+    PLAYER_SHOT = 3
+    RED_TEAM_WIN = 4
+    GREEN_TEAM_WIN = 5
+    SOLO_WIN = 6
+    
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), nullable=False)
     
@@ -449,7 +457,7 @@ class UserAuthToken(db.Model):
             "id": self.id,
             "userId": self.userId,
             "token": self.token,
-            "expiryDate": self.expiry,
+            "expiryDate": self.expiryDate,
             "createDate": self.createDate,
             "isActive": self.isActive
         }

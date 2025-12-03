@@ -518,6 +518,9 @@ function loadCardConfig(configStr) {
             case "musicVolumeSliderCard":
                 contentArea = createMusicVolumeSliderCard();
                 break;
+            case "playListSelectCard":
+                contentArea = createPlaylistSelectorCard();
+                break;
             default:
                 contentArea = addSmallCard();
         }
@@ -1156,6 +1159,79 @@ function createMusicVolumeSliderCard(){
     return contentArea;
 }
 
+function createPlaylistSelectorCard(){
+    const contentArea = createCard();
+    const card = contentArea.parentElement;
+    card.classList.add("playListSelectCard", "mediumSquareCard");
+    card.dataset.type = "playListSelectCard";
+
+    contentArea.innerHTML = `
+        <ul class="list-group w-100 h-100" style="background: #181818; border: none; box-shadow: none;">
+            <div id='playlistsAvailableHeader' class="musicQueueHeader list-group-item d-flex flex-row justify-content-between align-items-center border-bottom" style="background: #181818; color: #fff; border: none;">
+                <span class="fs-4 fw-bold">Playlists</span>
+            </div>
+            <div class="playlistsAvailableList pe-0" style="overflow-y: auto; max-height: 260px;">
+                <li class="list-group-item d-flex flex-row justify-content-between align-items-center" style="background: #181818; color: #bbb; border: none;">
+                    <span><i class="fa fa-spinner fa-spin me-2"></i>Loading Playlists...</span>
+                </li>
+            </div>
+        </ul>
+    `;
+
+    $.ajax({
+        url: `/api/music/playlists`,
+        type: "GET",
+        success: function (playlists) {
+            const playlistListContainer = contentArea.querySelector(".playlistsAvailableList");
+            playlistListContainer.innerHTML = "";
+            $.ajax({
+				url: "/api/music/currentPlaylist",
+				type: "GET",
+				success: function(playlistId) {
+					const currentPlaylistId = playlistId;
+
+                    playlists.forEach((playlist, idx) => {
+                        const listItem = document.createElement("li");
+
+                        listItem.classList.add("list-group-item", "d-flex", "flex-row", "justify-content-between", "align-items-center", "py-3");
+                        listItem.style.background = "#181818";
+                        listItem.style.border = "none";
+
+                        if (idx !== playlists.length - 1) {
+                            listItem.style.borderBottom = "2px solid #fff";
+                        }
+
+                        listItem.innerHTML = `
+                            <div class="ms-2 me-auto text-white">
+                                <div class="fw-bold" style="font-size: 1.1rem;">${playlist.name}</div>
+                                <div class="text-muted" style="font-size: 0.95rem;">${playlist.description || ""}</div>
+                            </div>
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-outline-light btn-sm px-3" title="Play Playlist" onclick="startPlaylist('${playlist.id}')" ${currentPlaylistId === playlist.id ? 'disabled' : ''}>
+                                    <i class="fa fa-play"></i>
+                                </button>
+                            </div>
+                        `;
+
+                        playlistListContainer.appendChild(listItem);
+                    });
+				}
+			});
+        },
+    });
+
+    return contentArea;
+}
+
+function startPlaylist(id) {
+    if (id) {
+        $.ajax({
+            url: "/api/music/playlists/" + id + "/load",
+            type: "POST",
+        });
+    }
+}
+
 function clearAllCards() {
     document
         .querySelectorAll(".movableItemsContainer .draggableCard")
@@ -1197,5 +1273,4 @@ if (areCardsDraggable() === false) {
 } else {
     $("#addCardDropdown").removeClass("hide");
     $("#clearAllCardsbtn").removeClass("hide");
-
 }

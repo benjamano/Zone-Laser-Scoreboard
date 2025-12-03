@@ -297,6 +297,16 @@ class context:
 
                 if not User.query.first():
                     self.Insert(User(username="Admin", password="1234", createDate=datetime.now(), isActive=True))
+                    self.Insert(UserPermission(userId=1, permissionId=1, createDate=datetime.now(), isActive=True))
+                    self.SaveChanges()
+                    
+                if not GameEventType.query.first():
+                    self.Insert(GameEventType(name="Game Start"))
+                    self.Insert(GameEventType(name="Game End"))
+                    self.Insert(GameEventType(name="Player Shot"))
+                    self.Insert(GameEventType(name="Red Team Win"))
+                    self.Insert(GameEventType(name="Green Team Win"))
+                    self.Insert(GameEventType(name="Solo Win"))
                     self.SaveChanges()
 
                 if not Gun.query.first() and not Player.query.first():
