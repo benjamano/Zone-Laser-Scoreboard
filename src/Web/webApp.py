@@ -1891,8 +1891,11 @@ class WebApp:
 
         f.newline()
         
-        self._dmx.trigger_event(GameEventType.GAME_START)
-        
+        try:
+            self._dmx.trigger_event(GameEventType.GAME_START)
+        except Exception as e:
+            f.message(f"Error triggering DMX Game Start event: {e}", type="error")
+
         self.handleMusic(mode="play")
         
         self.currentGameId = self._context.createNewGame()
@@ -1921,8 +1924,11 @@ class WebApp:
 
         self.handleMusic(mode="pause")
         
-        self._dmx.trigger_event(GameEventType.GAME_END)
-
+        try:
+            self._dmx.trigger_event(GameEventType.GAME_END)
+        except Exception as e:
+            f.message(f"Error triggering DMX Game End event: {e}", type="error")
+            
         try:
             self.socketio.emit('end', {'message': f"Game Ended @ {str(datetime.now())}"})
         except Exception as e:
