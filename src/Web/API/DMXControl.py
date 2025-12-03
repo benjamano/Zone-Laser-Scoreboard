@@ -906,7 +906,7 @@ class dmx:
                 for event in scene.events:
                     if stopEvent.is_set():
                         del self.runningScenes[str(scene.id)]
-                        self.turnOffAllChannels()
+                        # self.turnOffAllChannels()
                         
                         self.socket.emit(
                             'dmxSceneStopped',
