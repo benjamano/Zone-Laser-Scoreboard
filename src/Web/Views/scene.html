@@ -250,7 +250,7 @@
                             }
                         )[0];
                         fixtureChannel.className = "fixtureChannel";
-                        const channelIdSafe = channel.name.replace(/\s+/g, "_");
+                        const channelIdSafe = channel.id;
                         fixtureChannel.id = `fixtureChannel_${fixtureId}_${channelIdSafe}`;
         
                         console.log(
@@ -1263,7 +1263,7 @@
                 event.channels.forEach(function (channel) {
                     var fixtureName = channel.fixture;
                     var channelName = channel.channel;
-                    var channelIdSafe = channelName.replace(/\s+/g, "_");
+                    var channelIdSafe = channel.id;
                     var value = channel.value;
 
                     var valueLabel = document.getElementById(

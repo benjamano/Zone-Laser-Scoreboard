@@ -337,13 +337,16 @@ class dmx:
             if (self._dmx == None or self.isConnected() == False):
                 return -1
             
+            if value == "":
+                value = 0
+            
             try:
                 fixture = self._dmx.get_fixture(int(fixtureName))
             except Exception as e:
                 fixture = self._dmx.get_fixtures_by_name(fixtureName)[0]
             
             if fixture != None:
-                fixture.set_channel(channelName.lower(), int(value))
+                fixture.set_channel(channelName, int(value))
                 
                 return int(value)
             else:
